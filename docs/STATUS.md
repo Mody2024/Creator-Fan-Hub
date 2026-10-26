@@ -151,3 +151,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Creator event module cleanup (2026-10-27)
 - Moved the Supabase client import above the local date helper to keep module declarations consistently ordered for linting and tooling.
 - Added a static check to guard the import/helper ordering.
+
+
+## Media deletion consistency (2026-10-27)
+- Reordered private-media deletion to verify creator ownership, back up the object, remove storage, then delete metadata.
+- If the database deletion fails after storage removal, the file is restored from the in-memory backup; failed restoration produces an explicit administrator warning.
+- Added a static regression assertion for ownership validation and compensation paths. This is application-level recovery, not a substitute for a transactional storage/database service.

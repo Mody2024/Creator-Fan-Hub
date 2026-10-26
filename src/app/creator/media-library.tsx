@@ -180,17 +180,43 @@ export default function MediaLibrary() {
     }
     if(!window.confirm(`Delete “${item.title}” permanently?`)) return;
     setBusy(true);
+    let deletedStoragePath: string | null = null;
+    let backup: Blob | null = null;
+    let contentType = "application/octet-stream";
     try {
-      const {data:userData}=await supabase.auth.getUser();
-      if(!userData.user) throw new Error("Sign in before deleting media.");
+      const {data:userData,error:userError}=await supabase.auth.getUser();
+      if(userError || !userData.user) throw new Error("Sign in before deleting media.");
+      const [bucket,...parts]=item.storage_path.split("/");
+      const path=parts.join("/");
+      if(bucket!=="creator-media-private" || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(path) || path.split("/")[0]!==userData.user.id) {
+        throw new Error("This private file does not belong to the signed-in creator.");
+      }
+      const {data:download,error:downloadError}=await supabase.storage.from(bucket).download(path);
+      if(downloadError || !download) throw downloadError ?? new Error("Could not verify the stored file before deletion.");
+      backup=download;
+      contentType=download.type || String(item.metadata?.mimeType || contentType);
+      const {error:storageError}=await supabase.storage.from(bucket).remove([path]);
+      if(storageError) throw new Error("The storage file could not be deleted, so its metadata was kept.");
+      deletedStoragePath=path;
       const {data:deleted,error:deleteError}=await supabase.rpc("delete_creator_media",{p_media_id:item.media_id});
-      if(deleteError || !deleted?.[0]?.deleted) throw deleteError ?? new Error("Media record could not be deleted.");
-      const path=item.storage_path.split("/").slice(1).join("/");
-      const {error:storageError}=await supabase.storage.from("creator-media-private").remove([path]);
-      setStatus(storageError ? "Media record deleted, but its private storage object could not be removed. Check Storage cleanup." : "Private media and metadata deleted.");
+      if(deleteError || !deleted?.[0]?.deleted) {
+        const {error:restoreError}=await supabase.storage.from(bucket).upload(path,backup,{contentType,upsert:false});
+        deletedStoragePath=null;
+        if(restoreError) throw new Error("Metadata deletion failed and the file could not be restored. Contact the site administrator.");
+        throw deleteError ?? new Error("Media record could not be deleted; the original file was restored.");
+      }
+      deletedStoragePath=null;
+      setStatus("Private media and metadata deleted.");
       await load();
-    } catch(e) { setStatus(e instanceof Error ? e.message : "Delete failed."); }
-    finally { setBusy(false); }
+    } catch(e) {
+      if(deletedStoragePath && backup) {
+        const {error:restoreError}=await supabase.storage.from("creator-media-private").upload(deletedStoragePath,backup,{contentType,upsert:false});
+        if(restoreError) setStatus("Deletion failed and the storage backup could not be restored. Contact the site administrator.");
+        else setStatus(e instanceof Error ? e.message : "Delete failed; the original file was restored.");
+      } else {
+        setStatus(e instanceof Error ? e.message : "Delete failed.");
+      }
+    } finally { setBusy(false); }
   }
 
   return <section className="media-library" aria-labelledby="media-library-title">
