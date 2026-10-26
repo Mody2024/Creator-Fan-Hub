@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
+import PublishedPolls from "@/app/vote/published-polls";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ export default async function HomePage() {
         <div className="idea-panel"><div className="idea-panel-top"><span>COMMUNITY SUGGESTIONS</span><span className="live-dot">● OPEN FOR IDEAS</span></div><div className="idea-empty"><span className="empty-mark">✳</span><h3>Your idea belongs here.</h3><p>The submission system is being connected. For now, explore the preview while we build the real, moderated suggestion flow.</p><span className="status-pill">SUBMISSIONS COMING SOON</span></div></div>
       </section>
 
-      <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Voting will go live when the database and abuse protections are connected. No pretend results, no fake votes.</p></div><div className="vote-placeholder"><span className="vote-number">?</span><div><span className="eyebrow">NEXT COMMUNITY POLL</span><h3>The next vote is being prepared.</h3><p>Poll options and deadlines will appear here once published by the creator.</p></div><span className="status-pill">NOT LIVE YET</span></div></section>
+      <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Voting will go live when the database and abuse protections are connected. No pretend results, no fake votes.</p></div><PublishedPolls /></section>
 
       <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p><a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a><div className="community-orbit">✳</div></section>
       <footer className="site-footer"><span>THE INNER CIRCLE / COMMUNITY PORTAL</span><a href="#home">BACK TO TOP ↑</a></footer>
