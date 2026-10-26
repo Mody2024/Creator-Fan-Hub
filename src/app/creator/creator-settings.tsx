@@ -78,6 +78,16 @@ export default function CreatorSettings() {
 
   useEffect(() => { void load(); }, [load]);
 
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [hasUnsavedChanges]);
+
   function update<K extends keyof SiteDraft>(section: K, key: string, value: unknown) {
     setDraft(current => ({ ...current, [section]: { ...(current[section] as Record<string, unknown>), [key]: value } }));
   }
