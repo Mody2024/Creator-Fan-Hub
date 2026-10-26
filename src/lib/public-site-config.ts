@@ -19,6 +19,7 @@ export type PublicSiteConfig = {
   maintenance: { enabled: boolean; message: string };
   featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
   visibleSections: string[];
+  sectionOrder: string[];
   narrationAutoPlay: boolean;
 };
 
@@ -41,6 +42,7 @@ const fallback: PublicSiteConfig = {
   maintenance: { enabled: false, message: "We'll be back soon." },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
   visibleSections: ["hero","ideas","poll","events","community","socials"],
+  sectionOrder: ["hero","ideas","poll","events","community","socials"],
   narrationAutoPlay: true
 };
 
@@ -102,6 +104,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
       message: typeof maintenance.message === "string" ? maintenance.message.slice(0, 240) : fallback.maintenance.message
     },
     visibleSections: Array.isArray(layout.visibleSections) ? layout.visibleSections.filter((item): item is string => typeof item === "string" && allowedSections.includes(item)) : fallback.visibleSections,
+    sectionOrder: Array.isArray(layout.sectionOrder) ? [...new Set(layout.sectionOrder.filter((item): item is string => typeof item === "string" && allowedSections.includes(item)))].concat(fallback.sectionOrder.filter(item => !layout.sectionOrder.includes(item))) : fallback.sectionOrder,
     featureFlags: {
       polls: flags.polls !== false, ideas: flags.ideas !== false, events: flags.events !== false,
       guidedTour: flags.guidedTour !== false, mascot: flags.mascot !== false,
