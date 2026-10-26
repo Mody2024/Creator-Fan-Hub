@@ -39,6 +39,7 @@ check("hero video honors muted and loop settings", page.includes("muted={config.
 check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
 check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
+check("creator editor reports media-selector loading failures", editor.includes('error: mediaError') && editor.includes("media options could not be loaded"));
 check("creator editor has explicit draft/publish actions", editor.includes("Save draft") && editor.includes("Save & publish"));
 check("creator editor visibly tracks unsaved draft changes", editor.includes("hasUnsavedChanges") && editor.includes("UNSAVED CHANGES") && editor.includes("ALL CHANGES SAVED"));
 check("creator editor confirms before discarding draft edits", editor.includes("Discard your unsaved changes and reload the saved draft?"));
