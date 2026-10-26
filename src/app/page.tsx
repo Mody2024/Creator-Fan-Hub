@@ -18,7 +18,7 @@ export default async function HomePage() {
   return (
     <main className={`site theme-${config.theme}`} style={config.theme === "custom" ? ({ "--accent": config.accent } as CSSProperties & { "--accent": string }) : undefined}>
       <header className="topbar">
-        <a className="wordmark" href="#home" aria-label={config.siteName}>{config.siteName}<span>®</span></a>
+        <a className="wordmark" href="#home" aria-label={config.siteName}>{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : config.siteName}<span>®</span></a>
         <nav aria-label="Main navigation">
           {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}
         </nav>
@@ -33,9 +33,8 @@ export default async function HomePage() {
           <div className="hero-actions">{config.featureFlags.polls && config.visibleSections.includes("poll") && <a className="button button-primary" href="#vote">Cast your vote <span>↗</span></a>}{config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a className="text-link" href="#ideas">Submit an idea <span>↓</span></a>}</div>
           <div className="proof"><span className="proof-dots"><i>✳</i><i>✦</i><i>◉</i></span><span>Made with the people who watch.</span></div>
         </div>
-        <div className="hero-art" aria-label="Abstract glowing portal artwork" role="img">
-          <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">IC<span>✳</span></div></div>
-          <span className="art-label label-top">YOUR IDEAS, IN MOTION</span><span className="art-label label-bottom">COMMUNITY / 001</span>
+        <div className={config.heroMediaUrl ? "hero-art hero-art-media" : "hero-art"} aria-label={config.heroMediaUrl ? "Creator-selected hero media" : "Abstract glowing portal artwork"} role="img">
+          {config.heroMediaUrl ? (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted playsInline loop preload="metadata" /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />) : <><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">IC<span>✳</span></div></div><span className="art-label label-top">YOUR IDEAS, IN MOTION</span><span className="art-label label-bottom">COMMUNITY / 001</span></>}
         </div>
         <div className="hero-index"><span>01 — 03</span><span>SCROLL TO EXPLORE ↓</span></div>
       </section>}
