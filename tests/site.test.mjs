@@ -15,7 +15,7 @@ test("public page contains the expected primary sections", () => {
 });
 
 test("demo interactions clearly disclose that data is not persisted", () => {
-  assert.match(html, /not sent or stored/i);
+  assert.match(html, /no vote is sent or stored/i);
   assert.match(html, /does not send or save your idea/i);
   assert.match(html, /not been sent or saved/i);
 });
