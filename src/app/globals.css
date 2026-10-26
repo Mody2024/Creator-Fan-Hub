@@ -82,3 +82,14 @@
 .public-video-unavailable p{margin:0;max-width:26ch;font-size:13px;color:rgba(255,255,255,.75);line-height:1.6}
 .public-video-unavailable button{border:1px solid rgba(255,255,255,.45);border-radius:999px;background:transparent;color:inherit;padding:8px 14px;cursor:pointer;font:inherit;font-size:12px}
 .public-video-unavailable button:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+
+
+/* Creator idea moderation filters */
+.moderation-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.moderation-summary span{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:10px var(--mono);letter-spacing:.02em}
+.moderation-filters{display:grid;grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto;align-items:end;gap:12px;margin:22px 0 18px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.moderation-filters label{display:grid;gap:7px;color:var(--muted);font-size:11px}
+.moderation-filters input,.moderation-filters select{width:100%;min-width:0;min-height:42px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--background);color:var(--foreground);font:inherit}
+.moderation-filters>span{padding:12px 0;color:var(--muted);font:10px var(--mono);white-space:nowrap}
+.moderation-filters input:focus-visible,.moderation-filters select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:640px){.moderation-filters{grid-template-columns:minmax(0,1fr);gap:10px;padding:11px}.moderation-filters>span{padding:0}}
