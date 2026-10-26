@@ -1,5 +1,5 @@
 const SECTION_KEYS = new Set([
-  "hero", "ideas", "poll", "latest", "events", "community", "videos", "socials"
+  "hero", "ideas", "poll", "events", "community", "videos", "socials"
 ]);
 const THEMES = new Set(["obsidian", "paper", "violet", "custom"]);
 const COLOR_MODES = new Set(["dark", "light", "system"]);
@@ -58,11 +58,17 @@ export function validateSiteConfig(input) {
   if (!isRecord(identity)) {
     addError(errors, "identity", "must be an object");
   } else {
-    checkAllowedKeys(identity, new Set(["siteName", "tagline", "logoMediaId", "mascotMediaId"]), "identity", errors);
+    checkAllowedKeys(identity, new Set(["siteName", "tagline", "logoMediaId", "mascotMediaId", "narrationMediaId", "narrationText", "narrationAutoPlay"]), "identity", errors);
     checkText(identity.siteName, "identity.siteName", errors, { required: true, max: 100 });
     checkText(identity.tagline, "identity.tagline", errors, { max: 240 });
-    for (const key of ["logoMediaId", "mascotMediaId"]) {
-      checkOptionalId(identity[key], `identity.${key}`, errors);
+    for (const key of ["logoMediaId", "mascotMediaId", "narrationMediaId"]) {
+      checkOptionalId(identity[key] ?? null, `identity.${key}`, errors);
+    }
+    if (identity.narrationText !== undefined) {
+      checkText(identity.narrationText, "identity.narrationText", errors, { max: 1600 });
+    }
+    if (identity.narrationAutoPlay !== undefined && typeof identity.narrationAutoPlay !== "boolean") {
+      addError(errors, "identity.narrationAutoPlay", "must be boolean");
     }
   }
 

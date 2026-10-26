@@ -112,3 +112,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Unpublishing now attempts to remove the public storage object before marking the asset private, avoiding a stale publicly accessible copy if storage removal fails.
 - If the metadata update fails after public removal, the client attempts to restore the original public object and reports a critical recovery failure explicitly.
 - Publishing cleanup failures can leave a private duplicate only; live storage/database rollback still needs end-to-end testing.
+
+
+## Publishing schema integration fix (2026-10-27)
+- Aligned the site-config validator with creator-editor narration media ID, transcript, and autoplay fields. Transcript text is capped at 1,600 characters and autoplay must be boolean.
+- Removed the unsupported latest section key from the publish schema because the public homepage has no corresponding renderer.
+- Added static checks for these contracts. Live publishing remains subject to database and deployment verification.
