@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, narration, guidedTour] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -26,7 +26,9 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../src/app/creator/poll-management.tsx"),
   read("../src/app/creator/publishing-history.tsx"),
   read("../src/app/api/creator/history/route.ts"),
-  read("../supabase/migrations/20261026001800_creator_publish_history_restore.sql")
+  read("../supabase/migrations/20261026001800_creator_publish_history_restore.sql"),
+  read("../src/app/narration-control.tsx"),
+  read("../src/app/guided-welcome-tour.tsx")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -109,6 +111,14 @@ check("historical restore is explicitly draft-only in the UI", historyComponent.
 check("history API validates version input and handles missing versions", historyRoute.includes("Number.isSafeInteger(version)") && historyRoute.includes('error.code === "P0002" ? 404'));
 check("history RPCs require active creator access and restrict grants", historyMigration.includes("public.is_active_creator()") && historyMigration.includes("revoke all on function public.get_creator_publish_history") && historyMigration.includes("revoke all on function public.restore_site_config_version"));
 check("restore operation writes an audit record and advances draft revision", historyMigration.includes("'restore_to_draft'") && historyMigration.includes("draft_revision = d.draft_revision + 1") && historyMigration.includes("sourceVersion"));
+
+check("narration transcript toggle truly hides and restores the transcript", narration.includes("{showTranscript ? <div className=\"narration-transcript\"") && narration.includes("aria-expanded={showTranscript}") && narration.includes("Transcript hidden"));
+check("narration supports replay and announces audio load failures", narration.includes("Replay ↻") && narration.includes("onError={() => { setPlaying(false); setMessage("));
+check("narration pauses on component unmount", narration.includes("useEffect(() => () =>") && narration.includes("audio.current?.pause()"));
+check("guided tour includes events and videos when those sections are present", guidedTour.includes('target: "events"') && guidedTour.includes('target: "videos"'));
+check("guided tour filters missing sections instead of showing dead steps", guidedTour.includes("steps.filter(item => Boolean(document.getElementById(item.target)))") && guidedTour.includes("if (!visible.length)"));
+check("guided tour supports Escape and restores launcher focus", guidedTour.includes('event.key === "Escape"') && guidedTour.includes("launchButton.current?.focus()"));
+check("guided tour exposes accessible progress and narration failure state", guidedTour.includes('role="progressbar"') && guidedTour.includes("onError={() => setAudioStatus("));
 
 if (failures.length) {
   console.error("Repository validation failed:");

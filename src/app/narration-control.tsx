@@ -18,30 +18,37 @@ export default function NarrationControl({ src, transcript, autoPlay = true }: {
     } catch {
       setPlaying(false);
       setMessage(autoplayAttempt
-        ? "Your browser blocked automatic audio. Tap Play introduction to listen."
-        : "Playback is unavailable. Check your browser's audio settings and try again.");
+        ? "Automatic audio was blocked. Select Play voice-over to listen."
+        : "Playback could not start. Check the audio file or browser settings and try again.");
     }
   }, []);
 
   useEffect(() => {
-    // Respect the creator setting. Browsers may block audible autoplay; the visible control is the fallback.
     if (autoPlay) void start(true);
   }, [start, src, autoPlay]);
+
+  useEffect(() => () => {
+    audio.current?.pause();
+  }, []);
 
   return <section className="narration-card" aria-label="Website voice-over introduction">
     <div className="narration-card-top">
       <span className="narration-kicker"><i aria-hidden="true" /> THE WELCOME MESSAGE</span>
       <span className="narration-status" role="status" aria-live="polite">{message}</span>
     </div>
-    <div className="narration-transcript" aria-live="polite">
+    {showTranscript ? <div className="narration-transcript">
       <span className="narration-quote" aria-hidden="true">“</span>
       <p>{transcript || "Welcome. Explore the community and help shape what comes next."}</p>
-    </div>
+    </div> : <p className="narration-hidden-note">Transcript hidden. Select “Show text” to read the narration.</p>}
     <div className="narration-controls">
-      <audio ref={audio} src={src} preload="auto" onEnded={() => { setPlaying(false); setMessage("Introduction finished"); }} onPause={() => setPlaying(false)} onPlay={() => { setPlaying(true); setMessage("Narration playing"); }} />
+      <audio ref={audio} src={src} preload="metadata"
+        onEnded={() => { setPlaying(false); setMessage("Introduction finished"); }}
+        onPause={() => setPlaying(false)}
+        onPlay={() => { setPlaying(true); setMessage("Narration playing"); }}
+        onError={() => { setPlaying(false); setMessage("Audio file could not be loaded. The transcript remains available."); }} />
       <button type="button" className="button button-primary" onClick={() => playing ? audio.current?.pause() : void start(false)}>{playing ? "Pause voice-over Ⅱ" : "Play voice-over ▶"}</button>
       <button type="button" className="narration-transcript-toggle" aria-expanded={showTranscript} onClick={() => setShowTranscript(v => !v)}>{showTranscript ? "Hide text −" : "Show text +"}</button>
+      <button type="button" className="narration-transcript-toggle" onClick={() => { const player = audio.current; if (player) { player.currentTime = 0; void start(false); } }}>Replay ↻</button>
     </div>
-    {!showTranscript && <span className="narration-hidden-note">Transcript hidden. Use “Show text” to read the narration.</span>}
   </section>;
 }
