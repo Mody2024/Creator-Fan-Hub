@@ -248,3 +248,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Tightened the bounded JSON reader to consume the request stream incrementally and stop/cancel immediately when the byte limit is crossed, rather than buffering an unbounded body before checking its size.
 - Decode now rejects malformed UTF-8 before JSON parsing. Oversized bodies still return 413 and invalid bodies return 400.
 - Updated regression coverage to require streaming reads, early cancellation, and strict UTF-8 decoding.
+
+## Request-body limit unit tests (2026-10-27)
+- Added direct Node test coverage for valid JSON, malformed JSON, invalid UTF-8, early Content-Length rejection, and streamed bodies that exceed the configured byte limit without a size header.
+- The existing `npm test` workflow executes these cases alongside the repository's other tests; the static validator also asserts the cases remain present.
