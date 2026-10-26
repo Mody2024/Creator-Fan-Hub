@@ -21,7 +21,7 @@ begin
   end if;
 
   if jsonb_typeof(p_config) <> 'object'
-     or p_config->>'schemaVersion' <> '1'
+     or p_config->>'schemaVersion' is distinct from '1'
      or jsonb_typeof(p_config->'identity') <> 'object'
      or jsonb_typeof(p_config->'appearance') <> 'object'
      or jsonb_typeof(p_config->'layout') <> 'object'
@@ -40,14 +40,14 @@ begin
     raise exception 'site configuration text length invalid' using errcode = '22023';
   end if;
 
-  if p_config#>>'{appearance,theme}' not in ('obsidian','paper','violet','custom')
-     or p_config#>>'{appearance,colorMode}' not in ('dark','light','system')
-     or p_config#>>'{appearance,motion}' not in ('full','reduced','off')
+  if coalesce(p_config#>>'{appearance,theme}','') not in ('obsidian','paper','violet','custom')
+     or coalesce(p_config#>>'{appearance,colorMode}','') not in ('dark','light','system')
+     or coalesce(p_config#>>'{appearance,motion}','') not in ('full','reduced','off')
      or coalesce(p_config#>>'{appearance,accent}','') !~ '^#[0-9a-fA-F]{6}$'
-     or p_config#>>'{maintenance,enabled}' not in ('true','false')
+     or coalesce(p_config#>>'{maintenance,enabled}','') not in ('true','false')
      or coalesce(p_config#>>'{hero,overlay}','') !~ '^(0(\.[0-9]+)?|1(\.0+)?)$'
-     or p_config#>>'{hero,muted}' not in ('true','false')
-     or p_config#>>'{hero,loop}' not in ('true','false') then
+     or coalesce(p_config#>>'{hero,muted}','') not in ('true','false')
+     or coalesce(p_config#>>'{hero,loop}','') not in ('true','false') then
     raise exception 'unsupported theme, color, motion, or media settings' using errcode = '22023';
   end if;
 
