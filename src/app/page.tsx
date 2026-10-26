@@ -31,7 +31,7 @@ export default async function HomePage() {
         if (!config.visibleSections.includes(section)) return null;
         switch (section) {
           case "hero": return <div key="hero">{{config.visibleSections.includes("hero") && <section className="hero" id="home">
-        {config.mascotUrl && <img className="public-mascot" src={config.mascotUrl} alt="" aria-hidden="true" />}
+        {config.featureFlags.mascot && config.mascotUrl && <img className="public-mascot" src={config.mascotUrl} alt="" aria-hidden="true" />}
         <div className="hero-copy">
           <span className="eyebrow"><i /> {config.tagline}</span>
           <h1>{config.heroTitle}</h1>
