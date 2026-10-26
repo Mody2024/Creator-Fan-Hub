@@ -5,6 +5,11 @@ export type PublicSiteConfig = {
   logoUrl: string | null;
   heroMediaUrl: string | null;
   heroMediaType: "image" | "video" | null;
+  mascotUrl: string | null;
+  narrationUrl: string | null;
+  heroOverlay: number;
+  heroMuted: boolean;
+  heroLoop: boolean;
   tagline: string;
   heroTitle: string;
   heroBody: string;
@@ -20,6 +25,11 @@ const fallback: PublicSiteConfig = {
   logoUrl: null,
   heroMediaUrl: null,
   heroMediaType: null,
+  mascotUrl: null,
+  narrationUrl: null,
+  heroOverlay: 0.35,
+  heroMuted: true,
+  heroLoop: true,
   tagline: "A community built around what comes next.",
   heroTitle: "Your next favorite video starts here.",
   heroBody: "Vote on ideas, share what you want to see, and help shape the next upload.",
@@ -52,10 +62,12 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const allowedSections = ["hero","ideas","poll","events","community","socials"];
 
   const theme = appearance.theme;
-  const mediaIds = [identity.logoMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
+  const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
   const mediaResult = mediaIds.length ? await supabase.from("media_items").select("id,media_type,storage_path").in("id", mediaIds).eq("is_published", true) : { data: [], error: null };
   const mediaById = new Map((mediaResult.data ?? []).map((item: { id: string; media_type: string; storage_path: string | null }) => [item.id, item]));
   const logoItem = typeof identity.logoMediaId === "string" ? mediaById.get(identity.logoMediaId) : undefined;
+  const mascotItem = typeof identity.mascotMediaId === "string" ? mediaById.get(identity.mascotMediaId) : undefined;
+  const narrationItem = typeof identity.narrationMediaId === "string" ? mediaById.get(identity.narrationMediaId) : undefined;
   const heroItem = typeof hero.mediaId === "string" ? mediaById.get(hero.mediaId) : undefined;
   const publicMediaUrl = (item: { storage_path: string | null } | undefined) => {
     if (!item || !item.storage_path || !item.storage_path.startsWith("creator-media-public/")) return null;
@@ -69,6 +81,11 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     logoUrl: publicMediaUrl(logoItem),
     heroMediaUrl: publicMediaUrl(heroItem),
     heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
+    mascotUrl: mascotItem?.media_type === "image" ? publicMediaUrl(mascotItem) : null,
+    narrationUrl: narrationItem?.media_type === "audio" ? publicMediaUrl(narrationItem) : null,
+    heroOverlay: typeof hero.overlay === "number" && Number.isFinite(hero.overlay) ? Math.min(0.85, Math.max(0, hero.overlay)) : 0.35,
+    heroMuted: hero.muted !== false,
+    heroLoop: hero.loop !== false,
     tagline: typeof identity.tagline === "string" ? identity.tagline.slice(0, 240) : fallback.tagline,
     heroTitle: typeof hero.title === "string" ? hero.title.slice(0, 180) : fallback.heroTitle,
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
