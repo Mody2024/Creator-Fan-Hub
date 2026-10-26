@@ -76,7 +76,7 @@ revoke all on function public.save_creator_media(uuid,text,text,text,text,text,j
 grant execute on function public.get_creator_media(integer) to authenticated;
 grant execute on function public.save_creator_media(uuid,text,text,text,text,text,jsonb,boolean) to authenticated;
 
- or coalesce(p_metadata,'{}'::jsonb) not in ('{}'::jsonb) and jsonb_typeof(p_metadata)<>'object' then
+ or jsonb_typeof(coalesce(p_metadata,'{}'::jsonb)) <> 'object' then
   raise exception 'invalid media metadata' using errcode='22023';
  end if;
  v_bucket:=split_part(p_storage_path,'/',1);
@@ -145,7 +145,7 @@ revoke all on function public.save_creator_media(uuid,text,text,text,text,text,j
 grant execute on function public.get_creator_media(integer) to authenticated;
 grant execute on function public.save_creator_media(uuid,text,text,text,text,text,jsonb,boolean) to authenticated;
 
- or coalesce(p_metadata,'{}'::jsonb) not in ('{}'::jsonb) and jsonb_typeof(p_metadata)<>'object' then
+ or jsonb_typeof(coalesce(p_metadata,'{}'::jsonb)) <> 'object' then
   raise exception 'invalid media metadata' using errcode='22023';
  end if;
  v_bucket:=split_part(p_storage_path,'/',1);
