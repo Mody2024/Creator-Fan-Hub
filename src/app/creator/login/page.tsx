@@ -1,0 +1,50 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+
+export default function CreatorLoginPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage("");
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setMessage("Creator sign-in is not configured yet. A dedicated Supabase project and environment settings are required.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) {
+      setMessage("Sign-in failed. Check your details or ask the site owner to configure access.");
+      return;
+    }
+    router.replace("/creator");
+    router.refresh();
+  }
+
+  return <main className="admin-shell">
+    <a className="admin-back" href="/">← Back to community</a>
+    <section className="admin-card">
+      <span className="eyebrow">PRIVATE WORKSPACE / 01</span>
+      <h1>Creator <em>access.</em></h1>
+      <p>Sign in to manage the community experience. Access is restricted to the configured creator account.</p>
+      <form onSubmit={submit} className="admin-form">
+        <label htmlFor="email">Email address</label>
+        <input id="email" type="email" autoComplete="username" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} />
+        <label htmlFor="password">Password</label>
+        <input id="password" type="password" autoComplete="current-password" required maxLength={128} value={password} onChange={e=>setPassword(e.target.value)} />
+        <button className="button button-primary" type="submit" disabled={busy}>{busy ? "Signing in…" : "Sign in securely"} <span>↗</span></button>
+        <p className="form-status" role="status" aria-live="polite">{message}</p>
+      </form>
+      <span className="admin-note">No public registration. Creator access must be provisioned by the owner.</span>
+    </section>
+  </main>;
+}
