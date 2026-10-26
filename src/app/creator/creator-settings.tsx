@@ -24,7 +24,7 @@ const fallback: SiteDraft = {
   appearance: { theme: "obsidian", accent: "#C5A46D", colorMode: "dark", motion: "full" },
   hero: { title: "Your next favorite video starts here.", body: "Vote on ideas, share what you want to see, and help shape the next upload.", mediaId: null, overlay: 0.35, muted: true, loop: true },
   maintenance: { enabled: false, message: "We'll be back soon." },
-  layout: { sectionOrder: ["hero", "ideas", "poll", "events", "community", "socials", "videos"], visibleSections: ["hero", "ideas", "poll", "events", "community", "socials"] },
+  layout: { sectionOrder: ["hero", "ideas", "poll", "events", "community", "socials", "videos"], visibleSections: ["hero", "ideas", "poll", "events", "community", "socials", "videos"] },
   socialLinkIds: [],
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false }
 };
