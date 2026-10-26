@@ -32,10 +32,14 @@ check("public events read only published/completed events", events.includes('fro
 check("public socials read only published links", socials.includes('from("social_links")') && socials.includes('eq("is_published",true)'));
 check("creator event/social changes use guarded RPCs", contentManager.includes('rpc("save_creator_event"') && contentManager.includes('rpc("save_creator_social_link"'));
 
+check("creator can edit public section visibility", editor.includes("draft.layout.visibleSections") && editor.includes("visibleSections:e.target.checked"));
+check("public site respects section visibility", page.includes("config.visibleSections.includes(\"events\")") && page.includes("config.visibleSections.includes(\"socials\")"));
+check("public config restricts section identifiers", config.includes("allowedSections.includes(item)"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (15 assertions).");
+  console.log("Repository validation passed (18 assertions).");
 }
