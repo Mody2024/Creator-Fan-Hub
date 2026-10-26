@@ -232,3 +232,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Removed exact duplicate static assertions while retaining each unique regression check, reducing noise in the repository validation output.
 - Added accessible status semantics to the idea-filter no-results state and the media library's first-upload empty state.
 - Static checks remain source-level checks; live Supabase migrations, authenticated workflows, and responsive browser behavior still require environment testing.
+
+## Public feature gate hardening (2026-10-27)
+- Added a forward Supabase migration that makes public idea reads, poll reads, and poll voting require an existing primary published configuration with maintenance mode off and the corresponding feature enabled.
+- This closes a fail-open edge case where a missing primary configuration row could otherwise leave public community RPCs enabled.
+- Added a static regression assertion for the three database functions and their fail-closed configuration checks. The migration is committed but has not been confirmed applied to a live Supabase project.
