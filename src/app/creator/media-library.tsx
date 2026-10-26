@@ -129,6 +129,7 @@ export default function MediaLibrary() {
       if (!userData.user) throw new Error("Sign in before changing publication.");
       const [bucket,...parts]=item.storage_path.split("/");
       const oldPath=parts.join("/");
+      if (!["creator-media-private","creator-media-public"].includes(bucket) || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(oldPath) || (item.is_published && bucket!=="creator-media-public") || (!item.is_published && bucket!=="creator-media-private")) throw new Error("The stored path and publication state do not match. Refresh the library and check the media record.");
       const nextBucket=item.is_published?"creator-media-private":"creator-media-public";
       const nextPath=`${userData.user.id}/${crypto.randomUUID()}-${safeFileName(oldPath.split("/").pop() ?? "asset")}`;
       const {data:download,error:downloadError}=await supabase.storage.from(bucket).download(oldPath);
@@ -144,8 +145,8 @@ export default function MediaLibrary() {
         await supabase.storage.from(nextBucket).remove([nextPath]);
         throw saveError ?? new Error("Publication status was not saved.");
       }
-      await supabase.storage.from(bucket).remove([oldPath]);
-      setStatus(item.is_published ? "Asset moved back to private drafts." : "Asset published. Its public URL is now available.");
+      const {error:cleanupError}=await supabase.storage.from(bucket).remove([oldPath]);
+      setStatus(cleanupError ? (item.is_published ? "Asset moved to private drafts, but the old public object could not be removed. Check Storage cleanup." : "Asset published, but the old private object could not be removed. Check Storage cleanup.") : (item.is_published ? "Asset moved back to private drafts." : "Asset published. Its public URL is now available."));
       await load();
     } catch(e) { setStatus(e instanceof Error ? e.message : "Could not change publication status."); }
     finally { setBusy(false); }
