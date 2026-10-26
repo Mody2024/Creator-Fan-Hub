@@ -68,6 +68,7 @@ check("public voting keeps anonymous-token limitations explicit", voteForm.inclu
 check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
 check("event/social workflows always release working state after network failures", eventSocial.includes('finally { setWorking(""); }') && eventSocial.includes("Connection failed while saving the event") && eventSocial.includes("Connection failed while updating the social link"));
 check("editing an event formats timestamps in the viewer local timezone", eventSocial.includes("date.getTime()-date.getTimezoneOffset()*60000") && eventSocial.includes("toLocalDateTimeInput(e.starts_at)") && eventSocial.includes("toLocalDateTimeInput(e.ends_at)"));
+check("event component keeps imports before local helpers", eventSocial.indexOf('import {getSupabaseBrowserClient}') < eventSocial.indexOf("function toLocalDateTimeInput"));
 check("event/social list loading catches rejected requests and clears loading state", eventSocial.includes("Connection failed while loading events and links") && eventSocial.includes("finally { setBusy(false); }"));
 check("creator save action always releases saving state and reports thrown network errors", editor.includes('finally {\n      setSaving(false);\n    }') && editor.includes("Connection failed while saving:"));
 check("creator editor reports media-selector loading failures", editor.includes('error: mediaError') && editor.includes("media options could not be loaded"));

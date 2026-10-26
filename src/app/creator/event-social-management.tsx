@@ -1,7 +1,8 @@
 "use client";
 import {FormEvent,useCallback,useEffect,useState} from "react";
-function toLocalDateTimeInput(value:string|null){if(!value)return "";const date=new Date(value);if(Number.isNaN(date.getTime()))return "";const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);return local.toISOString().slice(0,16);}
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
+
+function toLocalDateTimeInput(value:string|null){if(!value)return "";const date=new Date(value);if(Number.isNaN(date.getTime()))return "";const local=new Date(date.getTime()-date.getTimezoneOffset()*60000);return local.toISOString().slice(0,16);}
 type EventRow={event_id:string;title:string;description:string;starts_at:string|null;ends_at:string|null;status:string;created_at:string};
 type LinkRow={link_id:string;label:string;url:string;platform:string;link_position:number;is_published:boolean};
 export default function EventSocialManagement(){

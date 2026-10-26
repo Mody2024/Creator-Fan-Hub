@@ -146,3 +146,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Scheduled events with known dates now appear before events with no start date; the latter remain visible with a clear date-to-be-announced label.
 - Event dates now use semantic HTML time elements with machine-readable ISO timestamps for accessibility and downstream tooling.
 - Added a static regression assertion for the ordering and time markup.
+
+
+## Creator event module cleanup (2026-10-27)
+- Moved the Supabase client import above the local date helper to keep module declarations consistently ordered for linting and tooling.
+- Added a static check to guard the import/helper ordering.
