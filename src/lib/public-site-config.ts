@@ -5,7 +5,8 @@ export type PublicSiteConfig = {
   tagline: string;
   heroTitle: string;
   heroBody: string;
-  theme: "obsidian" | "paper" | "violet";
+  theme: "obsidian" | "paper" | "violet" | "custom";
+  accent: string;
   maintenance: { enabled: boolean; message: string };
 };
 
@@ -15,6 +16,7 @@ const fallback: PublicSiteConfig = {
   heroTitle: "Your next favorite video starts here.",
   heroBody: "Vote on ideas, share what you want to see, and help shape the next upload.",
   theme: "obsidian",
+  accent: "#d8ff75",
   maintenance: { enabled: false, message: "We'll be back soon." }
 };
 
@@ -42,7 +44,8 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     tagline: typeof identity.tagline === "string" ? identity.tagline.slice(0, 240) : fallback.tagline,
     heroTitle: typeof hero.title === "string" ? hero.title.slice(0, 180) : fallback.heroTitle,
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
-    theme: theme === "paper" || theme === "violet" ? theme : "obsidian",
+    theme: theme === "paper" || theme === "violet" || theme === "custom" ? theme : "obsidian",
+    accent: typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent,
     maintenance: {
       enabled: maintenance.enabled === true,
       message: typeof maintenance.message === "string" ? maintenance.message.slice(0, 240) : fallback.maintenance.message
