@@ -135,3 +135,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added try/catch/finally recovery to event creation, event status changes, social-link saves, and link publication toggles so rejected network requests cannot leave the UI permanently busy.
 - Hardened parallel event/link loading against rejected requests and guaranteed the loading indicator resets.
 - Added static assertions for the recovery paths; live creator authorization still needs end-to-end verification.
+
+
+## Event timezone edit fix (2026-10-27)
+- Fixed the edit form's datetime-local formatting so stored UTC timestamps display in the creator's local timezone; editing and saving an event no longer silently shifts its scheduled time by the timezone offset.
+- Added a regression assertion for the timezone conversion helper.
