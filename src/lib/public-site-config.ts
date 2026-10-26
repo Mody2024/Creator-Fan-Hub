@@ -7,6 +7,7 @@ export type PublicSiteConfig = {
   heroMediaType: "image" | "video" | null;
   mascotUrl: string | null;
   narrationUrl: string | null;
+  narrationText: string;
   heroOverlay: number;
   heroMuted: boolean;
   heroLoop: boolean;
@@ -27,6 +28,7 @@ const fallback: PublicSiteConfig = {
   heroMediaType: null,
   mascotUrl: null,
   narrationUrl: null,
+  narrationText: "Welcome. Explore the community, discover ideas, and help shape what comes next.",
   heroOverlay: 0.35,
   heroMuted: true,
   heroLoop: true,
@@ -83,6 +85,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
     mascotUrl: mascotItem?.media_type === "image" ? publicMediaUrl(mascotItem) : null,
     narrationUrl: narrationItem?.media_type === "audio" ? publicMediaUrl(narrationItem) : null,
+    narrationText: typeof identity.narrationText === "string" ? identity.narrationText.slice(0, 1600) : fallback.narrationText,
     heroOverlay: typeof hero.overlay === "number" && Number.isFinite(hero.overlay) ? Math.min(0.85, Math.max(0, hero.overlay)) : 0.35,
     heroMuted: hero.muted !== false,
     heroLoop: hero.loop !== false,
