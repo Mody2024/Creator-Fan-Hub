@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type TourStep = { target: string; title: string; caption: string };
 
@@ -15,11 +15,10 @@ const steps: TourStep[] = [
 export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: string | null }) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
+  const [available, setAvailable] = useState<TourStep[]>(steps);
   const [muted, setMuted] = useState(false);
   const [audioStatus, setAudioStatus] = useState("Audio starts when you begin the tour");
   const audio = useRef<HTMLAudioElement>(null);
-  const available = useMemo(() => steps.filter(item => typeof document === "undefined" || Boolean(document.getElementById(item.target))), []);
-
   useEffect(() => {
     if (!open) return;
     const current = available[step];
@@ -32,6 +31,8 @@ export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: stri
   }, [open, step, available]);
 
   async function begin() {
+    const visible = steps.filter(item => Boolean(document.getElementById(item.target)));
+    setAvailable(visible.length ? visible : steps);
     setStep(0);
     setOpen(true);
     try {
@@ -70,7 +71,7 @@ export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: stri
     <button className="tour-launch" type="button" onClick={() => void begin()} aria-haspopup="dialog">
       <span aria-hidden="true">✳</span> Take a quick tour <span aria-hidden="true">↗</span>
     </button>
-    {narrationUrl && <audio ref={audio} src={narrationUrl} preload="none" muted={muted} onEnded={() => setAudioStatus("Welcome narration finished")} onPause={() => {}} />}
+    {narrationUrl && <audio ref={audio} src={narrationUrl} preload="none" muted={muted} onEnded={() => setAudioStatus("Welcome narration finished")} />}
     {open && current && <div className="tour-scrim" role="presentation">
       <section className="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-caption">
         <div className="tour-card-top"><span className="tour-kicker">YOUR COMMUNITY / QUICK TOUR</span><button type="button" className="tour-close" onClick={close} aria-label="Close tour">×</button></div>
@@ -80,7 +81,7 @@ export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: stri
         <p id="tour-caption" className="tour-caption">{current.caption}</p>
         <p className="tour-audio-status" role="status" aria-live="polite">{audioStatus}</p>
         <div className="tour-actions">
-          {narrationUrl && <button type="button" className="tour-secondary" onClick={() => void toggleAudio()}>{audio.current?.paused ? "Play voice-over ▶" : "Pause voice-over Ⅱ"}</button>}
+          {narrationUrl && <button type="button" className="tour-secondary" onClick={() => void toggleAudio()}>Play / pause voice-over</button>}
           {narrationUrl && <button type="button" className="tour-secondary" onClick={() => setMuted(v => !v)}>{muted ? "Unmute" : "Mute"}</button>}
           <button type="button" className="tour-secondary" onClick={close}>Skip tour</button>
           <button type="button" className="tour-primary" onClick={() => step + 1 >= available.length ? close() : setStep(v => v + 1)}>{step + 1 >= available.length ? "Finish tour ✓" : "Next section →"}</button>
