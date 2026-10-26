@@ -22,7 +22,7 @@ export default async function HomePage() {
         <nav aria-label="Main navigation">
           {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}
         </nav>
-        <a className="nav-cta" href={config.featureFlags.polls ? "#vote" : config.featureFlags.ideas ? "#ideas" : "#community"}>Shape the next drop <span>↗</span></a>
+        <a className="nav-cta" href={config.featureFlags.polls && config.visibleSections.includes("poll") ? "#vote" : config.featureFlags.ideas && config.visibleSections.includes("ideas") ? "#ideas" : config.visibleSections.includes("events") && config.featureFlags.events ? "#events" : config.visibleSections.includes("community") ? "#community" : "#home"}>Shape the next drop <span>↗</span></a>
       </header>
 
       {config.visibleSections.includes("hero") && <section className="hero" id="home">
@@ -30,7 +30,7 @@ export default async function HomePage() {
           <span className="eyebrow"><i /> {config.tagline}</span>
           <h1>{config.heroTitle}</h1>
           <p>{config.heroBody}</p>
-          <div className="hero-actions">{config.featureFlags.polls && <a className="button button-primary" href="#vote">Cast your vote <span>↗</span></a>}{config.featureFlags.ideas && <a className="text-link" href="#ideas">Submit an idea <span>↓</span></a>}</div>
+          <div className="hero-actions">{config.featureFlags.polls && config.visibleSections.includes("poll") && <a className="button button-primary" href="#vote">Cast your vote <span>↗</span></a>}{config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a className="text-link" href="#ideas">Submit an idea <span>↓</span></a>}</div>
           <div className="proof"><span className="proof-dots"><i>✳</i><i>✦</i><i>◉</i></span><span>Made with the people who watch.</span></div>
         </div>
         <div className="hero-art" aria-label="Abstract glowing portal artwork" role="img">
