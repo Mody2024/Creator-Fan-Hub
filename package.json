@@ -11,7 +11,7 @@
     "test": "node --test",
     "check": "node scripts/validate-static-site.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": { "node": "22.x" },
   "dependencies": {
     "@supabase/ssr": "0.7.0",
     "@supabase/supabase-js": "2.57.4",
