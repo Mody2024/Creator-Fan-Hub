@@ -78,6 +78,21 @@ export default function CreatorSettings() {
     setDraft(current => ({ ...current, [section]: { ...(current[section] as Record<string, unknown>), [key]: value } }));
   }
 
+  function moveVisibleSection(key: string, direction: -1 | 1) {
+    setDraft(current => {
+      const order = [...(current.layout.sectionOrder ?? fallback.layout.sectionOrder)];
+      const visibleSet = new Set(current.layout.visibleSections ?? fallback.layout.visibleSections);
+      const visibleOrder = order.filter(item => visibleSet.has(item));
+      const index = visibleOrder.indexOf(key);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= visibleOrder.length) return current;
+      [visibleOrder[index], visibleOrder[nextIndex]] = [visibleOrder[nextIndex], visibleOrder[index]];
+      let visibleIndex = 0;
+      const sectionOrder = order.map(item => visibleSet.has(item) ? visibleOrder[visibleIndex++] : item);
+      return { ...current, layout: { ...current.layout, sectionOrder } };
+    });
+  }
+
   async function save(publish: boolean) {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || saving) return;
@@ -159,7 +174,7 @@ export default function CreatorSettings() {
       </div>
       <div className="section-order-panel">
         <div className="section-order-heading"><strong>Public section order</strong><span>Move visible sections up or down. Publish to apply.</span></div>
-        {(draft.layout.sectionOrder ?? fallback.layout.sectionOrder).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index,items)=><div className="section-order-row" key={key}><span className="section-order-index">{String(index+1).padStart(2,"0")}</span><strong>{({hero:"Hero",ideas:"Idea board",poll:"Voting",events:"Events",community:"Community banner",socials:"Social links"} as Record<string,string>)[key] ?? key}</strong><div className="section-order-actions"><button type="button" aria-label={key+" up"} disabled={index===0} onClick={()=>setDraft(current=>{const order=[...current.layout.sectionOrder];const from=order.indexOf(key);if(from>0){[order[from-1],order[from]]=[order[from],order[from-1]];}return {...current,layout:{...current.layout,sectionOrder:order}};})}>↑</button><button type="button" aria-label={key+" down"} disabled={index===items.length-1} onClick={()=>setDraft(current=>{const order=[...current.layout.sectionOrder];const from=order.indexOf(key);if(from>=0&&from<order.length-1){[order[from+1],order[from]]=[order[from],order[from+1]];}return {...current,layout:{...current.layout,sectionOrder:order}};})}>↓</button></div></div>)}
+        {(draft.layout.sectionOrder ?? fallback.layout.sectionOrder).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index,items)=><div className="section-order-row" key={key}><span className="section-order-index">{String(index+1).padStart(2,"0")}</span><strong>{({hero:"Hero",ideas:"Idea board",poll:"Voting",events:"Events",community:"Community banner",socials:"Social links"} as Record<string,string>)[key] ?? key}</strong><div className="section-order-actions"><button type="button" aria-label={key+" up"} disabled={index===0} onClick={()=>moveVisibleSection(key,-1)}>↑</button><button type="button" aria-label={key+" down"} disabled={index===items.length-1} onClick={()=>moveVisibleSection(key,1)}>↓</button></div></div>)}
       </div>
       <div className="editor-divider" />
       <div className="editor-section-title"><span>04 / AVAILABILITY</span><h2>Control the <em>doors.</em></h2><p>Maintenance mode is reversible and stored in the draft.</p></div>
