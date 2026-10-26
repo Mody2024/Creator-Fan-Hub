@@ -225,3 +225,5 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added accessible empty-state guidance to poll management, idea moderation, and publishing history.
 - Fixed a malformed static-validator tail that caused CI to stop parsing; the final failure summary now runs only after all assertions are registered.
 - Kept the event/social and media filter empty-state checks in the same final validation pass.
+
+- Follow-up validator cleanup ensures the final assertion summary appears once, after every check.
