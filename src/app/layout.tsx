@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { getPublicSiteConfig } from "@/lib/public-site-config";
 
-export const metadata: Metadata = {
-  title: "Creator Fan Hub",
-  description: "A creator community where fans help shape what comes next."
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await getPublicSiteConfig();
+  return { title: config.siteName, description: config.tagline };
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
