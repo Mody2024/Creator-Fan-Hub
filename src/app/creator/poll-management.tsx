@@ -9,11 +9,11 @@ export default function PollManagement(){
  const [busy,setBusy]=useState(true);const [working,setWorking]=useState("");const [status,setStatus]=useState("Loading polls…");
  const load=useCallback(async()=>{
   const s=getSupabaseBrowserClient();if(!s){setStatus("Database connection is not configured.");setBusy(false);return;}
-  const {data,error}=await s.from("polls").select("id,title,description,status,starts_at,ends_at,created_at").order("created_at",{ascending:false}).limit(50);
+  const {data,error}=await s.rpc("get_creator_polls",{p_limit:50});
   if(error){setStatus("Could not load polls. Verify creator access and database setup.");setBusy(false);return;}
-  const list=(data??[]).map((p)=>({poll_id:p.id,title:p.title,description:p.description,status:p.status,starts_at:p.starts_at,ends_at:p.ends_at,created_at:p.created_at})) as Poll[];
+  const list=(data??[]).map((p: Poll & {id?:string})=>({poll_id:p.poll_id ?? p.id ?? "",title:p.title,description:p.description,status:p.status,starts_at:p.starts_at,ends_at:p.ends_at,created_at:p.created_at})) as Poll[];
   setPolls(list);
-  if(list.length){const {data:opts}=await s.from("poll_options").select("id,poll_id,label,position").in("poll_id",list.map(p=>p.poll_id)).order("position");const grouped:Record<string,PollOption[]>={};for(const o of opts??[]){(grouped[o.poll_id]??=[]).push({id:o.id,label:o.label,position:o.position});}setOptions(grouped);}
+  if(list.length){const {data:opts}=await s.rpc("get_creator_poll_options",{p_poll_ids:list.map(p=>p.poll_id)});const grouped:Record<string,PollOption[]>={};for(const o of opts??[]){(grouped[o.poll_id]??=[]).push({id:o.id,label:o.label,position:o.position});}setOptions(grouped);}
   setStatus("Poll list refreshed.");setBusy(false);
  },[]);
  useEffect(()=>{void load();},[load]);
