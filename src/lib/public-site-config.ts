@@ -8,6 +8,7 @@ export type PublicSiteConfig = {
   theme: "obsidian" | "paper" | "violet" | "custom";
   accent: string;
   maintenance: { enabled: boolean; message: string };
+  featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
 };
 
 const fallback: PublicSiteConfig = {
@@ -17,7 +18,8 @@ const fallback: PublicSiteConfig = {
   heroBody: "Vote on ideas, share what you want to see, and help shape the next upload.",
   theme: "obsidian",
   accent: "#d8ff75",
-  maintenance: { enabled: false, message: "We'll be back soon." }
+  maintenance: { enabled: false, message: "We'll be back soon." },
+  featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false }
 };
 
 export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
@@ -37,6 +39,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const hero = (raw.hero && typeof raw.hero === "object" ? raw.hero : {}) as Record<string, unknown>;
   const appearance = (raw.appearance && typeof raw.appearance === "object" ? raw.appearance : {}) as Record<string, unknown>;
   const maintenance = (raw.maintenance && typeof raw.maintenance === "object" ? raw.maintenance : {}) as Record<string, unknown>;
+  const flags = (raw.featureFlags && typeof raw.featureFlags === "object" ? raw.featureFlags : {}) as Record<string, unknown>;
 
   const theme = appearance.theme;
   return {
@@ -49,6 +52,11 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     maintenance: {
       enabled: maintenance.enabled === true,
       message: typeof maintenance.message === "string" ? maintenance.message.slice(0, 240) : fallback.maintenance.message
+    },
+    featureFlags: {
+      polls: flags.polls !== false, ideas: flags.ideas !== false, events: flags.events !== false,
+      guidedTour: flags.guidedTour !== false, mascot: flags.mascot !== false,
+      voice: flags.voice === true, miniGames: flags.miniGames === true, store: flags.store === true
     }
   };
 }
