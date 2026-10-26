@@ -243,3 +243,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Draft saves are capped at 128 KiB to allow legitimate site configuration while bounding oversized requests; publish and history-restore requests are capped at 8 KiB.
 - Oversized requests receive HTTP 413; malformed JSON receives HTTP 400. Creator authorization still runs before body parsing on these routes.
 - Added regression assertions for the helper and all three API routes. This is code/CI validation, not a substitute for deployment-level request-size limits.
+
+## Streaming request-body limit hardening (2026-10-27)
+- Tightened the bounded JSON reader to consume the request stream incrementally and stop/cancel immediately when the byte limit is crossed, rather than buffering an unbounded body before checking its size.
+- Decode now rejects malformed UTF-8 before JSON parsing. Oversized bodies still return 413 and invalid bodies return 400.
+- Updated regression coverage to require streaming reads, early cancellation, and strict UTF-8 decoding.
