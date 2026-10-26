@@ -15,7 +15,7 @@ const required = [
   ["permanent creator signature", /MADE BY ALMUDDATHTHIR/],
   ["honest demo poll disclosure", /Demo only[^<]*no vote is sent or stored/],
   ["honest submission disclosure", /does not send or save your idea/i],
-  ["safe external URL constraint in schema docs", /https:\/\//]
+  ["safe external URL constraint in schema docs", /https\\?:\\/\\//]
 ];
 
 const failures = [];
