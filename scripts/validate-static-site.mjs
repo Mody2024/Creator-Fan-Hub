@@ -15,12 +15,12 @@ const required = [
   ["permanent creator signature", /MADE BY ALMUDDATHTHIR/],
   ["honest demo poll disclosure", /Demo only[^<]*no vote is sent or stored/],
   ["honest submission disclosure", /does not send or save your idea/i],
-  ["safe external URL constraint in schema docs", /https\\?:\\/\\//]
+  ["safe external URL constraint in schema docs", /https\?:\/\//],
 ];
 
 const failures = [];
 for (const [label, pattern] of required) {
-  if (!pattern.test(label === "safe external URL constraint in schema docs" ? await readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8") : html)) {
+  ["safe external URL constraint in schema docs", /https\?:\/\//],
     failures.push(label);
   }
 }
