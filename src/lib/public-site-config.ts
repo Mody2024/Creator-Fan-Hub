@@ -42,7 +42,7 @@ const fallback: PublicSiteConfig = {
   maintenance: { enabled: false, message: "We'll be back soon." },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
   visibleSections: ["hero","ideas","poll","events","community","socials","videos"],
-  sectionOrder: ["hero","ideas","poll","events","community","socials"],
+  sectionOrder: ["hero","ideas","poll","events","community","socials","videos"],
   narrationAutoPlay: true
 };
 
@@ -65,7 +65,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const maintenance = (raw.maintenance && typeof raw.maintenance === "object" ? raw.maintenance : {}) as Record<string, unknown>;
   const flags = (raw.featureFlags && typeof raw.featureFlags === "object" ? raw.featureFlags : {}) as Record<string, unknown>;
   const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
-  const allowedSections = ["hero","ideas","poll","events","community","socials"];
+  const allowedSections = ["hero","ideas","poll","events","community","socials","videos"];
 
   const theme = appearance.theme;
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
