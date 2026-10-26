@@ -6,6 +6,7 @@ import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
 import MediaLibrary from "./media-library";
+import PublishingHistory from "./publishing-history";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export const dynamic = "force-dynamic";
@@ -38,9 +39,10 @@ export default async function CreatorDashboardPage() {
       <IdeaModerationQueue />
       <EventSocialManagement />
       <MediaLibrary />
+      <PublishingHistory />
       <div className="module-heading"><div><span className="eyebrow">YOUR WORKSPACE</span><h2>More control, coming next.</h2></div><span className="module-count">05 MODULE AREAS</span></div>
       <section className="module-grid">{modules.map(item=><article className="module-card" key={item.number}><div className="module-card-top"><span>{item.number} / MODULE</span><span className="module-state">{item.state}</span></div><h3>{item.title}</h3><p>{item.detail}</p><span className="module-arrow">↗</span></article>)}</section>
-      <p className="dashboard-disclaimer">Poll authoring, voting, idea submissions and moderation are connected to Supabase. Media uploads now support private drafts and publication; hero/logo binding, 3D model formats and final production checks remain in progress.</p>
+      <p className="dashboard-disclaimer">Polls, ideas, events, socials, media and publishing history are connected to guarded Supabase operations. Restoring a prior version only changes the private draft; review it before publishing.</p>
     </div>
   </main>;
 }
