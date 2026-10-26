@@ -3,6 +3,8 @@ import { getPublicSiteConfig } from "@/lib/public-site-config";
 import PublishedPolls from "@/app/vote/published-polls";
 import IdeaSubmissionForm from "@/app/ideas/idea-submission-form";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
+import PublicEvents from "@/app/events/public-events";
+import PublicSocialLinks from "@/app/socials/public-social-links";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +22,7 @@ export default async function HomePage() {
         <nav aria-label="Main navigation">
           {config.featureFlags.ideas && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && <a href="#vote">Vote</a>}<a href="#community">Community</a>
         </nav>
-        <a className="nav-cta" href="#vote">Shape the next drop <span>↗</span></a>
+        <a className="nav-cta" href={config.featureFlags.polls ? "#vote" : config.featureFlags.ideas ? "#ideas" : "#community"}>Shape the next drop <span>↗</span></a>
       </header>
 
       <section className="hero" id="home">
@@ -47,7 +49,9 @@ export default async function HomePage() {
 
       {config.featureFlags.polls && <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Vote on published polls and help decide what comes next.</p></div><PublishedPolls /></section>}
 
-      <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p><a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a><div className="community-orbit">✳</div></section>
+      {config.featureFlags.events && <PublicEvents />}
+      <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>
+      {config.featureFlags.events && <PublicSocialLinks />}
       <footer className="site-footer"><span>THE INNER CIRCLE / COMMUNITY PORTAL</span><a href="#home">BACK TO TOP ↑</a></footer>
     </main>
   );
