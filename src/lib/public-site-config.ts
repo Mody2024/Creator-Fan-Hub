@@ -41,7 +41,7 @@ const fallback: PublicSiteConfig = {
   accent: "#d8ff75",
   maintenance: { enabled: false, message: "We'll be back soon." },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
-  visibleSections: ["hero","ideas","poll","events","community","socials"],
+  visibleSections: ["hero","ideas","poll","events","community","socials","videos"],
   sectionOrder: ["hero","ideas","poll","events","community","socials"],
   narrationAutoPlay: true
 };
