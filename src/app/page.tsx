@@ -30,7 +30,7 @@ export default async function HomePage() {
       {config.sectionOrder.map(section => {
         if (!config.visibleSections.includes(section)) return null;
         switch (section) {
-          case "hero": return <div key="hero">{{config.visibleSections.includes("hero") && <section className="hero" id="home">
+          case "hero": return <div key="hero">{config.visibleSections.includes("hero") && <section className="hero" id="home">
         {config.featureFlags.mascot && config.mascotUrl && <img className="public-mascot" src={config.mascotUrl} alt="" aria-hidden="true" />}
         <div className="hero-copy">
           <span className="eyebrow"><i /> {config.tagline}</span>
@@ -45,15 +45,15 @@ export default async function HomePage() {
         <div className="hero-index"><span>01 — 03</span><span>SCROLL TO EXPLORE ↓</span></div>
       </section>}
 
-      {config.visibleSections.includes("hero") && <section className="intro-strip"><span>NOT JUST WATCHING.</span><span>YOU’RE PART OF WHAT’S NEXT.</span><span>BUILT TOGETHER <b>✳</b></span></section>}}</div>;
-          case "ideas": return <div key="ideas">{{config.featureFlags.ideas && config.visibleSections.includes("ideas") && <section className="content-section" id="ideas">
+      {config.visibleSections.includes("hero") && <section className="intro-strip"><span>NOT JUST WATCHING.</span><span>YOU’RE PART OF WHAT’S NEXT.</span><span>BUILT TOGETHER <b>✳</b></span></section>}</div>;
+          case "ideas": return <div key="ideas">{config.featureFlags.ideas && config.visibleSections.includes("ideas") && <section className="content-section" id="ideas">
         <div className="section-heading"><div><span className="eyebrow">01 / THE IDEA BOARD</span><h2>What should we<br/><em>make next?</em></h2></div><p>Every great upload starts somewhere. Put your idea on the table and help steer the next one.</p></div>
         <div className="idea-panel"><div className="idea-panel-top"><span>COMMUNITY SUGGESTIONS</span><span className="live-dot">● MODERATED SUBMISSIONS</span></div><IdeaSubmissionForm /><ApprovedIdeas /></div>
-      </section>}}</div>;
-          case "poll": return <div key="poll">{{config.featureFlags.polls && config.visibleSections.includes("poll") && <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Vote on published polls and help decide what comes next.</p></div><PublishedPolls /></section>}}</div>;
-          case "events": return <div key="events">{{config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}}</div>;
-          case "community": return <div key="community">{{config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}}</div>;
-          case "socials": return <div key="socials">{{config.visibleSections.includes("socials") && <PublicSocialLinks />}}</div>;
+      </section>}</div>;
+          case "poll": return <div key="poll">{config.featureFlags.polls && config.visibleSections.includes("poll") && <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Vote on published polls and help decide what comes next.</p></div><PublishedPolls /></section>}</div>;
+          case "events": return <div key="events">{config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}</div>;
+          case "community": return <div key="community">{config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}</div>;
+          case "socials": return <div key="socials">{config.visibleSections.includes("socials") && <PublicSocialLinks />}</div>;
           default: return null;
         }
       })}
