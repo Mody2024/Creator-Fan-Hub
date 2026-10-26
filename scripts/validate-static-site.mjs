@@ -4,12 +4,15 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const failures = [];
 const check = (label, condition) => { if (!condition) failures.push(label); };
 
-const [page, config, poll, editor, packageJson] = await Promise.all([
+const [page, config, poll, editor, packageJson, events, socials, contentManager] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/lib/public-site-config.ts"),
   read("../src/app/vote/published-polls.tsx"),
   read("../src/app/creator/creator-settings.tsx"),
-  read("../package.json")
+  read("../package.json"),
+  read("../src/app/events/public-events.tsx"),
+  read("../src/app/socials/public-social-links.tsx"),
+  read("../src/app/creator/event-social-management.tsx")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -25,10 +28,14 @@ check("creator editor has maintenance mode", editor.includes('update("maintenanc
 check("package defines build script", /"build"\s*:\s*"next build"/.test(packageJson));
 check("package defines lint script", /"lint"\s*:\s*"eslint \\."/.test(packageJson) || packageJson.includes('"lint": "eslint ."' ));
 
+check("public events read only published/completed events", events.includes('from("events")') && events.includes('["published","completed"]'));
+check("public socials read only published links", socials.includes('from("social_links")') && socials.includes('eq("is_published",true)'));
+check("creator event/social changes use guarded RPCs", contentManager.includes('rpc("save_creator_event"') && contentManager.includes('rpc("save_creator_social_link"'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (12 assertions).");
+  console.log("Repository validation passed (15 assertions).");
 }
