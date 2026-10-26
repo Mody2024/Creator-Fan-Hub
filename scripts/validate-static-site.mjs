@@ -38,6 +38,7 @@ check("package defines lint script", /"lint"\s*:\s*"eslint \\."/.test(packageJso
 check("public events read only published/completed events", events.includes('from("events")') && events.includes('["published","completed"]'));
 check("public socials read only published links", socials.includes('from("social_links")') && socials.includes('eq("is_published",true)'));
 check("creator event/social changes use guarded RPCs", contentManager.includes('rpc("save_creator_event"') && contentManager.includes('rpc("save_creator_social_link"'));
+check("creator event editor rejects end dates before or equal to start", contentManager.includes("new Date(ends)<=new Date(starts)") && contentManager.includes("The event end must be later than its start."));
 
 check("creator can edit public section visibility", editor.includes("draft.layout.visibleSections") && editor.includes("visibleSections:e.target.checked"));
 check("public site respects section visibility", page.includes("config.visibleSections.includes(\"events\")") && page.includes("config.visibleSections.includes(\"socials\")"));
@@ -54,5 +55,5 @@ if (failures.length) {
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (27 assertions).");
+  console.log("Repository validation passed (28 assertions).");
 }
