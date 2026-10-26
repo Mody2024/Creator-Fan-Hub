@@ -1,15 +1,22 @@
 create extension if not exists pgcrypto;
 
-create table if not exists public.site_config (
+-- Keep drafts in a private table: RLS filters rows, not individual columns.
+-- Public visitors can read only the separate published snapshot.
+create table if not exists public.site_config_drafts (
   id uuid primary key default gen_random_uuid(),
   config_key text not null unique default 'primary',
   draft jsonb not null default '{}'::jsonb,
+  updated_by uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.published_site_config (
+  id uuid primary key default gen_random_uuid(),
+  config_key text not null unique default 'primary',
   published jsonb not null default '{}'::jsonb,
   published_version integer not null default 1 check (published_version > 0),
   maintenance_mode boolean not null default false,
-  updated_by uuid references auth.users(id) on delete set null,
-  updated_at timestamptz not null default now(),
-  published_at timestamptz
+  published_at timestamptz not null default now()
 );
 
 create table if not exists public.polls (
