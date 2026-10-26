@@ -84,3 +84,11 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Security advisor reports INFO findings for intentionally private tables with RLS but no policies. Performance advisor reported missing foreign-key indexes; index migration added. Security/performance advisors should be rerun after integration.
 - Free-tier target: no paid APIs or paid integrations. $0 project-creation quote does not guarantee unlimited use or permanent free service; enforce provider usage limits and do not enable paid upgrades without owner approval.
 - Not complete: production deployment, confirmed passing CI/build, actual first creator login, end-to-end editor save/publish, real idea/vote write endpoints, media uploads, and full feature set.
+
+
+## Integrated creator experience and accessibility pass (2026-10-26)
+- Published site reads only the versioned public configuration snapshot; the creator editor saves drafts separately and publishes by expected revision.
+- Connected creator workflows now include idea moderation, polls, events/social links, media upload/publish, publishing history with draft-only restore, narration controls, and a guided welcome tour.
+- The guided tour now traps keyboard focus inside its modal, wraps forward/reverse Tab navigation, closes on Escape, and restores focus to its launcher.
+- GitHub Actions validation and free-tier CI passed for commit `602420924b3cee0962241233a75dd032c8c42acb`. Follow-up tour accessibility changes are being validated in the next commit.
+- Production remains intentionally untouched. A passing static repository validator is not a substitute for live Supabase end-to-end testing, mobile/browser acceptance, or confirming the current Vercel preview.

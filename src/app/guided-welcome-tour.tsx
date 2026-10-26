@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type TourStep = { target: string; title: string; caption: string };
 
@@ -33,21 +33,40 @@ export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: stri
     target?.scrollIntoView({ behavior: "smooth", block: "center" });
     closeButton.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") close();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const dialog = document.querySelector<HTMLElement>(".tour-card");
+      const focusable = dialog?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       target?.classList.remove("tour-spotlight");
     };
-  }, [open, step, available]);
+  }, [open, step, available, close]);
 
-  function close() {
+  const close = useCallback(() => {
     setOpen(false);
     audio.current?.pause();
     document.querySelectorAll(".tour-spotlight").forEach(node => node.classList.remove("tour-spotlight"));
     window.setTimeout(() => launchButton.current?.focus(), 0);
-  }
+  }, []);
 
   async function begin() {
     const visible = steps.filter(item => Boolean(document.getElementById(item.target)));
