@@ -178,3 +178,10 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Public poll visibility gates (2026-10-27)
 - Added database-level enforcement so the public poll-results RPC returns no polls when maintenance mode is active or the published polls feature flag is disabled. This closes a direct-RPC visibility gap beyond the homepage's conditional rendering.
 - Preserves hidden open-poll tallies and closed-poll aggregate results. Added a static regression assertion; applying the migration and verifying against live Supabase are still required.
+
+
+## Responsive public navigation pass (2026-10-27)
+- Added a dedicated mobile navigation row that preserves the same feature-flag and visible-section gates as desktop navigation.
+- The mobile links remain horizontally scrollable on narrow screens, so navigation is available instead of disappearing below the 800px breakpoint.
+- Added repository regression checks for desktop/mobile navigation presence and the mobile overflow behavior.
+- Visual appearance and touch usability still require preview/browser acceptance testing; this change does not count as a completed full UI review.
