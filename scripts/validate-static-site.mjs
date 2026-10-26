@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -22,7 +22,8 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../supabase/migrations/20261026001700_scope_media_storage_ownership.sql"),
   read("../src/app/creator/idea-moderation-queue.tsx"),
   read("../src/app/ideas/idea-submission-form.tsx"),
-  read("../src/app/vote/poll-vote-form.tsx")
+  read("../src/app/vote/poll-vote-form.tsx"),
+  read("../src/app/creator/poll-management.tsx")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -44,10 +45,10 @@ check("published logo and hero assets bind to public page", config.includes('log
 check("published mascot and narration assets respect their media types", config.includes('mascotUrl: publicMediaUrl(mascotItem, ["image"])') && config.includes('narrationUrl: publicMediaUrl(narrationItem, ["audio"])') && page.includes("<NarrationControl"));
 check("hero video honors muted and loop settings", page.includes("muted={config.heroMuted}") && page.includes("loop={config.heroLoop}") && page.includes("className=\"hero-media\""));
 check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
-check("creator poll loading and status changes recover from network errors", contentManager.includes("Connection failed while loading polls") && contentManager.includes("Connection failed while changing poll status") && contentManager.includes("finally {setBusy(false);}"));
-check("creator poll creation validates date order and option lengths", contentManager.includes("closing time must be later than the opening time") && contentManager.includes("Each option must be 100 characters or fewer") && contentManager.includes("Number.isNaN(startDate.getTime())"));
-check("creator poll form shows question, description and option counts", contentManager.includes("{title.trim().length}/160") && contentManager.includes("{description.length}/1000") && contentManager.includes("}/8 options"));
-check("creator poll creation always releases working state", contentManager.includes("finally {setWorking(\"\");"));
+check("creator poll loading and status changes recover from network errors", pollManagement.includes("Connection failed while loading polls") && pollManagement.includes("Connection failed while changing poll status") && pollManagement.includes("finally {setBusy(false);}"));
+check("creator poll creation validates date order and option lengths", pollManagement.includes("closing time must be later than the opening time") && pollManagement.includes("Each option must be 100 characters or fewer") && pollManagement.includes("Number.isNaN(startDate.getTime())"));
+check("creator poll form shows question, description and option counts", pollManagement.includes("{title.trim().length}/160") && pollManagement.includes("{description.length}/1000") && pollManagement.includes("}/8 options"));
+check("creator poll creation always releases working state", pollManagement.includes("finally {setWorking(\"\");"));
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
 check("public voting always releases its submitting state", voteForm.includes("finally {\n      setSubmitting(false);"));
 check("public voting handles uncertain network results without claiming success", voteForm.includes("Refresh the page before retrying to check whether it was recorded") && voteForm.includes("connection failed before we could confirm your vote"));
