@@ -8,7 +8,7 @@ type MediaOption = { media_id: string; title: string; media_type: string; is_pub
 
 type SiteDraft = {
   schemaVersion: 1;
-  identity: { siteName: string; tagline: string; logoMediaId?: string | null; mascotMediaId?: string | null; narrationMediaId?: string | null; narrationText?: string };
+  identity: { siteName: string; tagline: string; logoMediaId?: string | null; mascotMediaId?: string | null; narrationMediaId?: string | null; narrationText?: string; narrationAutoPlay?: boolean };
   appearance: { theme: "obsidian" | "paper" | "violet" | "custom"; accent?: string; colorMode?: string; motion?: string };
   hero: { title: string; body: string; mediaId?: string | null; overlay?: number; muted?: boolean; loop?: boolean };
   maintenance: { enabled: boolean; message: string };
@@ -140,6 +140,7 @@ export default function CreatorSettings() {
         <label>Intro narration / voice clip<select value={draft.identity.narrationMediaId ?? ""} onChange={e=>update("identity","narrationMediaId",e.target.value || null)}><option value="">No narration clip</option>{mediaOptions.filter(item=>item.is_published && item.media_type==="audio").map(item=><option key={item.media_id} value={item.media_id}>{item.title}</option>)}</select></label>
       </div>
       <label>On-screen narration text / transcript<textarea rows={4} maxLength={1600} value={draft.identity.narrationText ?? ""} onChange={e=>update("identity","narrationText",e.target.value)} placeholder="Write the words visitors should see alongside the voice-over…" /></label>
+      <label className="editor-check"><input type="checkbox" checked={draft.identity.narrationAutoPlay !== false} onChange={e=>update("identity","narrationAutoPlay",e.target.checked)} /> Attempt voice-over autoplay on page load <small>Browsers may block audible autoplay; a visible play button remains available.</small></label>
       <div className="editor-grid">
         <label>Hero overlay strength<input type="range" min="0" max="0.85" step="0.05" value={typeof draft.hero.overlay === "number" ? draft.hero.overlay : 0.35} onChange={e=>update("hero","overlay",Number(e.target.value))} /><small>{Math.round(Number(draft.hero.overlay ?? 0.35)*100)}% dark overlay</small></label>
         <label className="editor-check"><input type="checkbox" checked={draft.hero.muted !== false} onChange={e=>update("hero","muted",e.target.checked)} /> Mute hero video by default</label>
