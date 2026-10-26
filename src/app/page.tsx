@@ -20,7 +20,7 @@ export default async function HomePage() {
       <header className="topbar">
         <a className="wordmark" href="#home" aria-label={config.siteName}>{config.siteName}<span>®</span></a>
         <nav aria-label="Main navigation">
-          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>
+          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}
         </nav>
         <a className="nav-cta" href={config.featureFlags.polls ? "#vote" : config.featureFlags.ideas ? "#ideas" : "#community"}>Shape the next drop <span>↗</span></a>
       </header>
