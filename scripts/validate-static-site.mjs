@@ -46,6 +46,8 @@ check("public idea form always releases busy state and handles network failures"
 check("public idea form disables invalid over-limit values", ideaSubmission.includes("title.trim().length > 100") && ideaSubmission.includes("body.trim().length > 800") && ideaSubmission.includes("displayName.trim().length > 32"));
 check("homepage renders published poll component", page.includes("<PublishedPolls />"));
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
+check("creator loading states are announced politely", (await read("../src/app/creator/event-social-management.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/poll-management.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/media-library.tsx")).includes('role="status" aria-live="polite">Loading media…</p>'));
+
 check("interactive controls have a global keyboard-focus indicator", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, summary, [role=\"button\"], [role=\"tab\"], [role=\"switch\"]):focus-visible"));
 check("keyboard focus remains visible in forced-colors/high-contrast mode", (await read("../src/app/globals.css")).includes("@media (forced-colors: active)") && (await read("../src/app/globals.css")).includes("outline: 2px solid Highlight"));
 check("disabled interactive controls communicate unavailable state", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, [role=\"button\"]):disabled"));

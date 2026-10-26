@@ -197,3 +197,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added consistent keyboard focus rings for buttons, form controls, summaries, and common ARIA interactive roles, supplementing component-specific styles.
 - Added a forced-colors/high-contrast focus treatment and a consistent disabled cursor for controls.
 - Added static regression assertions. This improves keyboard visibility but does not replace manual keyboard, screen-reader, or visual acceptance testing.
+
+
+## Creator loading-state accessibility pass (2026-10-27)
+- Marked event/social, poll, and media-library loading placeholders as polite live status regions so assistive technology can announce asynchronous loading feedback.
+- Added static regression coverage for these loading announcements. Screen-reader behavior still requires manual acceptance testing.
