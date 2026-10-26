@@ -4,8 +4,9 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const failures = [];
 const check = (label, condition) => { if (!condition) failures.push(label); };
 
-const [page, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration] = await Promise.all([
+const [page, publicVideos, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration] = await Promise.all([
   read("../src/app/page.tsx"),
+  read("../src/app/videos/public-videos.tsx"),
   read("../src/lib/public-site-config.ts"),
   read("../src/app/vote/published-polls.tsx"),
   read("../src/app/creator/creator-settings.tsx"),
@@ -22,6 +23,9 @@ const [page, config, poll, editor, packageJson, events, socials, contentManager,
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
 check("homepage renders published poll component", page.includes("<PublishedPolls />"));
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
+check("homepage integrates published video gallery and navigation", page.includes("import PublicVideos") && page.includes("<PublicVideos />") && page.includes('href="#videos"'));
+check("public video gallery reads published video assets only", publicVideos.includes('.eq("is_published", true)') && publicVideos.includes('.eq("media_type", "video")') && publicVideos.includes("creator-media-public/"));
+check("public video gallery uses accessible native video controls", publicVideos.includes("controls preload=\"metadata\" playsInline") && publicVideos.includes("aria-label={video.alt_text || video.title}"));
 check("public configuration uses published snapshot", config.includes('.from("published_site_config")') && config.includes('.select("published")'));
 check("public configuration validates accent color", config.includes("/^#[0-9a-fA-F]{6}$/"));
 check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
@@ -62,5 +66,5 @@ if (failures.length) {
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (35 assertions).");
+  console.log("Repository validation passed (38 assertions).");
 }
