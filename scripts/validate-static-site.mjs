@@ -13,7 +13,7 @@ const required = [
   ["guided tour", /id="tour"/],
   ["reduced motion support", /prefers-reduced-motion:\s*reduce/],
   ["permanent creator signature", /MADE BY ALMUDDATHTHIR/],
-  ["honest demo poll disclosure", /Demo only[^<]*vote is not sent or stored/],
+  ["honest demo poll disclosure", /Demo only[^<]*no vote is sent or stored/],
   ["honest submission disclosure", /does not send or save your idea/i],
   ["safe external URL constraint in schema docs", /https:\/\//]
 ];
