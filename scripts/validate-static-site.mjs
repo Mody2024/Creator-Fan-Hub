@@ -20,7 +20,8 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../supabase/migrations/20261026001600_creator_media_library.sql"),
   read("../supabase/migrations/20261026001700_scope_media_storage_ownership.sql"),
   read("../src/app/creator/idea-moderation-queue.tsx"),
-  read("../src/app/ideas/idea-submission-form.tsx")
+  read("../src/app/ideas/idea-submission-form.tsx"),
+  read("../src/app/vote/poll-vote-form.tsx")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -47,6 +48,9 @@ check("creator poll creation validates date order and option lengths", contentMa
 check("creator poll form shows question, description and option counts", contentManager.includes("{title.trim().length}/160") && contentManager.includes("{description.length}/1000") && contentManager.includes("}/8 options"));
 check("creator poll creation always releases working state", contentManager.includes("finally {setWorking(\"\");"));
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
+check("public voting always releases its submitting state", voteForm.includes("finally {\n      setSubmitting(false);"));
+check("public voting handles uncertain network results without claiming success", voteForm.includes("Refresh the page before retrying to check whether it was recorded") && voteForm.includes("connection failed before we could confirm your vote"));
+check("public voting keeps anonymous-token limitations explicit", voteForm.includes("This is not identity verification.") && voteForm.includes("already been recorded for this poll"));
 check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
 check("creator editor reports media-selector loading failures", editor.includes('error: mediaError') && editor.includes("media options could not be loaded"));
 check("creator editor has explicit draft/publish actions", editor.includes("Save draft") && editor.includes("Save & publish"));
