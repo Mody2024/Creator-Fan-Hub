@@ -36,16 +36,20 @@ create table if not exists public.poll_options (
   poll_id uuid not null references public.polls(id) on delete cascade,
   label text not null check (char_length(label) between 1 and 180),
   position integer not null default 0,
-  unique (poll_id, position)
+  unique (poll_id, position),
+  unique (poll_id, id)
 );
 
 create table if not exists public.poll_votes (
   id uuid primary key default gen_random_uuid(),
   poll_id uuid not null references public.polls(id) on delete cascade,
-  option_id uuid not null references public.poll_options(id) on delete cascade,
+  option_id uuid not null,
   voter_token_hash text not null,
   created_at timestamptz not null default now(),
-  unique (poll_id, voter_token_hash)
+  unique (poll_id, voter_token_hash),
+  constraint poll_votes_option_matches_poll
+    foreign key (poll_id, option_id)
+    references public.poll_options(poll_id, id) on delete cascade
 );
 
 create table if not exists public.ideas (
