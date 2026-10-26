@@ -62,3 +62,13 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Latest Git-linked Vercel development deployment for commit `e849d3a2132ceb67dfd01e4436286d68c3bcacb7` reached READY.
 - Verification limitation: the commit status currently reports Vercel pending even though the deployment API reports READY; the available workflow-run lookup returned no runs. Automated tests have therefore **not** been reported as passing.
 - The publishing service is an adapter-based boundary, not a completed live API. There is no database adapter, authenticated admin session, or deployed publish endpoint yet. SQL remains unapplied; no Supabase project was modified.
+
+
+## Next.js + Supabase application foundation (2026-10-26)
+- Added a pinned Next.js/React/TypeScript package manifest and framework configuration.
+- Added server/browser Supabase client factories using `@supabase/ssr` and publishable-key-only client configuration.
+- Added a new responsive app-router homepage that reads only the published configuration snapshot and falls back safely when Supabase environment values/data are missing.
+- Added a shared layout with the permanent creator credit, security headers, accessible focus styling, mobile layout, and reduced-motion support.
+- Confirmed the connected Supabase account has existing projects named `Eldukkan` (active) and `SKL27` (inactive); neither was changed or selected for this site.
+- Corrected Vercel's project framework from unconfigured/static to Next.js and cleared the static output-directory override. This fixes the observed `STATIC_BUILD_NO_OUT_DIR` configuration mismatch; the new app build must still be verified.
+- No dedicated Supabase project has been created. The database schema remains unapplied, and the Creator Panel/authentication/write APIs are not complete.
