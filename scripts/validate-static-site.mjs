@@ -27,7 +27,7 @@ check("homepage renders published poll component", page.includes("<PublishedPoll
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
 check("homepage integrates published video gallery and navigation", page.includes("import PublicVideos") && page.includes("<PublicVideos />") && page.includes('href="#videos"'));
 check("public video gallery reads published video assets only", publicVideos.includes('.eq("is_published", true)') && publicVideos.includes('.eq("media_type", "video")') && publicVideos.includes("creator-media-public/"));
-check("public video gallery uses accessible native video controls", publicVideoPlayer.includes("controls") && publicVideoPlayer.includes("playsInline") && publicVideoPlayer.includes("aria-label={title}"));
+check("public video gallery uses accessible native video controls", publicVideoPlayer.includes("controls preload=\"metadata\" playsInline") && publicVideoPlayer.includes("aria-label={description || title}"));
 check("public video gallery handles playback errors with retry", publicVideos.includes("PublicVideoPlayer") && publicVideoPlayer.includes("onError={() => setFailed(true)}") && publicVideoPlayer.includes("Try again"));
 check("public video retry control is keyboard accessible", publicVideoPlayer.includes('type="button"') && publicVideoPlayer.includes('role="status"') && publicVideoPlayer.includes("setAttempt(value => value + 1)"));
 check("public configuration uses published snapshot", config.includes('.from("published_site_config")') && config.includes('.select("published")'));
