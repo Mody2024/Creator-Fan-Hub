@@ -24,27 +24,44 @@ export default function MediaLibrary() {
   const [ready,setReady] = useState(false);
 
   const load = useCallback(async () => {
+    setReady(false);
     const supabase = getSupabaseBrowserClient();
     if (!supabase) { setStatus("Supabase is not configured for this preview."); setReady(true); return; }
-    const {data:userData} = await supabase.auth.getUser();
-    if (!userData.user) { setStatus("Sign in with an authorized creator account to manage media."); setReady(true); return; }
-    const {data,error} = await supabase.rpc("get_creator_media",{p_limit:100});
-    if (error) { setStatus("Could not load media. Confirm the creator-media migration is applied and this account is authorized."); setReady(true); return; }
-    const items = (data ?? []) as MediaRow[];
-    const enriched = await Promise.all(items.map(async item => {
-      if (!item.storage_path) return item;
-      const [bucket,...parts] = item.storage_path.split("/");
-      const path = parts.join("/");
-      if (bucket === "creator-media-public") {
-        const {data:publicData} = supabase.storage.from(bucket).getPublicUrl(path);
-        return {...item,preview_url:publicData.publicUrl};
-      }
-      const {data:signed} = await supabase.storage.from(bucket).createSignedUrl(path,300);
-      return {...item,preview_url:signed?.signedUrl ?? null};
-    }));
-    setRows(enriched);
-    setStatus("Media library loaded. Unpublished files stay in private storage.");
-    setReady(true);
+    try {
+      const {data:userData,error:userError} = await supabase.auth.getUser();
+      if (userError || !userData.user) { setRows([]); setStatus("Sign in with an authorized creator account to manage media."); setReady(true); return; }
+      const {data,error} = await supabase.rpc("get_creator_media",{p_limit:100});
+      if (error) throw new Error("Could not load media. Confirm the creator-media migration is applied and this account is authorized.");
+      const items = (data ?? []) as MediaRow[];
+      const enriched = await Promise.all(items.map(async item => {
+        if (!item.storage_path) return {...item,preview_url:null};
+        const [bucket,...parts] = item.storage_path.split("/");
+        const path = parts.join("/");
+        if (!path || !["creator-media-private","creator-media-public"].includes(bucket) || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(path)) return {...item,preview_url:null};
+        try {
+          if (bucket === "creator-media-public" && item.is_published) {
+            const {data:publicData} = supabase.storage.from(bucket).getPublicUrl(path);
+            return {...item,preview_url:publicData.publicUrl || null};
+          }
+          if (bucket === "creator-media-private" && !item.is_published) {
+            const {data:signed,error:signedError} = await supabase.storage.from(bucket).createSignedUrl(path,300);
+            if (signedError) return {...item,preview_url:null};
+            return {...item,preview_url:signed?.signedUrl ?? null};
+          }
+          return {...item,preview_url:null};
+        } catch {
+          return {...item,preview_url:null};
+        }
+      }));
+      setRows(enriched);
+      const missingPreviews = enriched.some(item => item.storage_path && !item.preview_url);
+      setStatus(missingPreviews ? "Media library loaded, but some previews are unavailable. Check storage permissions and file paths." : "Media library loaded. Unpublished files stay in private storage.");
+    } catch (e) {
+      setRows([]);
+      setStatus(e instanceof Error ? e.message : "Could not load the media library. Check your connection and try again.");
+    } finally {
+      setReady(true);
+    }
   },[]);
 
   useEffect(()=>{ void load(); },[load]);
