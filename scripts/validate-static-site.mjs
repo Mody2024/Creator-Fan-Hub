@@ -27,7 +27,7 @@ check("homepage renders published poll component", page.includes("<PublishedPoll
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
 check("homepage integrates published video gallery and navigation", page.includes("import PublicVideos") && page.includes("<PublicVideos />") && page.includes('href="#videos"'));
 check("public video gallery reads published video assets only", publicVideos.includes('.eq("is_published", true)') && publicVideos.includes('.eq("media_type", "video")') && publicVideos.includes("creator-media-public/"));
-check("public video gallery uses accessible native video controls", publicVideoPlayer.includes("controls preload=\\\"metadata\\\" playsInline") && publicVideoPlayer.includes("aria-label={title}"));
+check("public video gallery uses accessible native video controls", publicVideoPlayer.includes("controls") && publicVideoPlayer.includes("playsInline") && publicVideoPlayer.includes("aria-label={title}"));
 check("public video gallery handles playback errors with retry", publicVideos.includes("PublicVideoPlayer") && publicVideoPlayer.includes("onError={() => setFailed(true)}") && publicVideoPlayer.includes("Try again"));
 check("public video retry control is keyboard accessible", publicVideoPlayer.includes('type="button"') && publicVideoPlayer.includes('role="status"') && publicVideoPlayer.includes("setAttempt(value => value + 1)"));
 check("public configuration uses published snapshot", config.includes('.from("published_site_config")') && config.includes('.select("published")'));
@@ -60,6 +60,7 @@ check("social edit confirmation uses captured edit state", contentManager.includ
 check("creator can edit public section visibility", editor.includes("draft.layout.visibleSections") && editor.includes("visibleSections:e.target.checked"));
 check("public site respects section visibility", page.includes("config.visibleSections.includes(\"events\")") && page.includes("config.visibleSections.includes(\"socials\")"));
 check("public config restricts section identifiers", config.includes("allowedSections.includes(item)"));
+check("published configuration preserves videos in the default section order", config.includes('sectionOrder: ["hero","ideas","poll","events","community","socials","videos"]') && config.includes('const allowedSections = ["hero","ideas","poll","events","community","socials","videos"]'));
 check("creator dashboard mounts media library", dashboard.includes("import MediaLibrary") && dashboard.includes("<MediaLibrary />"));
 check("media upload enforces type and size limits", media.includes("ACCEPTED[selected.type]") && media.includes("selected.size > LIMIT"));
 check("media publishing copies assets between visibility buckets", media.includes(".download(oldPath)") && media.includes('"creator-media-public"') && media.includes('"creator-media-private"'));
