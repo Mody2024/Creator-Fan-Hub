@@ -5,19 +5,20 @@ import CreatorSettings from "./creator-settings";
 import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
+import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export const dynamic = "force-dynamic";
 
 const modules = [
   { number: "01", title: "Site identity", detail: "Name, logo, copy, colors and themes", state: "Editor started" },
   { number: "02", title: "Ideas & polls", detail: "Submissions, moderation, votes and deadlines", state: "Connected" },
-  { number: "03", title: "Media library", detail: "Hero videos, uploads, mascot and audio", state: "Planned" },
-  { number: "04", title: "Events & socials", detail: "Events, countdowns, social links and presets", state: "Planned" },
+  { number: "03", title: "Media library", detail: "Hero videos, uploads, mascot and audio", state: "In progress" },
+  { number: "04", title: "Events & socials", detail: "Events, countdowns, social links and presets", state: "Connected" },
   { number: "05", title: "Publishing history", detail: "Draft preview, published versions and rollback", state: "Database ready" }
 ];
 
 export default async function CreatorDashboardPage() {
-  const supabase = await createSupabaseServerClient();
+  const [supabase, publicConfig] = await Promise.all([createSupabaseServerClient(), getPublicSiteConfig()]);
   if (!supabase) redirect("/creator/login?setup=required");
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
@@ -27,7 +28,7 @@ export default async function CreatorDashboardPage() {
   if (adminError || !admin) redirect("/creator/login?access=restricted");
 
   return <main className="dashboard-shell">
-    <header className="dashboard-topbar"><Link className="wordmark" href="/">THE INNER CIRCLE<span>®</span></Link><span className="admin-session"><i /> AUTHENTICATED WORKSPACE</span><form action="/creator/logout" method="post"><button className="logout-button" type="submit">Sign out ↗</button></form></header>
+    <header className="dashboard-topbar"><Link className="wordmark" href="/">{publicConfig.siteName}<span>®</span></Link><span className="admin-session"><i /> AUTHENTICATED WORKSPACE</span><form action="/creator/logout" method="post"><button className="logout-button" type="submit">Sign out ↗</button></form></header>
     <div className="dashboard-content">
       <div className="dashboard-welcome"><div><span className="eyebrow">CREATOR CONTROL ROOM / OVERVIEW</span><h1>Make it <em>yours.</em></h1><p>Manage the public experience from one workspace. Save drafts privately, then publish approved changes.</p></div><span className="draft-badge">● DEVELOPMENT / DRAFT</span></div>
       <section className="dashboard-stats"><article><span>PUBLIC CONFIG</span><strong>Supabase connected</strong><small>Published snapshot is the public source of truth</small></article><article><span>CREATOR ACCESS</span><strong>Verified server-side</strong><small>Only allowlisted creator accounts can edit</small></article><article><span>PUBLISHING</span><strong>Versioned snapshots</strong><small>Concurrent draft changes are checked</small></article></section>
