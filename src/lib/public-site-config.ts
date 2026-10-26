@@ -9,6 +9,7 @@ export type PublicSiteConfig = {
   accent: string;
   maintenance: { enabled: boolean; message: string };
   featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
+  visibleSections: string[];
 };
 
 const fallback: PublicSiteConfig = {
@@ -19,7 +20,8 @@ const fallback: PublicSiteConfig = {
   theme: "obsidian",
   accent: "#d8ff75",
   maintenance: { enabled: false, message: "We'll be back soon." },
-  featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false }
+  featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
+  visibleSections: ["hero","ideas","poll","events","community","socials"]
 };
 
 export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
@@ -40,6 +42,8 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const appearance = (raw.appearance && typeof raw.appearance === "object" ? raw.appearance : {}) as Record<string, unknown>;
   const maintenance = (raw.maintenance && typeof raw.maintenance === "object" ? raw.maintenance : {}) as Record<string, unknown>;
   const flags = (raw.featureFlags && typeof raw.featureFlags === "object" ? raw.featureFlags : {}) as Record<string, unknown>;
+  const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
+  const allowedSections = ["hero","ideas","poll","events","community","socials"];
 
   const theme = appearance.theme;
   return {
@@ -53,6 +57,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
       enabled: maintenance.enabled === true,
       message: typeof maintenance.message === "string" ? maintenance.message.slice(0, 240) : fallback.maintenance.message
     },
+    visibleSections: Array.isArray(layout.visibleSections) ? layout.visibleSections.filter((item): item is string => typeof item === "string" && allowedSections.includes(item)) : fallback.visibleSections,
     featureFlags: {
       polls: flags.polls !== false, ideas: flags.ideas !== false, events: flags.events !== false,
       guidedTour: flags.guidedTour !== false, mascot: flags.mascot !== false,
