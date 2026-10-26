@@ -57,6 +57,7 @@ begin
      or length(btrim(coalesce(p_description,''))) > 1000
      or jsonb_typeof(p_options) <> 'array'
      or jsonb_array_length(p_options) not between 2 and 8
+     or (select count(distinct lower(btrim(value #>> '{}'))) from jsonb_array_elements(p_options)) <> jsonb_array_length(p_options)
      or (p_starts_at is not null and p_ends_at is not null and p_ends_at <= p_starts_at) then
     raise exception 'invalid poll configuration' using errcode='22023';
   end if;
