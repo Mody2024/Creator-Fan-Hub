@@ -24,6 +24,13 @@ export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: stri
   const closeButton = useRef<HTMLButtonElement>(null);
   const launchButton = useRef<HTMLButtonElement>(null);
 
+  const close = useCallback(() => {
+    setOpen(false);
+    audio.current?.pause();
+    document.querySelectorAll(".tour-spotlight").forEach(node => node.classList.remove("tour-spotlight"));
+    window.setTimeout(() => launchButton.current?.focus(), 0);
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const current = available[step];
@@ -60,13 +67,6 @@ export default function GuidedWelcomeTour({ narrationUrl }: { narrationUrl: stri
       target?.classList.remove("tour-spotlight");
     };
   }, [open, step, available, close]);
-
-  const close = useCallback(() => {
-    setOpen(false);
-    audio.current?.pause();
-    document.querySelectorAll(".tour-spotlight").forEach(node => node.classList.remove("tour-spotlight"));
-    window.setTimeout(() => launchButton.current?.focus(), 0);
-  }, []);
 
   async function begin() {
     const visible = steps.filter(item => Boolean(document.getElementById(item.target)));
