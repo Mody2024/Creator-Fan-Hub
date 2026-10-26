@@ -72,3 +72,15 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Confirmed the connected Supabase account has existing projects named `Eldukkan` (active) and `SKL27` (inactive); neither was changed or selected for this site.
 - Corrected Vercel's project framework from unconfigured/static to Next.js and cleared the static output-directory override. This fixes the observed `STATIC_BUILD_NO_OUT_DIR` configuration mismatch; the new app build must still be verified.
 - No dedicated Supabase project has been created. The database schema remains unapplied, and the Creator Panel/authentication/write APIs are not complete.
+
+
+## Supabase free-tier setup and first creator editor (2026-10-26)
+- Created dedicated Supabase project `Creator-Fan-Hub` in `eu-central-1` under the selected `2DogsStudios` organization. Supabase returned `ACTIVE_HEALTHY`; quoted project creation cost was $0/month.
+- Applied the initial schema, explicit public-read-only RLS/grants, default configuration seed, creator allowlist, draft save/publish functions, and canonical configuration migration.
+- Verified 11 public tables with RLS enabled and one starter draft + one published config row. Existing `Eldukkan` and `SKL27` projects were not changed.
+- Added Supabase URL and publishable key to the Vercel development project's Preview environment for the `development` branch only; no production env values were added.
+- Added protected draft read/save and publish API routes, plus a creator editor for identity, hero copy, theme/accent, feature flags, maintenance mode, draft revision conflicts, and publishing.
+- The creator editor is database-backed, but it requires a Supabase Auth user explicitly allowlisted in `public.creator_admins`; no public self-signup is enabled and no owner account has been created automatically.
+- Security advisor reports INFO findings for intentionally private tables with RLS but no policies. Performance advisor reported missing foreign-key indexes; index migration added. Security/performance advisors should be rerun after integration.
+- Free-tier target: no paid APIs or paid integrations. $0 project-creation quote does not guarantee unlimited use or permanent free service; enforce provider usage limits and do not enable paid upgrades without owner approval.
+- Not complete: production deployment, confirmed passing CI/build, actual first creator login, end-to-end editor save/publish, real idea/vote write endpoints, media uploads, and full feature set.
