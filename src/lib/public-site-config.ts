@@ -2,6 +2,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type PublicSiteConfig = {
   siteName: string;
+  logoUrl: string | null;
+  heroMediaUrl: string | null;
+  heroMediaType: "image" | "video" | null;
   tagline: string;
   heroTitle: string;
   heroBody: string;
@@ -14,6 +17,9 @@ export type PublicSiteConfig = {
 
 const fallback: PublicSiteConfig = {
   siteName: "THE INNER CIRCLE",
+  logoUrl: null,
+  heroMediaUrl: null,
+  heroMediaType: null,
   tagline: "A community built around what comes next.",
   heroTitle: "Your next favorite video starts here.",
   heroBody: "Vote on ideas, share what you want to see, and help shape the next upload.",
@@ -46,8 +52,23 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const allowedSections = ["hero","ideas","poll","events","community","socials"];
 
   const theme = appearance.theme;
+  const mediaIds = [identity.logoMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
+  const mediaResult = mediaIds.length ? await supabase.from("media_items").select("id,media_type,storage_path").in("id", mediaIds).eq("is_published", true) : { data: [], error: null };
+  const mediaById = new Map((mediaResult.data ?? []).map((item: { id: string; media_type: string; storage_path: string | null }) => [item.id, item]));
+  const logoItem = typeof identity.logoMediaId === "string" ? mediaById.get(identity.logoMediaId) : undefined;
+  const heroItem = typeof hero.mediaId === "string" ? mediaById.get(hero.mediaId) : undefined;
+  const publicMediaUrl = (item: { storage_path: string | null } | undefined) => {
+    if (!item || !item.storage_path || !item.storage_path.startsWith("creator-media-public/")) return null;
+    const pathParts = item.storage_path.split("/");
+    const bucket = pathParts.shift();
+    if (!bucket || pathParts.length === 0) return null;
+    return supabase.storage.from(bucket).getPublicUrl(pathParts.join("/")).data.publicUrl;
+  };
   return {
     siteName: typeof identity.siteName === "string" ? identity.siteName.slice(0, 100) : fallback.siteName,
+    logoUrl: publicMediaUrl(logoItem),
+    heroMediaUrl: publicMediaUrl(heroItem),
+    heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
     tagline: typeof identity.tagline === "string" ? identity.tagline.slice(0, 240) : fallback.tagline,
     heroTitle: typeof hero.title === "string" ? hero.title.slice(0, 180) : fallback.heroTitle,
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
