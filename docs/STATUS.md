@@ -100,3 +100,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - This migration is committed as code only; it has not been applied to the Supabase project. Live database behavior still needs an authorized migration run and end-to-end tests.
 
 - Follow-up review hardened the ownership backfill so malformed legacy storage paths cannot trigger an unsafe UUID cast; validator coverage now asserts the guarded conversion.
+
+
+## Media ownership migration repair (2026-10-27)
+- Rebuilt the media-owner migration as a complete SQL file after review found the UUID backfill statement was malformed.
+- The migration matches the existing media type constraint, scopes listing and mutation to owner_id, and grants its RPCs only to authenticated users.
+- This remains code-only until applied and tested against the connected Supabase project.
