@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CreatorSettings from "./creator-settings";
 import IdeaModerationQueue from "./idea-moderation-queue";
@@ -24,7 +25,7 @@ export default async function CreatorDashboardPage() {
   if (adminError || !admin) redirect("/creator/login?access=restricted");
 
   return <main className="dashboard-shell">
-    <header className="dashboard-topbar"><a className="wordmark" href="/">THE INNER CIRCLE<span>®</span></a><span className="admin-session"><i /> AUTHENTICATED WORKSPACE</span><form action="/creator/logout" method="post"><button className="logout-button" type="submit">Sign out ↗</button></form></header>
+    <header className="dashboard-topbar"><Link className="wordmark" href="/">THE INNER CIRCLE<span>®</span></Link><span className="admin-session"><i /> AUTHENTICATED WORKSPACE</span><form action="/creator/logout" method="post"><button className="logout-button" type="submit">Sign out ↗</button></form></header>
     <div className="dashboard-content">
       <div className="dashboard-welcome"><div><span className="eyebrow">CREATOR CONTROL ROOM / OVERVIEW</span><h1>Make it <em>yours.</em></h1><p>Manage the public experience from one workspace. Save drafts privately, then publish approved changes.</p></div><span className="draft-badge">● DEVELOPMENT / DRAFT</span></div>
       <section className="dashboard-stats"><article><span>PUBLIC CONFIG</span><strong>Supabase connected</strong><small>Published snapshot is the public source of truth</small></article><article><span>CREATOR ACCESS</span><strong>Verified server-side</strong><small>Only allowlisted creator accounts can edit</small></article><article><span>PUBLISHING</span><strong>Versioned snapshots</strong><small>Concurrent draft changes are checked</small></article></section>
