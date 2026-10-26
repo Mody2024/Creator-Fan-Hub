@@ -66,13 +66,13 @@ export default function CreatorSettings() {
       return;
     }
     const loaded = data[0];
-    const { data: mediaData } = await supabase.rpc("get_creator_media", { p_limit: 100 });
+    const { data: mediaData, error: mediaError } = await supabase.rpc("get_creator_media", { p_limit: 100 });
     setMediaOptions((mediaData ?? []) as MediaOption[]);
     const normalizedDraft: SiteDraft = { ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance }, layout: { ...fallback.layout, ...loaded.draft.layout }, featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags }, socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : [] };
     setDraft(normalizedDraft);
     setSavedSnapshot(JSON.stringify(normalizedDraft));
     setRevision(Number(loaded.draft_revision));
-    setStatus("Draft loaded. Changes remain private until you publish.");
+    setStatus(mediaError ? "Draft loaded, but media options could not be loaded. Confirm the media migration and creator permissions, then reload." : "Draft loaded. Changes remain private until you publish.");
     setBusy(false);
   }, [router]);
 
