@@ -19,10 +19,15 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../src/app/creator/page.tsx"),
   read("../supabase/migrations/20261026001600_creator_media_library.sql"),
   read("../supabase/migrations/20261026001700_scope_media_storage_ownership.sql"),
-  read("../src/app/creator/idea-moderation-queue.tsx")
+  read("../src/app/creator/idea-moderation-queue.tsx"),
+  read("../src/app/ideas/idea-submission-form.tsx")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
+check("public idea form shows live character counts", ideaSubmission.includes("{title.length}/100") && ideaSubmission.includes("{body.length}/800") && ideaSubmission.includes("{displayName.length}/32"));
+check("public idea form validates trimmed field lengths before submission", ideaSubmission.includes("const cleanTitle = title.trim()") && ideaSubmission.includes("cleanBody.length < 10") && ideaSubmission.includes("cleanName.length > 32"));
+check("public idea form always releases busy state and handles network failures", ideaSubmission.includes("finally {\n      setBusy(false);") && ideaSubmission.includes("connection failed before we could confirm submission"));
+check("public idea form disables invalid over-limit values", ideaSubmission.includes("title.trim().length > 100") && ideaSubmission.includes("body.trim().length > 800") && ideaSubmission.includes("displayName.trim().length > 32"));
 check("homepage renders published poll component", page.includes("<PublishedPolls />"));
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
 check("homepage integrates published video gallery and navigation", page.includes("import PublicVideos") && page.includes("<PublicVideos />") && page.includes('href="#videos"'));
