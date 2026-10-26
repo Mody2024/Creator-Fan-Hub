@@ -19,6 +19,7 @@ export type PublicSiteConfig = {
   maintenance: { enabled: boolean; message: string };
   featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
   visibleSections: string[];
+  narrationAutoPlay: boolean;
 };
 
 const fallback: PublicSiteConfig = {
@@ -39,7 +40,8 @@ const fallback: PublicSiteConfig = {
   accent: "#d8ff75",
   maintenance: { enabled: false, message: "We'll be back soon." },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
-  visibleSections: ["hero","ideas","poll","events","community","socials"]
+  visibleSections: ["hero","ideas","poll","events","community","socials"],
+  narrationAutoPlay: true
 };
 
 export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
