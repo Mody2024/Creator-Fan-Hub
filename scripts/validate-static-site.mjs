@@ -38,7 +38,7 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
   read("../src/app/api/creator/draft/route.ts"),
   read("../src/app/api/creator/publish/route.ts"),
-  read("../lib/read-bounded-json.ts")
+  read("../src/lib/read-bounded-json.ts")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
