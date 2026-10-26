@@ -51,6 +51,7 @@ check("media rows collapse safely on very narrow phones", (await read("../src/ap
 check("mobile creator form fields avoid narrow-screen text zoom", (await read("../src/app/globals.css")).includes(".poll-create-form input:not([type=\"checkbox\"]):not([type=\"color\"])") && (await read("../src/app/globals.css")).includes("font-size: 16px;"));
 
 check("creator loading states are announced politely", (await read("../src/app/creator/event-social-management.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/poll-management.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/media-library.tsx")).includes('role="status" aria-live="polite">Loading media…</p>'));
+check("creator settings and moderation queue loading states are announced politely", (await read("../src/app/creator/creator-settings.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/idea-moderation-queue.tsx")).includes('role="status" aria-live="polite">{status}</p>'));
 
 check("interactive controls have a global keyboard-focus indicator", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, summary, [role=\"button\"], [role=\"tab\"], [role=\"switch\"]):focus-visible"));
 check("keyboard focus remains visible in forced-colors/high-contrast mode", (await read("../src/app/globals.css")).includes("@media (forced-colors: active)") && (await read("../src/app/globals.css")).includes("outline: 2px solid Highlight"));
