@@ -42,7 +42,7 @@ begin
 end; $$;
 
 create or replace function public.get_creator_social_links(p_limit integer default 100)
-returns table(link_id uuid,label text,url text,platform text,position integer,is_published boolean)
+returns table(link_id uuid,label text,url text,platform text,link_position integer,is_published boolean)
 language plpgsql stable security definer set search_path=''
 as $$
 begin
