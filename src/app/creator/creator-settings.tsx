@@ -33,6 +33,8 @@ export default function CreatorSettings() {
   const router = useRouter();
   const [draft, setDraft] = useState<SiteDraft>(fallback);
   const [revision, setRevision] = useState(1);
+  const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(fallback));
+  const hasUnsavedChanges = JSON.stringify(draft) !== savedSnapshot;
   const [busy, setBusy] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("Loading your private draft…");
@@ -66,7 +68,9 @@ export default function CreatorSettings() {
     const loaded = data[0];
     const { data: mediaData } = await supabase.rpc("get_creator_media", { p_limit: 100 });
     setMediaOptions((mediaData ?? []) as MediaOption[]);
-    setDraft({ ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance }, layout: { ...fallback.layout, ...loaded.draft.layout }, featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags }, socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : [] });
+    const normalizedDraft: SiteDraft = { ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance }, layout: { ...fallback.layout, ...loaded.draft.layout }, featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags }, socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : [] };
+    setDraft(normalizedDraft);
+    setSavedSnapshot(JSON.stringify(normalizedDraft));
     setRevision(Number(loaded.draft_revision));
     setStatus("Draft loaded. Changes remain private until you publish.");
     setBusy(false);
@@ -118,6 +122,7 @@ export default function CreatorSettings() {
     }
     const nextRevision = Number(saved.data[0].new_revision);
     setRevision(nextRevision);
+    setSavedSnapshot(JSON.stringify(draft));
     if (publish) {
       const result = await supabase.rpc("publish_site_config", { p_expected_revision: nextRevision });
       if (result.error || !result.data?.[0]) {
@@ -134,7 +139,7 @@ export default function CreatorSettings() {
   }
 
   return <section className="creator-editor" aria-busy={busy || saving}>
-    <div className="editor-topline"><span className="eyebrow">LIVE CONFIGURATION / DRAFT {revision}</span><button className="editor-reload" onClick={() => { setBusy(true); void load(); }} disabled={busy || saving}>Reload draft ↻</button></div>
+    <div className="editor-topline"><span className="eyebrow">LIVE CONFIGURATION / DRAFT {revision} · {hasUnsavedChanges ? "UNSAVED CHANGES" : "ALL CHANGES SAVED"}</span><button className="editor-reload" onClick={() => { if (hasUnsavedChanges && !window.confirm("Discard your unsaved changes and reload the saved draft?")) return; setBusy(true); void load(); }} disabled={busy || saving}>Reload draft ↻</button></div>
     {busy ? <p className="editor-status" role="status">{status}</p> : <>
       <div className="draft-preview-wrap"><div className="draft-preview-label"><span>LIVE DRAFT PREVIEW</span><small>Private until you publish</small></div><div className={"draft-preview theme-" + draft.appearance.theme} style={{"--preview-accent": draft.appearance.accent || "#C5A46D"} as React.CSSProperties & {"--preview-accent": string}}><div className="draft-preview-top"><span>{draft.identity.siteName || "Your website name"}</span><span>PREVIEW / 01</span></div><div className="draft-preview-main"><span className="draft-preview-eyebrow">{draft.identity.tagline || "Your tagline"}</span><h3>{draft.hero.title || "Your headline goes here"}</h3><p>{draft.hero.body || "Your description will appear here."}</p><span className="draft-preview-cta">{draft.featureFlags.polls ? "CAST YOUR VOTE ↗" : draft.featureFlags.ideas ? "SUBMIT AN IDEA ↗" : "EXPLORE ↗"}</span></div><div className="draft-preview-sections">{(draft.layout.sectionOrder ?? []).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index)=><span key={key}>{String(index+1).padStart(2,"0")} / {({hero:"Hero",ideas:"Ideas",poll:"Voting",events:"Events",community:"Community",socials:"Social links"} as Record<string,string>)[key] ?? key}</span>)}</div>{draft.maintenance.enabled && <div className="draft-preview-maintenance">MAINTENANCE MODE · {draft.maintenance.message}</div>}</div></div><div className="editor-section-title"><span>01 / IDENTITY</span><h2>Make it <em>yours.</em></h2><p>These values are stored in Supabase. The public website changes only after publishing.</p></div>
       <div className="editor-grid">
