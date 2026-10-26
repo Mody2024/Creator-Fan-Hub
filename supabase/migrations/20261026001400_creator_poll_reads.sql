@@ -27,7 +27,7 @@ end;
 $$;
 
 create or replace function public.get_creator_poll_options(p_poll_ids uuid[])
-returns table (id uuid,poll_id uuid,label text,position integer)
+returns table (id uuid,poll_id uuid,label text,option_position integer)
 language plpgsql
 stable
 security definer
