@@ -252,3 +252,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Request-body limit unit tests (2026-10-27)
 - Added direct Node test coverage for valid JSON, malformed JSON, invalid UTF-8, early Content-Length rejection, and streamed bodies that exceed the configured byte limit without a size header.
 - The existing `npm test` workflow executes these cases alongside the repository's other tests; the static validator also asserts the cases remain present.
+
+## Public idea submission fail-closed fix (2026-10-27)
+- Added a forward migration for the public idea submission RPC. It requires an existing primary published configuration, maintenance mode off, and the ideas feature enabled before accepting a submission.
+- Missing configuration or disabled ideas returns `ideas_unavailable`, preserving input validation, token hashing, and rate limits.
+- Added direct Node regression coverage and static-validator coverage. This migration remains code-only until applied to Supabase and verified end to end.

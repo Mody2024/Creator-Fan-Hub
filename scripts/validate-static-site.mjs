@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -39,7 +39,8 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../src/app/api/creator/draft/route.ts"),
   read("../src/app/api/creator/publish/route.ts"),
   read("../src/lib/read-bounded-json.ts"),
-  read("../tests/read-bounded-json.test.mjs")
+  read("../tests/read-bounded-json.test.mjs"),
+  read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -48,6 +49,7 @@ check("bounded JSON body has unit tests for valid JSON, malformed JSON/UTF-8, he
 check("bounded JSON parser stops reading streams at the byte limit and rejects malformed UTF-8/JSON", boundedJsonHelper.includes("request.body.getReader()") && boundedJsonHelper.includes("totalBytes > maxBytes") && boundedJsonHelper.includes("reader.cancel()") && boundedJsonHelper.includes('TextDecoder("utf-8", { fatal: true })') && boundedJsonHelper.includes("JSON.parse(raw)"));
 check("creator draft API caps JSON payloads at 128 KiB", draftRoute.includes("readBoundedJson(request, 128 * 1024)") && draftRoute.includes("parsed.status"));
 check("creator publish and history restore APIs cap JSON payloads at 8 KiB", publishRoute.includes("readBoundedJson(request, 8 * 1024)") && historyRoute.includes("readBoundedJson(request, 8 * 1024)"));
+check("public idea submission fails closed when primary config is missing or ideas are disabled", ideaSubmissionGateMigration.includes("function public.submit_public_idea(") && ideaSubmissionGateMigration.includes("if not exists (") && ideaSubmissionGateMigration.includes("ideas_unavailable") && ideaSubmissionGateMigration.includes("featureFlags,ideas") && ideaSubmissionGateMigration.includes("maintenance_mode"));
 check("public idea, poll-read and vote RPCs fail closed when primary published config is missing", publicGateHardeningMigration.includes("function public.get_public_approved_ideas()") && publicGateHardeningMigration.includes("function public.get_public_poll_results()") && publicGateHardeningMigration.includes("function public.cast_public_poll_vote(") && (publicGateHardeningMigration.match(/from public\.published_site_config c/g) || []).length >= 3 && (publicGateHardeningMigration.match(/and exists \(/g) || []).length >= 2 && publicGateHardeningMigration.includes("if not exists ("));
 check("public idea board includes featured ideas and respects maintenance/feature visibility", publicIdeas.includes("APPROVED & FEATURED") && publicIdeasMigration.includes("i.status in") && publicIdeasMigration.includes("featured") && publicIdeasMigration.includes("maintenance_mode") && publicIdeasMigration.includes("featureFlags,ideas"));
 check("public idea form shows live character counts", ideaSubmission.includes("{title.length}/100") && ideaSubmission.includes("{body.length}/800") && ideaSubmission.includes("{displayName.length}/32"));
