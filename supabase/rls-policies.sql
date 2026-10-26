@@ -2,7 +2,8 @@
 -- Public writes must use a server endpoint/Edge Function that validates input,
 -- rate limits requests, checks poll windows/options, and never returns voter hashes.
 
-alter table public.site_config enable row level security;
+alter table public.site_config_drafts enable row level security;
+alter table public.published_site_config enable row level security;
 alter table public.polls enable row level security;
 alter table public.poll_options enable row level security;
 alter table public.poll_votes enable row level security;
@@ -12,10 +13,13 @@ alter table public.events enable row level security;
 alter table public.social_links enable row level security;
 alter table public.admin_audit_log enable row level security;
 
-drop policy if exists "Public can read published site config" on public.site_config;
+drop policy if exists "Public can read published site config" on public.published_site_config;
 create policy "Public can read published site config"
-on public.site_config for select to anon, authenticated
+on public.published_site_config for select to anon, authenticated
 using (published is not null and published <> '{}'::jsonb);
+
+-- site_config_drafts intentionally has no client-facing policies. Its draft JSON
+-- may contain unpublished copy/media/settings and is never available to public roles.
 
 drop policy if exists "Public can read open or closed polls" on public.polls;
 create policy "Public can read open or closed polls"
@@ -48,11 +52,12 @@ using (is_published = true);
 -- Explicitly revoke all client permissions first, then grant only public SELECT
 -- on tables protected by the read policies. No public access to votes, ideas,
 -- audit records, drafts, or administrative writes.
-revoke all on public.site_config, public.polls, public.poll_options,
+revoke all on public.site_config_drafts, public.published_site_config,
+  public.polls, public.poll_options,
   public.poll_votes, public.ideas, public.media_items, public.events,
   public.social_links, public.admin_audit_log from anon, authenticated;
 
-grant select on public.site_config, public.polls, public.poll_options,
+grant select on public.published_site_config, public.polls, public.poll_options,
   public.media_items, public.events, public.social_links to anon, authenticated;
 
 -- Before production:
