@@ -42,6 +42,10 @@ check("published logo and hero assets bind to public page", config.includes('log
 check("published mascot and narration assets respect their media types", config.includes('mascotUrl: publicMediaUrl(mascotItem, ["image"])') && config.includes('narrationUrl: publicMediaUrl(narrationItem, ["audio"])') && page.includes("<NarrationControl"));
 check("hero video honors muted and loop settings", page.includes("muted={config.heroMuted}") && page.includes("loop={config.heroLoop}") && page.includes("className=\"hero-media\""));
 check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
+check("creator poll loading and status changes recover from network errors", contentManager.includes("Connection failed while loading polls") && contentManager.includes("Connection failed while changing poll status") && contentManager.includes("finally {setBusy(false);}"));
+check("creator poll creation validates date order and option lengths", contentManager.includes("closing time must be later than the opening time") && contentManager.includes("Each option must be 100 characters or fewer") && contentManager.includes("Number.isNaN(startDate.getTime())"));
+check("creator poll form shows question, description and option counts", contentManager.includes("{title.trim().length}/160") && contentManager.includes("{description.length}/1000") && contentManager.includes("}/8 options"));
+check("creator poll creation always releases working state", contentManager.includes("finally {setWorking(\"\");"));
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
 check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
 check("creator editor reports media-selector loading failures", editor.includes('error: mediaError') && editor.includes("media options could not be loaded"));
