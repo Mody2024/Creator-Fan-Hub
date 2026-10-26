@@ -157,3 +157,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Reordered private-media deletion to verify creator ownership, back up the object, remove storage, then delete metadata.
 - If the database deletion fails after storage removal, the file is restored from the in-memory backup; failed restoration produces an explicit administrator warning.
 - Added a static regression assertion for ownership validation and compensation paths. This is application-level recovery, not a substitute for a transactional storage/database service.
+
+
+## Upload compensation reporting (2026-10-27)
+- Media upload now checks the storage cleanup result when metadata persistence fails. If cleanup also fails, the UI reports the possible orphaned private object instead of silently discarding the cleanup error.
+- Added a static regression assertion for both cleanup outcomes.

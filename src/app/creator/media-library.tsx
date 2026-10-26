@@ -93,8 +93,11 @@ export default function MediaLibrary() {
         p_is_published:false
       });
       if (saveError || !saved?.[0]?.saved) {
-        await supabase.storage.from("creator-media-private").remove([path]);
-        throw saveError ?? new Error("Media metadata was not saved.");
+        const {error:cleanupError}=await supabase.storage.from("creator-media-private").remove([path]);
+        if(cleanupError) {
+          throw new Error("Media metadata was not saved, and the uploaded private file could not be cleaned up. Refresh the library and contact the site administrator if it remains orphaned.");
+        }
+        throw saveError ?? new Error("Media metadata was not saved. The uploaded file was removed.");
       }
       setFile(null); setTitle(""); setAlt("");
       const input=document.getElementById("creator-media-file") as HTMLInputElement|null; if(input) input.value="";
