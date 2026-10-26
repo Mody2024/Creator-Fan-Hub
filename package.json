@@ -1,0 +1,14 @@
+{
+  "name": "creator-fan-hub",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A creator-community website prototype and configurable publishing platform",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "node scripts/validate-static-site.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
