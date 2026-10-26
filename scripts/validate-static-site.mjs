@@ -28,6 +28,9 @@ check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_res
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
 check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
 check("creator editor has explicit draft/publish actions", editor.includes("Save draft") && editor.includes("Save & publish"));
+check("creator editor visibly tracks unsaved draft changes", editor.includes("hasUnsavedChanges") && editor.includes("UNSAVED CHANGES") && editor.includes("ALL CHANGES SAVED"));
+check("creator editor confirms before discarding draft edits", editor.includes("Discard your unsaved changes and reload the saved draft?"));
+check("creator editor warns before leaving with unsaved edits", editor.includes("beforeunload") && editor.includes("warnBeforeLeaving"));
 check("creator editor has maintenance mode", editor.includes('update("maintenance","enabled"'));
 check("package defines build script", /"build"\s*:\s*"next build"/.test(packageJson));
 check("package defines lint script", /"lint"\s*:\s*"eslint \\."/.test(packageJson) || packageJson.includes('"lint": "eslint ."' ));
@@ -51,5 +54,5 @@ if (failures.length) {
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (24 assertions).");
+  console.log("Repository validation passed (27 assertions).");
 }
