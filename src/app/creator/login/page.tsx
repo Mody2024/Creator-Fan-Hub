@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -31,7 +32,7 @@ export default function CreatorLoginPage() {
   }
 
   return <main className="admin-shell">
-    <a className="admin-back" href="/">← Back to community</a>
+    <Link className="admin-back" href="/">← Back to community</Link>
     <section className="admin-card">
       <span className="eyebrow">PRIVATE WORKSPACE / 01</span>
       <h1>Creator <em>access.</em></h1>
