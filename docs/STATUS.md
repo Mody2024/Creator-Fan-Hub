@@ -124,3 +124,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Wrapped draft save and publish in try/catch/finally so thrown network errors cannot leave the editor stuck in a permanent saving state.
 - Added explicit handling for auth lookup failures and connection errors; existing revision-conflict and draft-saved/publish-failed messaging is preserved.
 - Added a static assertion for reliable saving-state cleanup.
+
+
+## CI fixture repair (2026-10-27)
+- Updated the valid site-config test fixture to match supported public sections and the creator editor's narration fields.
+- Added a regression test ensuring oversized narration transcripts and non-boolean autoplay preferences are rejected.

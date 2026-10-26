@@ -56,11 +56,11 @@ test("a vote option must belong to the same poll", () => {
 
 const validConfig = {
   schemaVersion: 1,
-  identity: { siteName: "Creator Community", tagline: "Help shape what comes next.", logoMediaId: null, mascotMediaId: null },
+  identity: { siteName: "Creator Community", tagline: "Help shape what comes next.", logoMediaId: null, mascotMediaId: null, narrationMediaId: null, narrationText: "Welcome to the community.", narrationAutoPlay: true },
   appearance: { theme: "obsidian", accent: "#d6ff72", colorMode: "dark", motion: "full" },
   layout: {
-    sectionOrder: ["hero", "ideas", "poll", "latest", "events", "community"],
-    visibleSections: ["hero", "ideas", "poll", "latest", "events", "community"]
+    sectionOrder: ["hero", "ideas", "poll", "events", "community"],
+    visibleSections: ["hero", "ideas", "poll", "events", "community"]
   },
   hero: { title: "Your next favorite video starts here.", body: "Vote on ideas.", mediaId: null, overlay: 0.4, muted: true, loop: true },
   socialLinkIds: [],
@@ -81,6 +81,16 @@ test("configuration validator rejects unsupported theme and unsafe layout keys",
   assert.equal(result.ok, false);
   assert.ok(result.errors.some((error) => error.path === "appearance.theme"));
   assert.ok(result.errors.some((error) => error.path === "layout.visibleSections"));
+});
+
+test("configuration validator accepts narration preferences and rejects invalid narration values", () => {
+  const invalid = structuredClone(validConfig);
+  invalid.identity.narrationText = "x".repeat(1601);
+  invalid.identity.narrationAutoPlay = "yes";
+  const result = validateSiteConfig(invalid);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((error) => error.path === "identity.narrationText"));
+  assert.ok(result.errors.some((error) => error.path === "identity.narrationAutoPlay"));
 });
 
 test("configuration validator rejects malformed feature flags and invalid overlay", () => {
