@@ -6,6 +6,7 @@ import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
 import NarrationControl from "@/app/narration-control";
+import GuidedWelcomeTour from "@/app/guided-welcome-tour";
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +54,8 @@ export default async function HomePage() {
       {config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}
       {config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}
       {config.visibleSections.includes("socials") && <PublicSocialLinks />}
-      {config.narrationUrl && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} />}
+      {config.narrationUrl && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay} />}
+      {config.featureFlags.guidedTour && <GuidedWelcomeTour narrationUrl={config.narrationUrl} />}
       <footer className="site-footer"><span>{config.siteName} / COMMUNITY PORTAL</span><a href="#home">BACK TO TOP ↑</a></footer>
     </main>
   );
