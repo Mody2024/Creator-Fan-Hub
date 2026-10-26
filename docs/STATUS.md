@@ -24,3 +24,12 @@ Updated: 2026-10-26
 
 ## Release rule
 Do not treat the existing static prototype as a finished product. Keep production release separate until backend, authentication, persistence, tests, backups, and review are complete.
+
+
+## Additional work in this build session
+- Added an initial database schema proposal in `supabase/schema.sql` for site configuration, polls/options/votes, ideas, media, events, social links, and admin audit history.
+- Added `supabase/rls-policies.sql` with a public-read-only starting point and explicit revocations for public writes/private records.
+- Added `.gitignore` and a placeholder-only `.env.example`; no real credentials were added.
+- Added `docs/BACKEND-SECURITY.md` covering draft/publish boundaries, admin authorization, vote/submission validation, media safety, and recovery.
+- These SQL files are committed as implementation artifacts but have **not** been applied to a database. No Supabase project was created or modified; existing projects were left untouched.
+- The current web app remains the static prototype until the app architecture and backend are integrated.
