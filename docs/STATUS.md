@@ -202,3 +202,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Creator loading-state accessibility pass (2026-10-27)
 - Marked event/social, poll, and media-library loading placeholders as polite live status regions so assistive technology can announce asynchronous loading feedback.
 - Added static regression coverage for these loading announcements. Screen-reader behavior still requires manual acceptance testing.
+
+
+## Small-screen creator control polish (2026-10-27)
+- Improved touch target height for moderation and media controls, made media list rows adapt further for very narrow phones, and prevented long asset titles from forcing horizontal overflow.
+- Set mobile form controls to a readable 16px size to avoid automatic zoom behavior in mobile browsers.
+- Added static checks for touch targets, very narrow media rows, and mobile form sizing. Manual device preview is still required.
