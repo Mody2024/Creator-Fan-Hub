@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [gateMigration, ideaSubmissionMigration] = await Promise.all([
+const [pollVisibilityMigration, gateMigration, ideaSubmissionMigration] = await Promise.all([
+  read("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql"),
   read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
   read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql")
 ]);
@@ -19,16 +20,18 @@ test("public idea reads fail closed without primary published config", () => {
 
 test("public poll reads fail closed and do not reveal open-poll tallies", () => {
   const start = gateMigration.indexOf("create or replace function public.get_public_poll_results()");
-  const end = gateMigration.indexOf("create or replace function public.cast_public_poll_vote()");
+  const end = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
   assert.ok(start >= 0 && end > start);
   const fn = gateMigration.slice(start, end);
   assert.ok(fn.includes("and exists ("));
   assert.ok(fn.includes("featureFlags,polls"));
   assert.ok(fn.includes("case when p.status = 'closed' then count(v.id)::bigint else 0::bigint end"));
+  assert.ok(pollVisibilityMigration.includes("featureFlags,polls"));
+  assert.ok(pollVisibilityMigration.includes("maintenance_mode"));
 });
 
 test("public voting requires enabled feature and an active poll window", () => {
-  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote()");
+  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
   const fn = gateMigration.slice(start);
   assert.ok(fn.includes("if not exists ("));
   assert.ok(fn.includes("featureFlags,polls"));
