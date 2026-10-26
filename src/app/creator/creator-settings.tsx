@@ -8,7 +8,7 @@ type MediaOption = { media_id: string; title: string; media_type: string; is_pub
 
 type SiteDraft = {
   schemaVersion: 1;
-  identity: { siteName: string; tagline: string; logoMediaId?: string | null; mascotMediaId?: string | null };
+  identity: { siteName: string; tagline: string; logoMediaId?: string | null; mascotMediaId?: string | null; narrationMediaId?: string | null };
   appearance: { theme: "obsidian" | "paper" | "violet" | "custom"; accent?: string; colorMode?: string; motion?: string };
   hero: { title: string; body: string; mediaId?: string | null; overlay?: number; muted?: boolean; loop?: boolean };
   maintenance: { enabled: boolean; message: string };
@@ -135,6 +135,16 @@ export default function CreatorSettings() {
         <label>Published hero media<select value={draft.hero.mediaId ?? ""} onChange={e=>update("hero","mediaId",e.target.value || null)}><option value="">Use default hero artwork</option>{mediaOptions.filter(item=>item.is_published && (item.media_type==="image" || item.media_type==="video")).map(item=><option key={item.media_id} value={item.media_id}>{item.title} · {item.media_type}</option>)}</select></label>
       </div>
       <p className="media-upload-note">Only published assets can be selected for the public site. Upload and publish files in the Media Library first.</p>
+      <div className="editor-grid">
+        <label>Published mascot image<select value={draft.identity.mascotMediaId ?? ""} onChange={e=>update("identity","mascotMediaId",e.target.value || null)}><option value="">No custom mascot</option>{mediaOptions.filter(item=>item.is_published && item.media_type==="image").map(item=><option key={item.media_id} value={item.media_id}>{item.title}</option>)}</select></label>
+        <label>Intro narration / voice clip<select value={draft.identity.narrationMediaId ?? ""} onChange={e=>update("identity","narrationMediaId",e.target.value || null)}><option value="">No narration clip</option>{mediaOptions.filter(item=>item.is_published && item.media_type==="audio").map(item=><option key={item.media_id} value={item.media_id}>{item.title}</option>)}</select></label>
+      </div>
+      <div className="editor-grid">
+        <label>Hero overlay strength<input type="range" min="0" max="0.85" step="0.05" value={typeof draft.hero.overlay === "number" ? draft.hero.overlay : 0.35} onChange={e=>update("hero","overlay",Number(e.target.value))} /><small>{Math.round(Number(draft.hero.overlay ?? 0.35)*100)}% dark overlay</small></label>
+        <label className="editor-check"><input type="checkbox" checked={draft.hero.muted !== false} onChange={e=>update("hero","muted",e.target.checked)} /> Mute hero video by default</label>
+        <label className="editor-check"><input type="checkbox" checked={draft.hero.loop !== false} onChange={e=>update("hero","loop",e.target.checked)} /> Loop hero video</label>
+      </div>
+      <p className="media-upload-note">Mascots use published images for now. Narration is user-triggered so the site never surprises visitors with autoplaying audio.</p>
       <div className="editor-divider" />
       <div className="editor-section-title"><span>02 / EXPERIENCE</span><h2>Choose what <em>appears.</em></h2><p>Disabled modules keep their saved configuration; this switch controls public availability only.</p></div>
       <div className="feature-toggle-grid">
