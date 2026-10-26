@@ -157,12 +157,17 @@ export default function MediaLibrary() {
         p_is_published:!item.is_published
       });
       if(saveError || !saved?.[0]?.saved) {
-        await supabase.storage.from(nextBucket).remove([nextPath]);
+        const {error:cleanupError}=await supabase.storage.from(nextBucket).remove([nextPath]);
         if (item.is_published) {
           const {error:restoreError}=await supabase.storage.from(bucket).upload(oldPath,download,{contentType:download.type || String(item.metadata?.mimeType || "application/octet-stream"),upsert:false});
           if (restoreError) throw new Error("Database update failed and the original public file could not be restored. Contact the site administrator immediately.");
         }
-        throw saveError ?? new Error("Publication status was not saved.");
+        if(cleanupError) {
+          throw new Error(nextBucket==="creator-media-public"
+            ? "Database publication failed, but the new public object could not be removed. It may remain publicly accessible; contact the site administrator immediately."
+            : "Database update failed and a stale private storage copy could not be removed. Contact the site administrator for cleanup.");
+        }
+        throw saveError ?? new Error("Publication status was not saved. The temporary copy was removed.");
       }
       if (!item.is_published) {
         const {error:cleanupError}=await supabase.storage.from(bucket).remove([oldPath]);

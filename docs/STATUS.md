@@ -162,3 +162,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Upload compensation reporting (2026-10-27)
 - Media upload now checks the storage cleanup result when metadata persistence fails. If cleanup also fails, the UI reports the possible orphaned private object instead of silently discarding the cleanup error.
 - Added a static regression assertion for both cleanup outcomes.
+
+
+## Publication rollback visibility (2026-10-27)
+- Publication state changes now inspect cleanup failures for the temporary storage copy when the metadata RPC fails. If a public object cannot be removed, the creator is explicitly warned that it may remain publicly accessible and must contact the administrator; private orphan cleanup failures are also surfaced.
+- Added static regression coverage for both rollback paths. These compensating actions still require live storage-policy verification.
