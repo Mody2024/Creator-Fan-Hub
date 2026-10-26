@@ -18,6 +18,18 @@ function addError(errors, path, message) {
   errors.push({ path, message });
 }
 
+function checkAllowedKeys(value, allowed, path, errors) {
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) addError(errors, `${path}.${key}`, "unsupported property");
+  }
+}
+
+function checkOptionalId(value, path, errors) {
+  if (value !== null && (typeof value !== "string" || value.trim().length === 0 || value.length > 100)) {
+    addError(errors, path, "must be null or a non-empty ID of at most 100 characters");
+  }
+}
+
 function checkText(value, path, errors, { required = false, max = MAX_TEXT } = {}) {
   if (typeof value !== "string") {
     addError(errors, path, "must be a string");
@@ -33,6 +45,11 @@ export function validateSiteConfig(input) {
     return { ok: false, errors: [{ path: "$", message: "must be an object" }] };
   }
 
+  checkAllowedKeys(input, new Set([
+    "schemaVersion", "identity", "appearance", "layout", "hero",
+    "socialLinkIds", "featureFlags", "maintenance"
+  ]), "$", errors);
+
   if (input.schemaVersion !== 1) {
     addError(errors, "schemaVersion", "unsupported schema version");
   }
@@ -41,12 +58,11 @@ export function validateSiteConfig(input) {
   if (!isRecord(identity)) {
     addError(errors, "identity", "must be an object");
   } else {
+    checkAllowedKeys(identity, new Set(["siteName", "tagline", "logoMediaId", "mascotMediaId"]), "identity", errors);
     checkText(identity.siteName, "identity.siteName", errors, { required: true, max: 100 });
     checkText(identity.tagline, "identity.tagline", errors, { max: 240 });
     for (const key of ["logoMediaId", "mascotMediaId"]) {
-      if (identity[key] !== null && typeof identity[key] !== "string") {
-        addError(errors, `identity.${key}`, "must be a media ID string or null");
-      }
+      checkOptionalId(identity[key], `identity.${key}`, errors);
     }
   }
 
@@ -54,10 +70,11 @@ export function validateSiteConfig(input) {
   if (!isRecord(appearance)) {
     addError(errors, "appearance", "must be an object");
   } else {
+    checkAllowedKeys(appearance, new Set(["theme", "accent", "colorMode", "motion"]), "appearance", errors);
     if (!THEMES.has(appearance.theme)) addError(errors, "appearance.theme", "unsupported theme");
     if (!COLOR_MODES.has(appearance.colorMode)) addError(errors, "appearance.colorMode", "unsupported color mode");
     if (!MOTION_MODES.has(appearance.motion)) addError(errors, "appearance.motion", "unsupported motion mode");
-    if (appearance.accent !== undefined && !HEX_COLOR.test(appearance.accent)) {
+    if (typeof appearance.accent !== "string" || !HEX_COLOR.test(appearance.accent)) {
       addError(errors, "appearance.accent", "must be a six-digit hexadecimal color");
     }
   }
@@ -66,6 +83,7 @@ export function validateSiteConfig(input) {
   if (!isRecord(layout)) {
     addError(errors, "layout", "must be an object");
   } else {
+    checkAllowedKeys(layout, new Set(["sectionOrder", "visibleSections"]), "layout", errors);
     for (const key of ["sectionOrder", "visibleSections"]) {
       const list = layout[key];
       if (!Array.isArray(list) || list.some((item) => typeof item !== "string")) {
@@ -90,11 +108,10 @@ export function validateSiteConfig(input) {
   if (!isRecord(hero)) {
     addError(errors, "hero", "must be an object");
   } else {
+    checkAllowedKeys(hero, new Set(["title", "body", "mediaId", "overlay", "muted", "loop"]), "hero", errors);
     checkText(hero.title, "hero.title", errors, { required: true, max: 180 });
     checkText(hero.body, "hero.body", errors, { max: 1000 });
-    if (hero.mediaId !== null && typeof hero.mediaId !== "string") {
-      addError(errors, "hero.mediaId", "must be a media ID string or null");
-    }
+    checkOptionalId(hero.mediaId, "hero.mediaId", errors);
     if (typeof hero.overlay !== "number" || hero.overlay < 0 || hero.overlay > 1) {
       addError(errors, "hero.overlay", "must be a number from 0 to 1");
     }
@@ -104,8 +121,10 @@ export function validateSiteConfig(input) {
   }
 
   if (!Array.isArray(input.socialLinkIds) ||
-      input.socialLinkIds.some((id) => typeof id !== "string" || id.length > 100)) {
-    addError(errors, "socialLinkIds", "must be an array of short ID strings");
+      input.socialLinkIds.some((id) => typeof id !== "string" || id.trim().length === 0 || id.length > 100)) {
+    addError(errors, "socialLinkIds", "must be an array of non-empty short ID strings");
+  } else if (new Set(input.socialLinkIds).size !== input.socialLinkIds.length) {
+    addError(errors, "socialLinkIds", "cannot contain duplicate IDs");
   }
 
   if (!isRecord(input.featureFlags)) {
@@ -125,6 +144,7 @@ export function validateSiteConfig(input) {
   if (!isRecord(input.maintenance)) {
     addError(errors, "maintenance", "must be an object");
   } else {
+    checkAllowedKeys(input.maintenance, new Set(["enabled", "message"]), "maintenance", errors);
     if (typeof input.maintenance.enabled !== "boolean") {
       addError(errors, "maintenance.enabled", "must be boolean");
     }
