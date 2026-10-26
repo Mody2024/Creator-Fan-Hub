@@ -91,3 +91,28 @@ test("configuration validator rejects malformed feature flags and invalid overla
   assert.ok(result.errors.some((error) => error.path === "featureFlags.polls"));
   assert.ok(result.errors.some((error) => error.path === "hero.overlay"));
 });
+
+
+test("configuration validator rejects unknown properties and malformed media IDs", () => {
+  const invalid = structuredClone(validConfig);
+  invalid.adminScript = "not allowed";
+  invalid.identity.logoMediaId = "   ";
+  const result = validateSiteConfig(invalid);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((error) => error.path === "$.adminScript"));
+  assert.ok(result.errors.some((error) => error.path === "identity.logoMediaId"));
+});
+
+test("configuration validator rejects duplicate social link IDs", () => {
+  const invalid = structuredClone(validConfig);
+  invalid.socialLinkIds = ["social-1", "social-1"];
+  const result = validateSiteConfig(invalid);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((error) => error.path === "socialLinkIds"));
+});
+
+test("published configuration history is private to server operations", () => {
+  const policy = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
+  assert.match(policy, /alter table public\.published_site_config_versions enable row level security/i);
+  assert.match(policy, /revoke all on[\s\S]*published_site_config_versions[\s\S]*from anon, authenticated/i);
+});
