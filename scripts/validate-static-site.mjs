@@ -33,8 +33,8 @@ check("public video retry control is keyboard accessible", publicVideoPlayer.inc
 check("public configuration uses published snapshot", config.includes('.from("published_site_config")') && config.includes('.select("published")'));
 check("public configuration validates accent color", config.includes("/^#[0-9a-fA-F]{6}$/"));
 check("published media resolves only through public storage paths", config.includes('item.storage_path.startsWith("creator-media-public/")') && config.includes('getPublicUrl(pathParts.join("/"))'));
-check("published logo and hero assets bind to public page", config.includes("logoUrl: publicMediaUrl(logoItem)") && config.includes("heroMediaUrl: publicMediaUrl(heroItem)") && page.includes("config.logoUrl ? <img"));
-check("published mascot and narration assets respect their media types", config.includes('mascotItem?.media_type === "image"') && config.includes('narrationItem?.media_type === "audio"') && page.includes("<NarrationControl"));
+check("published logo and hero assets bind to public page", config.includes('logoUrl: publicMediaUrl(logoItem, ["image"])') && config.includes('heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"])') && page.includes("config.logoUrl ? <img"));
+check("published mascot and narration assets respect their media types", config.includes('mascotUrl: publicMediaUrl(mascotItem, ["image"])') && config.includes('narrationUrl: publicMediaUrl(narrationItem, ["audio"])') && page.includes("<NarrationControl"));
 check("hero video honors muted and loop settings", page.includes("muted={config.heroMuted}") && page.includes("loop={config.heroLoop}") && page.includes("className=\"hero-media\""));
 check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
