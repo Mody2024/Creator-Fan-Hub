@@ -45,9 +45,12 @@ begin
  if auth.uid() is null or not exists(select 1 from public.creator_admins a where a.user_id=auth.uid() and a.active=true) then
   raise exception 'creator access required' using errcode='42501';
  end if;
- if length(btrim(coalesce(p_title,''))) not between 1 and 120 or length(coalesce(p_alt_text,''))>500
+ if length(btrim(coalesce(p_title,''))) not between 1 and 120
+ or length(coalesce(p_alt_text,''))>500
  or p_media_type not in ('video','image','audio','sprite','model3d')
- or length(coalesce(p_storage_path,''))>500 or p_storage_path !~ '^(creator-media-private|creator-media-public)/[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+
+ or length(coalesce(p_storage_path,''))>500
+ or p_storage_path !~ '^(creator-media-private|creator-media-public)/[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$'
+ or jsonb_typeof(coalesce(p_metadata,'{}'::jsonb)) <> 'object' then
   raise exception 'invalid media metadata' using errcode='22023';
  end if;
  v_bucket:=split_part(p_storage_path,'/',1);
