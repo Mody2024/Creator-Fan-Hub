@@ -5,6 +5,7 @@ import IdeaSubmissionForm from "@/app/ideas/idea-submission-form";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
+import PublicVideos from "@/app/videos/public-videos";
 import NarrationControl from "@/app/narration-control";
 import GuidedWelcomeTour from "@/app/guided-welcome-tour";
 
@@ -54,6 +55,7 @@ export default async function HomePage() {
           case "events": return <div key="events">{config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}</div>;
           case "community": return <div key="community">{config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}</div>;
           case "socials": return <div key="socials">{config.visibleSections.includes("socials") && <PublicSocialLinks />}</div>;
+          case "videos": return <div key="videos">{config.visibleSections.includes("videos") && <PublicVideos />}</div>;
           default: return null;
         }
       })}
