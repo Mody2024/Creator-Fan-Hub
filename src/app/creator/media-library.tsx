@@ -130,23 +130,43 @@ export default function MediaLibrary() {
       const [bucket,...parts]=item.storage_path.split("/");
       const oldPath=parts.join("/");
       if (!["creator-media-private","creator-media-public"].includes(bucket) || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(oldPath) || (item.is_published && bucket!=="creator-media-public") || (!item.is_published && bucket!=="creator-media-private")) throw new Error("The stored path and publication state do not match. Refresh the library and check the media record.");
+      if (oldPath.split("/")[0] !== userData.user.id) throw new Error("This file does not belong to the signed-in creator.");
       const nextBucket=item.is_published?"creator-media-private":"creator-media-public";
-      const nextPath=`${userData.user.id}/${crypto.randomUUID()}-${safeFileName(oldPath.split("/").pop() ?? "asset")}`;
+      const fileName=safeFileName(oldPath.split("/").pop() || "asset");
+      const nextPath=userData.user.id+"/"+crypto.randomUUID()+"-"+fileName;
       const {data:download,error:downloadError}=await supabase.storage.from(bucket).download(oldPath);
       if(downloadError || !download) throw downloadError ?? new Error("Could not read the stored file.");
       const {error:copyError}=await supabase.storage.from(nextBucket).upload(nextPath,download,{contentType:download.type || String(item.metadata?.mimeType || "application/octet-stream"),upsert:false});
       if(copyError) throw copyError;
+
+      // Revoke public access before changing the database publication state.
+      if (item.is_published) {
+        const {error:removePublicError}=await supabase.storage.from(bucket).remove([oldPath]);
+        if (removePublicError) {
+          await supabase.storage.from(nextBucket).remove([nextPath]);
+          throw new Error("Could not revoke the public file. The asset remains published; check Storage permissions and retry.");
+        }
+      }
+
       const {data:saved,error:saveError}=await supabase.rpc("save_creator_media",{
         p_media_id:item.media_id,p_title:item.title,p_media_type:item.media_type,p_source_url:item.source_url,
-        p_storage_path:`${nextBucket}/${nextPath}`,p_alt_text:item.alt_text,p_metadata:item.metadata ?? {},
+        p_storage_path:nextBucket+"/"+nextPath,p_alt_text:item.alt_text,p_metadata:item.metadata ?? {},
         p_is_published:!item.is_published
       });
       if(saveError || !saved?.[0]?.saved) {
         await supabase.storage.from(nextBucket).remove([nextPath]);
+        if (item.is_published) {
+          const {error:restoreError}=await supabase.storage.from(bucket).upload(oldPath,download,{contentType:download.type || String(item.metadata?.mimeType || "application/octet-stream"),upsert:false});
+          if (restoreError) throw new Error("Database update failed and the original public file could not be restored. Contact the site administrator immediately.");
+        }
         throw saveError ?? new Error("Publication status was not saved.");
       }
-      const {error:cleanupError}=await supabase.storage.from(bucket).remove([oldPath]);
-      setStatus(cleanupError ? (item.is_published ? "Asset moved to private drafts, but the old public object could not be removed. Check Storage cleanup." : "Asset published, but the old private object could not be removed. Check Storage cleanup.") : (item.is_published ? "Asset moved back to private drafts." : "Asset published. Its public URL is now available."));
+      if (!item.is_published) {
+        const {error:cleanupError}=await supabase.storage.from(bucket).remove([oldPath]);
+        setStatus(cleanupError ? "Asset published. The old private copy could not be cleaned up; it remains private and needs storage cleanup." : "Asset published. Its public URL is now available.");
+      } else {
+        setStatus("Asset moved back to private drafts; the public object was removed before metadata changed.");
+      }
       await load();
     } catch(e) { setStatus(e instanceof Error ? e.message : "Could not change publication status."); }
     finally { setBusy(false); }

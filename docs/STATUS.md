@@ -106,3 +106,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Rebuilt the media-owner migration as a complete SQL file after review found the UUID backfill statement was malformed.
 - The migration matches the existing media type constraint, scopes listing and mutation to owner_id, and grants its RPCs only to authenticated users.
 - This remains code-only until applied and tested against the connected Supabase project.
+
+
+## Media publish/unpublish safety (2026-10-27)
+- Unpublishing now attempts to remove the public storage object before marking the asset private, avoiding a stale publicly accessible copy if storage removal fails.
+- If the metadata update fails after public removal, the client attempts to restore the original public object and reports a critical recovery failure explicitly.
+- Publishing cleanup failures can leave a private duplicate only; live storage/database rollback still needs end-to-end testing.
