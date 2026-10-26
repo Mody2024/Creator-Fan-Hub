@@ -213,3 +213,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Creator settings and moderation loading announcements (2026-10-27)
 - Added polite live-region announcements to the settings editor and idea moderation queue loading feedback, matching the event, poll, and media management panels.
 - Extended static regression checks to cover both components. This is source-level accessibility coverage; screen-reader and live preview acceptance remain outstanding.
+
+
+## Creator empty-state and filter recovery pass (2026-10-27)
+- Event and social-link management now explains how to get started when each list is empty instead of rendering a blank region.
+- Media search/visibility filters now show a clear no-results message and a one-click reset when no stored assets match.
+- Added static regression checks for the new empty and recoverable filter states. This does not replace browser testing with real content.
