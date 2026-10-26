@@ -51,7 +51,7 @@ export default async function HomePage() {
 
       {config.featureFlags.events && <PublicEvents />}
       <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>
-      {config.featureFlags.events && <PublicSocialLinks />}
+      <PublicSocialLinks />
       <footer className="site-footer"><span>THE INNER CIRCLE / COMMUNITY PORTAL</span><a href="#home">BACK TO TOP ↑</a></footer>
     </main>
   );
