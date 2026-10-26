@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export default function NarrationControl({ src, transcript }: { src: string; transcript: string }) {
+export default function NarrationControl({ src, transcript, autoPlay = true }: { src: string; transcript: string; autoPlay?: boolean }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [message, setMessage] = useState("Preparing introduction…");
@@ -24,9 +24,9 @@ export default function NarrationControl({ src, transcript }: { src: string; tra
   }, []);
 
   useEffect(() => {
-    // Attempt autoplay. Browsers may block audible autoplay; the visible control is the fallback.
-    void start(true);
-  }, [start, src]);
+    // Respect the creator setting. Browsers may block audible autoplay; the visible control is the fallback.
+    if (autoPlay) void start(true);
+  }, [start, src, autoPlay]);
 
   return <section className="narration-card" aria-label="Website voice-over introduction">
     <div className="narration-card-top">
