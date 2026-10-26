@@ -129,3 +129,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## CI fixture repair (2026-10-27)
 - Updated the valid site-config test fixture to match supported public sections and the creator editor's narration fields.
 - Added a regression test ensuring oversized narration transcripts and non-boolean autoplay preferences are rejected.
+
+
+## Event and social editor reliability (2026-10-27)
+- Added try/catch/finally recovery to event creation, event status changes, social-link saves, and link publication toggles so rejected network requests cannot leave the UI permanently busy.
+- Hardened parallel event/link loading against rejected requests and guaranteed the loading indicator resets.
+- Added static assertions for the recovery paths; live creator authorization still needs end-to-end verification.
