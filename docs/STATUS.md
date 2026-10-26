@@ -52,3 +52,13 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Expanded tests for valid/invalid site configuration, private draft separation, and poll-option integrity; aligned the demo poll test with the page's actual wording.
 - These are code/schema artifacts. The validator is not yet connected to a running Creator Panel or publishing API, and the SQL has not been applied to any database.
 - CI workflow exists, but a passing GitHub Actions run has not been confirmed.
+
+
+## Publishing-boundary pass (2026-10-26)
+- Added `src/lib/publish-site-config.mjs`: a server-only publishing service boundary that validates configuration, requires a trusted actor ID supplied by the authenticated server, checks the expected draft revision, handles concurrent-edit conflicts, and reports success only when the repository adapter reports a committed published version.
+- Added tests for missing actor identity, invalid configuration, stale draft revisions, transaction conflicts, and successful committed-version responses.
+- Extended the schema proposal with a draft revision counter and private published-version history table; RLS/grants also keep version history unavailable to public client roles.
+- Strengthened config validation to reject unknown fields, malformed/blank media IDs, and duplicate social-link IDs.
+- Latest Git-linked Vercel development deployment for commit `e849d3a2132ceb67dfd01e4436286d68c3bcacb7` reached READY.
+- Verification limitation: the commit status currently reports Vercel pending even though the deployment API reports READY; the available workflow-run lookup returned no runs. Automated tests have therefore **not** been reported as passing.
+- The publishing service is an adapter-based boundary, not a completed live API. There is no database adapter, authenticated admin session, or deployed publish endpoint yet. SQL remains unapplied; no Supabase project was modified.
