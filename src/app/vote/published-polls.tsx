@@ -24,7 +24,7 @@ export default async function PublishedPolls() {
         const percent = total ? Math.round(count / total * 100) : 0;
         return <div className="poll-result" key={option.option_id}><div><span>{option.option_label}</span><span>{percent}% · {count}</span></div><span className="poll-track"><i style={{ width: percent + "%" }} /></span></div>;
       })}</div>}
-      <p className="poll-total">{total} recorded votes · {poll.poll_status === "open" ? "Live totals are hidden until the poll closes." : "This poll is closed."}</p>
+      <p className="poll-total">{poll.poll_status === "open" ? "Vote counts stay hidden until this poll closes." : `${total} recorded votes · This poll is closed.`}</p>
     </article>;
   })}</div>;
 }
