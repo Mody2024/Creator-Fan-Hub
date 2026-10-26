@@ -98,3 +98,5 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added a migration to associate uploaded media metadata with its uploader, backfill ownership from valid existing storage paths, and scope creator media listing, edits, and deletion to the current owner.
 - The metadata-save RPC rejects storage paths outside the signed-in creator's folder. Existing records that cannot be safely attributed remain unavailable for creator mutation until reviewed.
 - This migration is committed as code only; it has not been applied to the Supabase project. Live database behavior still needs an authorized migration run and end-to-end tests.
+
+- Follow-up review hardened the ownership backfill so malformed legacy storage paths cannot trigger an unsafe UUID cast; validator coverage now asserts the guarded conversion.
