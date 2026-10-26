@@ -75,8 +75,8 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const mascotItem = typeof identity.mascotMediaId === "string" ? mediaById.get(identity.mascotMediaId) : undefined;
   const narrationItem = typeof identity.narrationMediaId === "string" ? mediaById.get(identity.narrationMediaId) : undefined;
   const heroItem = typeof hero.mediaId === "string" ? mediaById.get(hero.mediaId) : undefined;
-  const publicMediaUrl = (item: { storage_path: string | null } | undefined) => {
-    if (!item || !item.storage_path || !item.storage_path.startsWith("creator-media-public/")) return null;
+  const publicMediaUrl = (item: { storage_path: string | null; media_type: string } | undefined, allowedTypes: readonly string[]) => {
+    if (!item || !allowedTypes.includes(item.media_type) || !item.storage_path || !item.storage_path.startsWith("creator-media-public/")) return null;
     const pathParts = item.storage_path.split("/");
     const bucket = pathParts.shift();
     if (!bucket || pathParts.length === 0) return null;
@@ -84,11 +84,11 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   };
   return {
     siteName: typeof identity.siteName === "string" ? identity.siteName.slice(0, 100) : fallback.siteName,
-    logoUrl: publicMediaUrl(logoItem),
-    heroMediaUrl: publicMediaUrl(heroItem),
+    logoUrl: publicMediaUrl(logoItem, ["image"]),
+    heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"]),
     heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
-    mascotUrl: mascotItem?.media_type === "image" ? publicMediaUrl(mascotItem) : null,
-    narrationUrl: narrationItem?.media_type === "audio" ? publicMediaUrl(narrationItem) : null,
+    mascotUrl: publicMediaUrl(mascotItem, ["image"]),
+    narrationUrl: publicMediaUrl(narrationItem, ["audio"]),
     narrationText: typeof identity.narrationText === "string" ? identity.narrationText.slice(0, 1600) : fallback.narrationText,
     narrationAutoPlay: identity.narrationAutoPlay !== false,
     heroOverlay: typeof hero.overlay === "number" && Number.isFinite(hero.overlay) ? Math.min(0.85, Math.max(0, hero.overlay)) : 0.35,
