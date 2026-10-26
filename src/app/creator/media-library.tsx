@@ -118,17 +118,19 @@ export default function MediaLibrary() {
   async function removeItem(item: MediaRow) {
     const supabase=getSupabaseBrowserClient();
     if(!supabase || busy || !item.storage_path) return;
-    if(!window.confirm(`Delete “${item.title}” permanently? Any logo or hero using it will need a replacement.`)) return;
+    if(item.is_published || !item.storage_path.startsWith("creator-media-private/")) {
+      setStatus("Move this asset to private drafts before deleting it."); return;
+    }
+    if(!window.confirm(`Delete “${item.title}” permanently?`)) return;
     setBusy(true);
     try {
       const {data:userData}=await supabase.auth.getUser();
       if(!userData.user) throw new Error("Sign in before deleting media.");
-      const [bucket,...parts]=item.storage_path.split("/");
-      const path=parts.join("/");
-      const {error:storageError}=await supabase.storage.from(bucket).remove([path]);
-      if(storageError) throw storageError;
-      // Keep metadata/history intact; removing a file never silently rewrites site configuration.
-      setStatus("Stored file removed. Metadata remains for audit; replace any references before republishing.");
+      const {data:deleted,error:deleteError}=await supabase.rpc("delete_creator_media",{p_media_id:item.media_id});
+      if(deleteError || !deleted?.[0]?.deleted) throw deleteError ?? new Error("Media record could not be deleted.");
+      const path=item.storage_path.split("/").slice(1).join("/");
+      const {error:storageError}=await supabase.storage.from("creator-media-private").remove([path]);
+      setStatus(storageError ? "Media record deleted, but its private storage object could not be removed. Check Storage cleanup." : "Private media and metadata deleted.");
       await load();
     } catch(e) { setStatus(e instanceof Error ? e.message : "Delete failed."); }
     finally { setBusy(false); }
