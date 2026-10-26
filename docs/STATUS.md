@@ -173,3 +173,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Fixed the moderation/public-display mismatch: ideas marked Featured now appear on the public idea board alongside approved ideas.
 - The public RPC now respects maintenance mode and the published ideas feature flag even when called directly, and retains a bounded result set.
 - Updated public copy and added static regression coverage. Live database migration application still needs confirmation.
+
+
+## Public poll visibility gates (2026-10-27)
+- Added database-level enforcement so the public poll-results RPC returns no polls when maintenance mode is active or the published polls feature flag is disabled. This closes a direct-RPC visibility gap beyond the homepage's conditional rendering.
+- Preserves hidden open-poll tallies and closed-poll aggregate results. Added a static regression assertion; applying the migration and verifying against live Supabase are still required.
