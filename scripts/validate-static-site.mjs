@@ -4,7 +4,7 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const failures = [];
 const check = (label, condition) => { if (!condition) failures.push(label); };
 
-const [page, config, poll, editor, packageJson, events, socials, contentManager] = await Promise.all([
+const [page, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/lib/public-site-config.ts"),
   read("../src/app/vote/published-polls.tsx"),
@@ -12,7 +12,11 @@ const [page, config, poll, editor, packageJson, events, socials, contentManager]
   read("../package.json"),
   read("../src/app/events/public-events.tsx"),
   read("../src/app/socials/public-social-links.tsx"),
-  read("../src/app/creator/event-social-management.tsx")
+  read("../src/app/creator/event-social-management.tsx"),
+  read("../src/app/creator/media-library.tsx"),
+  read("../src/app/creator/page.tsx"),
+  read("../supabase/migrations/20261026001600_creator_media_library.sql"),
+  read("../supabase/migrations/20261026001700_scope_media_storage_ownership.sql")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -35,11 +39,17 @@ check("creator event/social changes use guarded RPCs", contentManager.includes('
 check("creator can edit public section visibility", editor.includes("draft.layout.visibleSections") && editor.includes("visibleSections:e.target.checked"));
 check("public site respects section visibility", page.includes("config.visibleSections.includes(\"events\")") && page.includes("config.visibleSections.includes(\"socials\")"));
 check("public config restricts section identifiers", config.includes("allowedSections.includes(item)"));
+check("creator dashboard mounts media library", dashboard.includes("import MediaLibrary") && dashboard.includes("<MediaLibrary />"));
+check("media upload enforces type and size limits", media.includes("ACCEPTED[selected.type]") && media.includes("selected.size > LIMIT"));
+check("media publishing copies assets between visibility buckets", media.includes('from("creator-media-private").download') && media.includes('"creator-media-public"'));
+check("media metadata operations use guarded RPCs", media.includes('rpc("get_creator_media"') && media.includes('rpc("save_creator_media"') && media.includes('rpc("delete_creator_media"'));
+check("media storage buckets enforce private/public access", mediaMigration.includes("creator-media-private") && mediaMigration.includes("creator-media-public") && mediaMigration.includes("create policy"));
+check("storage mutations are scoped to creator-owned folders", ownershipMigration.includes("(storage.foldername(name))[1]=(select auth.uid())::text"));
 
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (18 assertions).");
+  console.log("Repository validation passed (24 assertions).");
 }
