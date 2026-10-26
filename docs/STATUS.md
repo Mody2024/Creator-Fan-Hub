@@ -257,3 +257,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added a forward migration for the public idea submission RPC. It requires an existing primary published configuration, maintenance mode off, and the ideas feature enabled before accepting a submission.
 - Missing configuration or disabled ideas returns `ideas_unavailable`, preserving input validation, token hashing, and rate limits.
 - Added direct Node regression coverage and static-validator coverage. This migration remains code-only until applied to Supabase and verified end to end.
+
+## Public community feature-gate regression suite (2026-10-27)
+- Added dedicated Node tests covering public idea visibility, poll visibility, hidden open-poll tallies, vote eligibility/time windows, duplicate-vote protection, and idea-submission fail-closed behavior.
+- These tests inspect the current forward SQL migration source. They provide regression coverage but do not replace applying migrations and exercising the RPCs against a live database.
