@@ -111,7 +111,7 @@ test("configuration validator rejects duplicate social link IDs", () => {
   assert.ok(result.errors.some((error) => error.path === "socialLinkIds"));
 });
 
-test("published configuration history is private to server operations", () => {
+test("published configuration history is private to server operations", async () => {
   const policy = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
   assert.match(policy, /alter table public\.published_site_config_versions enable row level security/i);
   assert.match(policy, /revoke all on[\s\S]*published_site_config_versions[\s\S]*from anon, authenticated/i);
