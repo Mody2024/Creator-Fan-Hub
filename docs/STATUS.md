@@ -140,3 +140,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Event timezone edit fix (2026-10-27)
 - Fixed the edit form's datetime-local formatting so stored UTC timestamps display in the creator's local timezone; editing and saving an event no longer silently shifts its scheduled time by the timezone offset.
 - Added a regression assertion for the timezone conversion helper.
+
+
+## Public event feed polish (2026-10-27)
+- Scheduled events with known dates now appear before events with no start date; the latter remain visible with a clear date-to-be-announced label.
+- Event dates now use semantic HTML time elements with machine-readable ISO timestamps for accessibility and downstream tooling.
+- Added a static regression assertion for the ordering and time markup.

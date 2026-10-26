@@ -80,6 +80,7 @@ check("package defines build script", /"build"\s*:\s*"next build"/.test(packageJ
 check("package defines lint script", /"lint"\s*:\s*"eslint \\."/.test(packageJson) || packageJson.includes('"lint": "eslint ."' ));
 
 check("public events read only published/completed events", events.includes('from("events")') && events.includes('["published","completed"]'));
+check("public event feed puts dated events before undated entries and uses semantic time markup", events.includes('nullsFirst:false') && events.includes("<time dateTime={event.starts_at}>"));
 check("public socials read only published links", socials.includes('from("social_links")') && socials.includes('eq("is_published",true)'));
 check("creator event/social changes use guarded RPCs", contentManager.includes('rpc("save_creator_event"') && contentManager.includes('rpc("save_creator_social_link"'));
 check("creator event editor rejects end dates before or equal to start", contentManager.includes("new Date(ends)<=new Date(starts)") && contentManager.includes("The event end must be later than its start."));
