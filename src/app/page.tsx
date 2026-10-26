@@ -5,6 +5,7 @@ import IdeaSubmissionForm from "@/app/ideas/idea-submission-form";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
+import NarrationControl from "@/app/narration-control";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function HomePage() {
       </header>
 
       {config.visibleSections.includes("hero") && <section className="hero" id="home">
+        {config.mascotUrl && <img className="public-mascot" src={config.mascotUrl} alt="" aria-hidden="true" />}
         <div className="hero-copy">
           <span className="eyebrow"><i /> {config.tagline}</span>
           <h1>{config.heroTitle}</h1>
@@ -34,7 +36,7 @@ export default async function HomePage() {
           <div className="proof"><span className="proof-dots"><i>✳</i><i>✦</i><i>◉</i></span><span>Made with the people who watch.</span></div>
         </div>
         <div className={config.heroMediaUrl ? "hero-art hero-art-media" : "hero-art"} aria-label={config.heroMediaUrl ? "Creator-selected hero media" : "Abstract glowing portal artwork"} role="img">
-          {config.heroMediaUrl ? (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted playsInline loop preload="metadata" /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />) : <><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">IC<span>✳</span></div></div><span className="art-label label-top">YOUR IDEAS, IN MOTION</span><span className="art-label label-bottom">COMMUNITY / 001</span></>}
+          {config.heroMediaUrl ? (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay={config.heroMuted} muted={config.heroMuted} playsInline loop={config.heroLoop} preload="metadata" /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />) : <><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">IC<span>✳</span></div></div><span className="art-label label-top">YOUR IDEAS, IN MOTION</span><span className="art-label label-bottom">COMMUNITY / 001</span></>}
         </div>
         <div className="hero-index"><span>01 — 03</span><span>SCROLL TO EXPLORE ↓</span></div>
       </section>}
@@ -51,6 +53,7 @@ export default async function HomePage() {
       {config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}
       {config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE THE CIRCLE</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}
       {config.visibleSections.includes("socials") && <PublicSocialLinks />}
+      {config.narrationUrl && <NarrationControl src={config.narrationUrl} />}
       <footer className="site-footer"><span>{config.siteName} / COMMUNITY PORTAL</span><a href="#home">BACK TO TOP ↑</a></footer>
     </main>
   );
