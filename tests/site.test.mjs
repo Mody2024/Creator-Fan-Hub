@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { validateSiteConfig } from "../src/lib/site-config.mjs";
+import { publishSiteConfig } from "../src/lib/publish-site-config.mjs";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const sql = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
@@ -115,4 +116,81 @@ test("published configuration history is private to server operations", async ()
   const policy = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
   assert.match(policy, /alter table public\.published_site_config_versions enable row level security/i);
   assert.match(policy, /revoke all on[\s\S]*published_site_config_versions[\s\S]*from anon, authenticated/i);
+});
+
+
+test("publishing refuses missing actor identity", async () => {
+  const result = await publishSiteConfig({
+    repository: { getDraftRevision: async () => ({ revision: 1 }), publishAtomically: async () => ({ publishedVersion: 1 }) },
+    config: validConfig,
+    expectedDraftRevision: 1,
+    actorId: ""
+  });
+  assert.deepEqual(result, { ok: false, code: "unauthorized" });
+});
+
+test("publishing rejects invalid configuration before database writes", async () => {
+  let writes = 0;
+  const invalid = structuredClone(validConfig);
+  invalid.appearance.theme = "unknown";
+  const result = await publishSiteConfig({
+    repository: {
+      getDraftRevision: async () => ({ revision: 1 }),
+      publishAtomically: async () => { writes += 1; return { publishedVersion: 1 }; }
+    },
+    config: invalid,
+    expectedDraftRevision: 1,
+    actorId: "trusted-user-id"
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.code, "invalid_config");
+  assert.equal(writes, 0);
+});
+
+test("publishing rejects stale draft revisions", async () => {
+  let writes = 0;
+  const result = await publishSiteConfig({
+    repository: {
+      getDraftRevision: async () => ({ revision: 3 }),
+      publishAtomically: async () => { writes += 1; return { publishedVersion: 2 }; }
+    },
+    config: validConfig,
+    expectedDraftRevision: 2,
+    actorId: "trusted-user-id"
+  });
+  assert.deepEqual(result, { ok: false, code: "revision_conflict", currentRevision: 3 });
+  assert.equal(writes, 0);
+});
+
+test("publishing reports transaction conflicts instead of claiming success", async () => {
+  const result = await publishSiteConfig({
+    repository: {
+      getDraftRevision: async () => ({ revision: 3 }),
+      publishAtomically: async () => ({ conflict: true, currentRevision: 4 })
+    },
+    config: validConfig,
+    expectedDraftRevision: 3,
+    actorId: "trusted-user-id"
+  });
+  assert.deepEqual(result, { ok: false, code: "revision_conflict", currentRevision: 4 });
+});
+
+test("publishing returns success only after the adapter reports a committed version", async () => {
+  let received;
+  const result = await publishSiteConfig({
+    repository: {
+      getDraftRevision: async () => ({ revision: 7 }),
+      publishAtomically: async (input) => {
+        received = input;
+        return { publishedVersion: 4, publishedAt: "2026-10-26T16:00:00.000Z" };
+      }
+    },
+    config: validConfig,
+    expectedDraftRevision: 7,
+    actorId: "trusted-user-id"
+  });
+  assert.equal(result.ok, true);
+  assert.equal(result.publishedVersion, 4);
+  assert.equal(received.expectedDraftRevision, 7);
+  assert.equal(received.actorId, "trusted-user-id");
 });
