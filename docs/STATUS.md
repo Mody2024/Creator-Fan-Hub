@@ -118,3 +118,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Aligned the site-config validator with creator-editor narration media ID, transcript, and autoplay fields. Transcript text is capped at 1,600 characters and autoplay must be boolean.
 - Removed the unsupported latest section key from the publish schema because the public homepage has no corresponding renderer.
 - Added static checks for these contracts. Live publishing remains subject to database and deployment verification.
+
+
+## Creator editor recovery hardening (2026-10-27)
+- Wrapped draft save and publish in try/catch/finally so thrown network errors cannot leave the editor stuck in a permanent saving state.
+- Added explicit handling for auth lookup failures and connection errors; existing revision-conflict and draft-saved/publish-failed messaging is preserved.
+- Added a static assertion for reliable saving-state cleanup.

@@ -112,40 +112,44 @@ export default function CreatorSettings() {
     if (!supabase || saving) return;
     setSaving(true);
     setStatus(publish ? "Publishing the verified draft…" : "Saving draft…");
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      setSaving(false);
-      router.replace("/creator/login");
-      return;
-    }
-    const { data: admin } = await supabase.from("creator_admins").select("user_id").eq("user_id", userData.user.id).eq("active", true).maybeSingle();
-    if (!admin) {
-      setSaving(false);
-      setStatus("Creator access is required for this action.");
-      return;
-    }
-    const saved = await supabase.rpc("save_site_config_draft", { p_config: draft, p_expected_revision: revision });
-    if (saved.error || !saved.data?.[0]) {
-      setSaving(false);
-      setStatus(saved.error?.message?.includes("revision conflict") ? "Another edit changed this draft. Reload it before trying again." : "Draft save failed. Check the configuration and try again.");
-      return;
-    }
-    const nextRevision = Number(saved.data[0].new_revision);
-    setRevision(nextRevision);
-    setSavedSnapshot(JSON.stringify(draft));
-    if (publish) {
-      const result = await supabase.rpc("publish_site_config", { p_expected_revision: nextRevision });
-      if (result.error || !result.data?.[0]) {
-        setSaving(false);
-        setStatus("Draft saved, but publishing failed. Your published site has not been changed.");
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!userData.user) {
+        router.replace("/creator/login");
         return;
       }
-      setStatus("Published successfully. The public website now reads this version.");
-    } else {
-      setStatus("Draft saved privately. Publish when you're ready.");
+      const { data: admin, error: adminError } = await supabase
+        .from("creator_admins").select("user_id").eq("user_id", userData.user.id).eq("active", true).maybeSingle();
+      if (adminError) throw adminError;
+      if (!admin) {
+        setStatus("Creator access is required for this action.");
+        return;
+      }
+      const saved = await supabase.rpc("save_site_config_draft", { p_config: draft, p_expected_revision: revision });
+      if (saved.error || !saved.data?.[0]) {
+        setStatus(saved.error?.message?.includes("revision conflict") ? "Another edit changed this draft. Reload it before trying again." : "Draft save failed. Check the configuration and try again.");
+        return;
+      }
+      const nextRevision = Number(saved.data[0].new_revision);
+      setRevision(nextRevision);
+      setSavedSnapshot(JSON.stringify(draft));
+      if (publish) {
+        const result = await supabase.rpc("publish_site_config", { p_expected_revision: nextRevision });
+        if (result.error || !result.data?.[0]) {
+          setStatus("Draft saved, but publishing failed. Your published site has not been changed.");
+          return;
+        }
+        setStatus("Published successfully. The public website now reads this version.");
+      } else {
+        setStatus("Draft saved privately. Publish when you're ready.");
+      }
+      router.refresh();
+    } catch (error) {
+      setStatus(error instanceof Error ? "Connection failed while saving: " + error.message : "Connection failed while saving. Your last confirmed draft state is unchanged.");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    router.refresh();
   }
 
   return <section className="creator-editor" aria-busy={busy || saving}>
