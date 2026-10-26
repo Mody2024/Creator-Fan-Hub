@@ -42,3 +42,13 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Fixed a validation pattern to match the poll's actual demo disclosure.
 - Latest Git-linked Vercel development deployment for commit `b46971cf400f667afba0bf13771ae9d101f53468` reached READY.
 - Important: Vercel READY confirms deployment completed; it does not mean GitHub Actions passed. I have not verified a successful CI run yet.
+
+
+## Configuration and schema hardening (2026-10-26)
+- Split unpublished settings into `site_config_drafts` and a separate `published_site_config` snapshot. This avoids the mistaken assumption that row-level security can hide individual JSON columns.
+- Updated public-read policies so anonymous clients can select the published snapshot only; the draft table has no client-facing policy or grants.
+- Added a composite foreign key requiring a vote's selected option to belong to the same poll.
+- Added `src/lib/site-config.mjs`, a dependency-free validator for supported schema version, theme/color/motion choices, section ordering, text lengths, media ID shapes, hero settings, feature flags, and maintenance settings.
+- Expanded tests for valid/invalid site configuration, private draft separation, and poll-option integrity; aligned the demo poll test with the page's actual wording.
+- These are code/schema artifacts. The validator is not yet connected to a running Creator Panel or publishing API, and the SQL has not been applied to any database.
+- CI workflow exists, but a passing GitHub Actions run has not been confirmed.
