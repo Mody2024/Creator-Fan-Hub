@@ -39,30 +39,33 @@ export default function PollVoteForm({ pollId, options }: { pollId: string; opti
     }
     setSubmitting(true);
     setStatus("Recording your vote securely…");
-    const { data, error } = await supabase.rpc("cast_public_poll_vote", {
-      p_poll_id: pollId,
-      p_option_id: selected,
-      p_voter_token: token
-    });
-    if (error) {
-      setStatus("We couldn't record your vote. Please try again later.");
+    try {
+      const { data, error } = await supabase.rpc("cast_public_poll_vote", {
+        p_poll_id: pollId,
+        p_option_id: selected,
+        p_voter_token: token
+      });
+      if (error) {
+        setStatus("We couldn't confirm your vote. Refresh the page before retrying to check whether it was recorded.");
+        return;
+      }
+      const result = (Array.isArray(data) ? data[0] : null) as VoteResult | null;
+      if (result?.accepted) {
+        setStatus("Your vote has been recorded. Thanks for helping choose what comes next!");
+        router.refresh();
+        return;
+      }
+      const messages: Record<string, string> = {
+        already_voted: "A vote from this browser has already been recorded for this poll.",
+        poll_closed: "This poll is not currently open for voting.",
+        polls_unavailable: "Voting is temporarily disabled by the creator."
+      };
+      setStatus(messages[result?.result_code ?? ""] ?? "The vote was not accepted. Please refresh and try again.");
+    } catch {
+      setStatus("The connection failed before we could confirm your vote. Refresh the page before retrying to avoid a duplicate attempt.");
+    } finally {
       setSubmitting(false);
-      return;
     }
-    const result = (Array.isArray(data) ? data[0] : null) as VoteResult | null;
-    if (result?.accepted) {
-      setStatus("Your vote has been recorded. Thanks for helping choose what comes next!");
-      setSubmitting(false);
-      router.refresh();
-      return;
-    }
-    const messages: Record<string, string> = {
-      already_voted: "A vote from this browser has already been recorded for this poll.",
-      poll_closed: "This poll is not currently open for voting.",
-      polls_unavailable: "Voting is temporarily disabled by the creator."
-    };
-    setStatus(messages[result?.result_code ?? ""] ?? "The vote was not accepted. Please refresh and try again.");
-    setSubmitting(false);
   }
 
   return <form className="poll-vote-form" onSubmit={event => { event.preventDefault(); void submitVote(); }}>
