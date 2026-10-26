@@ -185,3 +185,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - The mobile links remain horizontally scrollable on narrow screens, so navigation is available instead of disappearing below the 800px breakpoint.
 - Added repository regression checks for desktop/mobile navigation presence and the mobile overflow behavior.
 - Visual appearance and touch usability still require preview/browser acceptance testing; this change does not count as a completed full UI review.
+
+
+## Responsive dashboard and feed pass (2026-10-27)
+- Added tablet/mobile breakpoints for the creator dashboard header, overview cards, module grid, idea submission form, event cards, and social links.
+- At narrow widths, layouts switch to single-column flows to reduce cramped controls and horizontal overflow; smaller phones receive additional spacing adjustments.
+- Added regression assertions for the main responsive breakpoints. These are source-level checks, not a substitute for visual preview testing on real viewport sizes.

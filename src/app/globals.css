@@ -93,3 +93,43 @@
 .moderation-filters>span{padding:12px 0;color:var(--muted);font:10px var(--mono);white-space:nowrap}
 .moderation-filters input:focus-visible,.moderation-filters select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media(max-width:640px){.moderation-filters{grid-template-columns:minmax(0,1fr);gap:10px;padding:11px}.moderation-filters>span{padding:0}}
+
+
+/* Responsive layout safeguards: dashboard and public feeds */
+@media (max-width: 900px) {
+  .dashboard-content { padding: 48px 5%; }
+  .dashboard-welcome { align-items: flex-start; flex-direction: column; }
+  .dashboard-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 30px 0 48px; }
+  .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .public-events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .public-socials { grid-template-columns: 1fr; gap: 22px; }
+}
+@media (max-width: 640px) {
+  .dashboard-topbar { height: auto; min-height: 68px; padding: 14px 5%; gap: 12px; flex-wrap: wrap; }
+  .dashboard-topbar > .wordmark { order: 1; }
+  .dashboard-topbar .admin-session { order: 3; flex: 1 0 100%; font-size: 8px; }
+  .dashboard-topbar form { order: 2; margin-left: auto; }
+  .dashboard-content { padding: 34px 5% 48px; }
+  .dashboard-welcome h1 { font-size: clamp(38px, 11vw, 52px); }
+  .draft-badge { white-space: normal; max-width: 100%; line-height: 1.6; }
+  .dashboard-stats { grid-template-columns: minmax(0, 1fr); gap: 9px; margin: 24px 0 38px; }
+  .dashboard-stats article { padding: 17px; gap: 9px; }
+  .module-heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .module-grid { grid-template-columns: minmax(0, 1fr); }
+  .idea-submit-form { padding: 18px; }
+  .idea-form-fields { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .idea-form-wide { grid-column: auto; }
+  .public-events { padding: 48px 5%; }
+  .public-events-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .public-event { padding: 18px; }
+  .public-socials { padding: 48px 5%; }
+  .public-social-list a { gap: 10px; padding: 12px; }
+  .social-platform { min-width: 60px; font-size: 8px; }
+}
+@media (max-width: 360px) {
+  .dashboard-topbar .wordmark { max-width: 62%; overflow-wrap: anywhere; }
+  .logout-button { padding: 9px 10px; }
+  .idea-submit-form { padding: 14px; }
+  .public-social-list a { gap: 8px; }
+  .social-platform { min-width: 52px; }
+}
