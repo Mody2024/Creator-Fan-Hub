@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export const dynamic = "force-dynamic";
@@ -6,11 +7,11 @@ export default async function HomePage() {
   const config = await getPublicSiteConfig();
 
   if (config.maintenance.enabled) {
-    return <main className="maintenance"><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
+    return <main className="maintenance" style={config.theme === "custom" ? ({ "--accent": config.accent } as CSSProperties & { "--accent": string }) : undefined}><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
   }
 
   return (
-    <main className={`site theme-${config.theme}`}>
+    <main className={`site theme-${config.theme}`} style={config.theme === "custom" ? ({ "--accent": config.accent } as CSSProperties & { "--accent": string }) : undefined}>
       <header className="topbar">
         <a className="wordmark" href="#home" aria-label={config.siteName}>{config.siteName}<span>®</span></a>
         <nav aria-label="Main navigation">
@@ -21,7 +22,7 @@ export default async function HomePage() {
 
       <section className="hero" id="home">
         <div className="hero-copy">
-          <span className="eyebrow"><i /> THE COMMUNITY HAS A SAY</span>
+          <span className="eyebrow"><i /> {config.tagline}</span>
           <h1>{config.heroTitle}</h1>
           <p>{config.heroBody}</p>
           <div className="hero-actions"><a className="button button-primary" href="#vote">Cast your vote <span>↗</span></a><a className="text-link" href="#ideas">Submit an idea <span>↓</span></a></div>
