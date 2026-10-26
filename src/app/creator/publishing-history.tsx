@@ -62,6 +62,7 @@ export default function PublishingHistory() {
       <button className="editor-reload" type="button" onClick={() => void load()} disabled={loading || working > 0}>Refresh ↻</button>
     </div>
     <p className="editor-status" role="status" aria-live="polite">{status}</p>
+    {!loading && versions.length === 0 && <div className="moderation-empty" role="status"><h3>No published versions yet.</h3><p>After the next successful publish, this page will keep a snapshot so you can restore it to a private draft later.</p></div>}
     {!loading && versions.length > 0 && <div className="publishing-history-list">
       {versions.map(version => <article className="moderation-item" key={version.version}>
         <div className="module-card-top"><span>VERSION {version.version}</span><span className="module-state">{version.maintenance_mode ? "Maintenance mode" : "Public mode"}</span></div>

@@ -219,3 +219,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Event and social-link management now explains how to get started when each list is empty instead of rendering a blank region.
 - Media search/visibility filters now show a clear no-results message and a one-click reset when no stored assets match.
 - Added static regression checks for the new empty and recoverable filter states. This does not replace browser testing with real content.
+
+
+## Creator empty-state and validation repair (2026-10-27)
+- Added accessible empty-state guidance to poll management, idea moderation, and publishing history.
+- Fixed a malformed static-validator tail that caused CI to stop parsing; the final failure summary now runs only after all assertions are registered.
+- Kept the event/social and media filter empty-state checks in the same final validation pass.

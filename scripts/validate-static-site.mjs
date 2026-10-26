@@ -163,14 +163,6 @@ check("guided tour exposes accessible progress and narration failure state", gui
 check("media metadata RPCs scope list, update, and delete operations to the owner", mediaOwnershipMigration.includes("where m.owner_id=auth.uid()") && mediaOwnershipMigration.includes("where id=p_media_id and owner_id=auth.uid()"));
 check("media owner backfill guards UUID casts with a strict CASE expression", mediaOwnershipMigration.includes("set owner_id = case") && mediaOwnershipMigration.includes("then split_part(storage_path, '/', 2)::uuid")); 
 check("media metadata RPCs require creator-owned storage paths and grant only authenticated execution", mediaOwnershipMigration.includes("media path must belong to the current creator") && mediaOwnershipMigration.includes("revoke all on function public.delete_creator_media"));
-if (failures.length) {
-  console.error("Repository validation failed:");
-  for (const failure of failures) console.error(" - " + failure);
-  process.exitCode = 1;
-} else {
-  console.log(`Repository validation passed (${assertionCount} assertions).`);
-}
- (await read("../src/app/creator/event-social-management.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/poll-management.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/media-library.tsx")).includes('role="status" aria-live="polite">Loading media…</p>'));
 check("creator settings and moderation queue loading states are announced politely", (await read("../src/app/creator/creator-settings.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/idea-moderation-queue.tsx")).includes('role="status" aria-live="polite">{status}</p>'));
 
 check("interactive controls have a global keyboard-focus indicator", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, summary, [role=\"button\"], [role=\"tab\"], [role=\"switch\"]):focus-visible"));
@@ -282,6 +274,20 @@ check("guided tour exposes accessible progress and narration failure state", gui
 check("media metadata RPCs scope list, update, and delete operations to the owner", mediaOwnershipMigration.includes("where m.owner_id=auth.uid()") && mediaOwnershipMigration.includes("where id=p_media_id and owner_id=auth.uid()"));
 check("media owner backfill guards UUID casts with a strict CASE expression", mediaOwnershipMigration.includes("set owner_id = case") && mediaOwnershipMigration.includes("then split_part(storage_path, '/', 2)::uuid")); 
 check("media metadata RPCs require creator-owned storage paths and grant only authenticated execution", mediaOwnershipMigration.includes("media path must belong to the current creator") && mediaOwnershipMigration.includes("revoke all on function public.delete_creator_media"));
+if (failures.length) {
+  console.error("Repository validation failed:");
+  for (const failure of failures) console.error(" - " + failure);
+  process.exitCode = 1;
+} else {
+  console.log(`Repository validation passed (${assertionCount} assertions).`);
+}
+
+check("event and social managers show helpful empty states", eventSocial.includes("No events yet.") && eventSocial.includes("No social links yet."));
+check("media filters provide a clearable no-results state", media.includes("No matching assets.") && media.includes('onClick={()=>{setSearch("");setFilter("all");}}'));
+check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">No polls created yet.') && ideasModeration.includes('className="moderation-empty" role="status"><h3>No submissions yet.'));
+check("publishing history explains the first-version empty state", historyComponent.includes('className="moderation-empty" role="status"><h3>No published versions yet.'));
+check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">Loading media…</p>'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
