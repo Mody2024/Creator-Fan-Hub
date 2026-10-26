@@ -99,3 +99,20 @@ revoke all on function public.get_creator_media(integer) from public,anon,authen
 revoke all on function public.save_creator_media(uuid,text,text,text,text,text,jsonb,boolean) from public,anon,authenticated;
 grant execute on function public.get_creator_media(integer) to authenticated;
 grant execute on function public.save_creator_media(uuid,text,text,text,text,text,jsonb,boolean) to authenticated;
+
+create or replace function public.delete_creator_media(p_media_id uuid)
+returns table(deleted boolean,result_code text,storage_path text)
+language plpgsql security definer set search_path=''
+as $$
+declare v_path text;
+begin
+ if auth.uid() is null or not public.is_active_creator() then raise exception 'creator access required' using errcode='42501'; end if;
+ select m.storage_path into v_path from public.media_items m where m.id=p_media_id and m.is_published=false and m.storage_path like 'creator-media-private/%';
+ if v_path is null then return query select false,'not_found_or_published'::text,null::text; return; end if;
+ delete from public.media_items where id=p_media_id;
+ insert into public.admin_audit_log(actor_id,action,resource_type,resource_id,details)
+ values(auth.uid(),'media.deleted','media',p_media_id::text,jsonb_build_object('storage_path',v_path));
+ return query select true,'deleted'::text,v_path;
+end; $$;
+revoke all on function public.delete_creator_media(uuid) from public,anon,authenticated;
+grant execute on function public.delete_creator_media(uuid) to authenticated;
