@@ -14,7 +14,7 @@ export default async function HomePage() {
   const config = await getPublicSiteConfig();
 
   if (config.maintenance.enabled) {
-    return <main className="maintenance" style={config.theme === "custom" ? ({ "--accent": config.accent } as CSSProperties & { "--accent": string }) : undefined}><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
+    return <main className="maintenance" style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
   }
 
   return (
