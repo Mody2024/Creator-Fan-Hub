@@ -6,6 +6,7 @@ create table if not exists public.site_config_drafts (
   id uuid primary key default gen_random_uuid(),
   config_key text not null unique default 'primary',
   draft jsonb not null default '{}'::jsonb,
+  draft_revision integer not null default 1 check (draft_revision > 0),
   updated_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now()
 );
@@ -18,6 +19,21 @@ create table if not exists public.published_site_config (
   maintenance_mode boolean not null default false,
   published_at timestamptz not null default now()
 );
+
+-- Immutable snapshots enable safe rollback and audit-friendly publishing.
+create table if not exists public.published_site_config_versions (
+  id uuid primary key default gen_random_uuid(),
+  config_key text not null,
+  version integer not null check (version > 0),
+  published jsonb not null,
+  maintenance_mode boolean not null default false,
+  published_by uuid references auth.users(id) on delete set null,
+  published_at timestamptz not null default now(),
+  unique (config_key, version)
+);
+
+create index if not exists published_site_config_versions_recent_idx
+  on public.published_site_config_versions(config_key, version desc);
 
 create table if not exists public.polls (
   id uuid primary key default gen_random_uuid(),
