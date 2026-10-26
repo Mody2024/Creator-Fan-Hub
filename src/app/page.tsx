@@ -18,11 +18,11 @@ export default async function HomePage() {
   }
 
   return (
-    <main className={`site theme-${config.theme}`} style={config.theme === "custom" ? ({ "--accent": config.accent } as CSSProperties & { "--accent": string }) : undefined}>
+    <main className={`site theme-${config.theme}`} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}>
       <header className="topbar">
         <a className="wordmark" href="#home" aria-label={config.siteName}>{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : config.siteName}<span>®</span></a>
         <nav aria-label="Main navigation">
-          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}
+          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.featureFlags.events && config.visibleSections.includes("events") && <a href="#events">Events</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}{config.visibleSections.includes("socials") && <a href="#socials">Socials</a>}
         </nav>
         <a className="nav-cta" href={config.featureFlags.polls && config.visibleSections.includes("poll") ? "#vote" : config.featureFlags.ideas && config.visibleSections.includes("ideas") ? "#ideas" : config.visibleSections.includes("events") && config.featureFlags.events ? "#events" : config.visibleSections.includes("community") ? "#community" : "#home"}>Shape the next drop <span>↗</span></a>
       </header>
@@ -57,8 +57,8 @@ export default async function HomePage() {
           default: return null;
         }
       })}
-      {config.narrationUrl && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay} />}
-      {config.featureFlags.guidedTour && <GuidedWelcomeTour narrationUrl={config.narrationUrl} />}
+      {config.featureFlags.voice && config.narrationUrl && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay} />}
+      {config.featureFlags.guidedTour && <GuidedWelcomeTour narrationUrl={config.featureFlags.voice ? config.narrationUrl : null} />}
       <footer className="site-footer"><span>{config.siteName} / COMMUNITY PORTAL</span><a href="#home">BACK TO TOP ↑</a></footer>
     </main>
   );
