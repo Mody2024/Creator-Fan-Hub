@@ -208,3 +208,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Improved touch target height for moderation and media controls, made media list rows adapt further for very narrow phones, and prevented long asset titles from forcing horizontal overflow.
 - Set mobile form controls to a readable 16px size to avoid automatic zoom behavior in mobile browsers.
 - Added static checks for touch targets, very narrow media rows, and mobile form sizing. Manual device preview is still required.
+
+
+## Creator settings and moderation loading announcements (2026-10-27)
+- Added polite live-region announcements to the settings editor and idea moderation queue loading feedback, matching the event, poll, and media management panels.
+- Extended static regression checks to cover both components. This is source-level accessibility coverage; screen-reader and live preview acceptance remain outstanding.
