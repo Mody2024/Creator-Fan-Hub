@@ -88,6 +88,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     mascotUrl: mascotItem?.media_type === "image" ? publicMediaUrl(mascotItem) : null,
     narrationUrl: narrationItem?.media_type === "audio" ? publicMediaUrl(narrationItem) : null,
     narrationText: typeof identity.narrationText === "string" ? identity.narrationText.slice(0, 1600) : fallback.narrationText,
+    narrationAutoPlay: identity.narrationAutoPlay !== false,
     heroOverlay: typeof hero.overlay === "number" && Number.isFinite(hero.overlay) ? Math.min(0.85, Math.max(0, hero.overlay)) : 0.35,
     heroMuted: hero.muted !== false,
     heroLoop: hero.loop !== false,
