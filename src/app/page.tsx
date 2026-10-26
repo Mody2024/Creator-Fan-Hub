@@ -23,7 +23,7 @@ export default async function HomePage() {
       <header className="topbar">
         <a className="wordmark" href="#home" aria-label={config.siteName}>{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : config.siteName}<span>®</span></a>
         <nav aria-label="Main navigation">
-          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.featureFlags.events && config.visibleSections.includes("events") && <a href="#events">Events</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}{config.visibleSections.includes("socials") && <a href="#socials">Socials</a>}
+          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.featureFlags.events && config.visibleSections.includes("events") && <a href="#events">Events</a>}{config.visibleSections.includes("community") && <a href="#community">Community</a>}{config.visibleSections.includes("socials") && <a href="#socials">Socials</a>}{config.visibleSections.includes("videos") && <a href="#videos">Videos</a>}
         </nav>
         <a className="nav-cta" href={config.featureFlags.polls && config.visibleSections.includes("poll") ? "#vote" : config.featureFlags.ideas && config.visibleSections.includes("ideas") ? "#ideas" : config.visibleSections.includes("events") && config.featureFlags.events ? "#events" : config.visibleSections.includes("community") ? "#community" : "#home"}>Shape the next drop <span>↗</span></a>
       </header>
