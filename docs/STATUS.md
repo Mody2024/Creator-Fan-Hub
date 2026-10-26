@@ -33,3 +33,12 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added `docs/BACKEND-SECURITY.md` covering draft/publish boundaries, admin authorization, vote/submission validation, media safety, and recovery.
 - These SQL files are committed as implementation artifacts but have **not** been applied to a database. No Supabase project was created or modified; existing projects were left untouched.
 - The current web app remains the static prototype until the app architecture and backend are integrated.
+
+
+## Validation groundwork (2026-10-26)
+- Added a dependency-free Node test setup: `npm run check` and `npm test`.
+- Added GitHub Actions workflow `.github/workflows/validate.yml` for pushes and pull requests to `development` and `main`.
+- Added checks for required sections, responsive/reduced-motion support, the permanent creator signature, explicit demo-only messaging, and baseline security documentation.
+- Fixed a validation pattern to match the poll's actual demo disclosure.
+- Latest Git-linked Vercel development deployment for commit `b46971cf400f667afba0bf13771ae9d101f53468` reached READY.
+- Important: Vercel READY confirms deployment completed; it does not mean GitHub Actions passed. I have not verified a successful CI run yet.
