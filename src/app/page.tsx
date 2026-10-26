@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import PublishedPolls from "@/app/vote/published-polls";
 import IdeaSubmissionForm from "@/app/ideas/idea-submission-form";
+import ApprovedIdeas from "@/app/ideas/approved-ideas";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +42,7 @@ export default async function HomePage() {
 
       <section className="content-section" id="ideas">
         <div className="section-heading"><div><span className="eyebrow">01 / THE IDEA BOARD</span><h2>What should we<br/><em>make next?</em></h2></div><p>Every great upload starts somewhere. Put your idea on the table and help steer the next one.</p></div>
-        <div className="idea-panel"><div className="idea-panel-top"><span>COMMUNITY SUGGESTIONS</span><span className="live-dot">● MODERATED SUBMISSIONS</span></div><IdeaSubmissionForm /></div>
+        <div className="idea-panel"><div className="idea-panel-top"><span>COMMUNITY SUGGESTIONS</span><span className="live-dot">● MODERATED SUBMISSIONS</span></div><IdeaSubmissionForm /><ApprovedIdeas /></div>
       </section>
 
       <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Voting will go live when the database and abuse protections are connected. No pretend results, no fake votes.</p></div><PublishedPolls /></section>
