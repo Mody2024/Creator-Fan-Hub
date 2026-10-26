@@ -227,3 +227,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Kept the event/social and media filter empty-state checks in the same final validation pass.
 
 - Follow-up validator cleanup ensures the final assertion summary appears once, after every check.
+
+## Validation and empty-state polish (2026-10-27)
+- Removed exact duplicate static assertions while retaining each unique regression check, reducing noise in the repository validation output.
+- Added accessible status semantics to the idea-filter no-results state and the media library's first-upload empty state.
+- Static checks remain source-level checks; live Supabase migrations, authenticated workflows, and responsive browser behavior still require environment testing.
