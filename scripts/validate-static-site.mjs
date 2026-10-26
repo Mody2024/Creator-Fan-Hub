@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -31,10 +31,13 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../src/app/narration-control.tsx"),
   read("../src/app/guided-welcome-tour.tsx"),
   read("../src/lib/site-config.mjs"),
-  read("../src/app/creator/event-social-management.tsx")
+  read("../src/app/creator/event-social-management.tsx"),
+  read("../src/app/ideas/approved-ideas.tsx"),
+  read("../supabase/migrations/20261027000100_public_featured_ideas.sql")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
+check("public idea board includes featured ideas and respects maintenance/feature visibility", publicIdeas.includes("APPROVED & FEATURED") && publicIdeasMigration.includes("i.status in") && publicIdeasMigration.includes("featured") && publicIdeasMigration.includes("maintenance_mode") && publicIdeasMigration.includes("featureFlags,ideas"));
 check("public idea form shows live character counts", ideaSubmission.includes("{title.length}/100") && ideaSubmission.includes("{body.length}/800") && ideaSubmission.includes("{displayName.length}/32"));
 check("public idea form validates trimmed field lengths before submission", ideaSubmission.includes("const cleanTitle = title.trim()") && ideaSubmission.includes("cleanBody.length < 10") && ideaSubmission.includes("cleanName.length > 32"));
 check("public idea form always releases busy state and handles network failures", ideaSubmission.includes("finally {\n      setBusy(false);") && ideaSubmission.includes("connection failed before we could confirm submission"));
