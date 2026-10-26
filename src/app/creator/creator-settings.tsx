@@ -10,8 +10,9 @@ type SiteDraft = {
   appearance: { theme: "obsidian" | "paper" | "violet" | "custom"; accent?: string; colorMode?: string; motion?: string };
   hero: { title: string; body: string; mediaId?: string | null; overlay?: number; muted?: boolean; loop?: boolean };
   maintenance: { enabled: boolean; message: string };
-  sections?: string[];
-  features?: Record<string, boolean>;
+  layout: { sectionOrder: string[]; visibleSections: string[] };
+  socialLinkIds: string[];
+  featureFlags: Record<string, boolean>;
   [key: string]: unknown;
 };
 
@@ -19,10 +20,11 @@ const fallback: SiteDraft = {
   schemaVersion: 1,
   identity: { siteName: "THE INNER CIRCLE", tagline: "A community built around what comes next." },
   appearance: { theme: "obsidian", accent: "#C5A46D", colorMode: "dark", motion: "full" },
-  hero: { title: "Your next favorite video starts here.", body: "Vote on ideas, share what you want to see, and help shape the next upload." },
+  hero: { title: "Your next favorite video starts here.", body: "Vote on ideas, share what you want to see, and help shape the next upload.", mediaId: null, overlay: 0.35, muted: true, loop: true },
   maintenance: { enabled: false, message: "We'll be back soon." },
-  sections: ["ideas", "vote", "community"],
-  features: { ideas: true, polls: true, events: true, store: false }
+  layout: { sectionOrder: ["hero", "ideas", "poll", "latest", "events", "community", "videos", "socials"], visibleSections: ["hero", "ideas", "poll", "community"] },
+  socialLinkIds: [],
+  featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false }
 };
 
 export default function CreatorSettings() {
@@ -59,7 +61,7 @@ export default function CreatorSettings() {
       return;
     }
     const loaded = data[0];
-    setDraft({ ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance } });
+    setDraft({ ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance }, layout: { ...fallback.layout, ...loaded.draft.layout }, featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags }, socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : [] });
     setRevision(Number(loaded.draft_revision));
     setStatus("Draft loaded. Changes remain private until you publish.");
     setBusy(false);
@@ -124,7 +126,12 @@ export default function CreatorSettings() {
         <label>Accent color<input type="color" value={draft.appearance.accent || "#C5A46D"} onChange={e=>update("appearance","accent",e.target.value)} /></label>
       </div>
       <div className="editor-divider" />
-      <div className="editor-section-title"><span>02 / AVAILABILITY</span><h2>Control the <em>doors.</em></h2><p>Maintenance mode is reversible and stored in the draft.</p></div>
+      <div className="editor-section-title"><span>02 / EXPERIENCE</span><h2>Choose what <em>appears.</em></h2><p>Disabled modules keep their saved configuration; this switch controls public availability only.</p></div>
+      <div className="feature-toggle-grid">
+        {([["polls","Community polls"],["ideas","Idea submissions"],["events","Events"],["guidedTour","Guided tour"],["mascot","Mascot"],["voice","Voice and narration"],["miniGames","Mini-games"],["store","Store (future)"]] as const).map(([key,label])=><label className="feature-toggle" key={key}><span><strong>{label}</strong><small>{key === "store" ? "Keep disabled until the store is ready." : "Enable or disable this experience."}</small></span><input type="checkbox" checked={draft.featureFlags[key]} onChange={e=>setDraft(current=>({...current,featureFlags:{...current.featureFlags,[key]:e.target.checked}}))} /></label>)}
+      </div>
+      <div className="editor-divider" />
+      <div className="editor-section-title"><span>03 / AVAILABILITY</span><h2>Control the <em>doors.</em></h2><p>Maintenance mode is reversible and stored in the draft.</p></div>
       <label className="maintenance-toggle"><input type="checkbox" checked={draft.maintenance.enabled} onChange={e=>update("maintenance","enabled",e.target.checked)} /><span><strong>Maintenance mode</strong><small>Show a temporary offline page to public visitors after publishing.</small></span></label>
       <label className="editor-full-label">Maintenance message<textarea rows={2} maxLength={240} value={draft.maintenance.message} onChange={e=>update("maintenance","message",e.target.value)} /></label>
       <div className="editor-actions"><button className="button button-secondary" onClick={() => void save(false)} disabled={saving || busy}>Save draft</button><button className="button button-primary" onClick={() => void save(true)} disabled={saving || busy}>Save & publish <span>↗</span></button></div>
