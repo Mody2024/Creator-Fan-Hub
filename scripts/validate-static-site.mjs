@@ -46,6 +46,10 @@ check("public idea form always releases busy state and handles network failures"
 check("public idea form disables invalid over-limit values", ideaSubmission.includes("title.trim().length > 100") && ideaSubmission.includes("body.trim().length > 800") && ideaSubmission.includes("displayName.trim().length > 32"));
 check("homepage renders published poll component", page.includes("<PublishedPolls />"));
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
+check("interactive controls have a global keyboard-focus indicator", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, summary, [role=\"button\"], [role=\"tab\"], [role=\"switch\"]):focus-visible"));
+check("keyboard focus remains visible in forced-colors/high-contrast mode", (await read("../src/app/globals.css")).includes("@media (forced-colors: active)") && (await read("../src/app/globals.css")).includes("outline: 2px solid Highlight"));
+check("disabled interactive controls communicate unavailable state", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, [role=\"button\"]):disabled"));
+
 check("homepage provides a separate mobile navigation with the same visibility gates", page.includes('className="mobile-nav" aria-label="Mobile navigation"') && page.includes('className="desktop-nav" aria-label="Main navigation"') && (page.match(/href="#videos"/g) || []).length >= 1);
 check("mobile navigation remains horizontally scrollable instead of disappearing on narrow screens", (await read("../src/app/globals.css")).includes(".topbar .mobile-nav{display:flex;order:3;width:100%;gap:22px;overflow-x:auto"));
 check("creator dashboard collapses stats and modules for tablet/mobile widths", (await read("../src/app/globals.css")).includes(".dashboard-stats { grid-template-columns: minmax(0, 1fr)") && (await read("../src/app/globals.css")).includes(".module-grid { grid-template-columns: minmax(0, 1fr)"));

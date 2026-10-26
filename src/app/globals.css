@@ -133,3 +133,21 @@
   .public-social-list a { gap: 8px; }
   .social-platform { min-width: 52px; }
 }
+
+
+/* Consistent keyboard focus across interactive controls */
+:where(button, input, select, textarea, summary, [role="button"], [role="tab"], [role="switch"]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+:where(button, input, select, textarea, [role="button"]):disabled {
+  cursor: not-allowed;
+}
+:where(input, select, textarea) {
+  max-width: 100%;
+}
+@media (forced-colors: active) {
+  :where(a, button, input, select, textarea, summary, [role="button"]):focus-visible {
+    outline: 2px solid Highlight;
+  }
+}

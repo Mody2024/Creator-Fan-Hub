@@ -191,3 +191,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added tablet/mobile breakpoints for the creator dashboard header, overview cards, module grid, idea submission form, event cards, and social links.
 - At narrow widths, layouts switch to single-column flows to reduce cramped controls and horizontal overflow; smaller phones receive additional spacing adjustments.
 - Added regression assertions for the main responsive breakpoints. These are source-level checks, not a substitute for visual preview testing on real viewport sizes.
+
+
+## Keyboard and high-contrast UI pass (2026-10-27)
+- Added consistent keyboard focus rings for buttons, form controls, summaries, and common ARIA interactive roles, supplementing component-specific styles.
+- Added a forced-colors/high-contrast focus treatment and a consistent disabled cursor for controls.
+- Added static regression assertions. This improves keyboard visibility but does not replace manual keyboard, screen-reader, or visual acceptance testing.
