@@ -42,6 +42,8 @@ check("creator event editor rejects end dates before or equal to start", content
 check("creator can edit existing events", contentManager.includes("p_event_id:editingEventId||null") && contentManager.includes("setEditingEventId(e.event_id)") && contentManager.includes("Update event ↗"));
 check("event edits preserve the existing publication status", contentManager.includes("Event updated; its publication status was preserved."));
 check("creator can edit existing social links", contentManager.includes("setEditingLinkId(l.link_id)") && contentManager.includes("p_link_id:editingLinkId||null") && contentManager.includes("Update link ↗"));
+check("media library supports editing asset metadata without replacing files", media.includes("async function saveMetadata") && media.includes("p_storage_path:item.storage_path") && media.includes("Publication status and file URL were preserved."));
+check("media library supports searching and filtering assets", media.includes("setSearch") && media.includes("setFilter") && media.includes("rows.filter(item=>"));
 check("editing a social link preserves publication state and position", contentManager.includes("p_is_published:existing?.is_published??false") && contentManager.includes("p_position:existing?.link_position??links.length"));
 check("social edit confirmation uses captured edit state", contentManager.includes("const wasEditing=Boolean(editingLinkId)") && contentManager.includes("setStatus(wasEditing?"));
 
@@ -60,5 +62,5 @@ if (failures.length) {
   for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log("Repository validation passed (33 assertions).");
+  console.log("Repository validation passed (35 assertions).");
 }
