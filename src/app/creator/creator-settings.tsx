@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
+type MediaOption = { media_id: string; title: string; media_type: string; is_published: boolean };
+
 type SiteDraft = {
   schemaVersion: 1;
   identity: { siteName: string; tagline: string; logoMediaId?: string | null; mascotMediaId?: string | null };
@@ -34,6 +36,7 @@ export default function CreatorSettings() {
   const [busy, setBusy] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("Loading your private draft…");
+  const [mediaOptions, setMediaOptions] = useState<MediaOption[]>([]);
 
   const load = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
@@ -61,6 +64,8 @@ export default function CreatorSettings() {
       return;
     }
     const loaded = data[0];
+    const { data: mediaData } = await supabase.rpc("get_creator_media", { p_limit: 100 });
+    setMediaOptions((mediaData ?? []) as MediaOption[]);
     setDraft({ ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance }, layout: { ...fallback.layout, ...loaded.draft.layout }, featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags }, socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : [] });
     setRevision(Number(loaded.draft_revision));
     setStatus("Draft loaded. Changes remain private until you publish.");
@@ -125,6 +130,11 @@ export default function CreatorSettings() {
         <label>Visual theme<select value={draft.appearance.theme} onChange={e=>update("appearance","theme",e.target.value)}><option value="obsidian">Obsidian</option><option value="paper">Paper</option><option value="violet">Violet</option><option value="custom">Custom</option></select></label>
         <label>Accent color<input type="color" value={draft.appearance.accent || "#C5A46D"} onChange={e=>update("appearance","accent",e.target.value)} /></label>
       </div>
+      <div className="editor-grid">
+        <label>Published logo image<select value={draft.identity.logoMediaId ?? ""} onChange={e=>update("identity","logoMediaId",e.target.value || null)}><option value="">Text logo only</option>{mediaOptions.filter(item=>item.is_published && item.media_type==="image").map(item=><option key={item.media_id} value={item.media_id}>{item.title}</option>)}</select></label>
+        <label>Published hero media<select value={draft.hero.mediaId ?? ""} onChange={e=>update("hero","mediaId",e.target.value || null)}><option value="">Use default hero artwork</option>{mediaOptions.filter(item=>item.is_published && (item.media_type==="image" || item.media_type==="video")).map(item=><option key={item.media_id} value={item.media_id}>{item.title} · {item.media_type}</option>)}</select></label>
+      </div>
+      <p className="media-upload-note">Only published assets can be selected for the public site. Upload and publish files in the Media Library first.</p>
       <div className="editor-divider" />
       <div className="editor-section-title"><span>02 / EXPERIENCE</span><h2>Choose what <em>appears.</em></h2><p>Disabled modules keep their saved configuration; this switch controls public availability only.</p></div>
       <div className="feature-toggle-grid">
