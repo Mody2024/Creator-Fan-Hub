@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { readBoundedJson } from "@/lib/read-bounded-json";
 
 export const dynamic = "force-dynamic";
 
@@ -27,10 +28,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const auth = await authorizedClient();
   if ("response" in auth) return auth.response;
-  let body: unknown;
-  try { body = await request.json(); } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
-  }
+  const parsed = await readBoundedJson(request, 8 * 1024);
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: parsed.status });
+  const body: unknown = parsed.value;
   const version = body && typeof body === "object" && !Array.isArray(body)
     ? (body as Record<string, unknown>).version : null;
   if (!Number.isSafeInteger(version) || (version as number) < 1) {

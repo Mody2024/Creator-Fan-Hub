@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, historyRoute, boundedJsonHelper] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -35,11 +35,18 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../src/app/ideas/approved-ideas.tsx"),
   read("../supabase/migrations/20261027000100_public_featured_ideas.sql"),
   read("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql"),
-  read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql")
+  read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
+  read("../src/app/api/creator/draft/route.ts"),
+  read("../src/app/api/creator/publish/route.ts"),
+  read("../src/app/api/creator/history/route.ts"),
+  read("../src/lib/read-bounded-json.ts")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
 check("public poll RPC respects maintenance mode and the published polls feature flag", pollVisibilityMigration.includes("get_public_poll_results") && pollVisibilityMigration.includes("maintenance_mode") && pollVisibilityMigration.includes("featureFlags,polls") && pollVisibilityMigration.includes("not exists"));
+check("bounded JSON parser checks actual UTF-8 size and rejects oversized bodies", boundedJsonHelper.includes("request.text()") && boundedJsonHelper.includes("TextEncoder") && boundedJsonHelper.includes("status: 413") && boundedJsonHelper.includes("JSON.parse(raw)"));
+check("creator draft API caps JSON payloads at 128 KiB", draftRoute.includes("readBoundedJson(request, 128 * 1024)") && draftRoute.includes("parsed.status"));
+check("creator publish and history restore APIs cap JSON payloads at 8 KiB", publishRoute.includes("readBoundedJson(request, 8 * 1024)") && historyRoute.includes("readBoundedJson(request, 8 * 1024)"));
 check("public idea, poll-read and vote RPCs fail closed when primary published config is missing", publicGateHardeningMigration.includes("function public.get_public_approved_ideas()") && publicGateHardeningMigration.includes("function public.get_public_poll_results()") && publicGateHardeningMigration.includes("function public.cast_public_poll_vote(") && (publicGateHardeningMigration.match(/from public\.published_site_config c/g) || []).length >= 3 && (publicGateHardeningMigration.match(/and exists \(/g) || []).length >= 2 && publicGateHardeningMigration.includes("if not exists ("));
 check("public idea board includes featured ideas and respects maintenance/feature visibility", publicIdeas.includes("APPROVED & FEATURED") && publicIdeasMigration.includes("i.status in") && publicIdeasMigration.includes("featured") && publicIdeasMigration.includes("maintenance_mode") && publicIdeasMigration.includes("featureFlags,ideas"));
 check("public idea form shows live character counts", ideaSubmission.includes("{title.length}/100") && ideaSubmission.includes("{body.length}/800") && ideaSubmission.includes("{displayName.length}/32"));

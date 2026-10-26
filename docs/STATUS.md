@@ -237,3 +237,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added a forward Supabase migration that makes public idea reads, poll reads, and poll voting require an existing primary published configuration with maintenance mode off and the corresponding feature enabled.
 - This closes a fail-open edge case where a missing primary configuration row could otherwise leave public community RPCs enabled.
 - Added a static regression assertion for the three database functions and their fail-closed configuration checks. The migration is committed but has not been confirmed applied to a live Supabase project.
+
+## Creator API request-size hardening (2026-10-27)
+- Added a shared bounded JSON reader that checks Content-Length when available and independently measures the actual UTF-8 body before parsing.
+- Draft saves are capped at 128 KiB to allow legitimate site configuration while bounding oversized requests; publish and history-restore requests are capped at 8 KiB.
+- Oversized requests receive HTTP 413; malformed JSON receives HTTP 400. Creator authorization still runs before body parsing on these routes.
+- Added regression assertions for the helper and all three API routes. This is code/CI validation, not a substitute for deployment-level request-size limits.
