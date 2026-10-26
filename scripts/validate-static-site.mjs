@@ -1,38 +1,34 @@
 import { readFile } from "node:fs/promises";
 
-const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-const required = [
-  ["document language", /<html lang="en">/],
-  ["responsive viewport", /name="viewport"/],
-  ["main landmark", /<main\b/],
-  ["ideas section", /id="ideas"/],
-  ["voting section", /id="vote"/],
-  ["community section", /id="community"/],
-  ["latest content section", /id="latest"/],
-  ["theme selector", /id="theme"/],
-  ["guided tour", /id="tour"/],
-  ["reduced motion support", /prefers-reduced-motion:\s*reduce/],
-  ["permanent creator signature", /MADE BY ALMUDDATHTHIR/],
-  ["honest demo poll disclosure", /Demo only[^<]*no vote is sent or stored/],
-  ["honest submission disclosure", /does not send or save your idea/i],
-  ["safe external URL constraint in schema docs", /https\?:\/\//],
-];
-
+const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const failures = [];
-for (const [label, pattern] of required) {
-  ["safe external URL constraint in schema docs", /https\?:\/\//],
-    failures.push(label);
-  }
-}
+const check = (label, condition) => { if (!condition) failures.push(label); };
 
-if (!/<form\b[^>]*id="idea-form"/.test(html)) failures.push("idea submission form");
-if (!/aria-live="polite"/.test(html)) failures.push("live status announcement");
-if (!/aria-pressed/.test(html)) failures.push("accessible poll selection state");
+const [page, config, poll, editor, packageJson] = await Promise.all([
+  read("../src/app/page.tsx"),
+  read("../src/lib/public-site-config.ts"),
+  read("../src/app/vote/published-polls.tsx"),
+  read("../src/app/creator/creator-settings.tsx"),
+  read("../package.json")
+]);
+
+check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
+check("homepage renders published poll component", page.includes("<PublishedPolls />"));
+check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
+check("public configuration uses published snapshot", config.includes('.from("published_site_config")') && config.includes('.select("published")'));
+check("public configuration validates accent color", config.includes("/^#[0-9a-fA-F]{6}$/"));
+check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
+check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
+check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
+check("creator editor has explicit draft/publish actions", editor.includes("Save draft") && editor.includes("Save & publish"));
+check("creator editor has maintenance mode", editor.includes('update("maintenance","enabled"'));
+check("package defines build script", /"build"\s*:\s*"next build"/.test(packageJson));
+check("package defines lint script", /"lint"\s*:\s*"eslint \\."/.test(packageJson) || packageJson.includes('"lint": "eslint ."' ));
 
 if (failures.length) {
-  console.error("Static site checks failed:");
-  for (const failure of failures) console.error(` - ${failure}`);
+  console.error("Repository validation failed:");
+  for (const failure of failures) console.error(" - " + failure);
   process.exitCode = 1;
 } else {
-  console.log(`Static site checks passed (${required.length + 3} assertions).`);
+  console.log("Repository validation passed (12 assertions).");
 }
