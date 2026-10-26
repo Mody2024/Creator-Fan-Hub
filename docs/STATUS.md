@@ -92,3 +92,9 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - The guided tour now traps keyboard focus inside its modal, wraps forward/reverse Tab navigation, closes on Escape, and restores focus to its launcher.
 - GitHub Actions validation and free-tier CI passed for commit `602420924b3cee0962241233a75dd032c8c42acb`. Follow-up tour accessibility changes are being validated in the next commit.
 - Production remains intentionally untouched. A passing static repository validator is not a substitute for live Supabase end-to-end testing, mobile/browser acceptance, or confirming the current Vercel preview.
+
+
+## Media ownership hardening (2026-10-26)
+- Added a migration to associate uploaded media metadata with its uploader, backfill ownership from valid existing storage paths, and scope creator media listing, edits, and deletion to the current owner.
+- The metadata-save RPC rejects storage paths outside the signed-in creator's folder. Existing records that cannot be safely attributed remain unavailable for creator mutation until reviewed.
+- This migration is committed as code only; it has not been applied to the Supabase project. Live database behavior still needs an authorized migration run and end-to-end tests.
