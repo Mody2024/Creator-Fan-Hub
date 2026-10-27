@@ -8,6 +8,9 @@ export type BoundedJsonResult =
  * always checked too because clients can omit or misstate that header.
  */
 export async function readBoundedJson(request: Request, maxBytes: number): Promise<BoundedJsonResult> {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) {
+    throw new RangeError("maxBytes must be a positive safe integer.");
+  }
   const contentLength = request.headers.get("content-length");
   if (contentLength && /^\d+$/.test(contentLength) && Number(contentLength) > maxBytes) {
     return { ok: false, status: 413, error: "Request body is too large." };

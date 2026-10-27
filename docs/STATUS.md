@@ -266,3 +266,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added dedicated tests for draft save, publish, and history restore API contracts: authenticated claims must be checked before parsing request bodies; bounded payload limits, revision/version validation, conflict/not-found mapping, and safe generic error messages are asserted.
 - Wired these tests into the repository's static validator so accidental removal of the suite is caught.
 - These are route-source contract tests, not simulated HTTP integration tests. Live authorization, Supabase RPC behavior, and deployed runtime behavior remain part of final verification.
+
+## Bounded request parser hardening (2026-10-27)
+- The shared JSON request reader now rejects invalid byte-limit configuration rather than accidentally accepting an unbounded or nonsensical limit.
+- Added regression tests for exact-limit acceptance, a deliberately understated Content-Length header, and invalid limits. The streamed byte count remains authoritative.
+- These tests run in CI; deployed route behavior and runtime-level integration still require final verification.

@@ -54,3 +54,35 @@ test("bounded JSON reader rejects oversized streamed content without a size head
   const result = await readBoundedJson(request, 32);
   assert.deepEqual(result, { ok: false, status: 413, error: "Request body is too large." });
 });
+
+
+test("bounded JSON reader accepts a body exactly at the byte limit", async () => {
+  const body = '{"x":1}';
+  const result = await readBoundedJson(new Request("https://example.test/api", {
+    method: "POST",
+    body
+  }), new TextEncoder().encode(body).byteLength);
+  assert.deepEqual(result, { ok: true, value: { x: 1 } });
+});
+
+test("bounded JSON reader enforces streamed bytes even when Content-Length understates the body", async () => {
+  const request = new Request("https://example.test/api", {
+    method: "POST",
+    headers: { "content-length": "1" },
+    body: new ReadableStream({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"payload":"' + "z".repeat(64) + '"}'));
+        controller.close();
+      }
+    }),
+    duplex: "half"
+  });
+  const result = await readBoundedJson(request, 16);
+  assert.deepEqual(result, { ok: false, status: 413, error: "Request body is too large." });
+});
+
+test("bounded JSON reader rejects invalid configured byte limits", async () => {
+  const request = new Request("https://example.test/api", { method: "POST", body: "{}" });
+  await assert.rejects(() => readBoundedJson(request, 0), RangeError);
+  await assert.rejects(() => readBoundedJson(request, Number.POSITIVE_INFINITY), RangeError);
+});
