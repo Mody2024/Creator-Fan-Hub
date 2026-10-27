@@ -294,3 +294,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Publishing history now validates each API row before rendering and clears stale snapshots when a reload fails or returns malformed data, avoiding a misleading old list after an error.
 - Draft restore now requires a valid positive revision in the success response before telling the creator the restore was confirmed.
 - Added three regression tests and wired them into the static validator. Live API behavior still needs preview verification.
+
+## Media recovery regression coverage and CI correction (2026-10-27)
+- Fixed the publishing-history aggregate validator label so it matches the test's actual name; the previous commit's site-validation and Free CI runs failed on this mismatched assertion.
+- Added four media recovery contract tests covering failed metadata-save cleanup, stale private-copy warnings, public-object removal and rollback behavior, and backup restoration when metadata deletion fails.
+- These source checks verify the intended compensating paths exist; they do not simulate Storage outages or prove that remote cleanup succeeds.
