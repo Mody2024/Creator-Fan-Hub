@@ -69,3 +69,12 @@ test("history restore validates restored version details before returning succes
   assert.ok(history.includes("!row || !Number.isSafeInteger(row.new_revision) || !Number.isSafeInteger(row.restored_version) || typeof row.saved_at !== \"string\""));
   assert.ok(history.includes("Restore could not be confirmed."));
 });
+
+test("history GET validates and bounds every published version returned by the database", () => {
+  assert.ok(history.includes("function isPublishHistoryRow(value: unknown): value is PublishHistoryRow"));
+  assert.ok(history.includes("Number.isSafeInteger(row.version)"));
+  assert.ok(history.includes("Number.isFinite(Date.parse(row.published_at))"));
+  assert.ok(history.includes("data.length > 20 || !data.every(isPublishHistoryRow)"));
+  assert.ok(history.includes("Publishing history data could not be validated."));
+  assert.ok(history.includes("versions: data"));
+});

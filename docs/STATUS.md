@@ -303,3 +303,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Creator draft read-response validation (2026-10-27)
 - The authenticated draft GET route now validates the stored configuration with the same site-config schema used for writes and rejects invalid revisions or missing update timestamps rather than returning malformed backend data to the editor.
 - Added regression coverage and wired it into repository validation. This protects the API response contract; the live RPC/schema still needs staging verification.
+
+## Publishing-history API response hardening (2026-10-27)
+- The authenticated history endpoint now validates each row's positive version, parseable publication timestamp, nullable publisher, maintenance flag, and display strings before returning it.
+- Rejects unexpected result shapes or more than the requested 20 rows instead of returning malformed backend data to the creator UI.
+- Added regression coverage and connected it to the repository validator. Live RPC response verification remains outstanding.

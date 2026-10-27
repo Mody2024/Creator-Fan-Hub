@@ -4,6 +4,26 @@ import { readBoundedJson } from "@/lib/read-bounded-json";
 
 export const dynamic = "force-dynamic";
 
+type PublishHistoryRow = {
+  version: number;
+  published_at: string;
+  published_by: string | null;
+  maintenance_mode: boolean;
+  site_name: string;
+  hero_title: string;
+};
+
+function isPublishHistoryRow(value: unknown): value is PublishHistoryRow {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const row = value as Record<string, unknown>;
+  return Number.isSafeInteger(row.version) && (row.version as number) > 0
+    && typeof row.published_at === "string" && Number.isFinite(Date.parse(row.published_at))
+    && (row.published_by === null || typeof row.published_by === "string")
+    && typeof row.maintenance_mode === "boolean"
+    && typeof row.site_name === "string"
+    && typeof row.hero_title === "string";
+}
+
 async function authorizedClient() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return { response: NextResponse.json({ error: "Backend is not configured." }, { status: 503 }) };
@@ -22,7 +42,10 @@ export async function GET() {
     const status = error.code === "42501" ? 403 : 500;
     return NextResponse.json({ error: status === 403 ? "Creator access is not enabled for this account." : "Could not load publishing history." }, { status });
   }
-  return NextResponse.json({ versions: data ?? [] });
+  if (!Array.isArray(data) || data.length > 20 || !data.every(isPublishHistoryRow)) {
+    return NextResponse.json({ error: "Publishing history data could not be validated. Refresh and try again." }, { status: 500 });
+  }
+  return NextResponse.json({ versions: data });
 }
 
 export async function POST(request: NextRequest) {
