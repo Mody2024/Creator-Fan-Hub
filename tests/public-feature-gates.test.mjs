@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [pollVisibilityMigration, gateMigration, ideaSubmissionMigration] = await Promise.all([
+const [pollVisibilityMigration, gateMigration, ideaSubmissionMigration, initialSchema] = await Promise.all([
   read("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql"),
   read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
-  read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql")
+  read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql"),
+  read("../supabase/migrations/20261026000100_initial_schema.sql")
 ]);
 
 test("public idea reads fail closed without primary published config", () => {
@@ -71,4 +72,31 @@ test("public voting rejects malformed anonymous tokens before any vote insert", 
   assert.ok(validation.includes("length(p_voter_token) > 160"));
   assert.ok(validation.includes("p_voter_token !~ '^[A-Za-z0-9_-]+$'"));
   assert.ok(validation.includes("raise exception 'invalid vote request'"));
+});
+
+
+test("database uniqueness makes duplicate-vote prevention safe under concurrent requests", () => {
+  assert.ok(initialSchema.includes("unique (poll_id, voter_token_hash)"));
+  assert.ok(gateMigration.includes("on conflict (poll_id, voter_token_hash) do nothing"));
+  assert.ok(gateMigration.includes("get diagnostics v_inserted = row_count"));
+  assert.ok(gateMigration.includes("return query select false, 'already_voted'::text"));
+});
+
+test("poll option foreign key prevents votes from pairing an option with another poll", () => {
+  assert.ok(initialSchema.includes("constraint poll_votes_option_matches_poll"));
+  assert.ok(initialSchema.includes("foreign key (poll_id, option_id)"));
+  assert.ok(initialSchema.includes("references public.poll_options(poll_id, id) on delete cascade"));
+  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const fn = gateMigration.slice(start);
+  assert.ok(fn.includes("o.id = p_option_id and o.poll_id = p_poll_id"));
+});
+
+test("public poll result RPC exposes no voter token or token hash fields", () => {
+  const start = gateMigration.indexOf("create or replace function public.get_public_poll_results()");
+  const end = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const fn = gateMigration.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.ok(!/voter_token|token_hash|poll_votes\.id/i.test(fn.slice(0, fn.indexOf("language sql"))));
+  assert.ok(fn.includes("vote_count bigint"));
+  assert.ok(fn.includes("case when p.status = 'closed' then count(v.id)::bigint else 0::bigint end"));
 });

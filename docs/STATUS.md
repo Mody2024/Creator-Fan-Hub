@@ -285,3 +285,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Public voting security regression expansion (2026-10-27)
 - Expanded the public community feature-gate suite with two checks for anonymous vote-token hashing, option-to-poll binding, empty search_path, explicit RPC grants, and malformed-token rejection before insertion.
 - Wired the expanded tests into the static validator. These remain source-contract tests; actual concurrent duplicate-vote behavior and feature gates still need a live Supabase integration run.
+
+## Concurrent voting and public result privacy checks (2026-10-27)
+- Added three regression tests for the database-level unique voter-token constraint, conflict-safe duplicate handling, composite poll/option foreign key, and public result field privacy.
+- Wired the checks into the repository validator. These verify source/schema contracts only; actual concurrency and grants still need a live database integration run.
