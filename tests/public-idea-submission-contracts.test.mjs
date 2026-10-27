@@ -11,7 +11,7 @@ const [migration, form] = await Promise.all([
 test("optional display name falls back to Anonymous in the database function", () => {
   assert.ok(migration.includes("coalesce(nullif(btrim(coalesce(p_display_name, '')), ''), 'Anonymous')"));
   assert.ok(migration.includes("if length(v_name) not between 1 and 32"));
-  assert.ok(!migration.includes("if length(v_name) not between 1 and 32\n     or length(v_title)"));
+  assert.ok(migration.includes("if length(v_name) not between 1 and 32\n     or length(v_title)"));
   assert.ok(form.includes("Display name <span>OPTIONAL IDENTITY"));
 });
 
