@@ -46,5 +46,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: status === 403 ? "Creator access is not enabled for this account." : status === 409 ? "This draft changed elsewhere. Reload before saving." : status === 422 ? "The database rejected this configuration." : "Could not save the draft." }, { status });
   }
   const row = Array.isArray(data) ? data[0] : data;
-  return NextResponse.json({ ok: true, revision: row?.new_revision, updatedAt: row?.saved_at });
+  if (!row || !Number.isSafeInteger(row.new_revision) || typeof row.saved_at !== "string") {
+    return NextResponse.json({ error: "Draft save could not be confirmed. Reload before continuing." }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, revision: row.new_revision, updatedAt: row.saved_at });
 }

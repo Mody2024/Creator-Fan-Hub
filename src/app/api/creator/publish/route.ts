@@ -27,5 +27,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: status === 403 ? "Creator access is not enabled for this account." : status === 409 ? "The draft changed. Reload and try again." : "Publishing failed." }, { status });
   }
   const row = Array.isArray(data) ? data[0] : data;
-  return NextResponse.json({ ok: true, version: row?.published_version, publishedAt: row?.published_at });
+  if (!row || !Number.isSafeInteger(row.published_version) || typeof row.published_at !== "string") {
+    return NextResponse.json({ error: "Publishing could not be confirmed. Check the published site before retrying." }, { status: 500 });
+  }
+  return NextResponse.json({ ok: true, version: row.published_version, publishedAt: row.published_at });
 }

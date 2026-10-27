@@ -48,3 +48,16 @@ test("creator APIs map backend failures to safe messages rather than exposing ra
     assert.ok(route.includes("Creator access is not enabled for this account."));
   }
 });
+
+test("draft save validates RPC confirmation before returning success", () => {
+  assert.ok(draft.includes("!row || !Number.isSafeInteger(row.new_revision) || typeof row.saved_at !== \"string\""));
+  assert.ok(draft.includes("Draft save could not be confirmed."));
+});
+test("publish validates the committed version before returning success", () => {
+  assert.ok(publish.includes("!row || !Number.isSafeInteger(row.published_version) || typeof row.published_at !== \"string\""));
+  assert.ok(publish.includes("Publishing could not be confirmed."));
+});
+test("history restore validates restored version details before returning success", () => {
+  assert.ok(history.includes("!row || !Number.isSafeInteger(row.new_revision) || !Number.isSafeInteger(row.restored_version) || typeof row.saved_at !== \"string\""));
+  assert.ok(history.includes("Restore could not be confirmed."));
+});
