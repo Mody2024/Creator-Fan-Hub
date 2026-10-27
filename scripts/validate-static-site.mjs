@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -41,13 +41,15 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../src/lib/read-bounded-json.ts"),
   read("../tests/read-bounded-json.test.mjs"),
   read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql"),
-  read("../tests/public-feature-gates.test.mjs")
+  read("../tests/public-feature-gates.test.mjs"),
+  read("../tests/creator-api-contracts.test.mjs")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
 check("public poll RPC respects maintenance mode and the published polls feature flag", pollVisibilityMigration.includes("get_public_poll_results") && pollVisibilityMigration.includes("maintenance_mode") && pollVisibilityMigration.includes("featureFlags,polls") && pollVisibilityMigration.includes("not exists"));
 check("bounded JSON body has unit tests for valid JSON, malformed JSON/UTF-8, header limit and streamed limit", boundedJsonTests.includes("parses valid UTF-8 JSON") && boundedJsonTests.includes("rejects malformed JSON") && boundedJsonTests.includes("rejects malformed UTF-8") && boundedJsonTests.includes("rejects oversized Content-Length") && boundedJsonTests.includes("rejects oversized streamed content"));
 check("bounded JSON parser stops reading streams at the byte limit and rejects malformed UTF-8/JSON", boundedJsonHelper.includes("request.body.getReader()") && boundedJsonHelper.includes("totalBytes > maxBytes") && boundedJsonHelper.includes("reader.cancel()") && boundedJsonHelper.includes('TextDecoder("utf-8", { fatal: true })') && boundedJsonHelper.includes("JSON.parse(raw)"));
+check("creator API contract tests cover authentication ordering, payload bounds, revision conflicts, and safe errors", creatorApiTests.includes("creator draft API authenticates before reading request bodies") && creatorApiTests.includes("publish API authenticates before reading request bodies") && creatorApiTests.includes("history restore API authenticates before reading request bodies") && creatorApiTests.includes("does not expose raw database error messages"));
 check("creator draft API caps JSON payloads at 128 KiB", draftRoute.includes("readBoundedJson(request, 128 * 1024)") && draftRoute.includes("parsed.status"));
 check("creator publish and history restore APIs cap JSON payloads at 8 KiB", publishRoute.includes("readBoundedJson(request, 8 * 1024)") && historyRoute.includes("readBoundedJson(request, 8 * 1024)"));
 check("public community gate tests cover reads, voting, open-tally privacy, and submissions", publicGateTests.includes("public idea reads fail closed") && publicGateTests.includes("public poll reads fail closed") && publicGateTests.includes("public voting requires enabled feature") && publicGateTests.includes("public idea submission requires enabled feature"));

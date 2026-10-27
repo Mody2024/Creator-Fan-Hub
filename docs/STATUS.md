@@ -261,3 +261,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Public community feature-gate regression suite (2026-10-27)
 - Added dedicated Node tests covering public idea visibility, poll visibility, hidden open-poll tallies, vote eligibility/time windows, duplicate-vote protection, and idea-submission fail-closed behavior.
 - These tests inspect the current forward SQL migration source. They provide regression coverage but do not replace applying migrations and exercising the RPCs against a live database.
+
+## Creator API contract regression coverage (2026-10-27)
+- Added dedicated tests for draft save, publish, and history restore API contracts: authenticated claims must be checked before parsing request bodies; bounded payload limits, revision/version validation, conflict/not-found mapping, and safe generic error messages are asserted.
+- Wired these tests into the repository's static validator so accidental removal of the suite is caught.
+- These are route-source contract tests, not simulated HTTP integration tests. Live authorization, Supabase RPC behavior, and deployed runtime behavior remain part of final verification.
