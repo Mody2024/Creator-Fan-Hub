@@ -48,3 +48,27 @@ test("public idea submission requires enabled feature and returns a safe unavail
   assert.ok(ideaSubmissionMigration.includes("return query select false, 'ideas_unavailable'"));
   assert.ok(ideaSubmissionMigration.includes("revoke all on function public.submit_public_idea(text,text,text,text) from public"));
 });
+
+
+test("public voting hashes anonymous tokens and binds options to the selected poll", () => {
+  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const fn = gateMigration.slice(start);
+  assert.ok(fn.includes("set search_path = ''"));
+  assert.ok(fn.includes("o.id = p_option_id and o.poll_id = p_poll_id"));
+  assert.ok(fn.includes("extensions.digest(convert_to(p_voter_token, 'UTF8'), 'sha256')"));
+  assert.ok(fn.includes("voter_token_hash"));
+  assert.ok(!fn.includes("values (p_poll_id, p_option_id, p_voter_token)"));
+  assert.ok(fn.includes("revoke all on function public.cast_public_poll_vote(uuid, uuid, text) from public"));
+  assert.ok(fn.includes("grant execute on function public.cast_public_poll_vote(uuid, uuid, text) to anon, authenticated"));
+});
+
+test("public voting rejects malformed anonymous tokens before any vote insert", () => {
+  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const fn = gateMigration.slice(start);
+  const validationEnd = fn.indexOf("if not exists (");
+  const validation = fn.slice(0, validationEnd);
+  assert.ok(validation.includes("length(p_voter_token) < 32"));
+  assert.ok(validation.includes("length(p_voter_token) > 160"));
+  assert.ok(validation.includes("p_voter_token !~ '^[A-Za-z0-9_-]+$'"));
+  assert.ok(validation.includes("raise exception 'invalid vote request'"));
+});

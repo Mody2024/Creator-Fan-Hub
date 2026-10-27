@@ -281,3 +281,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Fixed the latest public idea-submission RPC migration so a blank optional display name becomes "Anonymous" instead of failing server validation.
 - Added three regression tests covering optional identity, server-side field/token validation, and fail-closed maintenance/feature gating; wired them into the static validator.
 - This is source-level regression coverage. The migration still needs to be applied and tested against the staging/live Supabase database before claiming deployed behavior is fixed.
+
+## Public voting security regression expansion (2026-10-27)
+- Expanded the public community feature-gate suite with two checks for anonymous vote-token hashing, option-to-poll binding, empty search_path, explicit RPC grants, and malformed-token rejection before insertion.
+- Wired the expanded tests into the static validator. These remain source-contract tests; actual concurrent duplicate-vote behavior and feature gates still need a live Supabase integration run.
