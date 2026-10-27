@@ -271,3 +271,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - The shared JSON request reader now rejects invalid byte-limit configuration rather than accidentally accepting an unbounded or nonsensical limit.
 - Added regression tests for exact-limit acceptance, a deliberately understated Content-Length header, and invalid limits. The streamed byte count remains authoritative.
 - These tests run in CI; deployed route behavior and runtime-level integration still require final verification.
+
+## Media ownership regression suite (2026-10-27)
+- Added five dedicated tests for storage-folder ownership policies, guarded legacy owner backfill, owner-scoped/bounded listing, path/publication-state validation, private-only owner deletion, and authenticated-only RPC grants.
+- Wired the suite into the repository validator so the security contract tests remain part of the static validation workflow.
+- These tests inspect migration source; they do not prove the migrations are applied or replace cross-account checks against a staging Supabase project.
