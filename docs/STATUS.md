@@ -276,3 +276,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added five dedicated tests for storage-folder ownership policies, guarded legacy owner backfill, owner-scoped/bounded listing, path/publication-state validation, private-only owner deletion, and authenticated-only RPC grants.
 - Wired the suite into the repository validator so the security contract tests remain part of the static validation workflow.
 - These tests inspect migration source; they do not prove the migrations are applied or replace cross-account checks against a staging Supabase project.
+
+## Optional idea display-name fix (2026-10-27)
+- Fixed the latest public idea-submission RPC migration so a blank optional display name becomes "Anonymous" instead of failing server validation.
+- Added three regression tests covering optional identity, server-side field/token validation, and fail-closed maintenance/feature gating; wired them into the static validator.
+- This is source-level regression coverage. The migration still needs to be applied and tested against the staging/live Supabase database before claiming deployed behavior is fixed.

@@ -11,7 +11,7 @@ security definer
 set search_path = ''
 as $$
 declare
-  v_name text := btrim(coalesce(p_display_name, ''));
+  v_name text := coalesce(nullif(btrim(coalesce(p_display_name, '')), ''), 'Anonymous');
   v_title text := btrim(coalesce(p_title, ''));
   v_body text := btrim(coalesce(p_body, ''));
   v_hash text;
