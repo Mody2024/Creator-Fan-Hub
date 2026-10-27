@@ -17,7 +17,7 @@ export async function GET() {
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return NextResponse.json({ error: "Draft not found." }, { status: 404 });
   const validation = validateSiteConfig(row.draft);
-  if (!validation.ok || !Number.isSafeInteger(row.draft_revision) || row.draft_revision < 1 || typeof row.updated_at !== "string") {
+  if (!validation.ok || !Number.isSafeInteger(row.draft_revision) || row.draft_revision < 1 || typeof row.updated_at !== "string" || !Number.isFinite(Date.parse(row.updated_at))) {
     return NextResponse.json({ error: "Draft data could not be validated. Contact an administrator if the problem persists." }, { status: 500 });
   }
   return NextResponse.json({ config: validation.value, revision: row.draft_revision, updatedAt: row.updated_at });

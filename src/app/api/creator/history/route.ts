@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: status === 403 ? "Creator access is not enabled for this account." : status === 404 ? "That published version no longer exists." : status === 400 ? "Invalid published version." : "Could not restore this version to the draft." }, { status });
   }
   const row = Array.isArray(data) ? data[0] : data;
-  if (!row || !Number.isSafeInteger(row.new_revision) || !Number.isSafeInteger(row.restored_version) || typeof row.saved_at !== "string") {
+  if (!row || !Number.isSafeInteger(row.new_revision) || (row.new_revision as number) < 1 || !Number.isSafeInteger(row.restored_version) || (row.restored_version as number) < 1 || typeof row.saved_at !== "string" || !Number.isFinite(Date.parse(row.saved_at))) {
     return NextResponse.json({ error: "Restore could not be confirmed. Reload the draft history before continuing." }, { status: 500 });
   }
   return NextResponse.json({ ok: true, revision: row.new_revision, restoredVersion: row.restored_version, savedAt: row.saved_at });

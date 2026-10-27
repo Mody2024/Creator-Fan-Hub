@@ -52,7 +52,7 @@ test("creator APIs map backend failures to safe messages rather than exposing ra
 test("draft GET validates stored configuration and revision before returning data", () => {
   assert.ok(draft.includes("const validation = validateSiteConfig(row.draft)"));
   assert.ok(draft.includes("!validation.ok || !Number.isSafeInteger(row.draft_revision) || row.draft_revision < 1"));
-  assert.ok(draft.includes('typeof row.updated_at !== "string"'));
+  assert.ok(draft.includes('typeof row.updated_at !== "string" || !Number.isFinite(Date.parse(row.updated_at))'));
   assert.ok(draft.includes("Draft data could not be validated."));
   assert.ok(draft.includes("config: validation.value"));
 });
@@ -77,4 +77,13 @@ test("history GET validates and bounds every published version returned by the d
   assert.ok(history.includes("data.length > 20 || !data.every(isPublishHistoryRow)"));
   assert.ok(history.includes("Publishing history data could not be validated."));
   assert.ok(history.includes("versions: data"));
+});
+
+test("creator draft, publish, and restore success responses require valid timestamps and positive versions", () => {
+  assert.ok(draft.includes("!Number.isFinite(Date.parse(row.updated_at))"));
+  assert.ok(publish.includes("(row.published_version as number) < 1"));
+  assert.ok(publish.includes("!Number.isFinite(Date.parse(row.published_at))"));
+  assert.ok(history.includes("(row.new_revision as number) < 1"));
+  assert.ok(history.includes("(row.restored_version as number) < 1"));
+  assert.ok(history.includes("!Number.isFinite(Date.parse(row.saved_at))"));
 });

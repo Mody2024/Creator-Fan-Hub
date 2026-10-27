@@ -308,3 +308,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - The authenticated history endpoint now validates each row's positive version, parseable publication timestamp, nullable publisher, maintenance flag, and display strings before returning it.
 - Rejects unexpected result shapes or more than the requested 20 rows instead of returning malformed backend data to the creator UI.
 - Added regression coverage and connected it to the repository validator. Live RPC response verification remains outstanding.
+
+## Creator mutation confirmation validation (2026-10-27)
+- Draft reads, publish confirmations, and history restores now reject unparseable timestamps; publish/restore confirmation versions and revisions must be positive safe integers.
+- Added regression coverage and wired it into the static validator. This prevents malformed RPC success payloads from being presented as confirmed operations.
