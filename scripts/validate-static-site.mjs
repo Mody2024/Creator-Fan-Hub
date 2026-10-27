@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests, mediaOwnershipTests, ideaSubmissionContractTests] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests, mediaOwnershipTests, ideaSubmissionContractTests, publishingHistoryTests] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -44,7 +44,8 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../tests/public-feature-gates.test.mjs"),
   read("../tests/creator-api-contracts.test.mjs"),
   read("../tests/media-ownership-contracts.test.mjs"),
-  read("../tests/public-idea-submission-contracts.test.mjs")
+  read("../tests/public-idea-submission-contracts.test.mjs"),
+  read("../tests/publishing-history-resilience.test.mjs")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -53,6 +54,7 @@ check("bounded JSON body tests cover UTF-8, malformed JSON, exact limits, unders
 check("bounded JSON parser stops reading streams at the byte limit and rejects malformed UTF-8/JSON", boundedJsonHelper.includes("request.body.getReader()") && boundedJsonHelper.includes("totalBytes > maxBytes") && boundedJsonHelper.includes("reader.cancel()") && boundedJsonHelper.includes('TextDecoder("utf-8", { fatal: true })') && boundedJsonHelper.includes("JSON.parse(raw)"));
 check("public idea submission tests protect optional anonymous names, server validation, and fail-closed feature gates", ideaSubmissionContractTests.includes("optional display name falls back to Anonymous") && ideaSubmissionContractTests.includes("validates title, body, and browser token server-side") && ideaSubmissionContractTests.includes("disabled when public config is missing or gated"));
 check("media ownership contract suite covers storage policies, owner-scoped RPCs, guarded backfill, and authenticated grants", mediaOwnershipTests.includes("storage policies bind mutations to the active creator folder") && mediaOwnershipTests.includes("media metadata backfill guards UUID casts") && mediaOwnershipTests.includes("media listing is owner-scoped and bounded") && mediaOwnershipTests.includes("media save and delete RPCs reject cross-owner paths"));
+check("publishing history validates server data, clears stale snapshots on failure, and confirms restore revision", publishingHistoryTests.includes("validates each server-provided version row before rendering") && publishingHistoryTests.includes("clears stale snapshots after a failed or malformed reload") && publishingHistoryTests.includes("valid draft revision"));
 check("creator API contract tests cover authentication ordering, payload bounds, revision conflicts, and safe errors", creatorApiTests.includes("creator draft API authenticates before reading request bodies") && creatorApiTests.includes("publish API authenticates before reading request bodies") && creatorApiTests.includes("history restore API authenticates before reading request bodies") && creatorApiTests.includes("rather than exposing raw database errors"));
 check("creator draft API caps JSON payloads at 128 KiB", draftRoute.includes("readBoundedJson(request, 128 * 1024)") && draftRoute.includes("parsed.status"));
 check("creator publish and history restore APIs cap JSON payloads at 8 KiB", publishRoute.includes("readBoundedJson(request, 8 * 1024)") && historyRoute.includes("readBoundedJson(request, 8 * 1024)"));

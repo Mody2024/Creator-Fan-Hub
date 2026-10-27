@@ -11,6 +11,17 @@ type VersionRow = {
   hero_title: string;
 };
 
+function isVersionRow(value: unknown): value is VersionRow {
+  if (!value || typeof value !== "object") return false;
+  const row = value as Record<string, unknown>;
+  return Number.isSafeInteger(row.version) && (row.version as number) > 0
+    && typeof row.published_at === "string"
+    && (row.published_by === null || typeof row.published_by === "string")
+    && typeof row.maintenance_mode === "boolean"
+    && typeof row.site_name === "string"
+    && typeof row.hero_title === "string";
+}
+
 export default function PublishingHistory() {
   const [versions, setVersions] = useState<VersionRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,9 +34,13 @@ export default function PublishingHistory() {
       const response = await fetch("/api/creator/history", { cache: "no-store" });
       const payload = await response.json() as { versions?: VersionRow[]; error?: string };
       if (!response.ok) throw new Error(payload.error || "Could not load publishing history.");
-      setVersions(Array.isArray(payload.versions) ? payload.versions : []);
-      setStatus(payload.versions?.length ? "Latest published snapshots loaded." : "No published versions were found yet.");
+      if (!Array.isArray(payload.versions) || !payload.versions.every(isVersionRow)) {
+        throw new Error("The publishing history response was invalid. Refresh and try again.");
+      }
+      setVersions(payload.versions);
+      setStatus(payload.versions.length ? "Latest published snapshots loaded." : "No published versions were found yet.");
     } catch (error) {
+      setVersions([]);
       setStatus(error instanceof Error ? error.message : "Could not load publishing history.");
     } finally {
       setLoading(false);
@@ -48,6 +63,9 @@ export default function PublishingHistory() {
       });
       const payload = await response.json() as { revision?: number; error?: string };
       if (!response.ok) throw new Error(payload.error || "Restore failed.");
+      if (!Number.isSafeInteger(payload.revision) || (payload.revision as number) < 1) {
+        throw new Error("Restore could not be confirmed. Refresh the draft before continuing.");
+      }
       setStatus(`Version ${version.version} copied to draft revision ${payload.revision}. Review it in Site identity before publishing.`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Restore failed.");

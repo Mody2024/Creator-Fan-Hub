@@ -289,3 +289,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Concurrent voting and public result privacy checks (2026-10-27)
 - Added three regression tests for the database-level unique voter-token constraint, conflict-safe duplicate handling, composite poll/option foreign key, and public result field privacy.
 - Wired the checks into the repository validator. These verify source/schema contracts only; actual concurrency and grants still need a live database integration run.
+
+## Publishing history response hardening (2026-10-27)
+- Publishing history now validates each API row before rendering and clears stale snapshots when a reload fails or returns malformed data, avoiding a misleading old list after an error.
+- Draft restore now requires a valid positive revision in the success response before telling the creator the restore was confirmed.
+- Added three regression tests and wired them into the static validator. Live API behavior still needs preview verification.
