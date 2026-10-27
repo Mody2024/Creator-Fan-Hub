@@ -49,6 +49,14 @@ test("creator APIs map backend failures to safe messages rather than exposing ra
   }
 });
 
+test("draft GET validates stored configuration and revision before returning data", () => {
+  assert.ok(draft.includes("const validation = validateSiteConfig(row.draft)"));
+  assert.ok(draft.includes("!validation.ok || !Number.isSafeInteger(row.draft_revision) || row.draft_revision < 1"));
+  assert.ok(draft.includes('typeof row.updated_at !== "string"'));
+  assert.ok(draft.includes("Draft data could not be validated."));
+  assert.ok(draft.includes("config: validation.value"));
+});
+
 test("draft save validates RPC confirmation before returning success", () => {
   assert.ok(draft.includes("!row || !Number.isSafeInteger(row.new_revision) || typeof row.saved_at !== \"string\""));
   assert.ok(draft.includes("Draft save could not be confirmed."));

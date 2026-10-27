@@ -299,3 +299,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Fixed the publishing-history aggregate validator label so it matches the test's actual name; the previous commit's site-validation and Free CI runs failed on this mismatched assertion.
 - Added four media recovery contract tests covering failed metadata-save cleanup, stale private-copy warnings, public-object removal and rollback behavior, and backup restoration when metadata deletion fails.
 - These source checks verify the intended compensating paths exist; they do not simulate Storage outages or prove that remote cleanup succeeds.
+
+## Creator draft read-response validation (2026-10-27)
+- The authenticated draft GET route now validates the stored configuration with the same site-config schema used for writes and rejects invalid revisions or missing update timestamps rather than returning malformed backend data to the editor.
+- Added regression coverage and wired it into repository validation. This protects the API response contract; the live RPC/schema still needs staging verification.

@@ -16,7 +16,11 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.code === "42501" ? "Creator access is not enabled for this account." : "Could not load draft." }, { status: error.code === "42501" ? 403 : 500 });
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return NextResponse.json({ error: "Draft not found." }, { status: 404 });
-  return NextResponse.json({ config: row.draft, revision: row.draft_revision, updatedAt: row.updated_at });
+  const validation = validateSiteConfig(row.draft);
+  if (!validation.ok || !Number.isSafeInteger(row.draft_revision) || row.draft_revision < 1 || typeof row.updated_at !== "string") {
+    return NextResponse.json({ error: "Draft data could not be validated. Contact an administrator if the problem persists." }, { status: 500 });
+  }
+  return NextResponse.json({ config: validation.value, revision: row.draft_revision, updatedAt: row.updated_at });
 }
 
 export async function POST(request: NextRequest) {
