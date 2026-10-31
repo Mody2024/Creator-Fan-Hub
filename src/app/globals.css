@@ -223,3 +223,5 @@
 #creator-settings,#creator-polls,#creator-ideas,#creator-events-socials,#creator-media,#creator-history{scroll-margin-top:24px}
 .creator-quick-nav .module-card{display:block;color:inherit;text-decoration:none}
 .creator-quick-nav .module-card:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+
+.poll-voter-name{display:grid;gap:8px;margin:0 0 16px;font:10px var(--mono);color:var(--muted)}.poll-voter-name span{font-size:8px;opacity:.75}.poll-voter-name input{width:100%;min-width:0;padding:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:12px var(--font);letter-spacing:normal}.poll-voter-name input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
