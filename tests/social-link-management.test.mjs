@@ -14,7 +14,7 @@ test("social link management exposes confirmed deletion and persisted ordering",
   assert.ok(source.includes("Move down ↓"));
   assert.ok(source.includes("Permanently remove"));
   assert.ok(source.includes("stale_order"));
-  assert.ok(source.includes("finally {setWorking("");}"));
+  assert.ok(source.includes('finally {setWorking("");}'));
 });
 
 test("social link delete and reorder RPCs are active-creator-only and audit changes", async () => {
