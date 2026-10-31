@@ -321,3 +321,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Resolved a duplicate migration version: moved the internal authorization-helper grant restriction from version 20261026000500 to 20261026000501, immediately after the canonical config migration.
 - Added an automated repository test that rejects duplicate 14-digit migration versions and non-chronological filename ordering.
 - This prevents the migration set from presenting colliding versions to Supabase tooling. It still needs a clean staging migration run before production rollout.
+
+## Security-definer migration regression coverage (2026-10-31)
+- Added a migration-wide test that discovers SQL functions declared SECURITY DEFINER and requires an empty pinned search_path plus explicit REVOKE ALL and GRANT EXECUTE statements.
+- The check spans migration files so future privileged RPC additions are covered, rather than relying on a short list of known function names.
+- This is static SQL contract coverage; a live Supabase role/permission audit and migration run are still required.

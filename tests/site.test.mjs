@@ -216,6 +216,28 @@ test("public idea submission fails closed without a primary published config", (
   assert.ok(publicGateMigration.includes("revoke all on function public.submit_public_idea(text,text,text,text) from public"));
 });
 
+
+test("security-definer migration functions pin search_path and explicitly manage grants", async () => {
+  const files = await readdir(new URL("../supabase/migrations/", import.meta.url));
+  const migrations = files.filter((name) => /^\\d{14}_.+\\.sql$/.test(name));
+  let functionCount = 0;
+  for (const name of migrations) {
+    const sql = await readFile(new URL("../supabase/migrations/" + name, import.meta.url), "utf8");
+    const definitions = [...sql.matchAll(/create\\s+or\\s+replace\\s+function\\s+([\\w.]+)\\s*\\([\\s\\S]*?\\$\\$([\\s\\S]*?)\\$\\$\\s*;/gi)];
+    for (const match of definitions) {
+      const start = match.index;
+      const end = sql.indexOf(";", start + match[0].length);
+      const statement = sql.slice(start, end < 0 ? undefined : end + 1);
+      if (!/security\\s+definer/i.test(statement)) continue;
+      functionCount += 1;
+      assert.match(statement, /set\\s+search_path\\s*=\\s*''/i, name + ": " + match[1] + " must pin empty search_path");
+      assert.ok(sql.includes("revoke all on function " + match[1]), name + ": " + match[1] + " must revoke default grants");
+      assert.ok(sql.includes("grant execute on function " + match[1]), name + ": " + match[1] + " must grant execution explicitly");
+    }
+  }
+  assert.ok(functionCount >= 15, "expected broad RPC coverage, found " + functionCount);
+});
+
 test("Supabase migration versions are unique and sortable", async () => {
   const files = await readdir(new URL("../supabase/migrations/", import.meta.url));
   const migrations = files.filter((name) => /^\\d{14}_.+\\.sql$/.test(name));
