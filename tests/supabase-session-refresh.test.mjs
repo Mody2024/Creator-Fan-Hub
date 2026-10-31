@@ -4,9 +4,9 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 
-test("Next.js 15 wires Supabase session refresh into the creator workspace", async () => {
+test("the single Next.js middleware refreshes sessions only for creator routes", async () => {
   const [entrypoint, helper, serverClient] = await Promise.all([
-    read("../src/middleware.ts"),
+    read("../middleware.ts"),
     read("../src/lib/supabase/middleware.ts"),
     read("../src/lib/supabase/server.ts")
   ]);
@@ -14,6 +14,8 @@ test("Next.js 15 wires Supabase session refresh into the creator workspace", asy
   assert.ok(entrypoint.includes('from "@/lib/supabase/middleware"'));
   assert.ok(entrypoint.includes("refreshSupabaseSession(request)"));
   assert.ok(entrypoint.includes('matcher: ["/creator/:path*"]'));
+  await assert.rejects(read("../src/middleware.ts"), { code: "ENOENT" });
+
   assert.ok(helper.includes("createServerClient"));
   assert.ok(helper.includes("request.cookies.getAll()"));
   assert.ok(helper.includes("request.cookies.set(name, value)"));
