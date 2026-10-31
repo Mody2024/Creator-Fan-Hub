@@ -3,11 +3,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [pollVisibilityMigration, gateMigration, ideaSubmissionMigration, initialSchema, pollVotingMigration] = await Promise.all([
+const [pollVisibilityMigration, gateMigration, ideaSubmissionMigration, initialSchema, pollReadMigration, pollVotingMigration] = await Promise.all([
   read("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql"),
-  read("../supabase/migrations/20261031213116_restore_open_poll_discovery_without_tallies.sql"),
+  read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
   read("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql"),
   read("../supabase/migrations/20261026000100_initial_schema.sql"),
+  read("../supabase/migrations/20261031213116_restore_open_poll_discovery_without_tallies.sql"),
   read("../supabase/migrations/20261031213221_poll_display_names_and_creator_voter_list.sql")
 ]);
 
@@ -21,10 +22,10 @@ test("public idea reads fail closed without primary published config", () => {
 });
 
 test("public poll reads fail closed and do not reveal open-poll tallies", () => {
-  const start = gateMigration.indexOf("create or replace function public.get_public_poll_results()");
-  const end = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const start = pollReadMigration.indexOf("create or replace function public.get_public_poll_results()");
+  const end = pollReadMigration.length;
   assert.ok(start >= 0 && end > start);
-  const fn = gateMigration.slice(start, end);
+  const fn = pollReadMigration.slice(start, end);
   assert.ok(fn.includes("and exists ("));
   assert.ok(fn.includes("featureFlags,polls"));
   assert.ok(fn.includes("case when p.status = 'closed' then count(v.id)::bigint else 0::bigint end"));
@@ -53,8 +54,8 @@ test("public idea submission requires enabled feature and returns a safe unavail
 
 
 test("public voting hashes anonymous tokens and binds options to the selected poll", () => {
-  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
-  const fn = gateMigration.slice(start);
+  const start = pollVotingMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const fn = pollVotingMigration.slice(start);
   assert.ok(fn.includes("set search_path = ''"));
   assert.ok(fn.includes("o.id = p_option_id and o.poll_id = p_poll_id"));
   assert.ok(fn.includes("extensions.digest(convert_to(p_voter_token, 'UTF8'), 'sha256')"));
@@ -94,8 +95,8 @@ test("poll option foreign key prevents votes from pairing an option with another
 
 test("public poll result RPC exposes no voter token or token hash fields", () => {
   const start = gateMigration.indexOf("create or replace function public.get_public_poll_results()");
-  const end = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
-  const fn = gateMigration.slice(start, end);
+  const end = pollReadMigration.length;
+  const fn = pollReadMigration.slice(start, end);
   assert.ok(start >= 0 && end > start);
   assert.ok(!/voter_token|token_hash|poll_votes\.id/i.test(fn.slice(0, fn.indexOf("language sql"))));
   assert.ok(fn.includes("vote_count bigint"));
