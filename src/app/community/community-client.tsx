@@ -50,16 +50,19 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
     let alive = true;
     void (async () => {
       const ids = initialPosts.map(post => post.id);
-      const [reactionResult, userResult] = await Promise.all([
-        supabase.from("community_reactions").select("post_id,user_id,reaction").in("post_id", ids),
+      const [countResult, userResult] = await Promise.all([
+        supabase.rpc("get_community_reaction_counts", { p_post_ids: ids }),
         supabase.auth.getUser()
       ]);
       if (!alive) return;
       const grouped: Record<string,{count:number;mine:string|null}> = {};
       for (const id of ids) grouped[id] = { count: 0, mine: null };
-      for (const reaction of reactionResult.data ?? []) {
-        grouped[reaction.post_id].count += 1;
-        if (userResult.data.user && reaction.user_id === userResult.data.user.id) grouped[reaction.post_id].mine = reaction.reaction;
+      for (const item of countResult.data ?? []) {
+        grouped[item.post_id].count = Number(item.reaction_count) || 0;
+      }
+      if (userResult.data.user) {
+        const { data: ownReactions } = await supabase.from("community_reactions").select("post_id,reaction").eq("user_id", userResult.data.user.id).in("post_id", ids);
+        for (const item of ownReactions ?? []) grouped[item.post_id].mine = item.reaction;
       }
       setReactionsByPost(grouped);
     })();
