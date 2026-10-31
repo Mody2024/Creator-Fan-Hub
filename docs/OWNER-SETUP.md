@@ -44,7 +44,7 @@ where user_id = 'REPLACE-WITH-OWNER-AUTH-USER-UUID'::uuid;
 1. Open `/creator/login` on the Vercel preview and sign in as the owner.
 2. Confirm the dashboard opens and can load its draft and management sections.
 3. Sign out.
-4. Sign in using a separate authenticated account that is not in `creator_admins`. It must be redirected to the login page with an access-restricted message. It must not load creator data or perform creator mutations.
+4. Sign in using a separate authenticated account that is not in `creator_admins`. A non-allowlisted account must be redirected to the login page with an access-restricted message. It must not load creator data or perform creator mutations.
 5. Open public pages in a private/incognito browser. Public voting and idea submission should work without a visitor account, subject to their feature flags and published configuration.
 6. Confirm an anonymous user cannot call creator delete, reorder, publish, restore or media-management RPCs.
 
