@@ -51,7 +51,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
     void (async () => {
       const ids = initialPosts.map(post => post.id);
       const [reactionResult, userResult] = await Promise.all([
-        supabase.from("community_reactions").select("post_id,reaction").in("post_id", ids),
+        supabase.from("community_reactions").select("post_id,user_id,reaction").in("post_id", ids),
         supabase.auth.getUser()
       ]);
       if (!alive) return;
@@ -116,7 +116,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
     if (!supabase || !member) { setStatus("Sign in to react to community posts."); return; }
     const current = reactionsByPost[postId]?.mine;
     const next = current === reaction ? null : reaction;
-    setReactionsByPost(value => ({ ...value, [postId]: { count: Math.max(0,(value[postId]?.count ?? 0) + (next ? 1 : -1)), mine: next } }));
+    setReactionsByPost(value => ({ ...value, [postId]: { count: Math.max(0,(value[postId]?.count ?? 0) + (current ? (next ? 0 : -1) : 1)), mine: next } }));
     const result = next
       ? await supabase.from("community_reactions").upsert({ post_id: postId, user_id: member.id, reaction: next }, { onConflict: "post_id,user_id" })
       : await supabase.from("community_reactions").delete().eq("post_id", postId).eq("user_id", member.id);
