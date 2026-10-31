@@ -18,7 +18,7 @@ test("social link management exposes confirmed deletion and persisted ordering",
 });
 
 test("social link delete and reorder RPCs are active-creator-only and audit changes", async () => {
-  const sql = await read("../supabase/migrations/20261031211224_creator_social_link_management.sql");
+  const sql = (await Promise.all([\n    read("../supabase/migrations/20261031211224_creator_social_link_management.sql"),\n    read("../supabase/migrations/20261031211234_creator_social_link_ordering.sql")\n  ])).join("\\n");
   for (const name of ["delete_creator_social_link","reorder_creator_social_links"]) {
     const start = sql.indexOf(`create or replace function public.${name}(`);
     assert.ok(start >= 0);
