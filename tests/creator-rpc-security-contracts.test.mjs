@@ -11,7 +11,8 @@ const migrationPaths = [
   "../supabase/migrations/20261026001600_creator_media_library.sql",
   "../supabase/migrations/20261026001800_creator_publish_history_restore.sql",
   "../supabase/migrations/20261026001900_scope_media_metadata_to_owner.sql",
-  "../supabase/migrations/20261031211224_creator_social_link_management.sql"
+  "../supabase/migrations/20261031211224_creator_social_link_management.sql",
+  "../supabase/migrations/20261031211234_creator_social_link_ordering.sql"
 ];
 const migrations = (await Promise.all(migrationPaths.map(read))).join("\n");
 const creatorFunctions = [
