@@ -87,3 +87,11 @@ test("creator draft, publish, and restore success responses require valid timest
   assert.ok(history.includes("(row.restored_version as number) < 1"));
   assert.ok(history.includes("!Number.isFinite(Date.parse(row.saved_at))"));
 });
+
+test("creator login recovers from network exceptions and always clears its busy state", async () => {
+  const login = await read("../src/app/creator/login/page.tsx");
+  assert.ok(login.includes("try {\n      const { error } = await supabase.auth.signInWithPassword"));
+  assert.ok(login.includes("email: email.trim(), password"));
+  assert.ok(login.includes("The sign-in service could not be reached."));
+  assert.ok(login.includes("} finally {\n      setBusy(false);"));
+});
