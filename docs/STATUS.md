@@ -326,3 +326,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 - Added a migration-wide test that discovers SQL functions declared SECURITY DEFINER and requires an empty pinned search_path plus explicit REVOKE ALL and GRANT EXECUTE statements.
 - The check spans migration files so future privileged RPC additions are covered, rather than relying on a short list of known function names.
 - This is static SQL contract coverage; a live Supabase role/permission audit and migration run are still required.
+
+## Security migration test correction (2026-10-31)
+- Replaced a malformed escaped-regex parser with a simpler SQL migration scan for SECURITY DEFINER functions, pinned search_path, and explicit grants.
+- The preceding Validate site failure was in the newly added test parser; this correction reruns both workflows.

@@ -219,25 +219,31 @@ test("public idea submission fails closed without a primary published config", (
 
 test("security-definer migration functions pin search_path and explicitly manage grants", async () => {
   const files = await readdir(new URL("../supabase/migrations/", import.meta.url));
-  const migrations = files.filter((name) => /^\\d{14}_.+\\.sql$/.test(name));
+  const migrations = files.filter((name) => name.endsWith(".sql"));
   let functionCount = 0;
   for (const name of migrations) {
     const sql = await readFile(new URL("../supabase/migrations/" + name, import.meta.url), "utf8");
-    const definitions = [...sql.matchAll(/create\\s+or\\s+replace\\s+function\\s+([\\w.]+)\\s*\\([\\s\\S]*?\\$\\$([\\s\\S]*?)\\$\\$\\s*;/gi)];
-    for (const match of definitions) {
-      const start = match.index;
-      const end = sql.indexOf(";", start + match[0].length);
-      const statement = sql.slice(start, end < 0 ? undefined : end + 1);
-      if (!/security\\s+definer/i.test(statement)) continue;
+    const lower = sql.toLowerCase();
+    let cursor = 0;
+    while ((cursor = lower.indexOf("security definer", cursor)) !== -1) {
+      const start = lower.lastIndexOf("create or replace function", cursor);
+      assert.ok(start >= 0, name + ": SECURITY DEFINER must belong to a function definition");
+      const bodyStart = lower.indexOf("$$", cursor);
+      const bodyEnd = bodyStart < 0 ? -1 : lower.indexOf("$$;", bodyStart + 2);
+      const statement = sql.slice(start, bodyEnd < 0 ? undefined : bodyEnd + 3);
+      const signatureStart = start + "create or replace function".length;
+      const signatureEnd = lower.indexOf("(", signatureStart);
+      assert.ok(signatureEnd > signatureStart, name + ": function signature must be parseable");
+      const functionName = sql.slice(signatureStart, signatureEnd).trim();
       functionCount += 1;
-      assert.match(statement, /set\\s+search_path\\s*=\\s*''/i, name + ": " + match[1] + " must pin empty search_path");
-      assert.ok(sql.includes("revoke all on function " + match[1]), name + ": " + match[1] + " must revoke default grants");
-      assert.ok(sql.includes("grant execute on function " + match[1]), name + ": " + match[1] + " must grant execution explicitly");
+      assert.ok(statement.toLowerCase().includes("set search_path = " + String.fromCharCode(39, 39)), name + ": " + functionName + " must pin empty search_path");
+      assert.ok(lower.includes("revoke all on function " + functionName.toLowerCase()), name + ": " + functionName + " must revoke default grants");
+      assert.ok(lower.includes("grant execute on function " + functionName.toLowerCase()), name + ": " + functionName + " must grant execution explicitly");
+      cursor += "security definer".length;
     }
   }
   assert.ok(functionCount >= 15, "expected broad RPC coverage, found " + functionCount);
 });
-
 test("Supabase migration versions are unique and sortable", async () => {
   const files = await readdir(new URL("../supabase/migrations/", import.meta.url));
   const migrations = files.filter((name) => /^\\d{14}_.+\\.sql$/.test(name));
