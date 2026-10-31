@@ -316,3 +316,8 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## CI assertion synchronization (2026-10-31)
 - Updated two creator API contract assertions to match the stricter positive-version and parseable-timestamp checks already implemented in publish and restore routes.
 - The previous Validate site run failed only these stale source-string assertions; Free CI passed. Re-running both workflows after this correction.
+
+## Supabase migration ordering safeguard (2026-10-31)
+- Resolved a duplicate migration version: moved the internal authorization-helper grant restriction from version 20261026000500 to 20261026000501, immediately after the canonical config migration.
+- Added an automated repository test that rejects duplicate 14-digit migration versions and non-chronological filename ordering.
+- This prevents the migration set from presenting colliding versions to Supabase tooling. It still needs a clean staging migration run before production rollout.

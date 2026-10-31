@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { validateSiteConfig } from "../src/lib/site-config.mjs";
 import { publishSiteConfig } from "../src/lib/publish-site-config.mjs";
 
@@ -214,4 +214,12 @@ test("public idea submission fails closed without a primary published config", (
   assert.ok(publicGateMigration.includes("featureFlags,ideas"));
   assert.ok(publicGateMigration.includes("ideas_unavailable"));
   assert.ok(publicGateMigration.includes("revoke all on function public.submit_public_idea(text,text,text,text) from public"));
+});
+
+test("Supabase migration versions are unique and sortable", async () => {
+  const files = await readdir(new URL("../supabase/migrations/", import.meta.url));
+  const migrations = files.filter((name) => /^\\d{14}_.+\\.sql$/.test(name));
+  const versions = migrations.map((name) => name.slice(0, 14));
+  assert.equal(new Set(versions).size, versions.length, "duplicate migration version found");
+  assert.deepEqual(versions, [...versions].sort(), "migration filenames must sort chronologically");
 });
