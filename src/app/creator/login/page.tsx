@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -11,6 +11,15 @@ export default function CreatorLoginPage() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("access") === "restricted") {
+      setMessage("This account is signed in but is not authorized for the Creator Panel. Ask the owner to enable your account.");
+    } else if (params.get("setup") === "required") {
+      setMessage("Creator sign-in is not configured. The site owner must finish the Supabase connection first.");
+    }
+  }, []);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
