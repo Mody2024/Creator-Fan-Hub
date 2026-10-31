@@ -95,3 +95,31 @@ test("creator login recovers from network exceptions and always clears its busy 
   assert.ok(login.includes("The sign-in service could not be reached."));
   assert.ok(login.includes("} finally {\n      setBusy(false);"));
 });
+
+
+test("creator login explains restricted and unconfigured access redirects", async () => {
+  const login = await read("../src/app/creator/login/page.tsx");
+  assert.ok(login.includes('params.get("access") === "restricted"'));
+  assert.ok(login.includes("not authorized for the Creator Panel"));
+  assert.ok(login.includes('params.get("setup") === "required"'));
+  assert.ok(login.includes("Supabase connection first"));
+  assert.ok(login.includes("useEffect"));
+});
+
+test("environment example contains only the public Supabase values the app consumes", async () => {
+  const env = await read("../.env.example");
+  assert.ok(env.includes("NEXT_PUBLIC_SUPABASE_URL="));
+  assert.ok(env.includes("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="));
+  assert.ok(!env.includes("SUPABASE_SECRET_KEY"));
+  assert.ok(!env.includes("ADMIN_SESSION_SECRET"));
+  assert.ok(!env.includes("ADMIN_USER_ID"));
+});
+
+test("owner setup documentation describes allowlist provisioning without storing credentials", async () => {
+  const guide = await read("../docs/OWNER-SETUP.md");
+  assert.ok(guide.includes("public.creator_admins"));
+  assert.ok(guide.includes("Auth user UUID"));
+  assert.ok(guide.includes("Do not commit"));
+  assert.ok(guide.includes("non-allowlisted"));
+  assert.ok(guide.includes("production"));
+});
