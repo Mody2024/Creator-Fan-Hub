@@ -12,7 +12,8 @@ const migrationPaths = [
   "../supabase/migrations/20261026001800_creator_publish_history_restore.sql",
   "../supabase/migrations/20261026001900_scope_media_metadata_to_owner.sql",
   "../supabase/migrations/20261031211224_creator_social_link_management.sql",
-  "../supabase/migrations/20261031211234_creator_social_link_ordering.sql"
+  "../supabase/migrations/20261031211234_creator_social_link_ordering.sql",
+  "../supabase/migrations/20261031213221_poll_display_names_and_creator_voter_list.sql"
 ];
 const migrations = (await Promise.all(migrationPaths.map(read))).join("\n");
 const creatorFunctions = [
@@ -33,7 +34,8 @@ const creatorFunctions = [
   "get_creator_publish_history",
   "restore_site_config_version",
   "delete_creator_social_link",
-  "reorder_creator_social_links"
+  "reorder_creator_social_links",
+  "get_creator_poll_voters"
 ];
 
 function functionBody(name) {
