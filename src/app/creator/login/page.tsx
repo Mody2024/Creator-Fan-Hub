@@ -21,14 +21,19 @@ export default function CreatorLoginPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setBusy(false);
-    if (error) {
-      setMessage("Sign-in failed. Check your details or ask the site owner to configure access.");
-      return;
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) {
+        setMessage("Sign-in failed. Check your details or ask the site owner to configure access.");
+        return;
+      }
+      router.replace("/creator");
+      router.refresh();
+    } catch {
+      setMessage("The sign-in service could not be reached. Check your connection and try again.");
+    } finally {
+      setBusy(false);
     }
-    router.replace("/creator");
-    router.refresh();
   }
 
   return <main className="admin-shell">
