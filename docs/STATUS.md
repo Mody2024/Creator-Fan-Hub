@@ -312,3 +312,7 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Creator mutation confirmation validation (2026-10-27)
 - Draft reads, publish confirmations, and history restores now reject unparseable timestamps; publish/restore confirmation versions and revisions must be positive safe integers.
 - Added regression coverage and wired it into the static validator. This prevents malformed RPC success payloads from being presented as confirmed operations.
+
+## CI assertion synchronization (2026-10-31)
+- Updated two creator API contract assertions to match the stricter positive-version and parseable-timestamp checks already implemented in publish and restore routes.
+- The previous Validate site run failed only these stale source-string assertions; Free CI passed. Re-running both workflows after this correction.
