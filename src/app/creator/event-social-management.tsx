@@ -14,7 +14,7 @@ export default function EventSocialManagement(){
   if(!s){setStatus("Supabase is not configured.");setBusy(false);return;}
   setBusy(true);
   try {
-   const [e,l]=await Promise.all([s.rpc("get_creator_events",{p_limit:50}),s.rpc("get_creator_social_links",{p_limit:100})]);
+   const [e,l]=await Promise.all([s.rpc("get_creator_events",{p_limit:50}),s.rpc("get_creator_social_links",{p_limit:200})]);
    if(e.error||l.error){setStatus("Could not load events and links. Check creator access.");return;}
    setEvents((e.data??[]) as EventRow[]);setLinks((l.data??[]) as LinkRow[]);setStatus("Content refreshed.");
   } catch { setStatus("Connection failed while loading events and links. Refresh to retry."); }
