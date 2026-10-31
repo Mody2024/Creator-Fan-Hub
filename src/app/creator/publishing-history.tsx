@@ -74,7 +74,7 @@ export default function PublishingHistory() {
     }
   }
 
-  return <section className="moderation-panel content-manager" aria-busy={loading || working > 0}>
+  return <section id="creator-history" className="moderation-panel content-manager" aria-busy={loading || working > 0}>
     <div className="moderation-heading">
       <div><span className="eyebrow">PUBLISHING / VERSION HISTORY</span><h2>Every release, <em>traceable.</em></h2><p>Review recent published snapshots and safely copy an older version into your private draft. Restoring never changes the live site by itself.</p></div>
       <button className="editor-reload" type="button" onClick={() => void load()} disabled={loading || working > 0}>Refresh ↻</button>
