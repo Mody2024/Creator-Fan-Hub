@@ -72,3 +72,30 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-mod-actions button:disabled{opacity:.5;cursor:wait}
 .nhen-mod-notice{padding:13px 16px;border-radius:14px;background:var(--nhen-surface-raised);color:var(--nhen-ink);font-size:13px}
 @media(max-width:700px){.nhen-mod-item{padding:15px}.nhen-mod-actions button{flex:1 1 auto}}
+
+
+/* NHEN Watch public experience */
+.nhen-watch-page{min-height:100vh;background:var(--nhen-bg);color:var(--nhen-ink)}
+.nhen-watch-top{height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 1320px)/2));border-bottom:1px solid var(--nhen-line);background:var(--nhen-surface)}
+.nhen-watch-top nav{display:flex;gap:20px;color:var(--nhen-muted);font-size:12px;font-weight:700}
+.nhen-watch-layout{width:min(1320px,100%);margin:auto;padding:30px 24px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+.nhen-watch-main{min-width:0;display:grid;gap:18px}
+.nhen-watch-player{overflow:hidden;border-radius:22px;background:#000;aspect-ratio:16/9}
+.nhen-watch-player video{width:100%;height:100%;object-fit:contain}
+.nhen-watch-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.nhen-watch-title-row h1{font-size:clamp(24px,4vw,38px);font-weight:850;letter-spacing:-.06em;margin:8px 0}
+.nhen-watch-title-row p{font-size:12px}
+.nhen-watch-actions{display:flex;flex-wrap:wrap;gap:8px;padding:12px 0;border-bottom:1px solid var(--nhen-line)}
+.nhen-watch-actions button{border:1px solid var(--nhen-line);border-radius:999px;padding:10px 15px;background:var(--nhen-surface);color:var(--nhen-muted);font-size:12px;font-weight:750}
+.nhen-watch-actions button.active{color:var(--nhen-accent);border-color:var(--nhen-accent)}
+.nhen-watch-description h2,.nhen-watch-comments h2{font-size:18px;font-weight:850;letter-spacing:-.04em}
+.nhen-watch-description p{white-space:pre-wrap;line-height:1.8;font-size:14px;margin-top:12px}
+.nhen-watch-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.nhen-watch-tags span{padding:7px 10px;border-radius:999px;background:var(--nhen-surface-raised);color:var(--nhen-violet);font-size:11px}
+.nhen-watch-comment-compose{display:grid;gap:10px;margin:16px 0}
+.nhen-watch-comment-compose textarea{width:100%;border:1px solid var(--nhen-line);border-radius:14px;background:var(--nhen-bg);color:var(--nhen-ink);padding:13px;font:inherit;resize:vertical}
+.nhen-watch-comment{display:flex;gap:12px;padding:16px 0;border-top:1px solid var(--nhen-line)}
+.nhen-watch-comment .nhen-avatar{display:grid;place-items:center;flex:0 0 38px}.nhen-watch-comment>div{display:grid;gap:4px}.nhen-watch-comment strong{font-size:12px}.nhen-watch-comment small{font-size:10px;color:var(--nhen-muted)}.nhen-watch-comment p{font-size:13px;line-height:1.65;white-space:pre-wrap}
+.nhen-watch-aside{position:sticky;top:90px}.nhen-watch-aside h2{font-size:22px;letter-spacing:-.05em;margin:10px 0}.nhen-watch-aside p{font-size:13px;line-height:1.7;margin-bottom:18px}
+.nhen-public-video-link{display:block;color:inherit}.nhen-public-video-link .public-video-frame{position:relative;overflow:hidden}.nhen-public-video-link .public-video-frame video{width:100%;aspect-ratio:16/9;object-fit:cover;background:#08080c}.nhen-video-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:rgba(11,11,16,.78);border:1px solid rgba(255,255,255,.3);color:white;opacity:0;transition:opacity .2s}.nhen-public-video-link:hover .nhen-video-play{opacity:1}.nhen-watch-link-label{display:inline-block;margin-top:10px;color:var(--nhen-accent);font-size:11px;font-weight:800}
+@media(max-width:850px){.nhen-watch-layout{grid-template-columns:1fr}.nhen-watch-aside{position:static}}
+@media(max-width:600px){.nhen-watch-layout{padding:14px 12px}.nhen-watch-top{padding:0 16px}.nhen-watch-top nav{gap:12px}.nhen-watch-title-row{display:block}.nhen-watch-title-row>.nhen-pill{margin-top:8px}.nhen-watch-player{border-radius:14px}}
