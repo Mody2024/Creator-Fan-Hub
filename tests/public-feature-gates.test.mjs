@@ -66,7 +66,7 @@ test("public voting hashes anonymous tokens and binds options to the selected po
 });
 
 test("public voting rejects malformed anonymous tokens before any vote insert", () => {
-  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const start = pollVotingMigration.indexOf("create or replace function public.cast_public_poll_vote(");
   const fn = gateMigration.slice(start);
   const validationEnd = fn.indexOf("if not exists (");
   const validation = fn.slice(0, validationEnd);
@@ -94,7 +94,7 @@ test("poll option foreign key prevents votes from pairing an option with another
 });
 
 test("public poll result RPC exposes no voter token or token hash fields", () => {
-  const start = gateMigration.indexOf("create or replace function public.get_public_poll_results()");
+  const start = pollReadMigration.indexOf("create or replace function public.get_public_poll_results()");
   const end = pollReadMigration.length;
   const fn = pollReadMigration.slice(start, end);
   assert.ok(start >= 0 && end > start);
