@@ -227,7 +227,7 @@ export default function MediaLibrary() {
     } finally { setBusy(false); }
   }
 
-  return <section className="media-library" aria-labelledby="media-library-title">
+  return <section id="creator-media" className="media-library" aria-labelledby="media-library-title">
     <div className="editor-section-title"><span>MEDIA / 06</span><h2 id="media-library-title">Your asset <em>library.</em></h2><p>Upload logos, photos, short clips, sound and sprite images. Files stay private until you publish them.</p></div>
     <div className="media-upload-layout">
       <form className="poll-create-form" onSubmit={e=>{e.preventDefault();if(editingId) void saveMetadata(); else void upload();}}>
