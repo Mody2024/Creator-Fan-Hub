@@ -8,7 +8,7 @@ const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const sql = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
 const schema = await readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8");
 const security = await readFile(new URL("../docs/BACKEND-SECURITY.md", import.meta.url), "utf8");
-const publicGateMigration = await readFile(new URL("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql", import.meta.url), "utf8");
+const publicGateMigration = await readFile(new URL("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
