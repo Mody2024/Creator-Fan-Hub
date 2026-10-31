@@ -41,39 +41,56 @@ export default function CreatorSettings() {
   const [mediaOptions, setMediaOptions] = useState<MediaOption[]>([]);
 
   const load = useCallback(async () => {
-    const supabase = getSupabaseBrowserClient();
-    if (!supabase) {
-      setStatus("Supabase is not configured for this preview.");
+    setBusy(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) {
+        setStatus("Supabase is not configured for this preview.");
+        return;
+      }
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!userData.user) {
+        router.replace("/creator/login");
+        return;
+      }
+      const { data: admin, error: adminError } = await supabase
+        .from("creator_admins").select("user_id").eq("user_id", userData.user.id).eq("active", true).maybeSingle();
+      if (adminError) throw adminError;
+      if (!admin) {
+        setStatus("This account has not been granted creator access. Ask the owner to provision your account.");
+        return;
+      }
+      const { data, error } = await supabase.rpc("get_site_config_draft");
+      if (error) throw error;
+      if (!data?.[0]?.draft || !Number.isSafeInteger(Number(data[0].draft_revision)) || Number(data[0].draft_revision) < 1) {
+        setStatus("The saved draft response was incomplete. Refresh after checking the database setup.");
+        return;
+      }
+      const loaded = data[0];
+      const { data: mediaData, error: mediaError } = await supabase.rpc("get_creator_media", { p_limit: 100 });
+      setMediaOptions((mediaData ?? []) as MediaOption[]);
+      const normalizedDraft: SiteDraft = {
+        ...fallback, ...loaded.draft,
+        identity: { ...fallback.identity, ...loaded.draft.identity },
+        appearance: { ...fallback.appearance, ...loaded.draft.appearance },
+        hero: { ...fallback.hero, ...loaded.draft.hero },
+        maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance },
+        layout: { ...fallback.layout, ...loaded.draft.layout },
+        featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags },
+        socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : []
+      };
+      setDraft(normalizedDraft);
+      setSavedSnapshot(JSON.stringify(normalizedDraft));
+      setRevision(Number(loaded.draft_revision));
+      setStatus(mediaError
+        ? "Draft loaded, but media options could not be loaded. Confirm media permissions, then reload."
+        : "Draft loaded. Changes remain private until you publish.");
+    } catch {
+      setStatus("Connection failed while loading the creator settings. Check your connection and reload.");
+    } finally {
       setBusy(false);
-      return;
     }
-    const { data: userData } = await supabase.auth.getUser();
-    if (!userData.user) {
-      router.replace("/creator/login");
-      return;
-    }
-    const { data: admin, error: adminError } = await supabase
-      .from("creator_admins").select("user_id").eq("user_id", userData.user.id).eq("active", true).maybeSingle();
-    if (adminError || !admin) {
-      setStatus("This account has not been granted creator access. Ask the owner to provision your account.");
-      setBusy(false);
-      return;
-    }
-    const { data, error } = await supabase.rpc("get_site_config_draft");
-    if (error || !data?.[0]?.draft) {
-      setStatus("Could not load the draft. Check creator access and database setup.");
-      setBusy(false);
-      return;
-    }
-    const loaded = data[0];
-    const { data: mediaData, error: mediaError } = await supabase.rpc("get_creator_media", { p_limit: 100 });
-    setMediaOptions((mediaData ?? []) as MediaOption[]);
-    const normalizedDraft: SiteDraft = { ...fallback, ...loaded.draft, identity: { ...fallback.identity, ...loaded.draft.identity }, appearance: { ...fallback.appearance, ...loaded.draft.appearance }, hero: { ...fallback.hero, ...loaded.draft.hero }, maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance }, layout: { ...fallback.layout, ...loaded.draft.layout }, featureFlags: { ...fallback.featureFlags, ...loaded.draft.featureFlags }, socialLinkIds: Array.isArray(loaded.draft.socialLinkIds) ? loaded.draft.socialLinkIds : [] };
-    setDraft(normalizedDraft);
-    setSavedSnapshot(JSON.stringify(normalizedDraft));
-    setRevision(Number(loaded.draft_revision));
-    setStatus(mediaError ? "Draft loaded, but media options could not be loaded. Confirm the media migration and creator permissions, then reload." : "Draft loaded. Changes remain private until you publish.");
-    setBusy(false);
   }, [router]);
 
   useEffect(() => { void load(); }, [load]);
@@ -152,7 +169,7 @@ export default function CreatorSettings() {
     }
   }
 
-  return <section className="creator-editor" aria-busy={busy || saving}>
+  return <section id="creator-settings" className="creator-editor" aria-busy={busy || saving}>
     <div className="editor-topline"><span className="eyebrow">LIVE CONFIGURATION / DRAFT {revision} · {hasUnsavedChanges ? "UNSAVED CHANGES" : "ALL CHANGES SAVED"}</span><button className="editor-reload" onClick={() => { if (hasUnsavedChanges && !window.confirm("Discard your unsaved changes and reload the saved draft?")) return; setBusy(true); void load(); }} disabled={busy || saving}>Reload draft ↻</button></div>
     {busy ? <p className="editor-status" role="status" aria-live="polite">{status}</p> : <>
       <div className="draft-preview-wrap"><div className="draft-preview-label"><span>LIVE DRAFT PREVIEW</span><small>Private until you publish</small></div><div className={"draft-preview theme-" + draft.appearance.theme} style={{"--preview-accent": draft.appearance.accent || "#C5A46D"} as React.CSSProperties & {"--preview-accent": string}}><div className="draft-preview-top"><span>{draft.identity.siteName || "Your website name"}</span><span>PREVIEW / 01</span></div><div className="draft-preview-main"><span className="draft-preview-eyebrow">{draft.identity.tagline || "Your tagline"}</span><h3>{draft.hero.title || "Your headline goes here"}</h3><p>{draft.hero.body || "Your description will appear here."}</p><span className="draft-preview-cta">{draft.featureFlags.polls ? "CAST YOUR VOTE ↗" : draft.featureFlags.ideas ? "SUBMIT AN IDEA ↗" : "EXPLORE ↗"}</span></div><div className="draft-preview-sections">{(draft.layout.sectionOrder ?? []).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index)=><span key={key}>{String(index+1).padStart(2,"0")} / {({hero:"Hero",ideas:"Ideas",poll:"Voting",events:"Events",community:"Community",socials:"Social links",videos:"Published videos"} as Record<string,string>)[key] ?? key}</span>)}</div>{draft.maintenance.enabled && <div className="draft-preview-maintenance">MAINTENANCE MODE · {draft.maintenance.message}</div>}</div></div><div className="editor-section-title"><span>01 / IDENTITY</span><h2>Make it <em>yours.</em></h2><p>These values are stored in Supabase. The public website changes only after publishing.</p></div>
