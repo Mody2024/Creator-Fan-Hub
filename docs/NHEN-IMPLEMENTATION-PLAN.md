@@ -1,63 +1,62 @@
-# NHEN — Product implementation plan
+# NHEN — Product and design system
 
-## Product structure
-- **NHEN** — public creator platform and brand.
-- **NHEN Studio** — private creator and staff workspace.
-- **NHEN Community** — public community feed and discussions.
-- **NHEN Identity** — member profiles, privacy and achievements.
-- **NHEN Experience** — themes, languages, accessibility and responsive behavior.
+## Brand identity
+NHEN is a creator-led media and community platform. It should feel like a modern global product, not a generic agency site or an imitation of another social network.
 
-## Delivery gates
+- Primary canvas: near-black ink (#0B0B10).
+- Raised surfaces: #13131B and #1A1924.
+- Primary signal: vivid coral (#FF647C).
+- Secondary creative signal: ultraviolet (#A58BFF).
+- Positive status: teal (#65DBC5); warning: warm amber (#F6C76C).
+- Light theme: warm neutral canvas with deep ink and coral actions.
+- Violet theme: deep aubergine canvas with lavender/coral contrast.
+- Rounded geometry: 10px controls, 18px cards, 26px feature surfaces, pill actions.
+- Typography: modern sans-serif, compact strong headings, readable body text and system fallbacks.
+- Motion: restrained, purposeful transitions; reduced-motion support.
 
-### Gate 0 — Foundation and rebrand
-- Rebrand product-facing copy and metadata to NHEN while preserving repository history.
-- Keep the current preview branch isolated from production.
-- Establish shared navigation, design tokens, empty/loading/error states and feature flags.
-- Verify the free Vercel project subdomain before advertising it.
+### Brand behavior
+- NHEN wordmark is typographic and compact; coral is the signature recognition color, ultraviolet signals discovery and creative tools.
+- Official creator content gets a clear OFFICIAL marker; community content never visually impersonates creator posts.
+- Use color as meaning, not decoration. Keep contrast and text legibility first.
+- Do not copy another product's exact layouts, icons, wording or visual identity.
 
-### Gate 1 — Creator publishing
-- Admin-only upload and management of official videos and shorts.
-- Metadata, thumbnails, visibility, tags, playlists/series, scheduling and public video pages.
-- Separate official creator media from member-generated posts.
-- Storage quotas, upload validation, deletion and retention behavior.
+## Product information architecture
+- Home: personalized feed, creator announcements, featured uploads, events and polls.
+- Watch: videos, shorts, playlists, series, creator channel and individual watch pages.
+- Explore: searchable videos, posts, profiles, topics and trending discussions.
+- Community: posts, video moments, questions, polls, comments and member contributions.
+- Profile: creator/member identity, uploads, activity, follows, achievements and privacy.
+- Notifications: replies, mentions, reactions, follows, creator announcements and moderation outcomes.
+- NHEN Studio: private workspace for publishing, analytics, brand design, moderation, team and settings.
 
-### Gate 2 — Community identity
-- Supabase Auth member registration and login.
-- Public profiles with handles, avatars, bios, links and privacy controls.
-- Community feed with text posts, creator announcements, polls and video-linked moments.
-- Comments, replies, reactions, bookmarks, follows and notifications.
+## Responsive navigation
+- Desktop: sticky top header with wordmark, central search and account/actions; app surfaces use a left navigation rail and optional right discovery rail.
+- Tablet: collapse discovery rail and keep main feed readable.
+- Mobile: compact sticky header, full-width feed and persistent bottom navigation with safe-area spacing.
+- Public landing remains an editorial entry point, while the community experience becomes a genuine multi-column social app.
 
-### Gate 3 — Trust and moderation
-- Pending review, reports, block/mute, moderation queue and appeals.
-- Rate limits and spam controls on all public write paths.
-- Staff roles: owner, administrator, editor, moderator and analyst.
-- Server-side permission checks, least-privilege RLS, one-use invitations and immutable audit records.
+## Shared component language
+- Consistent surfaces, cards, pills, avatar sizes, buttons, search, empty/loading/error states and accessible focus rings.
+- Feed cards have clear author identity, timestamps, official/member distinction, content and action rows.
+- Video cards use consistent 16:9 or portrait media frames, title hierarchy, creator identity and metadata.
+- Profiles share cover, avatar, identity, follow actions, tabs and privacy-aware activity.
+- Studio uses the same tokens but denser data tables, filters, editing panels, preview/publish controls and role-aware navigation.
 
-### Gate 4 — Discovery and experience
-- Search across videos, posts and profiles.
-- Categories, featured content and chronological/trending discovery.
-- Arabic and English with proper RTL, theme choices, keyboard access, captions and reduced motion.
-- Transparent achievements with no pay-to-win or manipulative streak mechanics.
+## Feature direction
+- Smart feed modes: For You, Following, Latest and Official.
+- Watch: Videos, Shorts, Playlists and Series; continue watching and saved videos.
+- Explore: search suggestions, topic/category hubs, creator discovery and trending conversations.
+- Community: video-linked timestamp moments, clip discussions, polls, questions and posts.
+- Creator toolkit: scheduled publishing, drafts, thumbnail management, playlists, featured content, analytics and audience insights.
+- Identity: handles, creator verification marker, profile customization, privacy and transparent achievements.
+- Trust: reporting, block/mute, rate limits, spam controls, moderation queue, appeals and staff audit.
+- Experience: English/Arabic, proper RTL, dark/light/violet themes, accessibility and captions.
 
-### Gate 5 — Release readiness
-- Automated unit, integration, authorization and RLS tests.
-- Mobile and desktop browser acceptance, accessibility, performance and security review.
-- Backups and recovery runbook.
-- Preview acceptance by the owner, then a separately approved production release.
+## Implementation status
+The current branch has the original configurable creator portal, polls, ideas, events, social links, media asset library and creator dashboard. The NHEN design stylesheet establishes the visual foundation and reusable layout primitives; the full app navigation and social modules still need functional components, data models, permissions and tests.
 
-## Free-tier constraints
-- Use free GitHub, Vercel and Supabase tiers where possible.
-- Never promise unlimited uploads, bandwidth, transcoding or notifications on free plans.
-- Begin with bounded MP4/WebM uploads and clear per-file/storage limits; evaluate external video hosting only after reviewing cost, privacy and terms.
-- No paid domain purchase is required for development. The desired `nhen.vercel.app` address must be verified and attached before it is considered live.
-
-## Current verified baseline
-- Existing public site supports configurable identity, hero, themes, section ordering, videos, social links, events, mascot and narration.
-- Existing Creator Panel supports authenticated allowlist access, drafts, publishing history, polls, idea moderation, events/social links and a private media library.
-- Existing anonymous voting and idea submissions are rate-limited and use server/database-backed operations.
-- The current media library is an asset manager, not yet a full channel/playlist publishing system.
-- The current allowlist has one active creator account; multi-role staff management is not yet implemented.
-- The latest verified Vercel preview is linked to the `development` branch. Production remains untouched.
-
-## Completion definition
-A gate is complete only after its schema, UI, server authorization, regression tests, successful CI, READY preview and relevant manual acceptance checks are verified. Documentation or a successful deployment alone does not count as feature completion.
+## Delivery and safety
+- Keep development work on the development branch and verify preview deployments.
+- Do not alter main or production until the owner explicitly approves.
+- Free hosting tiers have quotas; do not promise unlimited video storage, bandwidth or transcoding.
+- A design or documentation commit is not evidence that the full platform feature is complete.
