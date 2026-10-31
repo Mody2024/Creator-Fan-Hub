@@ -1,6 +1,6 @@
 # Owner setup and release checklist
 
-This guide is for the site owner or a trusted Supabase project administrator. Do not send passwords, API secrets, service-role keys or private authentication links in chat or commit them to Git.
+This guide is for the site owner or a trusted Supabase project administrator. Do not send passwords, API secrets, service-role keys or private authentication links in chat. Do not commit credentials or secrets to Git.
 
 ## 1. Configure the Supabase project
 
