@@ -11,7 +11,7 @@ A creator-community website with a public fan experience and a private Creator P
 - Runtime: Next.js 15 / React 19 / Node.js 22
 - Cost target: use the free GitHub, Vercel and Supabase tiers; no paid AI API is required.
 
-The current development build includes public voting and idea submission, configurable site identity and appearance, a private Creator Panel, poll and idea moderation, media management, events, social links, publishing history and draft restoration.
+The current development build includes public voting with nickname-only participation (no visitor account), idea submission, configurable site identity and appearance, a private Creator Panel, poll and idea moderation, media management, events, social links, publishing history and draft restoration. Voter nicknames are visible only to the authorized creator; public results expose aggregate counts only.
 
 A passing build or READY preview is not the same as owner acceptance. Do not merge to `main` or deploy production until the launch gates below are completed.
 
