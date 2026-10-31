@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [migration, form] = await Promise.all([
-  read("../supabase/migrations/20261031211404_allow_anonymous_idea_display_name.sql"),
+  read("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql"),
   read("../src/app/ideas/idea-submission-form.tsx")
 ]);
 
@@ -24,9 +24,9 @@ test("public idea submission still validates title, body, and browser token serv
 });
 
 test("anonymous idea submission remains disabled when public config is missing or gated", () => {
-  assert.ok(migration.includes("if exists ("));
-  assert.ok(migration.includes("coalesce(c.maintenance_mode, false)"));
-  assert.ok(migration.includes("coalesce((c.published #>> '{featureFlags,ideas}')::boolean, true) = false"));
+  assert.ok(migration.includes("if not exists ("));
+  assert.ok(migration.includes("not coalesce(c.maintenance_mode, false)"));
+  assert.ok(migration.includes("coalesce((c.published #>> '{featureFlags,ideas}')::boolean, true)"));
   assert.ok(migration.includes("return query select false, 'ideas_unavailable'::text"));
 });
 
