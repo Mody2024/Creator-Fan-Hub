@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./nhen-design-system.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export async function generateMetadata(): Promise<Metadata> {
