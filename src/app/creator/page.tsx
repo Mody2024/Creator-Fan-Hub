@@ -40,8 +40,15 @@ export default async function CreatorDashboardPage() {
       <EventSocialManagement />
       <MediaLibrary />
       <PublishingHistory />
-      <div className="module-heading"><div><span className="eyebrow">YOUR WORKSPACE</span><h2>More control, coming next.</h2></div><span className="module-count">05 MODULE AREAS</span></div>
-      <section className="module-grid">{modules.map(item=><article className="module-card" key={item.number}><div className="module-card-top"><span>{item.number} / MODULE</span><span className="module-state">{item.state}</span></div><h3>{item.title}</h3><p>{item.detail}</p><span className="module-arrow">↗</span></article>)}</section>
+      <div className="module-heading"><div><span className="eyebrow">YOUR WORKSPACE</span><h2>Jump to a workspace.</h2><p>Open any management area directly. Changes stay private until published.</p></div><span className="module-count">06 ACTIVE AREAS</span></div>
+      <nav className="module-grid creator-quick-nav" aria-label="Creator workspace sections">
+        <a className="module-card" href="#creator-settings"><div className="module-card-top"><span>01 / CONTROL</span><span className="module-state">Site</span></div><h3>Site identity & layout</h3><p>Branding, theme, narration, section visibility and publishing.</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-polls"><div className="module-card-top"><span>02 / COMMUNITY</span><span className="module-state">Polls</span></div><h3>Poll management</h3><p>Create polls, manage voting windows and review final results.</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-ideas"><div className="module-card-top"><span>03 / COMMUNITY</span><span className="module-state">Ideas</span></div><h3>Idea moderation</h3><p>Review submissions, approve, feature, reject or archive ideas.</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-events-socials"><div className="module-card-top"><span>04 / CONTENT</span><span className="module-state">Events & links</span></div><h3>Events & socials</h3><p>Manage event schedules and published creator channels.</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-media"><div className="module-card-top"><span>05 / ASSETS</span><span className="module-state">Media</span></div><h3>Media library</h3><p>Upload, edit, publish and remove owned media assets.</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-history"><div className="module-card-top"><span>06 / RELEASES</span><span className="module-state">Versions</span></div><h3>Publishing history</h3><p>Review published snapshots and restore one to a private draft.</p><span className="module-arrow">↗</span></a>
+      </nav>
       <p className="dashboard-disclaimer">Polls, ideas, events, socials, media and publishing history are connected to guarded Supabase operations. Restoring a prior version only changes the private draft; review it before publishing.</p>
     </div>
   </main>;
