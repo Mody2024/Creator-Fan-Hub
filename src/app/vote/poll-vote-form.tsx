@@ -72,8 +72,8 @@ export default function PollVoteForm({ pollId, options }: { pollId: string; opti
 
   return <form className="poll-vote-form" onSubmit={event => { event.preventDefault(); void submitVote(); }}>
     <fieldset disabled={!token || submitting || options.length === 0}>
-      <label className="poll-voter-name">Your nickname <span>NO ACCOUNT NEEDED · {displayName.length}/32</span><input required minLength={1} maxLength={32} value={displayName} onChange={event=>setDisplayName(event.target.value)} placeholder="Enter a nickname" autoComplete="nickname" /></label>
       <legend>Choose one option</legend>
+      <label className="poll-voter-name">Your nickname <span>NO ACCOUNT NEEDED · {displayName.length}/32</span><input required minLength={1} maxLength={32} value={displayName} onChange={event=>setDisplayName(event.target.value)} placeholder="Use a nickname, not personal details" autoComplete="nickname" /></label>
       {options.map(option => <label className={selected === option.option_id ? "poll-choice is-selected" : "poll-choice"} key={option.option_id}>
         <input type="radio" name={"poll-" + pollId} value={option.option_id} checked={selected === option.option_id} onChange={event => setSelected(event.target.value)} />
         <span>{option.option_label}</span><i aria-hidden="true">{selected === option.option_id ? "✓" : "+"}</i>
