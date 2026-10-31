@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [admin, creatorRead, polls, moderation, events, media, history, publicGates, ideas, helper] = await Promise.all([
+const [admin, creatorRead, polls, moderation, events, media, history, publicGates, ideas, helper, voterMigration] = await Promise.all([
   read("../supabase/migrations/20261026000400_creator_admin_publish_functions.sql"),
   read("../supabase/migrations/20261026000600_harden_creator_draft_read.sql"),
   read("../supabase/migrations/20261026001300_creator_poll_management.sql"),
@@ -13,7 +13,8 @@ const [admin, creatorRead, polls, moderation, events, media, history, publicGate
   read("../supabase/migrations/20261026001800_creator_publish_history_restore.sql"),
   read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
   read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql"),
-  read("../supabase/migrations/20261026000501_restrict_internal_auth_helper.sql")
+  read("../supabase/migrations/20261026000501_restrict_internal_auth_helper.sql"),
+  read("../supabase/migrations/20261031213221_poll_display_names_and_creator_voter_list.sql")
 ]);
 
 function functionBody(sql, name) {
@@ -41,7 +42,8 @@ const creatorFunctions = [
   [media, "save_creator_media"],
   [media, "delete_creator_media"],
   [history, "get_creator_publish_history"],
-  [history, "restore_site_config_version"]
+  [history, "restore_site_config_version"],
+  [voterMigration, "get_creator_poll_voters"]
 ];
 
 test("every creator mutation/read RPC is SECURITY DEFINER with an active-creator check", () => {
@@ -64,7 +66,7 @@ test("anonymous SECURITY DEFINER RPCs are an explicit public-feature allowlist",
   for (const [sql, name] of [
     [publicGates, "get_public_approved_ideas"],
     [publicGates, "get_public_poll_results"],
-    [publicGates, "cast_public_poll_vote"],
+    [voterMigration, "cast_public_poll_vote"],
     [ideas, "submit_public_idea"]
   ]) {
     const body = functionBody(sql, name);
@@ -76,9 +78,10 @@ test("anonymous SECURITY DEFINER RPCs are an explicit public-feature allowlist",
 });
 
 test("public voting and idea submissions fail closed behind published feature flags", () => {
-  const vote = functionBody(publicGates, "cast_public_poll_vote");
+  const vote = functionBody(voterMigration, "cast_public_poll_vote");
   const submit = functionBody(ideas, "submit_public_idea");
   assert.ok(vote.includes("featureFlags,polls"));
+  assert.ok(vote.includes("voter_display_name"));
   assert.ok(vote.includes("polls_unavailable"));
   assert.ok(vote.includes("already_voted"));
   assert.ok(submit.includes("featureFlags,ideas"));
