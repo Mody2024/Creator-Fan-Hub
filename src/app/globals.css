@@ -218,3 +218,8 @@
     flex-basis: 100%;
   }
 }
+
+/* Keep direct dashboard jumps clear of the top edge on mobile and desktop. */
+#creator-settings,#creator-polls,#creator-ideas,#creator-events-socials,#creator-media,#creator-history{scroll-margin-top:24px}
+.creator-quick-nav .module-card{display:block;color:inherit;text-decoration:none}
+.creator-quick-nav .module-card:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
