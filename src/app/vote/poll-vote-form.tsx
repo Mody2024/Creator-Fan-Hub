@@ -22,6 +22,7 @@ function getBrowserVoteToken() {
 export default function PollVoteForm({ pollId, options }: { pollId: string; options: Option[] }) {
   const router = useRouter();
   const [selected, setSelected] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [token, setToken] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState("");
@@ -31,7 +32,7 @@ export default function PollVoteForm({ pollId, options }: { pollId: string; opti
   }, []);
 
   async function submitVote() {
-    if (!selected || !token || submitting) return;
+    if (!selected || !token || !displayName.trim() || displayName.trim().length > 32 || submitting) return;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) {
       setStatus("Voting is unavailable because the database connection is not configured.");
@@ -43,6 +44,7 @@ export default function PollVoteForm({ pollId, options }: { pollId: string; opti
       const { data, error } = await supabase.rpc("cast_public_poll_vote", {
         p_poll_id: pollId,
         p_option_id: selected,
+        p_display_name: displayName.trim(),
         p_voter_token: token
       });
       if (error) {
@@ -70,13 +72,14 @@ export default function PollVoteForm({ pollId, options }: { pollId: string; opti
 
   return <form className="poll-vote-form" onSubmit={event => { event.preventDefault(); void submitVote(); }}>
     <fieldset disabled={!token || submitting || options.length === 0}>
+      <label className="poll-voter-name">Your nickname <span>NO ACCOUNT NEEDED · {displayName.length}/32</span><input required minLength={1} maxLength={32} value={displayName} onChange={event=>setDisplayName(event.target.value)} placeholder="Enter a nickname" autoComplete="nickname" /></label>
       <legend>Choose one option</legend>
       {options.map(option => <label className={selected === option.option_id ? "poll-choice is-selected" : "poll-choice"} key={option.option_id}>
         <input type="radio" name={"poll-" + pollId} value={option.option_id} checked={selected === option.option_id} onChange={event => setSelected(event.target.value)} />
         <span>{option.option_label}</span><i aria-hidden="true">{selected === option.option_id ? "✓" : "+"}</i>
       </label>)}
-      <button className="button button-primary poll-submit" type="submit" disabled={!selected || !token || submitting}>{submitting ? "Recording vote…" : "Submit vote"} <span>↗</span></button>
+      <button className="button button-primary poll-submit" type="submit" disabled={!selected || !token || !displayName.trim() || displayName.trim().length > 32 || submitting}>{submitting ? "Recording vote…" : "Submit vote"} <span>↗</span></button>
     </fieldset>
-    <p className="poll-vote-status" role="status" aria-live="polite">{status || "One vote per browser token for this poll. This is not identity verification."}</p>
+    <p className="poll-vote-status" role="status" aria-live="polite">{status || "Enter a nickname only; no account is required. One vote per browser token, not identity verification."}</p>
   </form>;
 }
