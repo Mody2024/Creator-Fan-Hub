@@ -99,3 +99,25 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-public-video-link{display:block;color:inherit}.nhen-public-video-link .public-video-frame{position:relative;overflow:hidden}.nhen-public-video-link .public-video-frame video{width:100%;aspect-ratio:16/9;object-fit:cover;background:#08080c}.nhen-video-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:54px;height:54px;border-radius:50%;background:rgba(11,11,16,.78);border:1px solid rgba(255,255,255,.3);color:white;opacity:0;transition:opacity .2s}.nhen-public-video-link:hover .nhen-video-play{opacity:1}.nhen-watch-link-label{display:inline-block;margin-top:10px;color:var(--nhen-accent);font-size:11px;font-weight:800}
 @media(max-width:850px){.nhen-watch-layout{grid-template-columns:1fr}.nhen-watch-aside{position:static}}
 @media(max-width:600px){.nhen-watch-layout{padding:14px 12px}.nhen-watch-top{padding:0 16px}.nhen-watch-top nav{gap:12px}.nhen-watch-title-row{display:block}.nhen-watch-title-row>.nhen-pill{margin-top:8px}.nhen-watch-player{border-radius:14px}}
+
+
+/* NHEN Identity public profile */
+.nhen-profile-page{min-height:100vh;background:var(--nhen-bg);color:var(--nhen-ink)}
+.nhen-profile-wrap{width:min(100%,1050px);margin:34px auto;padding:0 22px 80px}
+.nhen-profile-cover{height:250px;border-radius:26px;background:radial-gradient(circle at 80% 20%,rgba(255,100,124,.55),transparent 30%),linear-gradient(115deg,#21162b,#34264f 54%,#143b3a)}
+.nhen-profile-card{position:relative;margin:-55px 18px 28px;padding:0 24px 22px;border:1px solid var(--nhen-line);border-radius:22px;background:var(--nhen-surface)}
+.nhen-profile-heading{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:-45px;padding-bottom:14px}
+.nhen-profile-avatar{width:100px;height:100px;border:5px solid var(--nhen-surface);border-radius:50%;display:grid;place-items:center;background:var(--nhen-surface-raised);font-size:32px;font-weight:900;color:var(--nhen-accent);overflow:hidden}
+.nhen-profile-avatar img{width:100%;height:100%;object-fit:cover}
+.nhen-profile-identity{flex:1;min-width:180px;padding-bottom:6px}
+.nhen-profile-identity h1{font-size:28px;font-weight:900;letter-spacing:-.06em;margin:4px 0}
+.nhen-profile-identity p{font-size:12px;color:var(--nhen-muted)}
+.nhen-profile-bio{font-size:14px;line-height:1.7;max-width:680px;margin:8px 0}
+.nhen-profile-website{display:inline-block;color:var(--nhen-violet);font-size:12px;margin:5px 0}
+.nhen-profile-stats{display:flex;flex-wrap:wrap;gap:22px;margin-top:20px;padding-top:17px;border-top:1px solid var(--nhen-line);font-size:11px;color:var(--nhen-muted)}
+.nhen-profile-stats strong{color:var(--nhen-ink);font-size:15px;margin-right:4px}
+.nhen-profile-editor{display:grid;gap:12px;padding:18px 0;border-top:1px solid var(--nhen-line)}
+.nhen-profile-editor label{display:grid;gap:7px;color:var(--nhen-muted);font-size:11px;font-weight:700}
+.nhen-profile-editor input,.nhen-profile-editor textarea{width:100%;max-width:620px;border:1px solid var(--nhen-line);border-radius:12px;background:var(--nhen-bg);color:var(--nhen-ink);padding:12px;font:inherit}
+.nhen-profile-posts{display:grid;gap:14px}.nhen-profile-post{padding:18px 20px}.nhen-profile-post>div{font-size:10px;letter-spacing:.08em}.nhen-profile-post p{white-space:pre-wrap;line-height:1.7;font-size:14px;margin-top:12px}
+@media(max-width:600px){.nhen-profile-wrap{padding:0 12px 80px}.nhen-profile-cover{height:180px}.nhen-profile-card{margin-left:5px;margin-right:5px;padding:0 15px 18px}.nhen-profile-identity h1{font-size:23px}}
