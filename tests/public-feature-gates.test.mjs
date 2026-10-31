@@ -88,7 +88,7 @@ test("poll option foreign key prevents votes from pairing an option with another
   assert.ok(initialSchema.includes("constraint poll_votes_option_matches_poll"));
   assert.ok(initialSchema.includes("foreign key (poll_id, option_id)"));
   assert.ok(initialSchema.includes("references public.poll_options(poll_id, id) on delete cascade"));
-  const start = gateMigration.indexOf("create or replace function public.cast_public_poll_vote(");
+  const start = pollVotingMigration.indexOf("create or replace function public.cast_public_poll_vote(");
   const fn = gateMigration.slice(start);
   assert.ok(fn.includes("o.id = p_option_id and o.poll_id = p_poll_id"));
 });
