@@ -70,8 +70,8 @@ test("anonymous SECURITY DEFINER RPCs are an explicit public-feature allowlist",
     const body = functionBody(sql, name);
     assert.match(body, /security definer/i, name);
     assert.match(body, /set search_path\s*=\s*''/i, name);
-    assert.match(body, /revoke all on function public\./i, name);
-    assert.match(body, /grant execute on function public\./i, name);
+    assert.ok(sql.includes(`revoke all on function public.${name}`), name + ": missing explicit revoke");
+    assert.ok(sql.includes(`grant execute on function public.${name}`), name + ": missing explicit grant");
   }
 });
 
