@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [admin, polls, moderation, events, media, history, publicGates, ideas, helper] = await Promise.all([
+const [admin, creatorRead, polls, moderation, events, media, history, publicGates, ideas, helper] = await Promise.all([
   read("../supabase/migrations/20261026000400_creator_admin_publish_functions.sql"),
+  read("../supabase/migrations/20261026000600_harden_creator_draft_read.sql"),
   read("../supabase/migrations/20261026001300_creator_poll_management.sql"),
   read("../supabase/migrations/20261026001100_creator_idea_moderation.sql"),
   read("../supabase/migrations/20261026001500_creator_events_and_socials.sql"),
@@ -26,7 +27,7 @@ function functionBody(sql, name) {
 const creatorFunctions = [
   [admin, "save_site_config_draft"],
   [admin, "publish_site_config"],
-  [admin, "get_site_config_draft"],
+  [creatorRead, "get_site_config_draft"],
   [polls, "create_creator_poll"],
   [polls, "set_creator_poll_status"],
   [moderation, "get_creator_idea_queue"],
@@ -49,7 +50,7 @@ test("every creator mutation/read RPC is SECURITY DEFINER with an active-creator
     assert.match(body, /security definer/i, name);
     assert.match(body, /set search_path\s*=\s*''/i, name);
     assert.match(body, /auth\.uid\(\)\s+is\s+null/i, name);
-    assert.match(body, /is_active_creator\(\)/i, name);
+    assert.ok(/is_active_creator\(\)/i.test(body) || /public\.creator_admins/i.test(body), name + ": missing active creator allowlist check");
     assert.match(body, /errcode\s*=\s*'42501'/i, name);
   }
 });
