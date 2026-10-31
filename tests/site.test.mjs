@@ -236,7 +236,7 @@ test("security-definer migration functions pin search_path and explicitly manage
       assert.ok(signatureEnd > signatureStart, name + ": function signature must be parseable");
       const functionName = sql.slice(signatureStart, signatureEnd).trim();
       functionCount += 1;
-      assert.ok(statement.toLowerCase().includes("set search_path = " + String.fromCharCode(39, 39)), name + ": " + functionName + " must pin empty search_path");
+      assert.match(statement, /set\s+search_path\s*=\s*\x27\x27/i, name + ": " + functionName + " must pin empty search_path");
       assert.ok(lower.includes("revoke all on function " + functionName.toLowerCase()), name + ": " + functionName + " must revoke default grants");
       assert.ok(lower.includes("grant execute on function " + functionName.toLowerCase()), name + ": " + functionName + " must grant execution explicitly");
       cursor += "security definer".length;

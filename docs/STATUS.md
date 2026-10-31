@@ -330,3 +330,6 @@ Do not treat the existing static prototype as a finished product. Keep productio
 ## Security migration test correction (2026-10-31)
 - Replaced a malformed escaped-regex parser with a simpler SQL migration scan for SECURITY DEFINER functions, pinned search_path, and explicit grants.
 - The preceding Validate site failure was in the newly added test parser; this correction reruns both workflows.
+
+## Search-path assertion compatibility fix (2026-10-31)
+- Adjusted the migration audit to accept valid SQL formatting with or without spaces around the equals sign in SET search_path = ''. This was a test-format assumption, not a migration security defect.
