@@ -13,7 +13,7 @@ test("the single Next.js middleware refreshes sessions only for creator routes",
 
   assert.ok(entrypoint.includes('from "@/lib/supabase/middleware"'));
   assert.ok(entrypoint.includes("refreshSupabaseSession(request)"));
-  assert.ok(entrypoint.includes('matcher: ["/creator/:path*"]'));
+  assert.ok(entrypoint.includes('matcher: ["/creator/:path*", "/api/creator/:path*"]'));
   await assert.rejects(read("../src/middleware.ts"), { code: "ENOENT" });
 
   assert.ok(helper.includes("createServerClient"));
