@@ -65,7 +65,8 @@ Never temporarily grant broad table access to make a test pass. Test using the e
 - [ ] Draft save detects stale revisions.
 - [ ] Publish creates a versioned public snapshot.
 - [ ] Restore changes only the private draft until the owner publishes it.
-- [ ] Public poll voting works and duplicate browser tokens are handled.
+- [ ] Public poll voting accepts a nickname only (no visitor account), and duplicate browser tokens are handled.
+- [ ] Voter nicknames are visible only to the authorized creator; anonymous visitors cannot call the voter-list RPC.
 - [ ] Public idea submission works without requiring a display name.
 - [ ] Idea moderation is creator-only.
 - [ ] Media upload, publish, unpublish and delete work for the owner.
