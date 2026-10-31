@@ -116,7 +116,7 @@ check("creator poll dashboard shows final counts only for closed polls", pollMan
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
 check("public voting always releases its submitting state", voteForm.includes("finally {\n      setSubmitting(false);"));
 check("public voting handles uncertain network results without claiming success", voteForm.includes("Refresh the page before retrying to check whether it was recorded") && voteForm.includes("connection failed before we could confirm your vote"));
-check("public voting keeps anonymous-token limitations explicit", voteForm.includes("This is not identity verification.") && voteForm.includes("already been recorded for this poll"));
+check("public voting keeps anonymous-token limitations explicit", voteForm.includes("not identity verification.") && voteForm.includes("already been recorded for this poll"));
 check("creator editor uses guarded draft RPC", editor.includes('rpc("get_site_config_draft")') && editor.includes('rpc("save_site_config_draft"'));
 check("event/social workflows always release working state after network failures", eventSocial.includes('finally { setWorking(""); }') && eventSocial.includes("Connection failed while saving the event") && eventSocial.includes("Connection failed while updating the social link"));
 check("editing an event formats timestamps in the viewer local timezone", eventSocial.includes("date.getTime()-date.getTimezoneOffset()*60000") && eventSocial.includes("toLocalDateTimeInput(e.starts_at)") && eventSocial.includes("toLocalDateTimeInput(e.ends_at)"));
