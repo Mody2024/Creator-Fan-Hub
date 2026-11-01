@@ -8,6 +8,9 @@ export default function PublicVideoPlayer({ src, title, description, youtubeEmbe
   const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => { setLoaded(false); setFailed(false); }, [src, youtubeEmbedUrl, attempt]);
 
   useEffect(() => {
     const player = video.current;
@@ -25,14 +28,18 @@ export default function PublicVideoPlayer({ src, title, description, youtubeEmbe
     </div>;
   }
 
-  if (youtubeEmbedUrl) {
-    return <iframe key={attempt} src={startAt > 0 ? youtubeEmbedUrl + (youtubeEmbedUrl.includes("?") ? "&" : "?") + "start=" + Math.floor(startAt) : youtubeEmbedUrl} title={title} loading="lazy"
+  return <div className={`nhen-player-shell ${loaded ? "is-loaded" : "is-loading"}`}>
+    {!loaded && <div className="nhen-player-loading" role="status" aria-live="polite">
+      <span className="nhen-player-loading-mark" aria-hidden="true">N</span>
+      <span>Preparing your video</span>
+      <i aria-hidden="true" />
+    </div>}
+    {youtubeEmbedUrl ? <iframe key={attempt} src={startAt > 0 ? youtubeEmbedUrl + (youtubeEmbedUrl.includes("?") ? "&" : "?") + "start=" + Math.floor(startAt) : youtubeEmbedUrl} title={title} loading="lazy"
+      onLoad={() => setLoaded(true)}
       referrerPolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowFullScreen />;
-  }
-
-  return <video ref={video} key={attempt} controls preload="metadata" playsInline aria-label={description || title} onError={() => setFailed(true)} src={src}>
-    Your browser does not support video playback.
-  </video>;
+      allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline aria-label={description || title} onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} src={src}>
+      Your browser does not support video playback.
+    </video>}
+  </div>;
 }
