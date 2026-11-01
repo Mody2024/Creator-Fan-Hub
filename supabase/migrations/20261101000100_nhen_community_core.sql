@@ -82,7 +82,9 @@ begin
   on conflict (user_id) do nothing;
   return new;
 end;
-$$;
+$;
+revoke all on function public.create_member_profile() from public, anon, authenticated;
+grant execute on function public.create_member_profile() to postgres;
 drop trigger if exists on_auth_user_created_member_profile on auth.users;
 create trigger on_auth_user_created_member_profile
 after insert on auth.users for each row execute function public.create_member_profile();
