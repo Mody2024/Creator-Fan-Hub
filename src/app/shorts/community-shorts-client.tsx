@@ -99,8 +99,7 @@ export default function CommunityShortsClient(){
  }
 
  return <section className="nhen-community-shorts-section">
-  <header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/#videos">Watch</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></nav></header>
-  <div className="nhen-shorts-heading"><span className="nhen-section-label">NHEN COMMUNITY / SHORT VIDEOS</span><h1>Community <em>Nhenbits.</em></h1><p className="nhen-muted">Quick moments shared by the people who make NHEN a community.</p></div>
+  <div className="nhen-card-heading"><div><span className="nhen-section-label">COMMUNITY STREAM</span><h2>Shared by the community</h2></div><span className="nhen-muted">Member videos</span></div>
   <section className="nhen-community-short-composer">
    <div><span className="nhen-section-label">YOUR MOMENT</span><h2>Share a Nhenbit</h2><p>Community members can publish directly. MP4 or WebM · up to 3 minutes · 50 MB per video.</p></div>
    {userId?<div className="nhen-community-short-fields">
@@ -114,5 +113,5 @@ export default function CommunityShortsClient(){
    <video src={item.src} controls playsInline preload="metadata" aria-label={item.title}/>
    <div className="nhen-community-short-card-body"><div className="nhen-community-short-author">{item.avatarUrl?<img src={item.avatarUrl} alt=""/>:<span>{item.displayName.slice(0,1).toUpperCase()}</span>}<Link href={"/u/"+item.handle}>@{item.handle}</Link><time>{new Date(item.created_at).toLocaleDateString()}</time></div><h3>{item.title}</h3>{item.caption&&<p>{item.caption}</p>}{item.author_id===userId&&<button className="nhen-action" disabled={busy} onClick={()=>void remove(item)}>Remove your video</button>}</div>
   </article>):<div className="nhen-card nhen-empty-state">No community Nhenbits yet. Be the first to share one.</div>}</div>
- </main>;
+ </section>;
 }
