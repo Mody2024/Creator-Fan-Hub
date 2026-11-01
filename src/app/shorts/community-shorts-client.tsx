@@ -97,7 +97,7 @@ export default function CommunityShortsClient(){
    }
    setTitle("");setCaption("");setFile(null);setDuration(0);if(input.current)input.current.value="";
    setStatus("Your Nhenbit is live in the community.");await load();
-  }catch(error){setStatus(error instanceof Error?error.message:"Upload failed. Please try again.");}
+  }catch(error){setStatus(!uploaded?"Upload interrupted. Your resumable session is retained; choose the same file again to continue. "+(error instanceof Error?error.message:""):error instanceof Error?error.message:"The uploaded file could not be saved. Please refresh the feed.");}
   finally{
    if(uploaded&&uploadSession){
     uploadSession.clear();
