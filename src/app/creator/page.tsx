@@ -25,7 +25,7 @@ export default async function CreatorDashboardPage() {
   if (adminError || !admin) redirect("/creator/login?access=restricted");
   if (admin.role === "moderator") redirect("/creator/community");
   if (admin.role === "analyst") redirect("/creator/analytics");
-  if (!["owner","admin","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
+  if (!["owner","admin","creator","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
 
   return <main className="dashboard-shell">
     <header className="dashboard-topbar"><Link className="wordmark nhen-wordmark" href="/"><span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span></Link><span className="admin-session"><i /> AUTHENTICATED WORKSPACE</span><form action="/creator/logout" method="post"><button className="logout-button" type="submit">Sign out ↗</button></form></header>
