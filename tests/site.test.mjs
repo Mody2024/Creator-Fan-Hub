@@ -382,3 +382,10 @@ test("community moderation writes are restricted to owner admin and moderator ro
   assert.match(communityRoleMigration, /grant execute on function public\.can_moderate_community\(\) to authenticated/i);
   assert.match(communityRoleMigration, /grant update on public\.content_reports to authenticated/i);
 });
+
+
+test("video navigation is hidden when the creator disables the video section", async () => {
+  const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /visibleSections\.includes\("videos"\) && <><a href="#videos">Watch<\/a><a href="\/shorts">Shorts<\/a><\/>/);
+  assert.match(page, /visibleSections\.includes\("videos"\) && <PublicVideos \/>/);
+});
