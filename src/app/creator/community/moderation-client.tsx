@@ -11,19 +11,30 @@ export default function CommunityModerationClient({initialPosts,initialComments,
  const [posts,setPosts]=useState(initialPosts),[comments,setComments]=useState(initialComments),[videoComments,setVideoComments]=useState(initialVideoComments),[reports,setReports]=useState(initialReports);
  const [tab,setTab]=useState<"posts"|"comments"|"video_comments"|"reports">("posts"),[busy,setBusy]=useState<string|null>(null),[notice,setNotice]=useState("");
  async function moderate(kind:"post"|"comment"|"video_comment",id:string,status:"published"|"rejected"|"removed"){
-  if(!supabase||busy)return;setBusy(id);setNotice("");
+  if(!supabase||busy)return;
+  if((status==="rejected"||status==="removed")&&!window.confirm(status==="removed"?"Remove this content from the community? This action cannot be undone here.":"Reject this submission? It will stay out of the public community."))return;
+  setBusy(id);setNotice("");
   const table=kind==="post"?"community_posts":kind==="video_comment"?"video_comments":"community_comments";
-  const result=await supabase.from(table).update({status,...(kind==="post"?{updated_at:new Date().toISOString()}: {})}).eq("id",id);
-  if(result.error)setNotice("Could not update this item. Refresh and retry.");
-  else{if(kind==="post")setPosts(items=>items.filter(x=>x.id!==id));else if(kind==="video_comment")setVideoComments(items=>items.filter(x=>x.id!==id));else setComments(items=>items.filter(x=>x.id!==id));setNotice(status==="published"?"Approved and published.":status==="rejected"?"Submission rejected.":"Content removed.");}
-  setBusy(null);
+  try {
+   const result=await supabase.from(table).update({status,...(kind==="post"?{updated_at:new Date().toISOString()}: {})}).eq("id",id).select("id").maybeSingle();
+   if(result.error||!result.data?.id){setNotice("No update was confirmed. Your role may not allow this action, or the item may have changed. Refresh and retry.");return;}
+   if(kind==="post")setPosts(items=>items.filter(x=>x.id!==id));else if(kind==="video_comment")setVideoComments(items=>items.filter(x=>x.id!==id));else setComments(items=>items.filter(x=>x.id!==id));
+   setNotice(status==="published"?"Approved and published.":status==="rejected"?"Submission rejected.":"Content removed.");
+  } catch {
+   setNotice("The connection failed before the update could be confirmed. Refresh the queue to check the current status.");
+  } finally {setBusy(null);}
  }
  async function updateReport(id:string,status:"reviewing"|"resolved"|"dismissed"){
-  if(!supabase||busy)return;setBusy(id);setNotice("");
-  const result=await supabase.from("content_reports").update({status}).eq("id",id);
-  if(result.error)setNotice("Could not update this report.");
-  else{setReports(items=>items.map(x=>x.id===id?{...x,status}:x));setNotice("Report status updated.");}
-  setBusy(null);
+  if(!supabase||busy)return;
+  if((status==="resolved"||status==="dismissed")&&!window.confirm(status==="resolved"?"Mark this report resolved?":"Dismiss this report without further action?"))return;
+  setBusy(id);setNotice("");
+  try {
+   const result=await supabase.from("content_reports").update({status}).eq("id",id).select("id").maybeSingle();
+   if(result.error||!result.data?.id){setNotice("No report update was confirmed. Check your role and refresh the queue.");return;}
+   setReports(items=>items.map(x=>x.id===id?{...x,status}:x));setNotice("Report status updated.");
+  } catch {
+   setNotice("The connection failed before the report update could be confirmed. Refresh to check its current status.");
+  } finally {setBusy(null);}
  }
  const count=posts.length+comments.length+videoComments.length+reports.filter(x=>x.status==="open").length;
  return <section className="nhen-mod-workspace">
