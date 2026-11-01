@@ -5,13 +5,13 @@ import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
-  const description = config.tagline || "Join the N7EN community. Share ideas, vote on what comes next and connect with the creator."; 
+  const description = config.tagline || "Nhen? (نهين؟) — join the community, share ideas and shape what comes next."; 
   return {
     applicationName: config.siteName,
     title: { default: config.siteName, template: "%s | " + config.siteName },
     description,
-    openGraph: { type: "website", siteName: config.siteName, title: config.siteName, description },
-    twitter: { card: "summary", title: config.siteName, description },
+    openGraph: { type: "website", siteName: "Nhen? / نهين؟", title: "Nhen? — نهين؟", description, locale: "en_US", alternateLocale: ["ar_EG"] },
+    twitter: { card: "summary", title: "Nhen? — نهين؟", description },
     robots: { index: true, follow: true },
   };
 }
