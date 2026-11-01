@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 
 test("creator dashboard quick navigation points to all ten management areas", async () => {
-  const [page, settings, polls, ideas, events, media, history] = await Promise.all([
+  const [page, settings, polls, ideas, events, media, history, studio] = await Promise.all([
     read("../src/app/creator/page.tsx"),
     read("../src/app/creator/creator-settings.tsx"),
     read("../src/app/creator/poll-management.tsx"),
@@ -15,7 +15,7 @@ test("creator dashboard quick navigation points to all ten management areas", as
     read("../src/app/creator/publishing-history.tsx"),
     read("../src/app/creator/video-studio.tsx")
   ]);
-  for (const id of ["creator-settings","creator-polls","creator-ideas","creator-events-socials","creator-media","creator-history"]) {
+  for (const id of ["creator-settings","creator-polls","creator-ideas","creator-events-socials","creator-media","creator-history","creator-video-studio"]) {
     assert.ok(page.includes(`href="#${id}"`), `dashboard link missing for ${id}`);
   }
   for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
