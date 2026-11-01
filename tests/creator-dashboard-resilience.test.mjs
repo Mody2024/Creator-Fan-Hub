@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 
-test("creator dashboard quick navigation points to all six real management panels", async () => {
+test("creator dashboard quick navigation points to all ten management areas", async () => {
   const [page, settings, polls, ideas, events, media, history] = await Promise.all([
     read("../src/app/creator/page.tsx"),
     read("../src/app/creator/creator-settings.tsx"),
@@ -12,15 +12,16 @@ test("creator dashboard quick navigation points to all six real management panel
     read("../src/app/creator/idea-moderation-queue.tsx"),
     read("../src/app/creator/event-social-management.tsx"),
     read("../src/app/creator/media-library.tsx"),
-    read("../src/app/creator/publishing-history.tsx")
+    read("../src/app/creator/publishing-history.tsx"),
+    read("../src/app/creator/video-studio.tsx")
   ]);
   for (const id of ["creator-settings","creator-polls","creator-ideas","creator-events-socials","creator-media","creator-history"]) {
     assert.ok(page.includes(`href="#${id}"`), `dashboard link missing for ${id}`);
   }
-  for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"]]) {
+  for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
     assert.ok(source.includes(`id="${id}"`), `management panel target missing: ${id}`);
   }
-  assert.ok(page.includes("06 ACTIVE AREAS"));
+  assert.ok(page.includes("10 ACTIVE AREAS"));
   assert.ok(!page.includes("More control, coming next."));
 });
 
