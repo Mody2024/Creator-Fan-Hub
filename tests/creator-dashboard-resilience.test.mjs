@@ -97,3 +97,17 @@ test("community interactions restore optimistic state and recover from failed re
   assert.ok(source.includes("We could not send your report. Please try again later."));
   assert.ok(source.includes("We could not sign you out because the connection failed."));
 });
+
+test("watch page restores reactions and bookmarks after failed requests", async () => {
+  const source = await read("../src/app/watch/[slug]/watch-detail-client.tsx");
+  assert.ok(source.includes("Your previous reaction has been restored."));
+  assert.ok(source.includes("Your previous setting has been restored."));
+  assert.ok(source.includes("disabled={actionBusy}"));
+});
+test("watch page preserves comment text on failure and handles share errors", async () => {
+  const source = await read("../src/app/watch/[slug]/watch-detail-client.tsx");
+  assert.ok(source.includes("Your text is still here so you can retry."));
+  assert.ok(source.includes("Could not copy the link automatically."));
+  assert.ok(source.includes("Some video details could not be loaded."));
+  assert.ok(source.includes("aria-live=\"polite\""));
+});
