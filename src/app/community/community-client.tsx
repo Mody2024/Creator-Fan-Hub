@@ -168,7 +168,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
   return <main className="nhen-app-shell">
     <header className="nhen-app-header">
       <Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link>
-      <input className="nhen-search" type="search" placeholder="Search NHEN (coming soon)" aria-label="Search NHEN" disabled />
+      <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder="Search NHEN" aria-label="Search NHEN" maxLength={80}/></form>
       <div className="nhen-header-actions">{member ? <><Link className="nhen-muted" href={"/u/"+member.handle}>@{member.handle}</Link><Link className="nhen-icon-button" href="/notifications" aria-label="Notifications">♧</Link><button className="nhen-icon-button" onClick={signOut} aria-label="Sign out">↗</button></> : <Link className="nhen-pill" href="#join">Join NHEN</Link>}</div>
     </header>
     <div className="nhen-platform-grid">
