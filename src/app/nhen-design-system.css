@@ -620,3 +620,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-home-polls .poll-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--nhen-accent),var(--nhen-violet))}
 .nhen-home-polls .poll-total{margin:12px 0 0}
 @media(max-width:700px){.nhen-home-polls{padding:16px}.nhen-home-polls .published-poll{padding:14px}}
+
+/* Language control is shared across the site; it stays unobtrusive and keyboard accessible. */
+.nhen-language-switch{position:fixed;z-index:95;top:14px;right:16px;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 12px;border:1px solid var(--nhen-line);border-radius:999px;background:rgba(18,20,18,.88);color:var(--nhen-text);font:600 11px/1 inherit;backdrop-filter:blur(14px);cursor:pointer}
+.nhen-language-switch:hover{border-color:var(--nhen-accent);color:var(--nhen-accent)}
+.nhen-language-switch:focus-visible{outline:2px solid var(--nhen-accent);outline-offset:3px}
+.nhen-language-switch span{font-size:15px}
+[dir="rtl"]{text-align:right}
+[dir="rtl"] .nhen-language-switch{right:auto;left:16px}
+[dir="rtl"] .nhen-app-header,[dir="rtl"] .nhen-card-heading,[dir="rtl"] .nhen-post-header{direction:rtl}
+[dir="rtl"] .nhen-sidebar-link,[dir="rtl"] .nhen-home-discovery-links a{direction:rtl}
+[dir="rtl"] .nhen-search-form input{text-align:right}
+[dir="rtl"] .nhen-home-video-meta,[dir="rtl"] .nhen-home-post{text-align:right}
+@media(max-width:700px){.nhen-language-switch{top:10px;right:10px;min-height:34px;padding:0 10px;font-size:10px}[dir="rtl"] .nhen-language-switch{right:auto;left:10px}}
