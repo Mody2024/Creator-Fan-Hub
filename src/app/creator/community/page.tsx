@@ -11,8 +11,8 @@ export default async function CommunityModerationPage() {
   const { data: claims, error } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
   if (error || typeof userId !== "string") redirect("/creator/login");
-  const { data: admin } = await supabase.from("creator_admins").select("user_id").eq("user_id",userId).eq("active",true).maybeSingle();
-  if (!admin) redirect("/creator/login?access=restricted");
+  const { data: admin } = await supabase.from("creator_admins").select("user_id,role").eq("user_id",userId).eq("active",true).maybeSingle();
+  if (!admin || !["owner","admin","moderator"].includes(admin.role)) redirect("/creator?access=moderator-only");
 
   const [postsResult,commentsResult,videoCommentsResult,reportsResult] = await Promise.all([
     supabase.from("community_posts").select("id,author_id,body,status,created_at,post_type").eq("status","pending").order("created_at",{ascending:true}).limit(100),
