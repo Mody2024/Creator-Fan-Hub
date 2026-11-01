@@ -177,3 +177,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-feed-tabs{display:flex;gap:8px;padding:5px;border:1px solid var(--nhen-line);border-radius:999px;background:var(--nhen-surface);width:max-content;max-width:100%}
 .nhen-feed-tabs a{padding:9px 16px;border-radius:999px;color:var(--nhen-muted);font-size:12px;font-weight:750}
 .nhen-feed-tabs a.active{background:var(--nhen-surface-raised);color:var(--nhen-accent)}
+
+
+/* Earned NHEN member milestones */
+.nhen-achievement-section{margin:18px 0 4px;padding-top:16px;border-top:1px solid var(--nhen-line)}
+.nhen-achievement-grid{display:flex;flex-wrap:wrap;gap:9px;margin-top:11px}
+.nhen-achievement-chip{display:flex;align-items:center;gap:9px;max-width:260px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--nhen-violet) 30%,var(--nhen-line));border-radius:14px;background:color-mix(in srgb,var(--nhen-violet) 7%,var(--nhen-surface))}
+.nhen-achievement-chip>span{font-size:19px;color:var(--nhen-violet)}
+.nhen-achievement-chip>div{display:grid;gap:3px}
+.nhen-achievement-chip strong{font-size:11px}
+.nhen-achievement-chip small{font-size:9px;line-height:1.4;color:var(--nhen-muted)}
