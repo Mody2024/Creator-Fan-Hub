@@ -29,7 +29,8 @@ export async function uploadToSupabaseStorage({
   }
 
   const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!configuredUrl) throw new Error("Supabase Storage is not configured.");
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  if (!configuredUrl || !publishableKey) throw new Error("Supabase Storage is not configured.");
 
   const configuredHost = new URL(configuredUrl).hostname;
   const projectRef = configuredHost.split(".")[0];
@@ -44,7 +45,7 @@ export async function uploadToSupabaseStorage({
       retryDelays: [0, 3000, 5000, 10000, 20000],
       headers: {
         authorization: `Bearer ${session.access_token}`,
-        apikey: client.supabaseKey,
+        apikey: publishableKey,
         "x-upsert": "false",
       },
       uploadDataDuringCreation: true,
