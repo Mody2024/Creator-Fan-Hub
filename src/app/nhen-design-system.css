@@ -583,3 +583,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-official-shorts{max-width:1120px;margin:24px auto 12px}
 @media(max-width:900px){.nhen-community-shorts-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 14px}.nhen-community-short-composer,.nhen-official-shorts{margin-left:14px;margin-right:14px}}
 @media(max-width:560px){.nhen-community-shorts-grid{grid-template-columns:1fr}.nhen-community-short-card video{max-height:70vh}.nhen-community-short-controls{align-items:stretch}.nhen-community-short-controls .button{width:100%}}
+
+/* NHEN's own reaction language */
+.nhen-reaction-control{position:relative;display:inline-flex}
+.nhen-reaction-picker{position:absolute;z-index:30;left:0;top:calc(100% + 9px);min-width:190px;padding:7px;border:1px solid var(--nhen-line);border-radius:15px;background:var(--nhen-surface);box-shadow:0 16px 45px #0003;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.nhen-reaction-picker button{display:flex;align-items:center;gap:7px;padding:9px;border:0;border-radius:9px;background:transparent;color:var(--nhen-ink);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.nhen-reaction-picker button:hover,.nhen-reaction-picker button.active{background:var(--nhen-soft)}
+.nhen-reaction-picker button span{font-size:18px}
+.nhen-reaction-control>button.active{color:var(--nhen-accent)}
