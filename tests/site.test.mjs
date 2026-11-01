@@ -342,3 +342,17 @@ test("all creator entry points use the fixed Nhen bilingual identity", async () 
     assert.match(source, /نهين؟/);
   }
 });
+
+
+test("creator analytics exports ranked aggregate metrics as safe CSV", async () => {
+  const page = await readFile(new URL("../src/app/creator/analytics/page.tsx", import.meta.url), "utf8");
+  const exportComponent = await readFile(new URL("../src/app/creator/analytics/analytics-export.tsx", import.meta.url), "utf8");
+  assert.match(page, /rankedMetrics/);
+  assert.match(page, /AnalyticsExport/);
+  assert.match(exportComponent, /nhen-video-analytics\.csv/);
+  assert.match(exportComponent, /text\.replace\(\/"\/g, '""'\)/);
+  assert.match(exportComponent, /if \(\/\^\[\\s\]\*\[=\\+\\-@\]\/\.test\(text\)\)/);
+  assert.match(exportComponent, /Approved comments/);
+  assert.match(exportComponent, /URL\.createObjectURL/);
+  assert.match(exportComponent, /anchor\.remove\(\)/);
+});
