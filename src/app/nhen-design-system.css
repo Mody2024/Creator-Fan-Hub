@@ -605,3 +605,18 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-player-shell.is-loaded .nhen-player-loading{display:none}
 @keyframes nhen-player-progress{from{transform:translateX(-110%)}to{transform:translateX(310%)}}
 @media(prefers-reduced-motion:reduce){.nhen-player-loading i:after{animation:none;width:100%}}
+
+/* Home discovery feed: keep creator media, member posts and polls in one readable stream. */
+.nhen-home-polls{display:grid;gap:14px}
+.nhen-home-polls>.nhen-card-heading{margin-bottom:0}
+.nhen-home-polls .published-polls{display:grid;gap:12px}
+.nhen-home-polls .published-poll{border:1px solid var(--nhen-line);border-radius:18px;background:var(--nhen-bg);padding:18px}
+.nhen-home-polls .poll-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.nhen-home-polls .published-poll h3{font-size:17px;line-height:1.4;letter-spacing:-.035em;margin:14px 0 7px}
+.nhen-home-polls .poll-description,.nhen-home-polls .poll-total{color:var(--nhen-muted);font-size:12px;line-height:1.65}
+.nhen-home-polls .poll-result{margin-top:12px}
+.nhen-home-polls .poll-result>div{display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.nhen-home-polls .poll-track{display:block;height:7px;margin-top:7px;border-radius:99px;overflow:hidden;background:var(--nhen-surface-raised)}
+.nhen-home-polls .poll-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--nhen-accent),var(--nhen-violet))}
+.nhen-home-polls .poll-total{margin:12px 0 0}
+@media(max-width:700px){.nhen-home-polls{padding:16px}.nhen-home-polls .published-poll{padding:14px}}
