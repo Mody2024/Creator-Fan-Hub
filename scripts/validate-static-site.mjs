@@ -51,7 +51,7 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../supabase/migrations/20261101173909_nhen_media_health_and_orphan_audit.sql"),
   read("../supabase/migrations/20261101172923_nhen_resume_upload_reservations.sql"),
   read("../src/app/shorts/community-shorts-client.tsx"),
-  read("../supabase/migrations/20261101180000_nhen_creator_media_asset_metadata_sync.sql")
+  read("../supabase/migrations/20261101174330_nhen_creator_media_asset_metadata_sync.sql")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
