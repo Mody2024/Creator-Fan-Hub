@@ -13,7 +13,7 @@ function distance(r: number, g: number, b: number, target: [number, number, numb
   return Math.sqrt((r-target[0])**2 + (g-target[1])**2 + (b-target[2])**2);
 }
 
-async function prepareLogo(file: File, tolerance: number, removeBackground: boolean): Promise<Blob> {
+async function prepareLogo(file: File, tolerance: number, removeBackground: boolean, trimTransparent: boolean): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, 1800 / Math.max(bitmap.width, bitmap.height));
   const width = Math.max(1, Math.round(bitmap.width * scale));
@@ -68,9 +68,40 @@ async function prepareLogo(file: File, tolerance: number, removeBackground: bool
     context.putImageData(image,0,0);
   }
 
+  let outputCanvas = canvas;
+  if (trimTransparent) {
+    const pixels = context.getImageData(0, 0, width, height).data;
+    let minX = width, minY = height, maxX = -1, maxY = -1;
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        if (pixels[(y * width + x) * 4 + 3] > 12) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX >= minX && maxY >= minY) {
+      const contentWidth = maxX - minX + 1;
+      const contentHeight = maxY - minY + 1;
+      const padding = Math.max(8, Math.round(Math.max(contentWidth, contentHeight) * 0.07));
+      const cropWidth = Math.min(width, contentWidth + padding * 2);
+      const cropHeight = Math.min(height, contentHeight + padding * 2);
+      const cropX = Math.max(0, Math.min(width - cropWidth, Math.round((minX + maxX + 1 - cropWidth) / 2)));
+      const cropY = Math.max(0, Math.min(height - cropHeight, Math.round((minY + maxY + 1 - cropHeight) / 2)));
+      const trimmed = document.createElement("canvas");
+      trimmed.width = cropWidth;
+      trimmed.height = cropHeight;
+      const trimmedContext = trimmed.getContext("2d");
+      if (!trimmedContext) throw new Error("Your browser could not centre the prepared logo.");
+      trimmedContext.drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      outputCanvas = trimmed;
+    }
+  }
   const outputType = "image/png";
   return await new Promise<Blob>((resolve,reject) => {
-    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("The prepared logo could not be exported.")), outputType, 0.94);
+    outputCanvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("The prepared logo could not be exported.")), outputType, 0.94);
   });
 }
 
@@ -83,6 +114,7 @@ export default function LogoStudio({ onCreated }: Props) {
   const [preview,setPreview] = useState("");
   const [prepared,setPrepared] = useState<Blob|null>(null);
   const [removeBackground,setRemoveBackground] = useState(true);
+  const [trimTransparent,setTrimTransparent] = useState(true);
   const [tolerance,setTolerance] = useState(42);
   const [busy,setBusy] = useState(false);
   const [status,setStatus] = useState("Upload a logo to preview it, clean its edges and prepare it for the website.");
@@ -103,13 +135,13 @@ export default function LogoStudio({ onCreated }: Props) {
     if (!file || busy) return;
     setBusy(true);
     try {
-      const blob = await prepareLogo(file,tolerance,removeBackground);
+      const blob = await prepareLogo(file,tolerance,removeBackground,trimTransparent);
       setPrepared(blob);
       const nextUrl = URL.createObjectURL(blob);
       setPreview(nextUrl);
       setStatus(removeBackground
-        ? "Transparent PNG prepared. Review the edges before saving; this works best on plain or evenly coloured backgrounds."
-        : "Logo resized and optimized. Original background retained.");
+        ? "Transparent PNG prepared. Transparent margins were trimmed and the mark was centred. Review both theme previews before saving."
+        : "Logo resized and centred. Original background retained.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not prepare this logo.");
     } finally { setBusy(false); }
@@ -142,7 +174,7 @@ export default function LogoStudio({ onCreated }: Props) {
       const {data:saved,error:saveError} = await supabase.rpc("save_creator_media",{
         p_media_id:null,p_title:title,p_media_type:"image",p_source_url:null,
         p_storage_path:"creator-media-private/" + outputPath,p_alt_text:"Nhen? / نهين؟ brand logo",
-        p_metadata:{mimeType:outputType,size:prepared.size,originalName:file.name,originalStoragePath:"creator-media-private/" + originalPath,backgroundRemoved:removeBackground,backgroundRemovalMethod:removeBackground?"edge-colour-key-v1":"none",backgroundTolerance:tolerance},
+        p_metadata:{mimeType:outputType,size:prepared.size,originalName:file.name,originalStoragePath:"creator-media-private/" + originalPath,backgroundRemoved:removeBackground,backgroundRemovalMethod:removeBackground?"edge-colour-key-v1":"none",backgroundTolerance:tolerance,transparentMarginsTrimmed:trimTransparent},
         p_is_published:false
       });
       if (saveError || !saved?.[0]?.saved || !saved[0].media_id) throw saveError ?? new Error("The logo file uploaded, but its media record could not be saved.");
@@ -160,12 +192,13 @@ export default function LogoStudio({ onCreated }: Props) {
   }
 
   return <section className="nhen-logo-studio" aria-label="Nhen logo studio">
-    <div className="nhen-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep your original safe. Preview a clean transparent version, then publish it when you&apos;re happy.</p></div><span className="nhen-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
+    <div className="nhen-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep the original safe. Clean a plain background, trim empty space and preview the logo against both site themes before publishing.</p></div><span className="nhen-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
     <label className="nhen-logo-file"><span>Choose logo image</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void selectFile(e.target.files?.[0]??null)}/><small>PNG, JPG or WebP · up to 20 MB</small></label>
     {file && <div className="nhen-logo-controls">
-      <label className="nhen-logo-toggle"><input type="checkbox" checked={removeBackground} onChange={e=>{setRemoveBackground(e.target.checked);setPrepared(null);}}/><span><strong>Remove plain background</strong><small>Finds a similar colour connected to the image edges. Best for solid or evenly coloured backgrounds.</small></span></label>
+      <label className="nhen-logo-toggle"><input type="checkbox" checked={removeBackground} onChange={e=>{setRemoveBackground(e.target.checked);setPrepared(null);}}/><span><strong>Remove a plain background</strong><small>Removes a similar colour connected to the image edges. Best for solid or evenly coloured backgrounds; detailed or gradient backgrounds may need a dedicated editor.</small></span></label>
+      <label className="nhen-logo-toggle"><input type="checkbox" checked={trimTransparent} onChange={e=>{setTrimTransparent(e.target.checked);setPrepared(null);}}/><span><strong>Auto-trim and centre the logo</strong><small>Removes empty transparent margins and adds balanced breathing room for the website header.</small></span></label>
       {removeBackground && <label className="nhen-logo-tolerance">Background sensitivity <strong>{tolerance}</strong><input type="range" min="12" max="100" step="2" value={tolerance} onChange={e=>{setTolerance(Number(e.target.value));setPrepared(null);}}/><small>Increase if a halo remains. Lower it if parts of the logo disappear.</small></label>}
-      <div className="nhen-logo-preview-wrap"><span>PREVIEW / {prepared?"PREPARED":"ORIGINAL"}</span><div className="nhen-logo-theme-previews"><div className="nhen-logo-theme-preview nhen-logo-theme-dark"><span>DARK THEME</span><img src={preview} alt="Logo preview on dark theme"/></div><div className="nhen-logo-theme-preview nhen-logo-theme-light"><span>LIGHT THEME</span><img src={preview} alt="Logo preview on light theme"/></div></div></div>
+      <div className="nhen-logo-preview-wrap"><span>PREVIEW / {prepared?"CLEANED & CENTRED":"ORIGINAL"}</span><div className="nhen-logo-theme-previews"><div className="nhen-logo-theme-preview nhen-logo-theme-dark"><span>DARK THEME</span><img src={preview} alt="Logo preview on dark theme"/></div><div className="nhen-logo-theme-preview nhen-logo-theme-light"><span>LIGHT THEME</span><img src={preview} alt="Logo preview on light theme"/></div></div></div>
       <div className="nhen-logo-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void prepare()}>{busy?"Preparing…":"Prepare preview"}</button><button type="button" className="button button-primary" disabled={busy||!prepared} onClick={()=>void save()}>{busy?"Saving…":"Save to media library ↗"}</button></div>
     </div>}
     <p className="editor-status" role="status" aria-live="polite">{status}</p>
