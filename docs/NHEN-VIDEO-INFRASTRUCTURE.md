@@ -1,7 +1,6 @@
 # NHEN video infrastructure — strict $0 plan
 
 Status: strict free-only architecture approved; YouTube source workflow and storage quota reservations implemented on `development`.
-Production remains untouched.
 Repository branch: `development`.
 Production remains untouched.
 
@@ -20,6 +19,7 @@ NHEN must not depend on a paid service, paid plan, paid add-on, or automatic ove
 - Watch pages, reactions, bookmarks, comments, and creator publishing metadata are already separate from the upload UI.
 - Current verified Storage usage query returned 0 objects / 0 bytes at the time of audit.
 - A database reservation system now enforces a conservative 750 MiB application storage ceiling across all Supabase Storage buckets. It reserves expected upload bytes before creator/community uploads and expires abandoned reservations after one hour.
+- Creator media and community Nhenbits now use TUS resumable uploads in 6 MiB chunks with retry backoff and visible progress. A stable owner-scoped object key plus browser-persisted upload session lets the same selected file resume after an interruption or page reload. Reservation IDs can be renewed for a matching in-progress upload.
 
 These are per-file and project quotas, not a promise of unlimited total storage.
 
@@ -58,7 +58,7 @@ Do not add Cloudflare R2 as an active dependency in strict-$0 mode. R2 currently
 - Uploads must be authenticated and authorized by the existing creator/member role model.
 - Generate opaque owner-scoped object keys; never trust a client-supplied storage path.
 - Validate MIME type, extension, actual file size and duration server-side where possible.
-- Use resumable/chunked transfer only where the selected provider supports it on the free tier.
+- Use TUS resumable/chunked transfer only where the selected provider supports it on the free tier. Current Supabase uploads use 6 MiB chunks, retry delays, a stable object key and a browser-persisted session fingerprint.
 - Write metadata only after upload initiation; mark an asset ready only after successful completion/verification.
 - Failed or abandoned uploads must be cleanable without deleting unrelated assets.
 - Public playback must use provider-aware URLs; do not assume every source is a Supabase Storage path.
@@ -82,9 +82,10 @@ Important limitations: this is an application-level storage safety ceiling, not 
 
 ### Phase 2 — upload reliability — partially implemented
 - Add provider and processing-state metadata to existing media records.
-- Add expiring reservations, cleanup of abandoned reservations, and a hard application storage stop for creator media and community Nhenbits.
+- Add expiring reservations, renewal for matching retry sessions, and a hard application storage stop for creator media and community Nhenbits.
+- Use TUS resumable uploads for creator media and community Nhenbits, with 6 MiB chunks, retry backoff, progress feedback and stable session identity across reloads.
 - Show storage usage/available capacity in the Creator Media Library.
-- Remaining: resumable upload/retry states, abandoned object cleanup, egress monitoring, and end-to-end tests for interruption and quota exhaustion.
+- Remaining: automated abandoned-object cleanup, egress monitoring, and end-to-end tests that deliberately interrupt a real upload and verify quota exhaustion.
 
 ### Phase 3 — playback quality
 - Add thumbnails/posters, metadata probing, browser-compatible MP4 validation and optional multiple renditions only if a free local/browser workflow is viable.
@@ -100,6 +101,7 @@ Important limitations: this is an application-level storage safety ceiling, not 
 
 - Confirm Supabase plan and actual Storage/Egress usage in the dashboard.
 - Test upload, interruption, retry, failed upload cleanup, deletion and owner isolation.
+- Confirm TUS retry recovery in a real browser session using the same file and verify expired reservations are renewed safely.
 - Test that a full quota stops uploads without data corruption or a paid fallback.
 - Test official YouTube embed records alongside native MP4 playback.
 - Verify storage reservations and capacity errors for creator and community uploads.
