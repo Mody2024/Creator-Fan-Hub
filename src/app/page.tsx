@@ -2,6 +2,9 @@ import Link from "next/link";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
+import PublishedPolls from "@/app/vote/published-polls";
+import PublicVideos from "@/app/videos/public-videos";
+import NarrationControl from "@/app/narration-control";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +54,12 @@ export default async function HomePage() {
   }
   return <main className="nhen-app-shell nhen-home-shell">
     <header className="nhen-app-header">
-      <Link className="nhen-brand" href="/" aria-label="Nhen? home">{config.logoUrl?<img src={config.logoUrl} alt="" style={{width:30,height:30,objectFit:"contain"}}/>:null}<span>Nhen?<small lang="ar" dir="rtl">نهين؟</small></span></Link>
+      <Link className="nhen-brand" href="/" aria-label="Nhen? home">{config.logoUrl && <img src={config.logoUrl} alt="" style={{width:30,height:30,objectFit:"contain"}}/>}<span>Nhen?<small lang="ar" dir="rtl">نهين؟</small></span></Link>
       <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder="Search videos, creators and community" aria-label="Search NHEN" maxLength={80}/></form>
       <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">Join NHEN</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
     <div className="nhen-platform-grid">
-      <aside className="nhen-sidebar" aria-label="Main navigation">
+      <aside className="nhen-sidebar desktop-nav" aria-label="Main navigation">
         <Link className="nhen-sidebar-link" href="/"><span>⌂</span> Home</Link>
         <Link className="nhen-sidebar-link" href="/watch"><span>▶</span> Watch</Link>
         <Link className="nhen-sidebar-link" href="/shorts"><span>✦</span> Nhenbits</Link>
@@ -69,18 +72,18 @@ export default async function HomePage() {
         <Link className="nhen-sidebar-link" href="/creator/login"><span>＋</span> Creator Studio</Link>
       </aside>
       <section className="nhen-feed-column">
-        <section className="nhen-home-welcome nhen-card nhen-card-pad">
-          <span className="nhen-section-label">NHEN? / YOUR WORLD, IN MOTION</span>
-          <h1>Watch what matters.<br/><em>Be part of it.</em></h1>
-          <p className="nhen-muted">Official creator videos, community-made Nhenbits, and conversations — all connected in one place.</p>
+        <section className="nhen-home-welcome nhen-card nhen-card-pad" id="hero">
+          <span className="nhen-section-label">{config.tagline}</span>
+          <h1>{config.heroTitle || "Watch what matters."}<br/><em>Be part of it.</em></h1>
+          <p className="nhen-muted">{config.heroBody || "Official creator videos, community-made Nhenbits, and conversations — all connected in one place."}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
           <div className="nhen-home-quicklinks"><Link className="button button-primary" href="/watch">Explore videos ↗</Link><Link className="button button-secondary" href="/community">Join the community</Link></div>
         </section>
-        <div className="nhen-feed-tabs"><Link className="active" href="/">For you</Link><Link href="/watch">Videos</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></div>
-        <div className="nhen-card-heading"><h2 className="nhen-card-title">Latest from creators</h2><Link className="nhen-muted" href="/watch">See all ↗</Link></div>
+        {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="nhen-card nhen-card-pad" id="poll"><span className="nhen-section-label">COMMUNITY VOTE</span><h2 className="nhen-card-title">Your voice shapes what comes next.</h2><PublishedPolls /></section>}\n        <div className="nhen-feed-tabs"><Link className="active" href="/">For you</Link><Link href="/watch">Videos</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></div>
+        {config.visibleSections.includes("videos") && <PublicVideos />}\n        <div className="nhen-card-heading"><h2 className="nhen-card-title">Latest from creators</h2><Link className="nhen-muted" href="/watch">See all ↗</Link></div>
         {videos.length?<div className="nhen-home-video-grid">{videos.slice(0,8).map(video=><article className="nhen-home-video-card" key={video.id}>
           <Link className="nhen-home-video-player" href={"/watch/"+video.slug}><PublicVideoPlayer src={video.src} title={video.title} description={video.description} youtubeEmbedUrl={video.youtubeEmbedUrl}/></Link>
           <div className="nhen-home-video-meta"><span className="nhen-section-label">{video.category.toUpperCase()} · OFFICIAL</span><h3><Link href={"/watch/"+video.slug}>{video.title}</Link></h3><p>{video.description}</p><small>{new Date(video.publishedAt).toLocaleDateString()}</small></div>
-        </article>)}</div>:<div className="nhen-card nhen-empty-state"><strong>Your watch feed is getting ready.</strong><p className="nhen-muted">New official creator videos will appear here.</p></div>}
+        </article>)}</div>:<div className="nhen-card nhen-empty-state"><strong>Your watch feed is getting ready.</strong><p className="nhen-muted">New official creator videos will appear here.</p></div>}</div>
         <div className="nhen-card-heading"><h2 className="nhen-card-title">From the community</h2><Link className="nhen-muted" href="/community">Open community ↗</Link></div>
         {posts.length?posts.map(post=><article className="nhen-card nhen-home-post" key={post.id}><div className="nhen-post-header"><div className="nhen-avatar">{post.avatarUrl?<img src={post.avatarUrl} alt=""/>:post.displayName.slice(0,1).toUpperCase()}</div><div><strong>{post.displayName}</strong><div className="nhen-muted">@{post.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div></div><p className="nhen-post-body">{post.body}</p><Link className="nhen-action" href="/community">Join the conversation ↗</Link></article>):<div className="nhen-card nhen-empty-state"><p className="nhen-muted">Community conversations will appear here as people share.</p><Link href="/community">Visit community ↗</Link></div>}
       </section>
@@ -89,6 +92,6 @@ export default async function HomePage() {
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">CREATOR ACCESS</span><h2 className="nhen-card-title">Have a channel?</h2><p className="nhen-muted">Approved creators can publish official videos and manage their channel from NHEN Studio.</p><Link className="button button-secondary" href="/creator/login">Open Creator Studio ↗</Link></section>
       </aside>
     </div>
-    <nav className="nhen-mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="/watch">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>
+    <nav className="nhen-mobile-nav mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="/watch">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
