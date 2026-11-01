@@ -47,7 +47,7 @@ export default function CreatorLoginPage() {
 
   return <main className="admin-shell">
     <Link className="admin-back" href="/">← Back to community</Link>
-    <section className="admin-card">
+    <section className="admin-card"><Link className="wordmark nhen-wordmark" href="/"><span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span></Link>
       <span className="eyebrow">PRIVATE WORKSPACE / 01</span>
       <h1>Creator <em>access.</em></h1>
       <p>Sign in to manage the community experience. Access is restricted to the configured creator account.</p>
