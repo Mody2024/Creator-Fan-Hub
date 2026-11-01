@@ -306,3 +306,20 @@ test("uploaded logo preview shows both themes while bilingual identity remains v
   assert.match(studio, /LIGHT THEME/);
   assert.match(design, /nhen-logo-theme-previews/);
 });
+
+
+test("creator appearance preferences control public color mode and motion safely", async () => {
+  const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
+  const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+  const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  assert.match(config, /colorMode: "dark" \| "light" \| "system"/);
+  assert.match(config, /motion: "full" \| "reduced" \| "off"/);
+  assert.match(config, /appearance\.colorMode === "light" \|\| appearance\.colorMode === "system"/);
+  assert.match(config, /appearance\.motion === "reduced" \|\| appearance\.motion === "off"/);
+  assert.match(page, /data-color-mode=\{config\.colorMode\} data-motion=\{config\.motion\}/);
+  assert.match(settings, /Follow device/);
+  assert.match(settings, /Reduced motion/);
+  assert.match(design, /\[data-motion="off"\]/);
+  assert.match(design, /\[data-color-mode="light"\]/);
+});
