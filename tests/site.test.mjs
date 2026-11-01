@@ -356,3 +356,14 @@ test("creator analytics exports ranked aggregate metrics as safe CSV", async () 
   assert.match(exportComponent, /URL\.createObjectURL/);
   assert.match(exportComponent, /anchor\.remove\(\)/);
 });
+
+
+test("community moderation confirms database updates and guards destructive actions", async () => {
+  const moderation = await readFile(new URL("../src/app/creator/community/moderation-client.tsx", import.meta.url), "utf8");
+  assert.match(moderation, /window\.confirm\(status==="removed"/);
+  assert.match(moderation, /window\.confirm\(status==="resolved"/);
+  assert.match(moderation, /\.select\("id"\)\.maybeSingle\(\)/);
+  assert.match(moderation, /!result\.data\?\.id/);
+  assert.match(moderation, /finally \{setBusy\(null\);\}/);
+  assert.match(moderation, /No update was confirmed/);
+});
