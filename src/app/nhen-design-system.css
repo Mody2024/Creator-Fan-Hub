@@ -633,3 +633,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 [dir="rtl"] .nhen-search-form input{text-align:right}
 [dir="rtl"] .nhen-home-video-meta,[dir="rtl"] .nhen-home-post{text-align:right}
 @media(max-width:700px){.nhen-language-switch{top:10px;right:10px;min-height:34px;padding:0 10px;font-size:10px}[dir="rtl"] .nhen-language-switch{right:auto;left:10px}}
+
+/* Arabic layout refinements for watch and community-video surfaces. */
+[dir="rtl"].nhen-watch-page .nhen-watch-top,[dir="rtl"] .nhen-watch-title-row,[dir="rtl"] .nhen-watch-actions,[dir="rtl"] .nhen-card-heading{direction:rtl}
+[dir="rtl"] .nhen-watch-comment-compose{direction:rtl}
+[dir="rtl"] .nhen-watch-comment-compose textarea,[dir="rtl"] .nhen-community-short-fields input,[dir="rtl"] .nhen-community-short-fields textarea{text-align:right;direction:rtl}
+[dir="rtl"] .nhen-community-short-author{direction:rtl}
+[dir="rtl"] .nhen-community-short-controls{direction:rtl}
+[dir="rtl"] .nhen-reaction-picker{direction:rtl}
+.nhen-watch-page[dir="rtl"] nav{direction:rtl}
