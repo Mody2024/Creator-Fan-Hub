@@ -126,6 +126,19 @@ export default function CreatorSettings() {
   }
 
   async function save(publish: boolean) {
+    if (publish) {
+      const selectedMedia = [
+        draft.identity.logoMediaId,
+        draft.identity.mascotMediaId,
+        draft.identity.narrationMediaId,
+        draft.hero.mediaId
+      ].filter((id): id is string => typeof id === "string" && id.length > 0);
+      const unpublished = selectedMedia.filter(id => !mediaOptions.some(item => item.media_id === id && item.is_published));
+      if (unpublished.length) {
+        setStatus("Your draft is safe, but one or more selected assets are still private. Publish those assets in Media Library, reload this draft, then publish the website.");
+        return;
+      }
+    }
     const supabase = getSupabaseBrowserClient();
     if (!supabase || saving) return;
     setSaving(true);
