@@ -321,6 +321,9 @@ test("creator appearance preferences control public color mode and motion safely
   assert.match(settings, /Follow device/);
   assert.match(settings, /Reduced motion/);
   assert.match(design, /\[data-motion="off"\]/);
+  assert.match(design, /--nhen-surface: #ffffff/);
+  assert.match(design, /\[data-color-mode="system"\]/);
+  assert.match(design, /prefers-color-scheme: light/);
   assert.match(design, /\[data-color-mode="light"\]/);
 });
 
