@@ -552,3 +552,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 .mobile-nav{display:none}
 @media(max-width:700px){.mobile-nav{position:fixed;z-index:70;left:0;right:0;bottom:0;display:flex;justify-content:space-around;gap:4px;padding:9px max(8px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));border-top:1px solid var(--nhen-line);background:color-mix(in srgb,var(--nhen-surface) 92%,transparent);backdrop-filter:blur(18px)}.mobile-nav a{display:grid;justify-items:center;gap:3px;min-width:52px;font-size:16px}.mobile-nav a span{font-size:10px}.nhen-home-shell{padding-bottom:82px}}
+
+.nhen-profile-video-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.nhen-profile-video{overflow:hidden}
+.nhen-profile-video video{display:block;width:100%;aspect-ratio:16/9;background:#08080c;object-fit:contain}
+.nhen-profile-video>div{padding:14px}
+.nhen-profile-video h3{margin:8px 0;font-size:15px}
+.nhen-profile-video p{font-size:12px;color:var(--nhen-muted);line-height:1.5}
+@media(max-width:600px){.nhen-profile-video-grid{grid-template-columns:1fr}}
