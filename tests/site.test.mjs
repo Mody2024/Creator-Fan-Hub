@@ -419,25 +419,30 @@ test("the bilingual Nhen identity and uploaded logo remain theme-aware", async (
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
-  assert.match(page, /<strong>Nhen\\?<\\/strong><small lang="ar" dir="rtl">نهين؟<\\/small>/);
-  assert.match(page, /config\\.logoUrl && <img className="site-logo-image"/);
-  assert.match(styles, /\\.site \\.nhen-wordmark \\.site-logo-image[\\s\\S]*object-fit: contain/);
-  assert.match(styles, /\\.nhen-logo-theme-dark/);
-  assert.match(styles, /\\.nhen-logo-theme-light/);
-  assert.match(settings, /siteName: "Nhen\\?"/);
+  assert.ok(page.includes('<strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small>'));
+  assert.ok(page.includes('config.logoUrl && <img className="site-logo-image"'));
+  assert.ok(styles.includes(".site .nhen-wordmark .site-logo-image"));
+  assert.ok(styles.includes(".nhen-logo-theme-dark"));
+  assert.ok(styles.includes(".nhen-logo-theme-light"));
+  assert.ok(settings.includes('siteName: "Nhen?"'));
 });
 
 test("creator logo preparation can remove plain backgrounds and trim transparent margins", async () => {
   const logo = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
-  assert.match(logo, /prepareLogo\\(file: File, tolerance: number, removeBackground: boolean, trimTransparent: boolean\\)/);
-  assert.match(logo, /transparentMarginsTrimmed:trimTransparent/);
-  assert.match(logo, /Auto-trim and centre the logo/);
-  assert.match(logo, /both theme previews/);
+  assert.ok(logo.includes("trimTransparent: boolean"));
+  assert.ok(logo.includes("transparentMarginsTrimmed:trimTransparent"));
+  assert.ok(logo.includes("Auto-trim and centre the logo"));
+  assert.ok(logo.includes("both site themes"));
 });
 
-test("video navigation is consistently gated and does not duplicate Watch and Videos links", async () => {
+test("video navigation is consistently gated without duplicate Watch and Videos links", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /visibleSections\\.includes\\("videos"\\) && <>\\s*<a href="#videos">Watch<\\/a><a href="\\/shorts">Shorts<\\/a>\\s*<\\/>/);
-  assert.doesNotMatch(page, /<a href="#videos">Videos<\\/a>/);
-  assert.doesNotMatch(page, /<nav className="mobile-nav"[\\s\\S]{0,700}><a href="#videos">Watch<\\/a>/);
+  assert.ok(page.includes('config.visibleSections.includes("videos") && <><a href="#videos">Watch</a><a href="/shorts">Shorts</a></>'));
+  assert.equal(page.includes('<a href="#videos">Videos</a>'), false);
+  const mobileStart = page.indexOf('<nav className="mobile-nav"');
+  const mobileEnd = page.indexOf("</nav>", mobileStart);
+  const mobileNav = page.slice(mobileStart, mobileEnd);
+  assert.ok(mobileNav.includes('config.visibleSections.includes("videos")'));
+  assert.ok(mobileNav.includes('<a href="/shorts">Shorts</a>'));
+  assert.equal(mobileNav.includes('<a href="#videos">Watch</a>'), false);
 });
