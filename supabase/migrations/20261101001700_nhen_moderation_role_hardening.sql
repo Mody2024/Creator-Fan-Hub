@@ -18,6 +18,9 @@ $$;
 revoke all on function public.can_moderate_community() from public, anon;
 grant execute on function public.can_moderate_community() to authenticated;
 
+-- Table privileges are required in addition to the row-level policy.
+grant update on public.content_reports to authenticated;
+
 drop policy if exists "Creators moderate posts" on public.community_posts;
 create policy "Authorized moderators manage posts"
 on public.community_posts for all to authenticated
