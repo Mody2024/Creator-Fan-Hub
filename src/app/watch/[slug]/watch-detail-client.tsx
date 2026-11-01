@@ -50,7 +50,7 @@ export default function WatchDetailClient(props:Props){
   if(error)setNotice("Comment could not be submitted.");else{setComment("");setNotice("Comment submitted for creator review.");}
  }
  return <main className="nhen-watch-page">
-  <header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/">Home</Link><Link href="/community">Community</Link><Link href="/#videos">Videos</Link></nav></header>
+  <header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/">Home</Link><Link href="/community">Community</Link><Link href="/notifications">Notifications</Link><Link href="/#videos">Videos</Link></nav></header>
   <div className="nhen-watch-layout">
    <article className="nhen-watch-main">
     <div className="nhen-watch-player"><PublicVideoPlayer src={props.src} title={props.title} description={props.description}/></div>
