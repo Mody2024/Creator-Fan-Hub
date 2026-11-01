@@ -130,7 +130,7 @@ check("creator poll creation validates date order and option lengths", pollManag
 check("creator poll form shows question, description and option counts", pollManagement.includes("{title.trim().length}/160") && pollManagement.includes("{description.length}/1000") && pollManagement.includes("}/8 options"));
 check("creator poll creation always releases working state", pollManagement.includes("finally {setWorking(\"\");"));
 check("creator poll dashboard fetches aggregate results through public RPC", pollManagement.includes('rpc("get_public_poll_results")') && pollManagement.includes("const groupedResults"));
-check("creator poll dashboard shows final counts only for closed polls", pollManagement.includes('p.status==="closed"&&results[p.poll_id]') && pollManagement.includes("FINAL RESULTS") && pollManagement.includes("votes</span>"));
+check("creator poll dashboard shows final counts only for closed polls", pollManagement.includes('p.status==="closed"&&results[p.poll_id]') && pollManagement.includes("t.results") && pollManagement.includes("t.votes"));
 check("poll display does not expose voter data", !poll.includes("voter_token") && !poll.includes("voter_hash"));
 check("public voting always releases its submitting state", voteForm.includes("finally {\n      setSubmitting(false);"));
 check("public voting handles uncertain network results without claiming success", voteForm.includes("Refresh the page before retrying to check whether it was recorded") && voteForm.includes("connection failed before we could confirm your vote"));
@@ -212,7 +212,7 @@ check("media metadata RPCs require creator-owned storage paths and grant only au
 
 check("event and social managers show helpful empty states", eventSocial.includes("No events yet.") && eventSocial.includes("No social links yet."));
 check("media filters provide a clearable no-results state", media.includes("No matching assets.") && media.includes('onClick={()=>{setSearch("");setFilter("all");}}'));
-check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">No polls created yet.') && ideasModeration.includes('className="moderation-empty" role="status"><h3>No submissions yet.'));
+check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">{t.empty}</p>') && ideasModeration.includes('className="moderation-empty" role="status"><h3>No submissions yet.'));
 check("publishing history explains the first-version empty state", historyComponent.includes('className="moderation-empty" role="status"><h3>No published versions yet.'));
 check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">{t.loading}</p>'));
 
