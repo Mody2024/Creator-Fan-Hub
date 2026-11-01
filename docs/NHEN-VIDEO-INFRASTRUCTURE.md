@@ -22,6 +22,7 @@ NHEN must not depend on a paid service, paid plan, paid add-on, or automatic ove
 - Creator media and community Nhenbits now use TUS resumable uploads in 6 MiB chunks with retry backoff and visible progress. A stable owner-scoped object key plus browser-persisted upload session lets the same selected file resume after an interruption or page reload. Reservation IDs can be renewed for a matching in-progress upload.
 - Creator Media now shows a storage-health audit: current usage, expired reservation cleanup, and the count/size of media objects older than 24 hours that have no matching media record. It never deletes those objects automatically.
 - Community Nhenbit deletion now backs up the video before removal and restores it if the database row deletion fails, reducing the chance of a broken post after a partial failure.
+- Creator and community media records now persist byte size, MIME type, provider identity, asset key and playback kind, making future quota reports and provider migrations more reliable.
 - The previously applied reservation-renewal and storage-health migrations are now mirrored in `supabase/migrations/` so the repository can reproduce the live database state.
 
 These are per-file and project quotas, not a promise of unlimited total storage.
