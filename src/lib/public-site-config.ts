@@ -24,7 +24,7 @@ export type PublicSiteConfig = {
 };
 
 const fallback: PublicSiteConfig = {
-  siteName: "N7EN",
+  siteName: "Nhen?",
   logoUrl: null,
   heroMediaUrl: null,
   heroMediaType: null,
@@ -34,7 +34,7 @@ const fallback: PublicSiteConfig = {
   heroOverlay: 0.35,
   heroMuted: true,
   heroLoop: true,
-  tagline: "The community shaping what comes next.",
+  tagline: "The community shaping what comes next. · مجتمع يصنع القادم.",
   heroTitle: "The next big thing starts with you.",
   heroBody: "Discover the community, put your ideas forward, and help decide what gets made next. Your voice moves the story forward.",
   theme: "obsidian",
@@ -83,7 +83,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     return supabase.storage.from(bucket).getPublicUrl(pathParts.join("/")).data.publicUrl;
   };
   return {
-    siteName: typeof identity.siteName === "string" ? identity.siteName.slice(0, 100) : fallback.siteName,
+    siteName: "Nhen?",
     logoUrl: publicMediaUrl(logoItem, ["image"]),
     heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"]),
     heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
