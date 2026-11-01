@@ -16,19 +16,38 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
   }catch(e){setNotice(e instanceof Error?e.message:"Could not create invitation.")}finally{setBusy(false)}
  }
  async function changeRole(member:TeamMember,next:string){
-  if(!supabase||busy||member.role==="owner")return;setBusy(true);
-  const {error}=await supabase.rpc("set_creator_admin_role",{p_user_id:member.userId,p_role:next});
-  if(error)setNotice("Could not update this role.");else{setTeam(xs=>xs.map(x=>x.userId===member.userId?{...x,role:next}:x));setNotice("Team role updated.");}setBusy(false);
+  if(!supabase||busy||member.role==="owner"||!roles.includes(next))return;
+  setBusy(true);setNotice("");
+  try {
+   const {error}=await supabase.rpc("set_creator_admin_role",{p_user_id:member.userId,p_role:next});
+   if(error)throw error;
+   setTeam(xs=>xs.map(x=>x.userId===member.userId?{...x,role:next}:x));
+   setNotice("Team role updated.");
+  } catch {
+   setNotice("Could not update this role. Refresh the roster to confirm the current permissions.");
+  } finally {setBusy(false);}
  }
  async function toggleActive(member:TeamMember){
-  if(!supabase||busy||member.role==="owner")return;setBusy(true);
-  const {error}=await supabase.rpc("set_creator_admin_active",{p_user_id:member.userId,p_active:!member.active});
-  if(error)setNotice("Could not change account access.");else{setTeam(xs=>xs.map(x=>x.userId===member.userId?{...x,active:!x.active}:x));setNotice(member.active?"Creator access deactivated.":"Creator access restored.");}setBusy(false);
+  if(!supabase||busy||member.role==="owner")return;
+  setBusy(true);setNotice("");
+  try {
+   const {error}=await supabase.rpc("set_creator_admin_active",{p_user_id:member.userId,p_active:!member.active});
+   if(error)throw error;
+   setTeam(xs=>xs.map(x=>x.userId===member.userId?{...x,active:!x.active}:x));
+   setNotice(member.active?"Creator access deactivated.":"Creator access restored.");
+  } catch {
+   setNotice("Could not change account access. Refresh the roster to confirm the current status.");
+  } finally {setBusy(false);}
+ }
+ async function copyInvite(){
+  if(!inviteUrl)return;
+  try {await navigator.clipboard.writeText(inviteUrl);setNotice("Invitation link copied.");}
+  catch {setNotice("Clipboard access is unavailable. Select and copy the invitation link manually.");}
  }
  return <section className="nhen-team-workspace">
   <div className="nhen-card nhen-card-pad"><span className="nhen-section-label">INVITE A COLLABORATOR</span><h2>Grow your studio carefully.</h2><p className="nhen-muted">Invitations are one-use, expire after seven days and are tied to the invited email. Teammates must create and verify their own account before accepting.</p>
-   <div className="nhen-team-invite-form"><label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="collaborator@example.com"/></label><label>Role<select value={role} onChange={e=>setRole(e.target.value)}>{roles.map(r=><option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><button className="button button-primary" disabled={busy||!email.includes("@")} onClick={()=>void invite()}>{busy?"Working…":"Create invitation ↗"}</button></div>
-   {inviteUrl&&<div className="nhen-invite-link"><strong>One-time invitation link</strong><input readOnly value={inviteUrl}/><button className="button button-secondary" onClick={()=>void navigator.clipboard.writeText(inviteUrl)}>Copy invite link</button></div>}
+   <div className="nhen-team-invite-form"><label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="collaborator@example.com"/></label><label>Role<select value={role} onChange={e=>setRole(e.target.value)}>{roles.map(r=><option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><button className="button button-primary" disabled={busy||!/^\S+@\S+\.\S+$/.test(email.trim())} onClick={()=>void invite()}>{busy?"Working…":"Create invitation ↗"}</button></div>
+   {inviteUrl&&<div className="nhen-invite-link"><strong>One-time invitation link</strong><input readOnly value={inviteUrl}/><button className="button button-secondary" onClick={()=>void copyInvite()}>Copy invite link</button></div>}
    {notice&&<p className="nhen-mod-notice" role="status">{notice}</p>}
   </div>
   <div className="nhen-card nhen-card-pad"><div className="nhen-card-heading"><div><span className="nhen-section-label">ACCESS ROSTER</span><h2>Studio team</h2></div><span className="nhen-pill">{team.length} accounts</span></div>
