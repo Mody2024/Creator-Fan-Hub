@@ -101,15 +101,21 @@ export default function CommunityClient({ initialPosts, selectedFeed }: { initia
         if (result.error) throw result.error;
         router.refresh();
       }
-    } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Could not complete sign-in.");
+    } catch {
+      setStatus("We could not complete sign-in. Check your details and connection, then try again.");
     } finally { setBusy(false); }
   }
 
   async function signOut() {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    setMember(null); router.refresh();
+    if (!supabase || busy) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setMember(null); setStatus("You have signed out."); router.refresh();
+    } catch {
+      setStatus("We could not sign you out because the connection failed. Please try again.");
+    } finally { setBusy(false); }
   }
 
   async function submitPost() {
@@ -125,44 +131,71 @@ export default function CommunityClient({ initialPosts, selectedFeed }: { initia
 
   async function react(postId: string, reaction: string) {
     if (!supabase || !member) { setStatus("Sign in to react to community posts."); return; }
-    const current = reactionsByPost[postId]?.mine;
-    const next = current === reaction ? null : reaction;
-    setReactionsByPost(value => ({ ...value, [postId]: { count: Math.max(0,(value[postId]?.count ?? 0) + (current ? (next ? 0 : -1) : 1)), mine: next } }));
-    const result = next
-      ? await supabase.from("community_reactions").upsert({ post_id: postId, user_id: member.id, reaction: next }, { onConflict: "post_id,user_id" })
-      : await supabase.from("community_reactions").delete().eq("post_id", postId).eq("user_id", member.id);
-    if (result.error) { setStatus("Could not save that reaction. Refresh and try again."); router.refresh(); }
+    const previous = reactionsByPost[postId] ?? { count: 0, mine: null };
+    const next = previous.mine === reaction ? null : reaction;
+    setReactionsByPost(value => ({ ...value, [postId]: { count: Math.max(0, previous.count + (previous.mine ? (next ? 0 : -1) : 1)), mine: next } }));
+    try {
+      const result = next
+        ? await supabase.from("community_reactions").upsert({ post_id: postId, user_id: member.id, reaction: next }, { onConflict: "post_id,user_id" })
+        : await supabase.from("community_reactions").delete().eq("post_id", postId).eq("user_id", member.id);
+      if (result.error) throw result.error;
+      setStatus(next ? "Reaction saved." : "Reaction removed.");
+    } catch {
+      setReactionsByPost(value => ({ ...value, [postId]: previous }));
+      setStatus("Could not save that reaction. Your previous reaction has been restored.");
+    }
   }
 
   async function openComments(postId: string) {
     if (!supabase) return;
-    setCommentsFor(postId);
-    const { data, error } = await supabase.from("community_comments").select("id,body,author_id,created_at").eq("post_id",postId).eq("status","published").order("created_at",{ascending:true}).limit(30);
-    if (error) setStatus("Comments could not be loaded.");
-    setComments(data ?? []);
+    setCommentsFor(postId); setComments([]);
+    try {
+      const { data, error } = await supabase.from("community_comments").select("id,body,author_id,created_at").eq("post_id",postId).eq("status","published").order("created_at",{ascending:true}).limit(30);
+      if (error) throw error;
+      setComments(data ?? []);
+    } catch {
+      setStatus("Comments could not be loaded. Check your connection and try again.");
+    }
   }
 
   async function submitComment() {
-    if (!supabase || !member || !commentsFor || !commentText.trim()) { setStatus("Sign in to join the discussion."); return; }
-    const { error } = await supabase.from("community_comments").insert({ post_id: commentsFor, author_id: member.id, body: commentText.trim(), status: "pending" });
-    if (error) setStatus("Comment submission failed.");
-    else { setCommentText(""); setStatus("Comment sent for review."); }
+    if (!supabase || !member || !commentsFor || !commentText.trim() || busy) { setStatus("Sign in to join the discussion."); return; }
+    setBusy(true);
+    try {
+      const { error } = await supabase.from("community_comments").insert({ post_id: commentsFor, author_id: member.id, body: commentText.trim(), status: "pending" });
+      if (error) throw error;
+      setCommentText(""); setStatus("Comment sent for review.");
+    } catch {
+      setStatus("Comment submission failed. Your text is still here so you can retry.");
+    } finally { setBusy(false); }
   }
 
   async function toggleSave(postId: string) {
     if (!supabase || !member) { setStatus("Sign in to save community posts."); return; }
-    const next = !savedByPost[postId];
+    const previous = !!savedByPost[postId];
+    const next = !previous;
     setSavedByPost(value => ({ ...value, [postId]: next }));
-    const result = next
-      ? await supabase.from("community_bookmarks").insert({ post_id: postId, user_id: member.id })
-      : await supabase.from("community_bookmarks").delete().eq("post_id", postId).eq("user_id", member.id);
-    if (result.error) { setSavedByPost(value => ({ ...value, [postId]: !next })); setStatus("Could not update saved posts."); }
+    try {
+      const result = next
+        ? await supabase.from("community_bookmarks").insert({ post_id: postId, user_id: member.id })
+        : await supabase.from("community_bookmarks").delete().eq("post_id", postId).eq("user_id", member.id);
+      if (result.error) throw result.error;
+      setStatus(next ? "Post saved." : "Post removed from saved items.");
+    } catch {
+      setSavedByPost(value => ({ ...value, [postId]: previous }));
+      setStatus("Could not update saved posts. Your previous setting has been restored.");
+    }
   }
 
   async function report(postId: string) {
     if (!supabase || !member) { setStatus("Sign in to report content."); return; }
-    const { error } = await supabase.from("content_reports").insert({ reporter_id: member.id, target_type: "post", target_id: postId, reason: "other", details: "Reported from the community feed." });
-    setStatus(error ? "Could not send report." : "Report sent to the moderation team.");
+    try {
+      const { error } = await supabase.from("content_reports").insert({ reporter_id: member.id, target_type: "post", target_id: postId, reason: "other", details: "Reported from the community feed." });
+      if (error) throw error;
+      setStatus("Report sent to the moderation team for review.");
+    } catch {
+      setStatus("We could not send your report. Please try again later.");
+    }
   }
 
   return <main className="nhen-app-shell">
