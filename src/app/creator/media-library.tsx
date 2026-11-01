@@ -108,8 +108,9 @@ export default function MediaLibrary() {
       if(!reservationId){
         const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"creator-media-private"});
         if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("Free storage capacity could not be reserved. No upload was started.");
-        reservationId=reservation[0].reservation_id;
-        uploadSession.saveReservation(reservationId);
+        const newReservationId=reservation[0].reservation_id as string;
+        reservationId=newReservationId;
+        uploadSession.saveReservation(newReservationId);
       }
       const path = uploadSession.objectName;
       await uploadToSupabaseStorage({client:supabase,bucketName:"creator-media-private",objectName:path,file,onProgress:setUploadProgress});
