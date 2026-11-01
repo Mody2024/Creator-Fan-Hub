@@ -117,7 +117,7 @@ export default function MediaLibrary() {
     if(!supabase || busy || editingId) return;
     let parsed: URL;
     try { parsed=new URL(youtubeUrl.trim()); } catch { setStatus("Enter a valid YouTube video URL."); return; }
-    const host=parsed.hostname.replace(/^www\\./,"").toLowerCase();
+    const host=parsed.hostname.replace(/^www\./,"").toLowerCase();
     const parts=parsed.pathname.split("/").filter(Boolean);
     const videoId=host==="youtu.be" ? parts[0] :
       ["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host) ?
