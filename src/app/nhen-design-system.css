@@ -380,3 +380,5 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
  .nhen-wordmark .wordmark-kind { display:none; }
  .nhen-wordmark .site-logo-image { width:30px; height:30px; }
 }
+
+.nhen-dashboard-ar { font-family:"Noto Kufi Arabic","Noto Sans Arabic",Tahoma,sans-serif; color:var(--nhen-accent); font-size:12px; margin-inline-start:8px; }
