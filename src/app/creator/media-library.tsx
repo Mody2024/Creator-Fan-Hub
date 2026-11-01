@@ -214,7 +214,17 @@ export default function MediaLibrary() {
         throw deleteError ?? new Error("Media record could not be deleted; the original file was restored.");
       }
       deletedStoragePath=null;
-      setStatus("Private media and metadata deleted.");
+      const originalPath = typeof item.metadata?.originalStoragePath === "string" ? item.metadata.originalStoragePath : "";
+      let backupNotice = "";
+      if (originalPath.startsWith("creator-media-private/")) {
+        const [originalBucket,...originalParts] = originalPath.split("/");
+        const originalObjectPath = originalParts.join("/");
+        if (originalBucket === "creator-media-private" && /^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(originalObjectPath) && originalObjectPath.split("/")[0] === userData.user.id) {
+          const {error:backupCleanupError} = await supabase.storage.from("creator-media-private").remove([originalObjectPath]);
+          if (backupCleanupError) backupNotice = " The private original-logo backup could not be removed and needs storage cleanup.";
+        }
+      }
+      setStatus("Private media and metadata deleted." + backupNotice);
       await load();
     } catch(e) {
       if(deletedStoragePath && backup) {
