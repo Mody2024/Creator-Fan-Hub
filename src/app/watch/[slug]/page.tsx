@@ -4,8 +4,10 @@ import WatchDetailClient from "./watch-detail-client";
 
 export const dynamic="force-dynamic";
 
-export default async function WatchVideoPage({params}:{params:Promise<{slug:string}>}){
- const {slug}=await params;
+export default async function WatchVideoPage({params,searchParams}:{params:Promise<{slug:string}>;searchParams:Promise<{t?:string}>}){
+ const [{slug},{t}]=await Promise.all([params,searchParams]);
+ const parsedStart=Number(t);
+ const startAt=Number.isSafeInteger(parsedStart)&&parsedStart>=0&&parsedStart<=86400?parsedStart:0;
  const supabase=await createSupabaseServerClient();
  if(!supabase)notFound();
  const {data,error}=await supabase.from("video_catalog")
