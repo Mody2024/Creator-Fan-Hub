@@ -16,6 +16,8 @@ export type PublicSiteConfig = {
   heroBody: string;
   theme: "obsidian" | "paper" | "violet" | "custom";
   accent: string;
+  colorMode: "dark" | "light" | "system";
+  motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
   featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
   visibleSections: string[];
@@ -39,6 +41,8 @@ const fallback: PublicSiteConfig = {
   heroBody: "Discover the community, put your ideas forward, and help decide what gets made next. Your voice moves the story forward.",
   theme: "obsidian",
   accent: "#d8ff75",
+  colorMode: "dark",
+  motion: "full",
   maintenance: { enabled: false, message: "We'll be back soon." },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
   visibleSections: ["hero","ideas","poll","events","community","socials","videos"],
@@ -99,6 +103,8 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
     theme: theme === "paper" || theme === "violet" || theme === "custom" ? theme : "obsidian",
     accent: typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent,
+    colorMode: appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
+    motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
     maintenance: {
       enabled: maintenance.enabled === true,
       message: typeof maintenance.message === "string" ? maintenance.message.slice(0, 240) : fallback.maintenance.message
