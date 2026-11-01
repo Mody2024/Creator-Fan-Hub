@@ -24,6 +24,14 @@ export default function CommunityShortsClient(){
  const [uploadProgress,setUploadProgress]=useState<number|null>(null);
  const [status,setStatus]=useState("");
  const [loading,setLoading]=useState(true);
+ const [locale,setLocale]=useState<"en"|"ar">("en");
+ const isArabic=locale==="ar";
+ const t=isArabic?{
+  stream:"محتوى المجتمع",shared:"مقاطع من المجتمع",members:"فيديوهات الأعضاء",moment:"لحظتك",share:"شارك مقطع Nhenbit",limits:"يمكن للأعضاء نشر مقاطع MP4 أو WebM حتى 3 دقائق و50 ميجابايت للفيديو.",title:"اكتب عنوان الفيديو",caption:"أضف وصفًا (اختياري)",choose:"＋ اختر فيديو",none:"لم يتم اختيار فيديو",publish:"انشر Nhenbit ↗",publishing:"جارٍ النشر…",signIn:"انضم أو سجّل الدخول لنشر مقطع مجتمعي ↗",loading:"جارٍ تحميل مقاطع المجتمع…",empty:"لا توجد مقاطع Nhenbit بعد. كن أول من يشارك.",remove:"احذف مقطعك",confirm:"هل تريد إزالة هذا المقطع من المجتمع؟",upload:"جارٍ الرفع",resume:"إذا توقف الرفع، اختر الملف نفسه مرة أخرى للاستكمال.",ready:"الفيديو جاهز. أضف عنوانًا وانشره للمجتمع.",live:"مقطعك أصبح متاحًا للمجتمع.",removed:"تم حذف المقطع والفيديو المخزن.",invalid:"اختر فيديو MP4 أو WebM.",tooLarge:"حجم الفيديو يتجاوز حد الرفع الحالي البالغ 50 ميجابايت.",tooLong:"يجب ألا تتجاوز مدة Nhenbit ثلاث دقائق."
+ }:{
+  stream:"COMMUNITY STREAM",shared:"Shared by the community",members:"Member videos",moment:"YOUR MOMENT",share:"Share a Nhenbit",limits:"Community members can publish MP4 or WebM · up to 3 minutes · 50 MB per video.",title:"Give your video a title",caption:"Add a caption (optional)",choose:"＋ Choose video",none :t.none,publish:"Publish Nhenbit ↗",publishing:"Publishing…",signIn:"Join or sign in to upload a community Nhenbit ↗",loading:"Loading community videos…",empty:"No community Nhenbits yet. Be the first to share one.",remove:"Remove your video",confirm:"Remove this Nhenbit from the community?",upload:"Uploading",resume:"If interrupted, choose the same file again to resume.",ready:"Video ready. Add a title and publish it to the community.",live:"Your Nhenbit is live in the community.",removed:"Your Nhenbit and its stored video were removed.",invalid:"Choose an MP4 or WebM video.",tooLarge:"This video exceeds the current 50 MB community upload limit.",tooLong:"Nhenbits must be 3 minutes or shorter."
+ };
+ useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
  const load=useCallback(async()=>{
   if(!supabase){setLoading(false);return;}
@@ -54,15 +62,15 @@ export default function CommunityShortsClient(){
  async function chooseFile(selected:File|null){
   setFile(null);setDuration(0);setStatus("");
   if(!selected)return;
-  if(!["video/mp4","video/webm"].includes(selected.type)){setStatus("Choose an MP4 or WebM video.");if(input.current)input.current.value="";return;}
-  if(selected.size>MAX_BYTES){setStatus("This video exceeds the current 50 MB community upload limit.");if(input.current)input.current.value="";return;}
+  if(!["video/mp4","video/webm"].includes(selected.type)){setStatus(t.invalid);if(input.current)input.current.value="";return;}
+  if(selected.size>MAX_BYTES){setStatus(t.tooLarge);if(input.current)input.current.value="";return;}
   const url=URL.createObjectURL(selected);
   try{
    const seconds=await new Promise<number>((resolve,reject)=>{
     const video=document.createElement("video");video.preload="metadata";video.onloadedmetadata=()=>resolve(video.duration);video.onerror=()=>reject(new Error("This video could not be read. Try another MP4 or WebM file."));video.src=url;
    });
-   if(!Number.isFinite(seconds)||seconds<=0||seconds>MAX_SECONDS)throw new Error("Nhenbits must be 3 minutes or shorter.");
-   setFile(selected);setDuration(Math.ceil(seconds));setTitle(value=>value||selected.name.replace(/\.[^.]+$/,"").slice(0,100));setStatus("Video ready. Add a title and publish it to the community.");
+   if(!Number.isFinite(seconds)||seconds<=0||seconds>MAX_SECONDS)throw new Error(t.tooLong);
+   setFile(selected);setDuration(Math.ceil(seconds));setTitle(value=>value||selected.name.replace(/\.[^.]+$/,"").slice(0,100));setStatus(t.ready);
   }catch(error){setStatus(error instanceof Error?error.message:"Could not read this video.");if(input.current)input.current.value="";}
   finally{URL.revokeObjectURL(url);}
  }
@@ -97,7 +105,7 @@ export default function CommunityShortsClient(){
     throw saveError;
    }
    setTitle("");setCaption("");setFile(null);setDuration(0);if(input.current)input.current.value="";
-   setStatus("Your Nhenbit is live in the community.");await load();
+   setStatus(t.live);await load();
   }catch(error){setStatus(!uploaded?"Upload interrupted. Your resumable session is retained; choose the same file again to continue. "+(error instanceof Error?error.message:""):error instanceof Error?error.message:"The uploaded file could not be saved. Please refresh the feed.");}
   finally{
    if(uploaded&&uploadSession){
@@ -111,7 +119,7 @@ export default function CommunityShortsClient(){
 
  async function remove(item:ShortCard){
   if(!supabase||!userId||item.author_id!==userId)return;
-  if(!window.confirm("Remove this Nhenbit from the community?"))return;
+  if(!window.confirm(t.confirm))return;
   setBusy(true);
   let backup:Blob|null=null;
   let storageRemoved=false;
@@ -130,7 +138,7 @@ export default function CommunityShortsClient(){
     storageRemoved=false;
     throw rowError;
    }
-   setStatus("Your Nhenbit and its stored video were removed.");
+   setStatus(t.removed);
    await load();
   }catch(error){
    if(storageRemoved&&backup){
@@ -141,20 +149,20 @@ export default function CommunityShortsClient(){
   }finally{setBusy(false);}
  }
 
- return <section className="nhen-community-shorts-section">
-  <div className="nhen-card-heading"><div><span className="nhen-section-label">COMMUNITY STREAM</span><h2>Shared by the community</h2></div><span className="nhen-muted">Member videos</span></div>
+ return <section className="nhen-community-shorts-section" dir={isArabic?"rtl":"ltr"} lang={locale}>
+  <div className="nhen-card-heading"><div><span className="nhen-section-label">{t.stream}</span><h2>{t.shared}</h2></div><span className="nhen-muted">{t.members}</span></div>
   <section className="nhen-community-short-composer">
-   <div><span className="nhen-section-label">YOUR MOMENT</span><h2>Share a Nhenbit</h2><p>Community members can publish directly. MP4 or WebM · up to 3 minutes · 50 MB per video.</p></div>
+   <div><span className="nhen-section-label">{t.moment}</span><h2>{t.share}</h2><p>{t.limits}</p></div>
    {userId?<div className="nhen-community-short-fields">
-    <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={100} placeholder="Give your video a title" aria-label="Video title"/>
-    <textarea value={caption} onChange={e=>setCaption(e.target.value)} maxLength={500} rows={2} placeholder="Add a caption (optional)" aria-label="Video caption"/>
-    <div className="nhen-community-short-controls"><label className="nhen-short-file-label"><input ref={input} type="file" accept="video/mp4,video/webm" onChange={e=>void chooseFile(e.target.files?.[0]??null)}/><span>＋ Choose video</span></label><span className="nhen-muted">{file?file.name+" · "+duration+" sec":"No video selected"}</span><button className="button button-primary" disabled={!file||!title.trim()||busy} onClick={()=>void publish()}>{busy?"Publishing…":"Publish Nhenbit ↗"}</button></div>
-   </div>:<p><Link className="nhen-action" href="/community#join">Join or sign in to upload a community Nhenbit ↗</Link></p>}
-   {uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>Uploading · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label="Community upload progress"/><small>If interrupted, choose the same file again to resume.</small></div>}{status&&<p role="status" aria-live="polite" className="nhen-muted">{status}</p>}
+    <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={100} placeholder={t.title} aria-label="Video title"/>
+    <textarea value={caption} onChange={e=>setCaption(e.target.value)} maxLength={500} rows={2} placeholder={t.caption} aria-label="Video caption"/>
+    <div className="nhen-community-short-controls"><label className="nhen-short-file-label"><input ref={input} type="file" accept="video/mp4,video/webm" onChange={e=>void chooseFile(e.target.files?.[0]??null)}/><span>{t.choose}</span></label><span className="nhen-muted">{file?file.name+" · "+duration+" sec":"No video selected"}</span><button className="button button-primary" disabled={!file||!title.trim()||busy} onClick={()=>void publish()}>{busy?t.publishing:t.publish}</button></div>
+   </div>:<p><Link className="nhen-action" href="/community#join">{t.signIn}</Link></p>}
+   {uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>{t.upload} · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label="Community upload progress"/><small>{t.resume}</small></div>}{status&&<p role="status" aria-live="polite" className="nhen-muted">{status}</p>}
   </section>
-  <div className="nhen-community-shorts-grid">{loading?<div className="nhen-card nhen-empty-state">Loading community videos…</div>:items.length?items.map(item=><article className="nhen-community-short-card" key={item.id}>
+  <div className="nhen-community-shorts-grid">{loading?<div className="nhen-card nhen-empty-state">{t.loading}</div>:items.length?items.map(item=><article className="nhen-community-short-card" key={item.id}>
    <video src={item.src} controls playsInline preload="metadata" aria-label={item.title}/>
-   <div className="nhen-community-short-card-body"><div className="nhen-community-short-author">{item.avatarUrl?<img src={item.avatarUrl} alt=""/>:<span>{item.displayName.slice(0,1).toUpperCase()}</span>}<Link href={"/u/"+item.handle}>@{item.handle}</Link><time>{new Date(item.created_at).toLocaleDateString()}</time></div><h3>{item.title}</h3>{item.caption&&<p>{item.caption}</p>}{item.author_id===userId&&<button className="nhen-action" disabled={busy} onClick={()=>void remove(item)}>Remove your video</button>}</div>
-  </article>):<div className="nhen-card nhen-empty-state">No community Nhenbits yet. Be the first to share one.</div>}</div>
+   <div className="nhen-community-short-card-body"><div className="nhen-community-short-author">{item.avatarUrl?<img src={item.avatarUrl} alt=""/>:<span>{item.displayName.slice(0,1).toUpperCase()}</span>}<Link href={"/u/"+item.handle}>@{item.handle}</Link><time>{new Date(item.created_at).toLocaleDateString()}</time></div><h3>{item.title}</h3>{item.caption&&<p>{item.caption}</p>}{item.author_id===userId&&<button className="nhen-action" disabled={busy} onClick={()=>void remove(item)}>{t.remove}</button>}</div>
+  </article>):<div className="nhen-card nhen-empty-state">{t.empty}</div>}</div>
  </section>;
 }
