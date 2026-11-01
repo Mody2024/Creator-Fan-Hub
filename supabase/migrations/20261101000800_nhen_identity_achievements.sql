@@ -52,7 +52,9 @@ begin
  return new;
 end;
 $$;
-drop trigger if exists community_post_achievement on public.community_posts;
+
+revoke all on function public.award_post_achievements() from public,anon,authenticated;
+grant execute on function public.award_post_achievements() to postgres;drop trigger if exists community_post_achievement on public.community_posts;
 create trigger community_post_achievement after update of status on public.community_posts for each row execute function public.award_post_achievements();
 
 create or replace function public.award_follow_achievements()
@@ -66,7 +68,9 @@ begin
  return new;
 end;
 $$;
-drop trigger if exists member_follow_achievement on public.member_follows;
+
+revoke all on function public.award_follow_achievements() from public,anon,authenticated;
+grant execute on function public.award_follow_achievements() to postgres;drop trigger if exists member_follow_achievement on public.member_follows;
 create trigger member_follow_achievement after insert on public.member_follows for each row execute function public.award_follow_achievements();
 
 create or replace function public.award_video_comment_achievement()
@@ -79,5 +83,7 @@ begin
  return new;
 end;
 $$;
-drop trigger if exists video_comment_achievement on public.video_comments;
+
+revoke all on function public.award_video_comment_achievement() from public,anon,authenticated;
+grant execute on function public.award_video_comment_achievement() to postgres;drop trigger if exists video_comment_achievement on public.video_comments;
 create trigger video_comment_achievement after update of status on public.video_comments for each row execute function public.award_video_comment_achievement();
