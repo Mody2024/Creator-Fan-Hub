@@ -380,4 +380,5 @@ test("community moderation writes are restricted to owner admin and moderator ro
   assert.doesNotMatch(communityRoleMigration, /role in \([^)]*'editor'|role in \([^)]*'analyst'/i);
   assert.match(communityRoleMigration, /revoke all on function public\.can_moderate_community\(\) from public, anon/i);
   assert.match(communityRoleMigration, /grant execute on function public\.can_moderate_community\(\) to authenticated/i);
+  assert.match(communityRoleMigration, /grant update on public\.content_reports to authenticated/i);
 });
