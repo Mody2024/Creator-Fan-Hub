@@ -70,7 +70,11 @@ export default function CommunityShortsClient(){
   setBusy(true);setStatus("");
   const ext=file.type==="video/webm"?"webm":"mp4";
   const path=userId+"/"+crypto.randomUUID()+"."+ext;
+  let reservationId:string|null=null;
   try{
+   const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"nhen-community-shorts"});
+   if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("NHEN free storage capacity is unavailable. No upload was started.");
+   reservationId=reservation[0].reservation_id;
    const {error:uploadError}=await supabase.storage.from("nhen-community-shorts").upload(path,file,{contentType:file.type,upsert:false});
    if(uploadError)throw uploadError;
    const {error:saveError}=await supabase.from("community_short_videos").insert({author_id:userId,title:title.trim(),caption:caption.trim(),storage_path:path,duration_seconds:duration,status:"published"});
@@ -82,7 +86,10 @@ export default function CommunityShortsClient(){
    setTitle("");setCaption("");setFile(null);setDuration(0);if(input.current)input.current.value="";
    setStatus("Your Nhenbit is live in the community.");await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Upload failed. Please try again.");}
-  finally{setBusy(false);}
+  finally{
+   if(reservationId) await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId});
+   setBusy(false);
+  }
  }
 
  async function remove(item:ShortCard){
