@@ -24,7 +24,7 @@ export type PublicSiteConfig = {
 };
 
 const fallback: PublicSiteConfig = {
-  siteName: "THE INNER CIRCLE",
+  siteName: "N7EN",
   logoUrl: null,
   heroMediaUrl: null,
   heroMediaType: null,
@@ -34,7 +34,7 @@ const fallback: PublicSiteConfig = {
   heroOverlay: 0.35,
   heroMuted: true,
   heroLoop: true,
-  tagline: "A community built around what comes next.",
+  tagline: "The community shaping what comes next.",
   heroTitle: "Your next favorite video starts here.",
   heroBody: "Vote on ideas, share what you want to see, and help shape the next upload.",
   theme: "obsidian",
