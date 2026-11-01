@@ -1,6 +1,7 @@
 # NHEN video infrastructure — strict $0 plan
 
-Status: architecture decision approved; strict free-only operation.
+Status: strict free-only architecture approved; YouTube source workflow and storage quota reservations implemented on `development`.
+Production remains untouched.
 Repository branch: `development`.
 Production remains untouched.
 
@@ -17,6 +18,8 @@ NHEN must not depend on a paid service, paid plan, paid add-on, or automatic ove
 - Community shorts are currently limited to 180 seconds in the database.
 - Official creator video metadata is in `video_catalog`; the actual source file is currently stored via `media_items.storage_path`.
 - Watch pages, reactions, bookmarks, comments, and creator publishing metadata are already separate from the upload UI.
+- Current verified Storage usage query returned 0 objects / 0 bytes at the time of audit.
+- A database reservation system now enforces a conservative 750 MiB application storage ceiling across all Supabase Storage buckets. It reserves expected upload bytes before creator/community uploads and expires abandoned reservations after one hour.
 
 These are per-file and project quotas, not a promise of unlimited total storage.
 
@@ -35,13 +38,13 @@ Do not route video playback through database queries or store video bytes in Pos
 ### B. Two media paths
 
 1. **Official long-form videos:** use YouTube-hosted videos embedded in NHEN Watch when an official creator chooses that path. NHEN stores the video ID/embed metadata and owns the watch-page experience, descriptions, comments, reactions and discovery. YouTube hosts and delivers the actual video. This avoids spending NHEN's small Supabase storage/egress quota on large official videos. Availability, account eligibility, YouTube policies and external playback remain dependencies.
-2. **NHENbits/community uploads:** continue using the existing Supabase Storage bucket within the Free plan. Keep strict per-file limits, MIME validation, owner-scoped paths, moderation and a global project quota gate. When the storage or egress budget approaches its safe ceiling, pause new uploads and show a clear capacity message.
+2. **NHENbits/community uploads:** continue using the existing Supabase Storage bucket within the Free plan. Keep strict per-file limits, MIME validation, owner-scoped paths, moderation and the implemented global 750 MiB project-storage reservation gate. When the storage safety ceiling is reached, new uploads are rejected before transfer.
 
 Supabase Free is intentionally the default because it does not require introducing a pay-as-you-go storage account. It is a small launch tier, not an unlimited video CDN.
 
 ### C. Future provider adapter (not enabled yet)
 
-Keep provider identity explicit in media metadata so a future provider can be added without rewriting the watch product:
+Provider identity is now stored in `media_items` and `community_short_videos`, allowing a future provider to be added without rewriting the watch product:
 - `provider`: `supabase`, `youtube`, or a future approved provider.
 - `asset_key`: provider-native object/video identifier, not a public URL.
 - `playback_kind`: `file`, `hls`, `dash`, or `youtube_embed`.
@@ -64,24 +67,24 @@ Do not add Cloudflare R2 as an active dependency in strict-$0 mode. R2 currently
 
 ## Quota guard
 
-Track total stored bytes, upload count, bytes uploaded per month, estimated egress and request counts. Use conservative application thresholds below provider limits and stop accepting uploads before the project reaches the plan cap. Show the remaining capacity in the Creator Panel.
+The implemented storage guard sums object sizes from `storage.objects` across the project and adds active upload reservations under an advisory transaction lock. It rejects new uploads above 750 MiB and exposes used, reserved and available bytes to the Creator Media Library. Reservations are owner-scoped, expire after one hour and are released after the upload flow completes.
 
-Important: application-side counters are a safety layer, not authoritative provider billing telemetry. Until provider usage can be checked reliably, keep a conservative manual operating cap and review Supabase usage before raising it.
+Important limitations: this is an application-level storage safety ceiling, not Supabase billing telemetry. It protects the two NHEN upload flows wired to it (creator media and community Nhenbits); any future Storage upload route must also reserve capacity. Egress/bandwidth is not yet hard-capped because browser video delivery cannot be reliably inferred from database view counts. Review actual Supabase egress in the dashboard and keep playback traffic conservative.
 
 ## Implementation phases
 
-### Phase 1 — safe $0 baseline
+### Phase 1 — safe $0 baseline — implemented
 - Document the provider-neutral model and strict cost rule.
 - Preserve current Supabase buckets and their 50 MiB per-file caps.
-- Keep community shorts at the current 3-minute limit until the storage and delivery path is validated.
-- Use YouTube embeds for official long-form videos rather than increasing Supabase video traffic.
-- Add user-facing capacity errors; never fall back to a paid service.
+- Keep community shorts at the current 3-minute limit.
+- Add YouTube-hosted official source creation, private/public state, deletion and provider-aware playback. NHEN owns the watch-page metadata and community features; YouTube delivers the video bytes.
+- Add the 750 MiB project storage reservation gate and Creator Media Library capacity indicator. Never fall back to a paid service.
 
-### Phase 2 — upload reliability
-- Add upload state tracking: `created`, `uploading`, `uploaded`, `processing`, `ready`, `failed`, `deleted`.
-- Add cleanup for abandoned upload records/objects.
-- Add a Creator Panel storage/egress usage indicator and conservative quota stop.
-- Verify owner isolation, moderator removal, and cleanup behavior.
+### Phase 2 — upload reliability — partially implemented
+- Add provider and processing-state metadata to existing media records.
+- Add expiring reservations, cleanup of abandoned reservations, and a hard application storage stop for creator media and community Nhenbits.
+- Show storage usage/available capacity in the Creator Media Library.
+- Remaining: resumable upload/retry states, abandoned object cleanup, egress monitoring, and end-to-end tests for interruption and quota exhaustion.
 
 ### Phase 3 — playback quality
 - Add thumbnails/posters, metadata probing, browser-compatible MP4 validation and optional multiple renditions only if a free local/browser workflow is viable.
@@ -99,6 +102,7 @@ Important: application-side counters are a safety layer, not authoritative provi
 - Test upload, interruption, retry, failed upload cleanup, deletion and owner isolation.
 - Test that a full quota stops uploads without data corruption or a paid fallback.
 - Test official YouTube embed records alongside native MP4 playback.
+- Verify storage reservations and capacity errors for creator and community uploads.
 - Verify creator-only publishing and community-member permissions independently.
 - Run application checks, security review and mobile playback tests.
 - Keep all changes on `development`; do not promote to production without explicit owner approval.
