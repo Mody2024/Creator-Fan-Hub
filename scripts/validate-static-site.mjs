@@ -89,7 +89,7 @@ check("public idea form shows live character counts", ideaSubmission.includes("{
 check("public idea form validates trimmed field lengths before submission", ideaSubmission.includes("const cleanTitle = title.trim()") && ideaSubmission.includes("cleanBody.length < 10") && ideaSubmission.includes("cleanName.length > 32"));
 check("public idea form always releases busy state and handles network failures", ideaSubmission.includes("finally {\n      setBusy(false);") && ideaSubmission.includes("connection failed before we could confirm submission"));
 check("public idea form disables invalid over-limit values", ideaSubmission.includes("title.trim().length > 100") && ideaSubmission.includes("body.trim().length > 800") && ideaSubmission.includes("displayName.trim().length > 32"));
-check("homepage renders published poll component", page.includes("<PublishedPolls />"));
+check("homepage renders published poll component", page.includes("<PublishedPolls locale={isArabic?\"ar\":\"en\"} />"));
 check("homepage reads published configuration", page.includes("getPublicSiteConfig"));
 check("mobile creator controls retain usable touch targets", (await read("../src/app/globals.css")).includes(".moderation-actions button,") && (await read("../src/app/globals.css")).includes("min-height: 40px;"));
 check("media rows collapse safely on very narrow phones", (await read("../src/app/globals.css")).includes("@media (max-width: 360px)") && (await read("../src/app/globals.css")).includes(".media-row {\n    grid-template-columns: minmax(0, 1fr);"));
