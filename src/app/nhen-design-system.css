@@ -382,3 +382,54 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 
 .nhen-dashboard-ar { font-family:"Noto Kufi Arabic","Noto Sans Arabic",Tahoma,sans-serif; color:var(--nhen-accent); font-size:12px; margin-inline-start:8px; }
+
+
+/* Theme-aware Nhen? logo and accent integration. */
+.site, .maintenance {
+  --nhen-accent: var(--accent, #C8FF4D);
+  --nhen-accent-strong: var(--nhen-accent);
+  --nhen-line-accent: color-mix(in srgb, var(--nhen-accent), transparent 76%);
+}
+.site .nhen-wordmark .site-logo-image {
+  width: auto;
+  height: clamp(30px, 3.4vw, 44px);
+  max-width: clamp(76px, 12vw, 156px);
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0;
+  mix-blend-mode: normal;
+  flex: 0 1 auto;
+}
+.site .nhen-wordmark-copy strong,
+.site .portal-wordmark strong {
+  font-family: "Avenir Next", "Segoe UI Variable", "Trebuchet MS", ui-sans-serif, sans-serif;
+  font-weight: 850;
+  letter-spacing: -.085em;
+  font-feature-settings: "ss01" on, "cv11" on;
+}
+.site .nhen-wordmark-copy small,
+.site .portal-wordmark small {
+  font-family: "Noto Kufi Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  font-weight: 750;
+  letter-spacing: 0;
+}
+.site .nhen-wordmark-copy small { color: var(--nhen-accent); }
+.site .button-primary,
+.site .button-light,
+.site .poll-submit {
+  border-color: transparent;
+}
+.site .button-primary:hover,
+.site .button-light:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+.site .nhen-logo-preview {
+  border-color: var(--nhen-line-accent);
+}
+@media (max-width: 600px) {
+  .site .nhen-wordmark .site-logo-image {
+    height: 32px;
+    max-width: 88px;
+  }
+}
