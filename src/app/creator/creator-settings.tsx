@@ -128,14 +128,17 @@ export default function CreatorSettings() {
   async function save(publish: boolean) {
     if (publish) {
       const selectedMedia = [
-        draft.identity.logoMediaId,
-        draft.identity.mascotMediaId,
-        draft.identity.narrationMediaId,
-        draft.hero.mediaId
-      ].filter((id): id is string => typeof id === "string" && id.length > 0);
-      const unpublished = selectedMedia.filter(id => !mediaOptions.some(item => item.media_id === id && item.is_published));
-      if (unpublished.length) {
-        setStatus("Your draft is safe, but one or more selected assets are still private. Publish those assets in Media Library, reload this draft, then publish the website.");
+        { id: draft.identity.logoMediaId, label: "logo", allowed: ["image"] },
+        { id: draft.identity.mascotMediaId, label: "mascot", allowed: ["image", "sprite"] },
+        { id: draft.identity.narrationMediaId, label: "narration", allowed: ["audio"] },
+        { id: draft.hero.mediaId, label: "hero background", allowed: ["image", "video"] }
+      ].filter((asset): asset is { id: string; label: string; allowed: string[] } => typeof asset.id === "string" && asset.id.length > 0);
+      const invalidAsset = selectedMedia.find(asset => {
+        const stored = mediaOptions.find(item => item.media_id === asset.id);
+        return !stored || !stored.is_published || !asset.allowed.includes(stored.media_type);
+      });
+      if (invalidAsset) {
+        setStatus("Your draft is safe, but the selected " + invalidAsset.label + " is missing, private or the wrong file type. Choose a compatible published asset in Media Library, reload this draft, then publish the website.");
         return;
       }
     }
