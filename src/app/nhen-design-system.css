@@ -329,3 +329,54 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .section-heading h2 em,.community-section h2 em { text-decoration-color: rgba(200,255,77,.35); }
 @media (max-width: 760px) { .hero { padding-top: 54px; min-height: 0; } .hero:before { inset: 0 3%; background-size: 36px 36px; } .wordmark-kind { display: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-art *, .community-orbit { animation: none !important; } }
+
+
+/* Nhen? bilingual identity — a distinctive editorial wordmark that survives every theme. */
+:root {
+  --nhen-accent: #c8ff4d;
+  --nhen-accent-strong: #b5ed36;
+  --nhen-violet: #a9b88e;
+  --nhen-teal: #9ee66d;
+  --nhen-line: rgba(221,241,204,.12);
+}
+.nhen-wordmark { display:inline-flex; align-items:center; gap:10px; text-decoration:none; }
+.nhen-wordmark-copy { display:inline-flex; flex-direction:column; align-items:flex-start; line-height:.92; gap:4px; }
+.nhen-wordmark-copy strong { font-family:"Arial Rounded MT Bold","Trebuchet MS",ui-sans-serif,sans-serif; font-size:clamp(22px,2.2vw,29px); font-weight:900; letter-spacing:-.075em; color:var(--nhen-ink); }
+.nhen-wordmark-copy small { font-family:"Noto Kufi Arabic","Noto Sans Arabic",Tahoma,sans-serif; font-size:12px; font-weight:700; letter-spacing:0; color:var(--nhen-accent); }
+.nhen-wordmark .site-logo-image { width:36px; height:36px; object-fit:contain; object-position:center; border-radius:10px; mix-blend-mode:normal; }
+.portal-core { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; overflow:hidden; }
+.portal-core > img { display:block; width:72%; height:62%; object-fit:contain; }
+.portal-core > i { color:var(--nhen-accent); font-size:12px; font-style:normal; }
+.portal-wordmark { display:flex; flex-direction:column; align-items:center; gap:5px; line-height:.95; }
+.portal-wordmark strong { font-family:"Arial Rounded MT Bold","Trebuchet MS",ui-sans-serif,sans-serif; font-size:clamp(23px,3vw,36px); font-weight:900; letter-spacing:-.085em; }
+.portal-wordmark small { font-family:"Noto Kufi Arabic","Noto Sans Arabic",Tahoma,sans-serif; font-size:clamp(12px,1.4vw,17px); font-weight:700; letter-spacing:0; color:var(--nhen-accent); }
+.site-logo-image { max-width:140px; max-height:46px; object-fit:contain; }
+.nhen-logo-studio { margin:22px 0 30px; padding:clamp(18px,3vw,30px); border:1px solid var(--nhen-line); border-radius:22px; background:linear-gradient(145deg,rgba(200,255,77,.055),rgba(255,255,255,.018)); }
+.nhen-logo-studio-heading { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; margin-bottom:20px; }
+.nhen-logo-studio-heading h3 { margin:8px 0; font-size:clamp(22px,3vw,30px); letter-spacing:-.045em; }
+.nhen-logo-studio-heading h3 em { color:var(--nhen-accent); font-style:normal; }
+.nhen-logo-studio-heading p { max-width:560px; color:var(--nhen-muted); font-size:14px; }
+.nhen-logo-studio-tag { flex:none; border:1px solid var(--nhen-line); padding:8px 11px; border-radius:999px; color:var(--nhen-accent); font-size:9px; font-weight:800; letter-spacing:.12em; }
+.nhen-logo-file { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px; border:1px dashed rgba(200,255,77,.4); border-radius:14px; cursor:pointer; }
+.nhen-logo-file span { font-weight:750; }
+.nhen-logo-file input { max-width:100%; color:var(--nhen-muted); }
+.nhen-logo-file small { width:100%; color:var(--nhen-muted); }
+.nhen-logo-controls { display:grid; gap:16px; margin-top:18px; }
+.nhen-logo-toggle { display:flex; align-items:flex-start; gap:12px; padding:14px; border-radius:14px; background:rgba(200,255,77,.055); }
+.nhen-logo-toggle input { margin-top:4px; accent-color:var(--nhen-accent); }
+.nhen-logo-toggle span { display:grid; gap:4px; }
+.nhen-logo-toggle small,.nhen-logo-tolerance small { color:var(--nhen-muted); line-height:1.5; }
+.nhen-logo-tolerance { display:grid; grid-template-columns:1fr auto; gap:8px 12px; align-items:center; }
+.nhen-logo-tolerance input,.nhen-logo-tolerance small { grid-column:1/-1; width:100%; }
+.nhen-logo-tolerance input { accent-color:var(--nhen-accent); }
+.nhen-logo-preview-wrap { display:grid; gap:8px; color:var(--nhen-muted); font-size:10px; font-weight:800; letter-spacing:.12em; }
+.nhen-logo-preview { min-height:180px; display:grid; place-items:center; padding:24px; border:1px solid var(--nhen-line); border-radius:16px; background-color:#171a16; background-image:linear-gradient(45deg,#222820 25%,transparent 25%),linear-gradient(-45deg,#222820 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#222820 75%),linear-gradient(-45deg,transparent 75%,#222820 75%); background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0; }
+.nhen-logo-preview img { display:block; max-width:min(100%,560px); max-height:230px; width:auto; height:auto; object-fit:contain; }
+.nhen-logo-actions { display:flex; flex-wrap:wrap; gap:10px; }
+.nhen-logo-actions button:disabled { opacity:.5; cursor:not-allowed; }
+@media (max-width:600px) {
+ .nhen-logo-studio-heading { flex-direction:column; }
+ .nhen-logo-studio-tag { align-self:flex-start; }
+ .nhen-wordmark .wordmark-kind { display:none; }
+ .nhen-wordmark .site-logo-image { width:30px; height:30px; }
+}
