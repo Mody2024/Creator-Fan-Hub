@@ -1,0 +1,20 @@
+import Link from "next/link";
+import {createSupabaseServerClient} from "@/lib/supabase/server";
+export const dynamic="force-dynamic";
+export default async function SearchPage({searchParams}:{searchParams:Promise<{q?:string}>}){
+ const {q=""}=await searchParams;const term=q.trim().slice(0,80);const supabase=await createSupabaseServerClient();
+ if(!term)return <main className="nhen-profile-page"><header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/community">Community</Link><Link href="/#videos">Watch</Link></nav></header><section className="nhen-search-page"><h1>Explore <em>NHEN.</em></h1><form action="/search"><input name="q" placeholder="Search videos, posts and people…" autoFocus/><button className="button button-primary">Search ↗</button></form></section></main>;
+ const pattern="%"+term.replace(/[\\%_]/g,"\\$&")+"%";
+ const [profilesResult,postsResult,videosResult]=supabase?await Promise.all([
+  supabase.from("member_profiles").select("user_id,handle,display_name,bio").ilike("handle",pattern).limit(12),
+  supabase.from("community_posts").select("id,body,created_at,author_id").eq("status","published").ilike("body",pattern).order("created_at",{ascending:false}).limit(20),
+  supabase.from("video_catalog").select("media_id,slug,description,category,media_items!inner(title,is_published,media_type)").not("published_at","is",null).ilike("description",pattern).limit(12)
+ ]):[{data:[]},{data:[]},{data:[]}];
+ const profiles=profilesResult.data??[],posts=postsResult.data??[],videos=(videosResult.data??[]).filter(v=>{const m=Array.isArray(v.media_items)?v.media_items[0]:v.media_items;return m?.is_published&&m.media_type==="video"}).map(v=>({slug:v.slug,title:(Array.isArray(v.media_items)?v.media_items[0]:v.media_items)?.title??v.slug,description:v.description,category:v.category}));
+ const ids=[...new Set(posts.map(p=>p.author_id))];const {data:authors}=supabase&&ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name").in("user_id",ids):{data:[]};const authorMap=new Map((authors??[]).map(a=>[a.user_id,a]));
+ return <main className="nhen-profile-page"><header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/community">Community</Link><Link href="/#videos">Watch</Link></nav></header><div className="nhen-search-results"><span className="nhen-section-label">NHEN DISCOVERY</span><h1>Results for <em>“{term}”</em></h1><form action="/search"><input name="q" defaultValue={term} maxLength={80}/><button className="button button-primary">Search ↗</button></form>
+ <section><h2>Videos <span>{videos.length}</span></h2>{videos.length?videos.map(v=><Link className="nhen-search-result" key={v.slug} href={"/watch/"+v.slug}><span className="nhen-search-result-icon">▶</span><div><strong>{v.title}</strong><small>{v.category} · {v.description}</small></div><b>↗</b></Link>):<p className="nhen-muted">No matching videos.</p>}</section>
+ <section><h2>People <span>{profiles.length}</span></h2>{profiles.length?profiles.map(p=><Link className="nhen-search-result" key={p.user_id} href={"/u/"+p.handle}><span className="nhen-search-result-icon">◎</span><div><strong>{p.display_name}</strong><small>@{p.handle} · {p.bio}</small></div><b>↗</b></Link>):<p className="nhen-muted">No matching members.</p>}</section>
+ <section><h2>Community posts <span>{posts.length}</span></h2>{posts.length?posts.map(p=><Link className="nhen-search-result" key={p.id} href="/community"><span className="nhen-search-result-icon">✦</span><div><strong>{authorMap.get(p.author_id)?.display_name??"NHEN Member"} · @{authorMap.get(p.author_id)?.handle??"member"}</strong><small>{p.body}</small></div><b>↗</b></Link>):<p className="nhen-muted">No matching posts.</p>}</section>
+ </div></main>;
+}
