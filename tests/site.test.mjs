@@ -273,3 +273,13 @@ test("Nhen bilingual identity and logo studio are wired into public and creator 
   assert.match(design, /nhen-wordmark-copy/);
   assert.match(design, /nhen-logo-preview/);
 });
+
+
+test("Nhen theme accent reaches the bilingual brand and creator defaults", async () => {
+  const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  assert.match(settings, /accent: "#C8FF4D"/);
+  assert.match(design, /\.site, \.maintenance\s*\{\s*--nhen-accent: var\(--accent, #C8FF4D\)/);
+  assert.match(design, /site \.nhen-wordmark \.site-logo-image/);
+  assert.match(design, /Noto Kufi Arabic/);
+});
