@@ -68,7 +68,7 @@ async function prepareLogo(file: File, tolerance: number, removeBackground: bool
     context.putImageData(image,0,0);
   }
 
-  const outputType = removeBackground ? "image/png" : (file.type === "image/jpeg" ? "image/jpeg" : file.type);
+  const outputType = "image/png";
   return await new Promise<Blob>((resolve,reject) => {
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("The prepared logo could not be exported.")), outputType, 0.94);
   });
@@ -106,7 +106,7 @@ export default function LogoStudio({ onCreated }: Props) {
       const blob = await prepareLogo(file,tolerance,removeBackground);
       setPrepared(blob);
       const nextUrl = URL.createObjectURL(blob);
-      setPreview(old => { if (old) URL.revokeObjectURL(old); return nextUrl; });
+      setPreview(nextUrl);
       setStatus(removeBackground
         ? "Transparent PNG prepared. Review the edges before saving; this works best on plain or evenly coloured backgrounds."
         : "Logo resized and optimized. Original background retained.");
@@ -129,7 +129,7 @@ export default function LogoStudio({ onCreated }: Props) {
       const id = crypto.randomUUID();
       const base = userData.user.id + "/" + id;
       const originalPath = base + "-original-" + safeName(file.name);
-      const outputExtension = removeBackground ? "png" : (file.type === "image/jpeg" ? "jpg" : "webp");
+      const outputExtension = "png";
       const outputPath = base + "-logo." + outputExtension;
       const {error:originalError} = await supabase.storage.from("creator-media-private").upload(originalPath,file,{contentType:file.type,upsert:false});
       if (originalError) throw originalError;
