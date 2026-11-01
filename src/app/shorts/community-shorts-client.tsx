@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type ShortRow={id:string;author_id:string;title:string;caption:string;storage_path:string;duration_seconds:number;created_at:string;status:string};
-type ShortCard=ShortRow&{handle:string;displayName:string;avatarUrl:string|null;src:string};
+type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};\ntype ShortCard=ShortRow&{handle:string;displayName:string;avatarUrl:string|null;src:string};
 const MAX_BYTES=50*1024*1024;
 const MAX_SECONDS=180;
 
@@ -30,7 +30,7 @@ export default function CommunityShortsClient(){
   const rows=(data??[]) as ShortRow[];
   const ids=[...new Set(rows.map(row=>row.author_id))];
   const {data:profiles}=ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",ids):{data:[]};
-  const byId=new Map((profiles??[]).map(p=>[p.user_id,p]));
+  const profileRows=(profiles??[]) as ShortProfile[];\n  const byId=new Map<string,ShortProfile>(profileRows.map(p=>[p.user_id,p] as const));
   setItems(rows.map(row=>{
    const profile=byId.get(row.author_id);
    return {...row,handle:profile?.handle??"member",displayName:profile?.display_name??"NHEN member",avatarUrl:profile?.avatar_url??null,src:supabase.storage.from("nhen-community-shorts").getPublicUrl(row.storage_path).data.publicUrl};
@@ -41,8 +41,8 @@ export default function CommunityShortsClient(){
  useEffect(()=>{
   if(!supabase)return;
   let alive=true;
-  void supabase.auth.getUser().then(({data})=>{if(alive)setUserId(data.user?.id??null);});
-  const {data:listener}=supabase.auth.onAuthStateChange((_event,session)=>{if(alive)setUserId(session?.user?.id??null);});
+  void supabase.auth.getUser().then(({data}:{data:{user:{id:string}|null}})=>{if(alive)setUserId(data.user?.id??null);});
+  const {data:listener}=supabase.auth.onAuthStateChange((_event:string,session:{user:{id:string}}|null)=>{if(alive)setUserId(session?.user?.id??null);});
   void load();
   return()=>{alive=false;listener.subscription.unsubscribe();};
  },[supabase,load]);
