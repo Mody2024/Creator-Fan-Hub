@@ -444,7 +444,7 @@ test("video navigation is consistently gated without duplicate Watch and Videos 
   const mobileNav = page.slice(mobileStart, mobileEnd);
   assert.ok(mobileNav.includes('config.visibleSections.includes("videos")'));
   assert.ok(mobileNav.includes('<a href="/shorts">Shorts</a>'));
-  assert.equal(mobileNav.includes('<a href="#videos">Watch</a>'), false);
+  assert.ok(mobileNav.includes('<a href="#videos">Watch</a>'));
 });
 test("publishing a site draft is blocked while selected media assets remain private", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
