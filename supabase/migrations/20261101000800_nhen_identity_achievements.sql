@@ -37,6 +37,7 @@ begin
 end;
 $$;
 revoke all on function public.award_member_achievement(uuid,text) from public,anon,authenticated;
+grant execute on function public.award_member_achievement(uuid,text) to postgres;
 
 create or replace function public.award_post_achievements()
 returns trigger language plpgsql security definer set search_path=''
