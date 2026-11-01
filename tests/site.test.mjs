@@ -10,6 +10,7 @@ const schema = await readFile(new URL("../supabase/schema.sql", import.meta.url)
 const security = await readFile(new URL("../docs/BACKEND-SECURITY.md", import.meta.url), "utf8");
 const publicGateMigration = await readFile(new URL("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql", import.meta.url), "utf8");
 const communityRoleMigration = await readFile(new URL("../supabase/migrations/20261101001800_nhen_moderation_role_hardening.sql", import.meta.url), "utf8");
+const triggerRpcMigration = await readFile(new URL("../supabase/migrations/20261101001900_nhen_revoke_trigger_function_rpc.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -395,4 +396,21 @@ test("video navigation is hidden when the creator disables the video section", a
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /visibleSections\.includes\("videos"\) && <><a href="#videos">Watch<\/a><a href="\/shorts">Shorts<\/a><\/>/);
   assert.match(page, /visibleSections\.includes\("videos"\) && <PublicVideos \/>/);
+});
+
+
+test("trigger-only SECURITY DEFINER functions cannot be called as public RPCs", () => {
+  for (const name of [
+    "award_follow_achievements",
+    "award_post_achievements",
+    "award_video_comment_achievement",
+    "create_member_profile",
+    "notify_community_comment",
+    "notify_community_reaction",
+    "notify_member_follow",
+    "notify_video_comment",
+    "notify_video_reaction"
+  ]) {
+    assert.match(triggerRpcMigration, new RegExp("revoke all on function public\\\\." + name + "\\\\(\\\\) from public, anon, authenticated", "i"));
+  }
 });
