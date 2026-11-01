@@ -114,7 +114,7 @@ export default function MediaLibrary() {
     if(!supabase || busy) return;
     let parsed: URL;
     try { parsed=new URL(youtubeUrl.trim()); } catch { setStatus("Enter a valid YouTube video URL."); return; }
-    const host=parsed.hostname.replace(/^www\\./,"").toLowerCase();
+    const host=parsed.hostname.replace(/^www\./,"").toLowerCase();
     const segments=parsed.pathname.split("/").filter(Boolean);
     const videoId=host==="youtu.be" ? segments[0] : ["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host) ? (parsed.pathname==="/watch" ? parsed.searchParams.get("v") : segments[0]==="shorts"||segments[0]==="live"||segments[0]==="embed" ? segments[1] : null) : null;
     if(!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) { setStatus("That URL is not a supported YouTube video link."); return; }
