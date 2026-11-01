@@ -82,7 +82,7 @@ export default async function HomePage() {
           <div className="nhen-home-quicklinks"><Link className="button button-primary" href="/watch">Explore videos ↗</Link><Link className="button button-secondary" href="/community">Join the community</Link></div>
         </section>
         {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="nhen-card nhen-card-pad" id="poll"><span className="nhen-section-label">COMMUNITY VOTE</span><h2 className="nhen-card-title">Your voice shapes what comes next.</h2><PublishedPolls /></section>}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
-        <div className="nhen-feed-tabs"><Link className="active" href="/">For you</Link><Link href="/watch">Videos</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></div>
+        <div className="nhen-feed-tabs"><Link className="active" href="/">For you</Link><Link href="/#videos">Videos</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></div>
         {config.visibleSections.includes("videos") && <PublicVideos />}
         <div className="nhen-card-heading"><h2 className="nhen-card-title">Latest from creators</h2><Link className="nhen-muted" href="/watch">See all ↗</Link></div>
         {videos.length?<div className="nhen-home-video-grid">{videos.slice(0,8).map(video=><article className="nhen-home-video-card" key={video.id}>
