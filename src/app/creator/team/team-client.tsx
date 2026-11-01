@@ -9,7 +9,7 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
  const t=isArabic?{
   invite:"دعوة متعاون",heading:"أضف مبدعين جدد إلى NHEN.",intro:"ادعُ أحد المبدعين عبر البريد الإلكتروني. ينشئ حسابه بنفسه ويتحقق من بريده، ثم يحصل على صلاحيات النشر بعد قبول الدعوة لمرة واحدة.",email:"البريد الإلكتروني",role:"الدور",create:"إنشاء دعوة ↗",working:"جارٍ التنفيذ…",inviteLink:"رابط دعوة لمرة واحدة",copy:"نسخ رابط الدعوة",copySuccess:"تم نسخ رابط الدعوة.",copyFail:"ميزة الحافظة غير متاحة. حدد رابط الدعوة وانسخه يدويًا.",inviteSuccess:"تم إنشاء الدعوة. انسخ الرابط وأرسله بشكل خاص إلى عنوان البريد المطابق.",inviteError:"تعذر إنشاء الدعوة.",roleUpdated:"تم تحديث دور الفريق.",roleError:"تعذر تحديث هذا الدور. حدّث قائمة الفريق للتحقق من الصلاحيات الحالية.",deactivated:"تم إيقاف صلاحية المبدع.",reactivated:"تمت استعادة صلاحية المبدع.",accessError:"تعذر تغيير صلاحية الحساب. حدّث القائمة للتحقق من الحالة الحالية.",roster:"قائمة الصلاحيات",team:"فريق الاستوديو",accounts:"حسابات",added:"تاريخ الإضافة",active:"نشط",inactive:"غير نشط",deactivate:"إيقاف",reactivate:"إعادة تفعيل",guide:"دليل الأدوار",owner:"المالك — تحكم كامل ودعوات الفريق وإدارة الأدوار.",admin:"المسؤول — إدارة واسعة للاستوديو والمراجعة.",creator:"المبدع — رفع ونشر الفيديوهات الرسمية وإدارة الأوصاف وقوائم التشغيل.",editor:"المحرر — إدارة محتوى الموقع ومسودات النشر.",moderator:"المشرف — مراجعة المجتمع والبلاغات.",analyst:"المحلل — الاطلاع على الأداء والتقارير فقط.",ownerRole:"المالك",adminRole:"مسؤول",creatorRole:"مبدع",editorRole:"محرر",moderatorRole:"مشرف",analystRole:"محلل"
  }:{
-  invite:"INVITE A COLLABORATOR",heading:"Bring new creators into NHEN.",intro:"Invite a creator by email. They create their own account, verify their email and receive creator publishing access after accepting the one-use invitation.",email:"Email address",role:"Role",create:"Create invitation ↗",working:"Working…",inviteLink:"One-time invitation link",copy:"Copy invite link",copySuccess:t.copySuccess,copyFail:t.copyFail,inviteSuccess:t.inviteSuccess,inviteError:t.inviteError,roleUpdated:t.roleUpdated,roleError:t.roleError,deactivated:"Creator access deactivated.",reactivated:"Creator access restored.",accessError:t.accessError,roster:"ACCESS ROSTER",team:"Studio team",accounts:"accounts",added:"Added",active:"ACTIVE",inactive:"INACTIVE",deactivate:"Deactivate",reactivate:"Reactivate",guide:"ROLE GUIDE",owner:"Owner — full control, team invitations and role management.",admin:"Admin — broad creator operations and moderation.",creator:"Creator — upload and publish official long-form videos, manage descriptions and playlists.",editor:"Editor — manage site content and publishing drafts.",moderator:"Moderator — community review and reports.",analyst:"Analyst — read-only performance and reports.",ownerRole:"Owner",adminRole:"Admin",creatorRole:"Creator",editorRole:"Editor",moderatorRole:"Moderator",analystRole:"Analyst"
+  invite:"INVITE A COLLABORATOR",heading:"Bring new creators into NHEN.",intro:"Invite a creator by email. They create their own account, verify their email and receive creator publishing access after accepting the one-use invitation.",email:"Email address",role:"Role",create:"Create invitation ↗",working:"Working…",inviteLink:"One-time invitation link",copy:"Copy invite link",copySuccess:"Invitation link copied.",copyFail:"Clipboard access is unavailable. Select and copy the invitation link manually.",inviteSuccess:"Invitation created. Copy the one-time link and send it privately to the matching email address.",inviteError:"Could not create invitation.",roleUpdated:"Team role updated.",roleError:"Could not update this role. Refresh the roster to confirm the current permissions.",deactivated:"Creator access deactivated.",reactivated:"Creator access restored.",accessError:"Could not change account access. Refresh the roster to confirm the current status.",roster:"ACCESS ROSTER",team:"Studio team",accounts:"accounts",added:"Added",active:"ACTIVE",inactive:"INACTIVE",deactivate:"Deactivate",reactivate:"Reactivate",guide:"ROLE GUIDE",owner:"Owner — full control, team invitations and role management.",admin:"Admin — broad creator operations and moderation.",creator:"Creator — upload and publish official long-form videos, manage descriptions and playlists.",editor:"Editor — manage site content and publishing drafts.",moderator:"Moderator — community review and reports.",analyst:"Analyst — read-only performance and reports.",ownerRole:"Owner",adminRole:"Admin",creatorRole:"Creator",editorRole:"Editor",moderatorRole:"Moderator",analystRole:"Analyst"
  };
  useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
  const roleLabel=(value:string)=>({owner:t.ownerRole,admin:t.adminRole,creator:t.creatorRole,editor:t.editorRole,moderator:t.moderatorRole,analyst:t.analystRole}[value]??value);
@@ -20,8 +20,8 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
    const {error}=await supabase.rpc("create_creator_invite",{p_email:email.trim().toLowerCase(),p_role:role,p_token:token});
    if(error)throw error;
    setInviteUrl(window.location.origin+"/creator/accept-invite?token="+token);
-   setEmail("");setNotice("Invitation created. Copy the one-time link and send it privately to the matching email address.");
-  }catch(e){setNotice(e instanceof Error?e.message:"Could not create invitation.")}finally{setBusy(false)}
+   setEmail("");setNotice(t.inviteSuccess);
+  }catch(e){setNotice(e instanceof Error?e.message:t.inviteError)}finally{setBusy(false)}
  }
  async function changeRole(member:TeamMember,next:string){
   if(!supabase||busy||member.role==="owner"||!roles.includes(next))return;
@@ -30,9 +30,9 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
    const {error}=await supabase.rpc("set_creator_admin_role",{p_user_id:member.userId,p_role:next});
    if(error)throw error;
    setTeam(xs=>xs.map(x=>x.userId===member.userId?{...x,role:next}:x));
-   setNotice("Team role updated.");
+   setNotice(t.roleUpdated);
   } catch {
-   setNotice("Could not update this role. Refresh the roster to confirm the current permissions.");
+   setNotice(t.roleError);
   } finally {setBusy(false);}
  }
  async function toggleActive(member:TeamMember){
@@ -44,13 +44,13 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
    setTeam(xs=>xs.map(x=>x.userId===member.userId?{...x,active:!x.active}:x));
    setNotice(member.active?t.deactivated:t.reactivated);
   } catch {
-   setNotice("Could not change account access. Refresh the roster to confirm the current status.");
+   setNotice(t.accessError);
   } finally {setBusy(false);}
  }
  async function copyInvite(){
   if(!inviteUrl)return;
-  try {await navigator.clipboard.writeText(inviteUrl);setNotice("Invitation link copied.");}
-  catch {setNotice("Clipboard access is unavailable. Select and copy the invitation link manually.");}
+  try {await navigator.clipboard.writeText(inviteUrl);setNotice(t.copySuccess);}
+  catch {setNotice(t.copyFail);}
  }
  return <section className="nhen-team-workspace" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <div className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.invite}</span><h2>{t.heading}</h2><p className="nhen-muted">{t.intro}</p>
