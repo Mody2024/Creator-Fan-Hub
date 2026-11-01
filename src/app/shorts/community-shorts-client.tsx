@@ -3,6 +3,7 @@
 import { useCallback,useEffect,useMemo,useRef,useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 
 type ShortRow={id:string;author_id:string;title:string;caption:string;storage_path:string;duration_seconds:number;created_at:string;status:string};
 type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};
@@ -20,6 +21,7 @@ export default function CommunityShortsClient(){
  const [file,setFile]=useState<File|null>(null);
  const [duration,setDuration]=useState(0);
  const [busy,setBusy]=useState(false);
+ const [uploadProgress,setUploadProgress]=useState<number|null>(null);
  const [status,setStatus]=useState("");
  const [loading,setLoading]=useState(true);
 
@@ -68,15 +70,25 @@ export default function CommunityShortsClient(){
  async function publish(){
   if(!supabase||!userId||!file||!title.trim()||busy)return;
   setBusy(true);setStatus("");
-  const ext=file.type==="video/webm"?"webm":"mp4";
-  const path=userId+"/"+crypto.randomUUID()+"."+ext;
   let reservationId:string|null=null;
+  let uploadSession:ReturnType<typeof getResumableUploadSession>|null=null;
+  let uploaded=false;
   try{
-   const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"nhen-community-shorts"});
-   if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("NHEN free storage capacity is unavailable. No upload was started.");
-   reservationId=reservation[0].reservation_id;
-   const {error:uploadError}=await supabase.storage.from("nhen-community-shorts").upload(path,file,{contentType:file.type,upsert:false});
-   if(uploadError)throw uploadError;
+   uploadSession=getResumableUploadSession(userId,"nhen-community-shorts",file);
+   const previousReservation=uploadSession.getReservationId();
+   if(previousReservation){
+    const {data:reused,error:reuseError}=await supabase.rpc("reuse_nhen_media_upload_reservation",{p_reservation_id:previousReservation,p_bytes:file.size,p_bucket:"nhen-community-shorts"});
+    if(!reuseError&&reused)reservationId=previousReservation;
+   }
+   if(!reservationId){
+    const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"nhen-community-shorts"});
+    if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("NHEN free storage capacity is unavailable. No upload was started.");
+    reservationId=reservation[0].reservation_id;
+    uploadSession.saveReservation(reservationId);
+   }
+   const path=uploadSession.objectName;
+   await uploadToSupabaseStorage({client:supabase,bucketName:"nhen-community-shorts",objectName:path,file,onProgress:setUploadProgress});
+   uploaded=true;
    const {error:saveError}=await supabase.from("community_short_videos").insert({author_id:userId,title:title.trim(),caption:caption.trim(),storage_path:path,duration_seconds:duration,status:"published"});
    if(saveError){
     const {error:cleanupError}=await supabase.storage.from("nhen-community-shorts").remove([path]);
@@ -87,7 +99,11 @@ export default function CommunityShortsClient(){
    setStatus("Your Nhenbit is live in the community.");await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Upload failed. Please try again.");}
   finally{
-   if(reservationId) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
+   if(uploaded&&uploadSession){
+    uploadSession.clear();
+    if(reservationId) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
+   }
+   setUploadProgress(null);
    setBusy(false);
   }
  }
@@ -116,7 +132,7 @@ export default function CommunityShortsClient(){
     <textarea value={caption} onChange={e=>setCaption(e.target.value)} maxLength={500} rows={2} placeholder="Add a caption (optional)" aria-label="Video caption"/>
     <div className="nhen-community-short-controls"><label className="nhen-short-file-label"><input ref={input} type="file" accept="video/mp4,video/webm" onChange={e=>void chooseFile(e.target.files?.[0]??null)}/><span>＋ Choose video</span></label><span className="nhen-muted">{file?file.name+" · "+duration+" sec":"No video selected"}</span><button className="button button-primary" disabled={!file||!title.trim()||busy} onClick={()=>void publish()}>{busy?"Publishing…":"Publish Nhenbit ↗"}</button></div>
    </div>:<p><Link className="nhen-action" href="/community#join">Join or sign in to upload a community Nhenbit ↗</Link></p>}
-   {status&&<p role="status" aria-live="polite" className="nhen-muted">{status}</p>}
+   {uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>Uploading · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label="Community upload progress"/><small>If interrupted, choose the same file again to resume.</small></div>}{status&&<p role="status" aria-live="polite" className="nhen-muted">{status}</p>}
   </section>
   <div className="nhen-community-shorts-grid">{loading?<div className="nhen-card nhen-empty-state">Loading community videos…</div>:items.length?items.map(item=><article className="nhen-community-short-card" key={item.id}>
    <video src={item.src} controls playsInline preload="metadata" aria-label={item.title}/>
