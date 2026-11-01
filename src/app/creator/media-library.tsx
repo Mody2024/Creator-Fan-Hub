@@ -4,6 +4,7 @@ import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type MediaKind = "image" | "video" | "audio" | "sprite";
+type StorageCapacity = {used_bytes:number;reserved_bytes:number;quota_bytes:number;available_bytes:number;usage_percent:number};
 type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; preview_url?: string | null };
 const LIMIT = 50 * 1024 * 1024;
 const ACCEPTED: Record<string, MediaKind> = { "image/jpeg":"image", "image/png":"image", "image/webp":"image", "image/gif":"image", "video/mp4":"video", "video/webm":"video", "audio/mpeg":"audio", "audio/mp4":"audio", "audio/wav":"audio", "audio/ogg":"audio" };
@@ -12,6 +13,7 @@ function safeFileName(name: string) { return name.normalize("NFKD").replace(/[^a
 
 export default function MediaLibrary() {
   const [rows,setRows] = useState<MediaRow[]>([]);
+  const [capacity,setCapacity] = useState<StorageCapacity|null>(null);
   const [file,setFile] = useState<File|null>(null);
   const [title,setTitle] = useState("");
   const [alt,setAlt] = useState("");
@@ -31,8 +33,12 @@ export default function MediaLibrary() {
     try {
       const {data:userData,error:userError} = await supabase.auth.getUser();
       if (userError || !userData.user) { setRows([]); setStatus("Sign in with an authorized creator account to manage media."); setReady(true); return; }
-      const {data,error} = await supabase.rpc("get_creator_media",{p_limit:100});
+      const [{data,error},{data:capacityData}] = await Promise.all([
+        supabase.rpc("get_creator_media",{p_limit:100}),
+        supabase.rpc("get_nhen_storage_capacity")
+      ]);
       if (error) throw new Error("Could not load media. Confirm the creator-media migration is applied and this account is authorized.");
+      setCapacity((capacityData?.[0] as StorageCapacity|undefined)??null);
       const items = (data ?? []) as MediaRow[];
       const enriched = await Promise.all(items.map(async item => {
         if (item.media_type === "youtube" && item.source_url) {
@@ -83,9 +89,13 @@ export default function MediaLibrary() {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !file || busy) return;
     setBusy(true);
+    let reservationId:string|null=null;
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before uploading.");
+      const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"creator-media-private"});
+      if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("Free storage capacity could not be reserved. No upload was started.");
+      reservationId=reservation[0].reservation_id;
       const {data:admin,error:adminError} = await supabase.from("creator_admins").select("role").eq("user_id",userData.user.id).eq("active",true).maybeSingle();
       if (adminError || !admin || !["owner","admin","creator"].includes(admin.role)) throw new Error("Official video and media publishing is restricted to assigned NHEN creators.");
       const path = `${userData.user.id}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
@@ -109,7 +119,13 @@ export default function MediaLibrary() {
       setStatus("Upload saved as a private draft. Publish it when ready.");
       await load();
     } catch (e) { setStatus(e instanceof Error ? e.message : "Upload failed. Please try again."); }
-    finally { setBusy(false); }
+    finally {
+      if(reservationId) {
+        const supabase=getSupabaseBrowserClient();
+        if(supabase) await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId});
+      }
+      setBusy(false);
+    }
   }
 
   async function addYoutubeSource() {
@@ -301,6 +317,7 @@ export default function MediaLibrary() {
 
   return <section id="creator-media" className="media-library" aria-labelledby="media-library-title">
     <div className="editor-section-title"><span>MEDIA / 06</span><h2 id="media-library-title">Your asset <em>library.</em></h2><p>Upload logos, photos, short clips, sound and sprite images. Files stay private until you publish them.</p></div>
+    {capacity&&<div className="media-upload-note" role="status"><strong>NHEN free storage safety limit</strong><p>{(Number(capacity.used_bytes+capacity.reserved_bytes)/1048576).toFixed(1)} MiB used or reserved of 750 MiB · {(Number(capacity.available_bytes)/1048576).toFixed(1)} MiB available</p><progress max={100} value={Math.min(100,Number(capacity.usage_percent))} aria-label="NHEN storage usage"/><small>Uploads stop before the conservative free-plan limit. This counts files across the Supabase project.</small></div>}
     <div className="media-upload-layout">
       <form className="poll-create-form" onSubmit={e=>{e.preventDefault();if(editingId) void saveMetadata(); else void upload();}}>
         {!editingId && <div className="media-upload-note"><strong>Add an externally hosted official video</strong><label>YouTube video URL<input type="url" value={youtubeUrl} onChange={e=>setYoutubeUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" /></label><button className="button button-secondary" type="button" disabled={busy||!youtubeUrl.trim()||!title.trim()} onClick={()=>void addYoutubeSource()}>Add YouTube source ↗</button><p>YouTube hosts the video; NHEN manages its watch page and community features. It does not use NHEN video storage.</p></div>}
