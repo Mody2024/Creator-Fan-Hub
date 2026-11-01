@@ -160,7 +160,7 @@ export default function LogoStudio({ onCreated }: Props) {
   }
 
   return <section className="nhen-logo-studio" aria-label="Nhen logo studio">
-    <div className="nhen-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep your original safe. Preview a clean transparent version, then publish it when you're happy.</p></div><span className="nhen-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
+    <div className="nhen-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep your original safe. Preview a clean transparent version, then publish it when you&apos;re happy.</p></div><span className="nhen-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
     <label className="nhen-logo-file"><span>Choose logo image</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void selectFile(e.target.files?.[0]??null)}/><small>PNG, JPG or WebP · up to 20 MB</small></label>
     {file && <div className="nhen-logo-controls">
       <label className="nhen-logo-toggle"><input type="checkbox" checked={removeBackground} onChange={e=>{setRemoveBackground(e.target.checked);setPrepared(null);}}/><span><strong>Remove plain background</strong><small>Finds a similar colour connected to the image edges. Best for solid or evenly coloured backgrounds.</small></span></label>
