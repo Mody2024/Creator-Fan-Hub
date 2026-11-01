@@ -9,7 +9,7 @@ const sql = await readFile(new URL("../supabase/rls-policies.sql", import.meta.u
 const schema = await readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8");
 const security = await readFile(new URL("../docs/BACKEND-SECURITY.md", import.meta.url), "utf8");
 const publicGateMigration = await readFile(new URL("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql", import.meta.url), "utf8");
-const communityRoleMigration = await readFile(new URL("../supabase/migrations/20261101001700_nhen_moderation_role_hardening.sql", import.meta.url), "utf8");
+const communityRoleMigration = await readFile(new URL("../supabase/migrations/20261101001800_nhen_moderation_role_hardening.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -370,17 +370,21 @@ test("community moderation confirms database updates and guards destructive acti
 });
 
 
-test("community moderation writes are restricted to owner admin and moderator roles", () => {
-  assert.match(communityRoleMigration, /function public\.can_moderate_community\(\)/i);
+test("community moderation uses a private role helper across every moderation queue", () => {
+  assert.match(communityRoleMigration, /create schema if not exists private/i);
+  assert.match(communityRoleMigration, /function private\.can_moderate_community\(\)/i);
   assert.match(communityRoleMigration, /security definer[\s\S]*set search_path = ''/i);
   assert.match(communityRoleMigration, /ca\.role in \('owner', 'admin', 'moderator'\)/i);
-  assert.match(communityRoleMigration, /drop policy if exists "Creators moderate posts"/i);
-  assert.match(communityRoleMigration, /drop policy if exists "Creators moderate comments"/i);
-  assert.match(communityRoleMigration, /drop policy if exists "Creators update reports"/i);
-  assert.doesNotMatch(communityRoleMigration, /role in \([^)]*'editor'|role in \([^)]*'analyst'/i);
-  assert.match(communityRoleMigration, /revoke all on function public\.can_moderate_community\(\) from public, anon/i);
-  assert.match(communityRoleMigration, /grant execute on function public\.can_moderate_community\(\) to authenticated/i);
+  assert.match(communityRoleMigration, /revoke all on function private\.can_moderate_community\(\) from public, anon, authenticated/i);
+  assert.match(communityRoleMigration, /grant execute on function private\.can_moderate_community\(\) to authenticated/i);
   assert.match(communityRoleMigration, /grant update on public\.content_reports to authenticated/i);
+  assert.match(communityRoleMigration, /Moderators manage community posts/);
+  assert.match(communityRoleMigration, /Moderators manage community comments/);
+  assert.match(communityRoleMigration, /Moderators manage video comments/);
+  assert.match(communityRoleMigration, /Moderators review reports/);
+  assert.match(communityRoleMigration, /Moderators update reports/);
+  assert.match(communityRoleMigration, /drop function if exists public\.can_moderate_community\(\)/i);
+  assert.doesNotMatch(communityRoleMigration, /create or replace function public\.can_moderate_community/i);
 });
 
 
