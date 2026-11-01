@@ -24,7 +24,7 @@ export default function VideoStudio(){
   if(mediaResult.error){setStatus("Could not load creator media. Check your creator access.");return}
   setAssets(((mediaResult.data??[]) as Asset[]).filter(x=>x.media_type==="video"||x.media_type==="youtube"));
   setVideos((videoResult.data??[]) as Video[]);setPlaylists((playlistResult.data??[]) as Playlist[]);
-  setStatus("Video studio ready. Upload source files in Media Library, then configure their watch pages here.");
+  setStatus("Video studio ready. Add YouTube sources or upload files in Media Library, then configure their watch pages here.");
  },[supabase]);
  useEffect(()=>{void load()},[load]);
  const current=videos.find(v=>v.media_id===selected);
@@ -55,7 +55,7 @@ export default function VideoStudio(){
   <div className="editor-section-title"><span>WATCH / 07</span><h2>Video <em>publishing studio.</em></h2><p>Turn uploaded files into structured watch pages. Manage titles, descriptions, categories, tags, playlists and publication separately from the raw asset library.</p></div>
   <div className="nhen-video-studio-grid">
    <div className="poll-create-form">
-    <label>Source video<select value={selected} onChange={e=>choose(e.target.value)}><option value="">Choose an uploaded video…</option>{assets.map(a=><option key={a.media_id} value={a.media_id}>{a.title} · {a.is_published?"Public file":"Private file"}</option>)}</select></label>
+    <label>Source video<select value={selected} onChange={e=>choose(e.target.value)}><option value="">Choose an uploaded video…</option>{assets.map(a=><option key={a.media_id} value={a.media_id}>{a.title} · {a.media_type==="youtube"?"YouTube source":a.is_published?"Public file":"Private file"}</option>)}</select></label>
     <label>Watch URL slug<input value={slug} onChange={e=>setSlug(e.target.value)} placeholder="my-new-video"/></label>
     <label>Description<textarea value={description} onChange={e=>setDescription(e.target.value)} rows={4} maxLength={5000}/></label>
     <label>Category<select value={category} onChange={e=>setCategory(e.target.value)}>{["Other","Gaming","Entertainment","Behind the scenes","Announcements","Tutorials","Shorts"].map(x=><option key={x}>{x}</option>)}</select></label>
