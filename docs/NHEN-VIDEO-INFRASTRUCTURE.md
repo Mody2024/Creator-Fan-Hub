@@ -20,6 +20,9 @@ NHEN must not depend on a paid service, paid plan, paid add-on, or automatic ove
 - Current verified Storage usage query returned 0 objects / 0 bytes at the time of audit.
 - A database reservation system now enforces a conservative 750 MiB application storage ceiling across all Supabase Storage buckets. It reserves expected upload bytes before creator/community uploads and expires abandoned reservations after one hour.
 - Creator media and community Nhenbits now use TUS resumable uploads in 6 MiB chunks with retry backoff and visible progress. A stable owner-scoped object key plus browser-persisted upload session lets the same selected file resume after an interruption or page reload. Reservation IDs can be renewed for a matching in-progress upload.
+- Creator Media now shows a storage-health audit: current usage, expired reservation cleanup, and the count/size of media objects older than 24 hours that have no matching media record. It never deletes those objects automatically.
+- Community Nhenbit deletion now backs up the video before removal and restores it if the database row deletion fails, reducing the chance of a broken post after a partial failure.
+- The previously applied reservation-renewal and storage-health migrations are now mirrored in `supabase/migrations/` so the repository can reproduce the live database state.
 
 These are per-file and project quotas, not a promise of unlimited total storage.
 
@@ -85,7 +88,7 @@ Important limitations: this is an application-level storage safety ceiling, not 
 - Add expiring reservations, renewal for matching retry sessions, and a hard application storage stop for creator media and community Nhenbits.
 - Use TUS resumable uploads for creator media and community Nhenbits, with 6 MiB chunks, retry backoff, progress feedback and stable session identity across reloads.
 - Show storage usage/available capacity in the Creator Media Library.
-- Remaining: automated abandoned-object cleanup, egress monitoring, and end-to-end tests that deliberately interrupt a real upload and verify quota exhaustion.
+- Remaining: an explicit admin-reviewed orphan cleanup action, egress monitoring, and end-to-end tests that deliberately interrupt a real upload and verify quota exhaustion.
 
 ### Phase 3 — playback quality
 - Add thumbnails/posters, metadata probing, browser-compatible MP4 validation and optional multiple renditions only if a free local/browser workflow is viable.
@@ -102,6 +105,7 @@ Important limitations: this is an application-level storage safety ceiling, not 
 - Confirm Supabase plan and actual Storage/Egress usage in the dashboard.
 - Test upload, interruption, retry, failed upload cleanup, deletion and owner isolation.
 - Confirm TUS retry recovery in a real browser session using the same file and verify expired reservations are renewed safely.
+- Review storage-health orphan candidates manually before adding any destructive cleanup capability.
 - Test that a full quota stops uploads without data corruption or a paid fallback.
 - Test official YouTube embed records alongside native MP4 playback.
 - Verify storage reservations and capacity errors for creator and community uploads.
