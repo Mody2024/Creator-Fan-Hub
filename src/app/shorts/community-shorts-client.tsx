@@ -87,7 +87,7 @@ export default function CommunityShortsClient(){
    setStatus("Your Nhenbit is live in the community.");await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Upload failed. Please try again.");}
   finally{
-   if(reservationId) await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId});
+   if(reservationId) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
    setBusy(false);
   }
  }
