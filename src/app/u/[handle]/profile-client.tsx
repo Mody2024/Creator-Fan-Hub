@@ -4,7 +4,8 @@ import Link from "next/link";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 
 type Profile={userId:string;handle:string;displayName:string;bio:string;avatarUrl:string|null;websiteUrl:string|null;joinedAt:string;achievements:Array<{code:string;title:string;description:string;icon:string}>};
-export type ProfilePost={id:string;body:string;createdAt:string;type:string};\ntype ProfileVideo={id:string;title:string;slug:string;description:string;category:string;src:string};
+export type ProfilePost={id:string;body:string;createdAt:string;type:string};
+type ProfileVideo={id:string;title:string;slug:string;description:string;category:string;src:string};
 
 export default function MemberProfileClient({profile,posts,videos,followerCount,followingCount}:{profile:Profile;posts:ProfilePost[];videos:ProfileVideo[];followerCount:number;followingCount:number}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
