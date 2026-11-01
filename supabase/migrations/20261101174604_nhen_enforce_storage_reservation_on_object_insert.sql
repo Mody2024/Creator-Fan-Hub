@@ -39,6 +39,7 @@ end;
 $$;
 
 revoke all on function public.enforce_nhen_storage_upload_reservation() from public,anon,authenticated;
+grant execute on function public.enforce_nhen_storage_upload_reservation() to authenticated;
 drop trigger if exists enforce_nhen_storage_upload_reservation on storage.objects;
 create trigger enforce_nhen_storage_upload_reservation
 before insert on storage.objects
