@@ -10,7 +10,7 @@ export default function CommunityModerationClient({initialPosts,initialComments,
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
  const [posts,setPosts]=useState(initialPosts),[comments,setComments]=useState(initialComments),[videoComments,setVideoComments]=useState(initialVideoComments),[reports,setReports]=useState(initialReports);
  const [tab,setTab]=useState<"posts"|"comments"|"video_comments"|"reports">("posts"),[busy,setBusy]=useState<string|null>(null),[notice,setNotice]=useState("");
- async function moderate(kind:"post"|"comment",id:string,status:"published"|"rejected"|"removed"){
+ async function moderate(kind:"post"|"comment"|"video_comment",id:string,status:"published"|"rejected"|"removed"){
   if(!supabase||busy)return;setBusy(id);setNotice("");
   const table=kind==="post"?"community_posts":kind==="video_comment"?"video_comments":"community_comments";
   const result=await supabase.from(table).update({status,...(kind==="post"?{updated_at:new Date().toISOString()}: {})}).eq("id",id);
