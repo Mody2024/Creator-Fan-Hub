@@ -172,3 +172,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-search-result small{font-size:11px;color:var(--nhen-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nhen-search-result>b{color:var(--nhen-violet)}
 @media(max-width:600px){.nhen-search-page,.nhen-search-results{margin:28px auto;padding:0 13px 80px}.nhen-search-page form,.nhen-search-results>form{align-items:stretch}.nhen-search-page form button,.nhen-search-results>form button{padding:0 13px}}
+
+
+.nhen-feed-tabs{display:flex;gap:8px;padding:5px;border:1px solid var(--nhen-line);border-radius:999px;background:var(--nhen-surface);width:max-content;max-width:100%}
+.nhen-feed-tabs a{padding:9px 16px;border-radius:999px;color:var(--nhen-muted);font-size:12px;font-weight:750}
+.nhen-feed-tabs a.active{background:var(--nhen-surface-raised);color:var(--nhen-accent)}
