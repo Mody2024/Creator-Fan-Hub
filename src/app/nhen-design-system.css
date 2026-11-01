@@ -136,3 +136,20 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-saved-post>footer a{color:var(--nhen-violet);font-weight:750}
 .nhen-saved-post>footer button{border:0;background:transparent;color:var(--nhen-muted);font:inherit}
 @media(max-width:600px){.nhen-saved-wrap{margin:28px auto;padding:0 13px 80px}.nhen-saved-post{padding:15px}}
+
+
+/* NHEN Notifications inbox */
+.nhen-notifications-wrap{width:min(100%,850px);margin:50px auto;padding:0 22px 90px}
+.nhen-notifications-wrap>h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
+.nhen-notifications-wrap>h1 em{color:var(--nhen-accent);font-style:normal}
+.nhen-notifications-wrap>p{font-size:13px;margin-bottom:24px}
+.nhen-notification-list{display:grid;gap:10px}
+.nhen-notification-toolbar{display:flex;justify-content:space-between;align-items:center;padding:0 3px 10px;color:var(--nhen-muted);font-size:12px}
+.nhen-notification-toolbar button{border:0;background:transparent;color:var(--nhen-violet);font:700 12px var(--font)}
+.nhen-notification-toolbar button:disabled{opacity:.4}
+.nhen-notification-item{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:13px;align-items:center;padding:16px;border:1px solid var(--nhen-line);border-radius:17px;background:var(--nhen-surface)}
+.nhen-notification-item.unread{border-color:color-mix(in srgb,var(--nhen-accent) 42%,var(--nhen-line));background:color-mix(in srgb,var(--nhen-accent) 5%,var(--nhen-surface))}
+.nhen-notification-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;background:var(--nhen-surface-raised);color:var(--nhen-accent);font-size:17px}
+.nhen-notification-item p{font-size:13px;line-height:1.55}.nhen-notification-item small{display:block;margin-top:4px;color:var(--nhen-muted);font-size:10px}.nhen-notification-item a{display:inline-block;margin-top:8px;color:var(--nhen-violet);font-size:11px;font-weight:750}
+.nhen-notification-read{border:1px solid var(--nhen-line);border-radius:999px;padding:8px 10px;background:var(--nhen-surface-raised);color:var(--nhen-muted);font-size:10px;font-weight:700}
+@media(max-width:600px){.nhen-notifications-wrap{margin:28px auto;padding:0 13px 80px}.nhen-notification-item{grid-template-columns:36px minmax(0,1fr);padding:13px}.nhen-notification-icon{width:34px;height:34px}.nhen-notification-read{grid-column:2;justify-self:start}}
