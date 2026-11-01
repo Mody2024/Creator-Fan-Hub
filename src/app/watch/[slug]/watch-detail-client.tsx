@@ -24,9 +24,9 @@ export default function WatchDetailClient(props:Props){
  const [locale,setLocale]=useState<"en"|"ar">("en");
  const isArabic=locale==="ar";
  const t=isArabic?{
-  home:"الرئيسية",community:"المجتمع",notifications:"الإشعارات",series:"السلاسل",shorts:"المقاطع",videos:"الفيديوهات",official:"فيديو رسمي من صانع المحتوى",react:"تفاعل",spark:"شرارة",orbit:"مدار",legend:"أسطوري",laugh:"مضحك",mindblown:"مذهل",support:"دعم",saved:"تم الحفظ",save:"حفظ",share:"مشاركة",about:"عن هذا الفيديو",noDescription:"لم تتم إضافة وصف بعد.",discussion:"النقاش",comments:"تعليق",commentPlaceholder:"اكتب تعليقًا مفيدًا…",sending:"جارٍ الإرسال…",commentAction:"علّق ↗",signIn:"سجّل الدخول للمشاركة في النقاش. تتم مراجعة التعليقات قبل نشرها.",choose:"اختر تفاعلك مع NHEN"
+  home:"الرئيسية",community:"المجتمع",notifications:"الإشعارات",series:"السلاسل",shorts:"المقاطع",videos:"الفيديوهات",official:"فيديو رسمي من صانع المحتوى",react:"تفاعل",spark:"شرارة",orbit:"مدار",legend:"أسطوري",laugh:"مضحك",mindblown:"مذهل",support:"دعم",saved:"تم الحفظ",save:"حفظ",share:"مشاركة",about:"عن هذا الفيديو",noDescription:"لم تتم إضافة وصف بعد.",discussion:"النقاش",comments:"تعليق",commentPlaceholder:"اكتب تعليقًا مفيدًا…",sending:"جارٍ الإرسال…",commentAction:"علّق ↗",signIn:"سجّل الدخول للمشاركة في النقاش. تتم مراجعة التعليقات قبل نشرها.",choose:"اختر تفاعلك مع NHEN",viewError:"الفيديو يعمل، لكن تعذر تسجيل المشاهدة حاليًا.",loadError:"تعذر تحميل بعض تفاصيل الفيديو. تحقق من الاتصال وحدّث الصفحة للمحاولة مجددًا.",signReact:"سجّل الدخول للتفاعل مع الفيديوهات.",reactLive:"تم نشر تفاعلك على NHEN.",reactRemoved:"تمت إزالة تفاعلك.",reactError:"تعذر حفظ التفاعل. تمت استعادة تفاعلك السابق.",signSave:"سجّل الدخول لحفظ الفيديوهات.",savedVideo:"تم حفظ الفيديو.",unsavedVideo:"تمت إزالة الفيديو من المحفوظات.",saveError:"تعذر تحديث المحفوظات. تمت استعادة إعدادك السابق.",signComment:"سجّل الدخول للتعليق.",commentSent:"تم إرسال التعليق لمراجعة المبدع.",commentError:"تعذر إرسال التعليق. لا يزال النص موجودًا لتتمكن من المحاولة مجددًا.",shareCopied:"تم نسخ رابط الفيديو.",shareError:"تعذر نسخ الرابط تلقائيًا. يمكنك نسخ عنوان الصفحة من المتصفح."
  }:{
-  home:"Home",community:"Community",notifications:"Notifications",series:"Series",shorts:"Shorts",videos:"Videos",official:"Official creator upload",react:"React",spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support",saved:"Saved",save:"Save",share:"Share",about:"About this video",noDescription:"No description has been added yet.",discussion:"Discussion",comments:"comments",commentPlaceholder:"Add a thoughtful comment…",sending:"Sending…",commentAction:"Comment ↗",signIn:"Sign in to join the discussion. Comments are reviewed before publication.",choose:"Choose a NHEN reaction"
+  home:"Home",community:"Community",notifications:"Notifications",series:"Series",shorts:"Shorts",videos:"Videos",official:"Official creator upload",react:"React",spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support",saved:"Saved",save:"Save",share:"Share",about:"About this video",noDescription:"No description has been added yet.",discussion:"Discussion",comments:"comments",commentPlaceholder:"Add a thoughtful comment…",sending:"Sending…",commentAction:"Comment ↗",signIn:"Sign in to join the discussion. Comments are reviewed before publication.",choose:"Choose a NHEN reaction",viewError:"Your video is playing, but its view could not be recorded right now.",loadError:"Some video details could not be loaded. Check your connection and refresh to try again.",signReact:"Sign in to react to videos.",reactLive:"Your NHEN reaction is live.",reactRemoved:"Your reaction was removed.",reactError:"Could not save your reaction. Your previous reaction has been restored.",signSave:"Sign in to save videos.",savedVideo:"Video saved.",unsavedVideo:"Video removed from saved videos.",saveError:"Could not update saved videos. Your previous setting has been restored.",signComment:"Sign in to comment.",commentSent:"Comment submitted for creator review.",commentError:"Comment could not be submitted. Your text is still here so you can retry.",shareCopied:"Video link copied.",shareError:"Could not copy the link automatically. You can copy the page address from your browser."
  };
  useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
@@ -54,16 +54,16 @@ export default function WatchDetailClient(props:Props){
     if(reaction.error||bookmark.error||commentRows.error)throw reaction.error??bookmark.error??commentRows.error;
     setLiked(!!reaction.data);setMyReaction(reaction.data?.reaction??null);setSaved(!!bookmark.data);setComments((commentRows.data??[]) as Comment[]);
     const view=await supabase.rpc("record_video_view",{p_media_id:props.mediaId});
-    if(view.error&&alive)setNotice("Your video is playing, but its view could not be recorded right now.");
+    if(view.error&&alive)setNotice(t.viewError);
    }catch{
-    if(alive)setNotice("Some video details could not be loaded. Check your connection and refresh to try again.");
+    if(alive)setNotice(t.loadError);
    }
   })();
   return()=>{alive=false};
  },[supabase,props.mediaId,props.allowComments]);
 
  async function chooseReaction(reaction:string){
-  if(!supabase||!member){setNotice("Sign in to react to videos.");return}
+  if(!supabase||!member){setNotice(t.signReact);return}
   if(actionBusy)return;
   const previous=myReaction,previousLikes=likes;
   const next=previous===reaction?null:reaction;
@@ -74,15 +74,15 @@ export default function WatchDetailClient(props:Props){
     ?await supabase.from("video_reactions").upsert({media_id:props.mediaId,user_id:member,reaction:next},{onConflict:"media_id,user_id"})
     :await supabase.from("video_reactions").delete().eq("media_id",props.mediaId).eq("user_id",member);
    if(result.error)throw result.error;
-   setNotice(next?"Your NHEN reaction is live.":"Your reaction was removed.");
+   setNotice(next?t.reactLive:t.reactRemoved);
   }catch{
-   setMyReaction(previous);setLiked(!!previous);setLikes(previousLikes);setNotice("Could not save your reaction. Your previous reaction has been restored.");
+   setMyReaction(previous);setLiked(!!previous);setLikes(previousLikes);setNotice(t.reactError);
   }finally{setActionBusy(false)}
  }
 
 
  async function toggleBookmark(){
-  if(!supabase||!member){setNotice("Sign in to save videos.");return}
+  if(!supabase||!member){setNotice(t.signSave);return}
   if(actionBusy)return;
   const previous=saved,next=!previous;
   setActionBusy(true);setSaved(next);
@@ -91,22 +91,22 @@ export default function WatchDetailClient(props:Props){
     ?await supabase.from("video_bookmarks").insert({media_id:props.mediaId,user_id:member})
     :await supabase.from("video_bookmarks").delete().eq("media_id",props.mediaId).eq("user_id",member);
    if(result.error)throw result.error;
-   setNotice(next?"Video saved.":"Video removed from saved videos.");
+   setNotice(next?t.savedVideo:t.unsavedVideo);
   }catch{
-   setSaved(previous);setNotice("Could not update saved videos. Your previous setting has been restored.");
+   setSaved(previous);setNotice(t.saveError);
   }finally{setActionBusy(false)}
  }
 
  async function sendComment(){
-  if(!supabase||!member){setNotice("Sign in to comment.");return}
+  if(!supabase||!member){setNotice(t.signComment);return}
   if(!comment.trim()||actionBusy)return;
   setActionBusy(true);
   try{
    const {error}=await supabase.from("video_comments").insert({media_id:props.mediaId,author_id:member,body:comment.trim(),status:"pending"});
    if(error)throw error;
-   setComment("");setNotice("Comment submitted for creator review.");
+   setComment("");setNotice(t.commentSent);
   }catch{
-   setNotice("Comment could not be submitted. Your text is still here so you can retry.");
+   setNotice(t.commentError);
   }finally{setActionBusy(false)}
  }
 
@@ -114,9 +114,9 @@ export default function WatchDetailClient(props:Props){
   try{
    if(!navigator.clipboard?.writeText)throw new Error("Clipboard unavailable");
    await navigator.clipboard.writeText(window.location.href);
-   setNotice("Video link copied.");
+   setNotice(t.shareCopied);
   }catch{
-   setNotice("Could not copy the link automatically. You can copy the page address from your browser.");
+   setNotice(t.shareError);
   }
  }
 
