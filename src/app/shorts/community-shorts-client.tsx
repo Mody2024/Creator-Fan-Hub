@@ -29,7 +29,7 @@ export default function CommunityShortsClient(){
  const t=isArabic?{
   stream:"محتوى المجتمع",shared:"مقاطع من المجتمع",members:"فيديوهات الأعضاء",moment:"لحظتك",share:"شارك مقطع Nhenbit",limits:"يمكن للأعضاء نشر مقاطع MP4 أو WebM حتى 3 دقائق و50 ميجابايت للفيديو.",title:"اكتب عنوان الفيديو",caption:"أضف وصفًا (اختياري)",choose:"＋ اختر فيديو",none:"لم يتم اختيار فيديو",publish:"انشر Nhenbit ↗",publishing:"جارٍ النشر…",signIn:"انضم أو سجّل الدخول لنشر مقطع مجتمعي ↗",loading:"جارٍ تحميل مقاطع المجتمع…",empty:"لا توجد مقاطع Nhenbit بعد. كن أول من يشارك.",remove:"احذف مقطعك",confirm:"هل تريد إزالة هذا المقطع من المجتمع؟",upload:"جارٍ الرفع",resume:"إذا توقف الرفع، اختر الملف نفسه مرة أخرى للاستكمال.",ready:"الفيديو جاهز. أضف عنوانًا وانشره للمجتمع.",live:"مقطعك أصبح متاحًا للمجتمع.",removed:"تم حذف المقطع والفيديو المخزن.",invalid:"اختر فيديو MP4 أو WebM.",tooLarge:"حجم الفيديو يتجاوز حد الرفع الحالي البالغ 50 ميجابايت.",tooLong:"يجب ألا تتجاوز مدة Nhenbit ثلاث دقائق."
  }:{
-  stream:"COMMUNITY STREAM",shared:"Shared by the community",members:"Member videos",moment:"YOUR MOMENT",share:"Share a Nhenbit",limits:"Community members can publish MP4 or WebM · up to 3 minutes · 50 MB per video.",title:"Give your video a title",caption:"Add a caption (optional)",choose:"＋ Choose video",none:"No video selected",publish:"Publish Nhenbit ↗",publishing:"Publishing…",signIn:"Join or sign in to upload a community Nhenbit ↗",loading:"Loading community videos…",empty:"No community Nhenbits yet. Be the first to share one.",remove:"Remove your video",confirm:"Remove this Nhenbit from the community?",upload:"Uploading",resume:"If interrupted, choose the same file again to resume.",ready:"Video ready. Add a title and publish it to the community.",live:"Your Nhenbit is live in the community.",removed:"Your Nhenbit and its stored video were removed.",invalid:"Choose an MP4 or WebM video.",tooLarge:"This video exceeds the current 50 MB community upload limit.",tooLong:"Nhenbits must be 3 minutes or shorter."
+  stream:"COMMUNITY STREAM",shared:"Shared by the community",members:"Member videos",moment:"YOUR MOMENT",share:"Share a Nhenbit",limits:"Community members can publish MP4 or WebM · up to 3 minutes · 50 MB per video.",title:"Give your video a title",caption:"Add a caption (optional)",choose:"＋ Choose video",none:t.none,publish:"Publish Nhenbit ↗",publishing:"Publishing…",signIn:"Join or sign in to upload a community Nhenbit ↗",loading:"Loading community videos…",empty:"No community Nhenbits yet. Be the first to share one.",remove:"Remove your video",confirm:"Remove this Nhenbit from the community?",upload:"Uploading",resume:"If interrupted, choose the same file again to resume.",ready:"Video ready. Add a title and publish it to the community.",live:"Your Nhenbit is live in the community.",removed:"Your Nhenbit and its stored video were removed.",invalid:"Choose an MP4 or WebM video.",tooLarge:"This video exceeds the current 50 MB community upload limit.",tooLong:"Nhenbits must be 3 minutes or shorter."
  };
  useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
@@ -37,7 +37,7 @@ export default function CommunityShortsClient(){
   if(!supabase){setLoading(false);return;}
   setLoading(true);
   const {data,error}=await supabase.from("community_short_videos").select("id,author_id,title,caption,storage_path,duration_seconds,created_at,status").eq("status","published").order("created_at",{ascending:false}).limit(60);
-  if(error){setStatus("The Nhenbits feed could not load. Please refresh.");setLoading(false);return;}
+  if(error){setStatus(t.feedError);setLoading(false);return;}
   const rows=(data??[]) as ShortRow[];
   const ids=[...new Set(rows.map(row=>row.author_id))];
   const {data:profiles}=ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",ids):{data:[]};
@@ -67,11 +67,11 @@ export default function CommunityShortsClient(){
   const url=URL.createObjectURL(selected);
   try{
    const seconds=await new Promise<number>((resolve,reject)=>{
-    const video=document.createElement("video");video.preload="metadata";video.onloadedmetadata=()=>resolve(video.duration);video.onerror=()=>reject(new Error("This video could not be read. Try another MP4 or WebM file."));video.src=url;
+    const video=document.createElement("video");video.preload="metadata";video.onloadedmetadata=()=>resolve(video.duration);video.onerror=()=>reject(new Error(t.videoRead));video.src=url;
    });
    if(!Number.isFinite(seconds)||seconds<=0||seconds>MAX_SECONDS)throw new Error(t.tooLong);
    setFile(selected);setDuration(Math.ceil(seconds));setTitle(value=>value||selected.name.replace(/\.[^.]+$/,"").slice(0,100));setStatus(t.ready);
-  }catch(error){setStatus(error instanceof Error?error.message:"Could not read this video.");if(input.current)input.current.value="";}
+  }catch(error){setStatus(error instanceof Error?error.message:t.genericRead);if(input.current)input.current.value="";}
   finally{URL.revokeObjectURL(url);}
  }
 
@@ -101,12 +101,12 @@ export default function CommunityShortsClient(){
    const {error:saveError}=await supabase.from("community_short_videos").insert({author_id:userId,title:title.trim(),caption:caption.trim(),storage_path:path,duration_seconds:duration,status:"published",provider:"supabase",asset_key:path,playback_kind:"file",processing_status:"ready",size_bytes:file.size,mime_type:file.type});
    if(saveError){
     const {error:cleanupError}=await supabase.storage.from("nhen-community-shorts").remove([path]);
-    if(cleanupError)throw new Error("The post could not be saved and its uploaded file needs administrator cleanup.");
+    if(cleanupError)throw new Error(t.uploadCleanup);
     throw saveError;
    }
    setTitle("");setCaption("");setFile(null);setDuration(0);if(input.current)input.current.value="";
    setStatus(t.live);await load();
-  }catch(error){setStatus(!uploaded?"Upload interrupted. Your resumable session is retained; choose the same file again to continue. "+(error instanceof Error?error.message:""):error instanceof Error?error.message:"The uploaded file could not be saved. Please refresh the feed.");}
+  }catch(error){setStatus(!uploaded?t.uploadInterrupted+" "+(error instanceof Error?error.message:""):error instanceof Error?error.message:t.uploadCleanup);}
   finally{
    if(uploaded&&uploadSession){
     uploadSession.clear();
@@ -125,7 +125,7 @@ export default function CommunityShortsClient(){
   let storageRemoved=false;
   try{
    const {data:download,error:downloadError}=await supabase.storage.from("nhen-community-shorts").download(item.storage_path);
-   if(downloadError||!download)throw downloadError??new Error("Could not verify the original video before removal.");
+   if(downloadError||!download)throw downloadError??new Error(t.deleteBackup);
    backup=download;
    const {error:storageError}=await supabase.storage.from("nhen-community-shorts").remove([item.storage_path]);
    if(storageError)throw storageError;
@@ -134,7 +134,7 @@ export default function CommunityShortsClient(){
    if(rowError){
     if(!backup) throw new Error("The original video backup is unavailable. Contact an administrator.");
     const {error:restoreError}=await supabase.storage.from("nhen-community-shorts").upload(item.storage_path,backup,{contentType:backup.type||"video/mp4",upsert:false});
-    if(restoreError)throw new Error("The database removal failed and the video could not be restored. Contact an administrator.");
+    if(restoreError)throw new Error(t.restoreFailed);
     storageRemoved=false;
     throw rowError;
    }
@@ -143,8 +143,8 @@ export default function CommunityShortsClient(){
   }catch(error){
    if(storageRemoved&&backup){
     const {error:restoreError}=await supabase.storage.from("nhen-community-shorts").upload(item.storage_path,backup,{contentType:backup.type||"video/mp4",upsert:false});
-    if(restoreError)setStatus("Removal failed and the video backup could not be restored. Contact an administrator.");
-    else setStatus(error instanceof Error?error.message:"Could not remove this Nhenbit; the original video was restored.");
+    if(restoreError)setStatus(t.restoreFailed);
+    else setStatus(error instanceof Error?error.message:t.deleteFailed);
    }else setStatus(error instanceof Error?error.message:"Could not remove this Nhenbit.");
   }finally{setBusy(false);}
  }
@@ -154,11 +154,11 @@ export default function CommunityShortsClient(){
   <section className="nhen-community-short-composer">
    <div><span className="nhen-section-label">{t.moment}</span><h2>{t.share}</h2><p>{t.limits}</p></div>
    {userId?<div className="nhen-community-short-fields">
-    <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={100} placeholder={t.title} aria-label="Video title"/>
-    <textarea value={caption} onChange={e=>setCaption(e.target.value)} maxLength={500} rows={2} placeholder={t.caption} aria-label="Video caption"/>
+    <input value={title} onChange={e=>setTitle(e.target.value)} maxLength={100} placeholder={t.title} aria-label={t.fileTitle}/>
+    <textarea value={caption} onChange={e=>setCaption(e.target.value)} maxLength={500} rows={2} placeholder={t.caption} aria-label={t.fileCaption}/>
     <div className="nhen-community-short-controls"><label className="nhen-short-file-label"><input ref={input} type="file" accept="video/mp4,video/webm" onChange={e=>void chooseFile(e.target.files?.[0]??null)}/><span>{t.choose}</span></label><span className="nhen-muted">{file?file.name+" · "+duration+" sec":"No video selected"}</span><button className="button button-primary" disabled={!file||!title.trim()||busy} onClick={()=>void publish()}>{busy?t.publishing:t.publish}</button></div>
    </div>:<p><Link className="nhen-action" href="/community#join">{t.signIn}</Link></p>}
-   {uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>{t.upload} · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label="Community upload progress"/><small>{t.resume}</small></div>}{status&&<p role="status" aria-live="polite" className="nhen-muted">{status}</p>}
+   {uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>{t.upload} · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label={t.uploadProgress}/><small>{t.resume}</small></div>}{status&&<p role="status" aria-live="polite" className="nhen-muted">{status}</p>}
   </section>
   <div className="nhen-community-shorts-grid">{loading?<div className="nhen-card nhen-empty-state">{t.loading}</div>:items.length?items.map(item=><article className="nhen-community-short-card" key={item.id}>
    <video src={item.src} controls playsInline preload="metadata" aria-label={item.title}/>
