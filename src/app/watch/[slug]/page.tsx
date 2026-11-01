@@ -30,5 +30,5 @@ export default async function WatchVideoPage({params}:{params:Promise<{slug:stri
    youtubeEmbedUrl="https://www.youtube-nocookie.com/embed/"+id+"?rel=0";
   }catch{notFound();}
  }
- return <WatchDetailClient mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]}/>;
+ return <WatchDetailClient startAt={startAt} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]}/>;
 }
