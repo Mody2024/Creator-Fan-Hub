@@ -35,7 +35,7 @@ export async function uploadToSupabaseStorage({
   const projectRef = configuredHost.split(".")[0];
   const endpoint = configuredHost.endsWith(".supabase.co")
     ? `https://${projectRef}.storage.supabase.co/storage/v1/upload/resumable`
-    : `${configuredUrl.replace(/\/$/, "")}/storage/v1/upload/resumable`;
+    : `${configuredUrl.endsWith("/") ? configuredUrl.slice(0, -1) : configuredUrl}/storage/v1/upload/resumable`;
 
   await new Promise<void>((resolve, reject) => {
     let settled = false;
