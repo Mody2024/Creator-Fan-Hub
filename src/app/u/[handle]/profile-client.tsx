@@ -3,7 +3,7 @@ import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 
-type Profile={userId:string;handle:string;displayName:string;bio:string;avatarUrl:string|null;websiteUrl:string|null;joinedAt:string};
+type Profile={userId:string;handle:string;displayName:string;bio:string;avatarUrl:string|null;websiteUrl:string|null;joinedAt:string;achievements:Array<{code:string;title:string;description:string;icon:string}>};
 export type ProfilePost={id:string;body:string;createdAt:string;type:string};
 
 export default function MemberProfileClient({profile,posts,followerCount,followingCount}:{profile:Profile;posts:ProfilePost[];followerCount:number;followingCount:number}){
@@ -21,6 +21,7 @@ export default function MemberProfileClient({profile,posts,followerCount,followi
     {editing&&viewer===profile.userId&&<div className="nhen-profile-editor"><label>Display name<input value={displayName} onChange={e=>setDisplayName(e.target.value)} maxLength={40}/></label><label>Bio<textarea value={bio} onChange={e=>setBio(e.target.value)} maxLength={240} rows={3}/></label><label>Website<input value={website} onChange={e=>setWebsite(e.target.value)} placeholder="https://…"/></label><button className="button button-primary" onClick={()=>void saveProfile()}>Save profile ↗</button></div>}
     {profile.bio&&<p className="nhen-profile-bio">{profile.bio}</p>}
     {profile.websiteUrl&&<a className="nhen-profile-website" href={profile.websiteUrl} target="_blank" rel="noreferrer">{profile.websiteUrl}</a>}
+    {profile.achievements.length>0&&<section className="nhen-achievement-section"><span className="nhen-section-label">MILESTONES</span><div className="nhen-achievement-grid">{profile.achievements.map(a=><div className="nhen-achievement-chip" key={a.code} title={a.description}><span>{a.icon}</span><div><strong>{a.title}</strong><small>{a.description}</small></div></div>)}</div></section>}
     <div className="nhen-profile-stats"><span><strong>{posts.length}</strong> Posts</span><span><strong>{followers}</strong> Followers</span><span><strong>{followingCount}</strong> Following</span><span>Joined {new Date(profile.joinedAt).toLocaleDateString()}</span></div>
    </section>
    {notice&&<p className="nhen-mod-notice" role="status">{notice}</p>}
