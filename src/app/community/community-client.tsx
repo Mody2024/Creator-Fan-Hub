@@ -122,9 +122,9 @@ export default function CommunityClient({ initialPosts, selectedFeed }: { initia
     if (!supabase || !member || busy || !body.trim()) return;
     setBusy(true); setStatus("");
     try {
-      const { error } = await supabase.from("community_posts").insert({ author_id: member.id, post_type: "member", body: body.trim(), status: "pending" });
+      const { error } = await supabase.from("community_posts").insert({ author_id: member.id, post_type: "member", body: body.trim(), status: "published" });
       if (error) throw error;
-      setBody(""); setStatus("Your post has been sent for review. It will appear after approval.");
+      setBody(""); setStatus("Your post is live in the community."); router.refresh();
     } catch (error) { setStatus(error instanceof Error ? error.message : "Post submission failed."); }
     finally { setBusy(false); }
   }
@@ -162,9 +162,9 @@ export default function CommunityClient({ initialPosts, selectedFeed }: { initia
     if (!supabase || !member || !commentsFor || !commentText.trim() || busy) { setStatus("Sign in to join the discussion."); return; }
     setBusy(true);
     try {
-      const { error } = await supabase.from("community_comments").insert({ post_id: commentsFor, author_id: member.id, body: commentText.trim(), status: "pending" });
+      const { error } = await supabase.from("community_comments").insert({ post_id: commentsFor, author_id: member.id, body: commentText.trim(), status: "published" });
       if (error) throw error;
-      setCommentText(""); setStatus("Comment sent for review.");
+      setCommentText(""); setStatus("Your reply is live."); void openComments(commentsFor);
     } catch {
       setStatus("Comment submission failed. Your text is still here so you can retry.");
     } finally { setBusy(false); }
