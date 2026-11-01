@@ -19,6 +19,7 @@ NHEN must not depend on a paid service, paid plan, paid add-on, or automatic ove
 - Watch pages, reactions, bookmarks, comments, and creator publishing metadata are already separate from the upload UI.
 - Current verified Storage usage query returned 0 objects / 0 bytes at the time of audit.
 - A database reservation system now enforces a conservative 750 MiB application storage ceiling across all Supabase Storage buckets. It reserves expected upload bytes before creator/community uploads and expires abandoned reservations after one hour.
+- A `storage.objects` insert trigger now enforces an active reservation matching the authenticated owner, target NHEN bucket and exact declared file size. This closes the direct-upload path that could otherwise bypass the application's pre-upload reservation RPC.
 - Creator media and community Nhenbits now use TUS resumable uploads in 6 MiB chunks with retry backoff and visible progress. A stable owner-scoped object key plus browser-persisted upload session lets the same selected file resume after an interruption or page reload. Reservation IDs can be renewed for a matching in-progress upload.
 - Creator Media now shows a storage-health audit: current usage, expired reservation cleanup, and the count/size of media objects older than 24 hours that have no matching media record. It never deletes those objects automatically.
 - Community Nhenbit deletion now backs up the video before removal and restores it if the database row deletion fails, reducing the chance of a broken post after a partial failure.
@@ -71,7 +72,7 @@ Do not add Cloudflare R2 as an active dependency in strict-$0 mode. R2 currently
 
 ## Quota guard
 
-The implemented storage guard sums object sizes from `storage.objects` across the project and adds active upload reservations under an advisory transaction lock. It rejects new uploads above 750 MiB and exposes used, reserved and available bytes to the Creator Media Library. Reservations are owner-scoped, expire after one hour and are released after the upload flow completes.
+The implemented storage guard sums object sizes from `storage.objects` across the project and adds active upload reservations under an advisory transaction lock. It rejects new reservations above 750 MiB and a database trigger additionally rejects direct Storage object inserts without a matching active reservation. Used, reserved and available bytes are exposed to the Creator Media Library. Reservations are owner-scoped, expire after one hour and are released after the upload flow completes.
 
 Important limitations: this is an application-level storage safety ceiling, not Supabase billing telemetry. It protects the two NHEN upload flows wired to it (creator media and community Nhenbits); any future Storage upload route must also reserve capacity. Egress/bandwidth is not yet hard-capped because browser video delivery cannot be reliably inferred from database view counts. Review actual Supabase egress in the dashboard and keep playback traffic conservative.
 
