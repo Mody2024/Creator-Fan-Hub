@@ -6,9 +6,9 @@ export default async function SearchPage({searchParams}:{searchParams:Promise<{q
  if(!term)return <main className="nhen-profile-page"><header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/community">Community</Link><Link href="/#videos">Watch</Link></nav></header><section className="nhen-search-page"><h1>Explore <em>NHEN.</em></h1><form action="/search"><input name="q" placeholder="Search videos, posts and people…" autoFocus/><button className="button button-primary">Search ↗</button></form></section></main>;
  const pattern="%"+term.replace(/[\\%_]/g,"\\$&")+"%";
  const [profilesResult,postsResult,videosResult]=supabase?await Promise.all([
-  supabase.from("member_profiles").select("user_id,handle,display_name,bio").ilike("handle",pattern).limit(12),
+  supabase.from("member_profiles").select("user_id,handle,display_name,bio").or("handle.ilike."+pattern+",display_name.ilike."+pattern).limit(12),
   supabase.from("community_posts").select("id,body,created_at,author_id").eq("status","published").ilike("body",pattern).order("created_at",{ascending:false}).limit(20),
-  supabase.from("video_catalog").select("media_id,slug,description,category,media_items!inner(title,is_published,media_type)").not("published_at","is",null).ilike("description",pattern).limit(12)
+  supabase.from("video_catalog").select("media_id,slug,description,category,media_items!inner(title,is_published,media_type)").not("published_at","is",null).or("description.ilike."+pattern+",title.ilike."+pattern,{foreignTable:"media_items"}).limit(12)
  ]):[{data:[]},{data:[]},{data:[]}];
  const profiles=profilesResult.data??[],posts=postsResult.data??[],videos=(videosResult.data??[]).filter(v=>{const m=Array.isArray(v.media_items)?v.media_items[0]:v.media_items;return m?.is_published&&m.media_type==="video"}).map(v=>({slug:v.slug,title:(Array.isArray(v.media_items)?v.media_items[0]:v.media_items)?.title??v.slug,description:v.description,category:v.category}));
  const ids=[...new Set(posts.map(p=>p.author_id))];const {data:authors}=supabase&&ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name").in("user_id",ids):{data:[]};const authorMap=new Map((authors??[]).map(a=>[a.user_id,a]));
