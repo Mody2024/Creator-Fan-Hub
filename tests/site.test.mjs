@@ -411,6 +411,6 @@ test("trigger-only SECURITY DEFINER functions cannot be called as public RPCs", 
     "notify_video_comment",
     "notify_video_reaction"
   ]) {
-    assert.match(triggerRpcMigration, new RegExp("revoke all on function public\\\\." + name + "\\\\(\\\\) from public, anon, authenticated", "i"));
+    assert.ok(triggerRpcMigration.includes("revoke all on function public." + name + "() from public, anon, authenticated;"));
   }
 });
