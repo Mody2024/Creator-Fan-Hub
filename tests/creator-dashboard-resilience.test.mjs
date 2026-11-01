@@ -46,3 +46,12 @@ test("creator settings warns before reload when there are unsaved edits", async 
   assert.ok(source.includes("Discard your unsaved changes and reload the saved draft?"));
   assert.ok(source.includes("beforeunload"));
 });
+
+test("site publishing verifies that each selected asset is public and has a compatible media type", async () => {
+  const source = await read("../src/app/creator/creator-settings.tsx");
+  assert.ok(source.includes('{ id: draft.identity.logoMediaId, label: "logo", allowed: ["image"] }'));
+  assert.ok(source.includes('{ id: draft.identity.mascotMediaId, label: "mascot", allowed: ["image", "sprite"] }'));
+  assert.ok(source.includes('{ id: draft.identity.narrationMediaId, label: "narration", allowed: ["audio"] }'));
+  assert.ok(source.includes('{ id: draft.hero.mediaId, label: "hero background", allowed: ["image", "video"] }'));
+  assert.ok(source.includes('!stored || !stored.is_published || !asset.allowed.includes(stored.media_type)'));
+});
