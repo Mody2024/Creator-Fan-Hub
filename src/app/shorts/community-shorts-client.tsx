@@ -5,7 +5,8 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type ShortRow={id:string;author_id:string;title:string;caption:string;storage_path:string;duration_seconds:number;created_at:string;status:string};
-type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};\ntype ShortCard=ShortRow&{handle:string;displayName:string;avatarUrl:string|null;src:string};
+type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};
+type ShortCard=ShortRow&{handle:string;displayName:string;avatarUrl:string|null;src:string};
 const MAX_BYTES=50*1024*1024;
 const MAX_SECONDS=180;
 
@@ -30,7 +31,8 @@ export default function CommunityShortsClient(){
   const rows=(data??[]) as ShortRow[];
   const ids=[...new Set(rows.map(row=>row.author_id))];
   const {data:profiles}=ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",ids):{data:[]};
-  const profileRows=(profiles??[]) as ShortProfile[];\n  const byId=new Map<string,ShortProfile>(profileRows.map(p=>[p.user_id,p] as const));
+  const profileRows=(profiles??[]) as ShortProfile[];
+  const byId=new Map<string,ShortProfile>(profileRows.map(p=>[p.user_id,p] as const));
   setItems(rows.map(row=>{
    const profile=byId.get(row.author_id);
    return {...row,handle:profile?.handle??"member",displayName:profile?.display_name??"NHEN member",avatarUrl:profile?.avatar_url??null,src:supabase.storage.from("nhen-community-shorts").getPublicUrl(row.storage_path).data.publicUrl};
