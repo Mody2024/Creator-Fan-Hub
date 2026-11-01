@@ -293,3 +293,15 @@ test("deleting a prepared logo also cleans up its private original backup safely
   assert.match(media, /backupCleanupError/);
   assert.match(studio, /removeBackground \? "png" : \(file\.type === "image\/jpeg" \? "jpg" : "webp"\)/);
 });
+
+
+test("uploaded logo preview shows both themes while bilingual identity remains visible in the hero portal", async () => {
+  const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+  const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  assert.match(page, /config\.logoUrl && <img src=\{config\.logoUrl\} alt="" \/><span className="portal-wordmark">/);
+  assert.match(page, /<small lang="ar" dir="rtl">نهين؟<\/small>/);
+  assert.match(studio, /DARK THEME/);
+  assert.match(studio, /LIGHT THEME/);
+  assert.match(design, /nhen-logo-theme-previews/);
+});
