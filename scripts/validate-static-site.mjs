@@ -214,7 +214,7 @@ check("event and social managers show helpful empty states", eventSocial.include
 check("media filters provide a clearable no-results state", media.includes("No matching assets.") && media.includes('onClick={()=>{setSearch("");setFilter("all");}}'));
 check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">No polls created yet.') && ideasModeration.includes('className="moderation-empty" role="status"><h3>No submissions yet.'));
 check("publishing history explains the first-version empty state", historyComponent.includes('className="moderation-empty" role="status"><h3>No published versions yet.'));
-check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">Loading media…</p>'));
+check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">{t.loading}</p>'));
 
 if (failures.length) {
   console.error("Repository validation failed:");
