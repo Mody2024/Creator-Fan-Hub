@@ -71,3 +71,11 @@ test("invitation link copying reports clipboard failure instead of silently fail
   assert.ok(source.includes('Clipboard access is unavailable. Select and copy the invitation link manually.'));
   assert.ok(source.includes('onClick={()=>void copyInvite()}'));
 });
+
+test("invitation verification and acceptance recover from network failures", async () => {
+  const source = await read("../src/app/creator/accept-invite/accept-invite-client.tsx");
+  assert.ok(source.includes('if(active){setReady(false);setStatus("We could not verify your sign-in because the connection failed. Check your connection and reload this page.");}'));
+  assert.ok(source.includes('We could not accept this invitation. Check that you are signed in with the invited email'));
+  assert.ok(source.includes('finally {setBusy(false);}'));
+  assert.ok(source.includes('return ()=>{active=false;}'));
+});
