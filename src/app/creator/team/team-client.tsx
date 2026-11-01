@@ -9,7 +9,7 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
   if(!supabase||busy||!email.trim())return;setBusy(true);setNotice("");setInviteUrl("");
   try{
    const token=Array.from(crypto.getRandomValues(new Uint8Array(48))).map(x=>x.toString(16).padStart(2,"0")).join("");
-   const {data,error}=await supabase.rpc("create_creator_invite",{p_email:email.trim().toLowerCase(),p_role:role,p_token:token});
+   const {error}=await supabase.rpc("create_creator_invite",{p_email:email.trim().toLowerCase(),p_role:role,p_token:token});
    if(error)throw error;
    setInviteUrl(window.location.origin+"/creator/accept-invite?token="+token);
    setEmail("");setNotice("Invitation created. Copy the one-time link and send it privately to the matching email address.");
