@@ -55,3 +55,19 @@ test("site publishing verifies that each selected asset is public and has a comp
   assert.ok(source.includes('{ id: draft.hero.mediaId, label: "hero background", allowed: ["image", "video"] }'));
   assert.ok(source.includes('!stored || !stored.is_published || !asset.allowed.includes(stored.media_type)'));
 });
+
+test("team permission changes always recover from RPC and network failures", async () => {
+  const source = await read("../src/app/creator/team/team-client.tsx");
+  assert.ok(source.includes('if(error)throw error;'));
+  assert.ok(source.includes('finally {setBusy(false);}'));
+  assert.ok(source.includes('Refresh the roster to confirm the current permissions.'));
+  assert.ok(source.includes('Refresh the roster to confirm the current status.'));
+  assert.ok(source.includes('if(!supabase||busy||member.role==="owner"||!roles.includes(next))return;'));
+});
+
+test("invitation link copying reports clipboard failure instead of silently failing", async () => {
+  const source = await read("../src/app/creator/team/team-client.tsx");
+  assert.ok(source.includes('async function copyInvite()'));
+  assert.ok(source.includes('Clipboard access is unavailable. Select and copy the invitation link manually.'));
+  assert.ok(source.includes('onClick={()=>void copyInvite()}'));
+});
