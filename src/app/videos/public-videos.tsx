@@ -83,7 +83,7 @@ export default async function PublicVideos() {
     </div>
     <div className="public-video-grid">{videos.map((video, index) => <article className="public-video-card" key={video.id}>
       <div className="public-video-frame">
-        <PublicVideoPlayer src={video.url} youtubeEmbedUrl={video.embedUrl} title={video.title} description={video.description} />
+        <PublicVideoPlayer src={video.url} youtubeEmbedUrl={video.embedUrl} title={video.title} description={video.description} locale={isArabic?"ar":"en"} />
         <span className="public-video-index">{video.featured ? copy.featured : String(index + 1).padStart(2, "0")}</span>
       </div>
       <div className="public-video-meta">
