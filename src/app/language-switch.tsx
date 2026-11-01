@@ -8,6 +8,10 @@ export default function LanguageSwitch({ initialLocale = "en" }: { initialLocale
     const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);
     if (match) setLocale(match[1] as "en" | "ar");
   }, []);
+  useEffect(() => {
+    document.documentElement.lang = locale;
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
+  }, [locale]);
   function toggle() {
     const next = locale === "en" ? "ar" : "en";
     document.cookie = `nhen_locale=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
