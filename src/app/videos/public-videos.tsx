@@ -6,7 +6,7 @@ function youtubeEmbedUrl(source: string | null): string | null {
   if (!source) return null;
   try {
     const url = new URL(source);
-    const host = url.hostname.replace(/^www\\./, "").toLowerCase();
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
     let id = "";
     if (host === "youtu.be") id = url.pathname.split("/").filter(Boolean)[0] ?? "";
     else if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
