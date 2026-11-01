@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 
@@ -22,7 +23,13 @@ function youtubeEmbedUrl(source: string | null): string | null {
 }
 
 export default async function PublicVideos() {
-  const supabase = await createSupabaseServerClient();
+  const [supabase,cookieStore] = await Promise.all([createSupabaseServerClient(),cookies()]);
+  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const copy = isArabic ? {
+    eyebrow:"04 / NHEN WATCH", first:"أحدث فيديوهات", emphasis:"صنّاع المحتوى.", description:"فيديوهات رسمية منظمة في صفحات مشاهدة وسلاسل. افتح الفيديو للمشاهدة والحفظ والمشاركة في النقاش.", featured:"مميز", watch:"شاهد الآن ↗"
+  } : {
+    eyebrow:"04 / NHEN WATCH", first:"Fresh from", emphasis:"the creator.", description:"Official videos, organized into watch pages and series. Open a video to watch, save it and join its discussion.", featured:"✦ FEATURED", watch:"Watch now ↗"
+  };
   if (!supabase) return null;
 
   const { data, error } = await supabase.from("video_catalog")
@@ -69,21 +76,21 @@ export default async function PublicVideos() {
 
   if (!videos.length) return null;
 
-  return <section className="public-videos content-section" id="videos" aria-labelledby="public-videos-title">
+  return <section className="public-videos content-section" id="videos" dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"} aria-labelledby="public-videos-title">
     <div className="section-heading">
-      <div><span className="eyebrow">04 / NHEN WATCH</span><h2 id="public-videos-title">Fresh from<br /><em>the creator.</em></h2></div>
-      <p>Official videos, organized into watch pages and series. Open a video to watch, save it and join its discussion.</p>
+      <div><span className="eyebrow">{copy.eyebrow}</span><h2 id="public-videos-title">{copy.first}<br /><em>{copy.emphasis}</em></h2></div>
+      <p>{copy.description}</p>
     </div>
     <div className="public-video-grid">{videos.map((video, index) => <article className="public-video-card" key={video.id}>
       <div className="public-video-frame">
         <PublicVideoPlayer src={video.url} youtubeEmbedUrl={video.embedUrl} title={video.title} description={video.description} />
-        <span className="public-video-index">{video.featured ? "✦ FEATURED" : String(index + 1).padStart(2, "0")}</span>
+        <span className="public-video-index">{video.featured ? copy.featured : String(index + 1).padStart(2, "0")}</span>
       </div>
       <div className="public-video-meta">
         <span className="eyebrow">{video.category.toUpperCase()} / VIDEO</span>
         <h3>{video.title}</h3>
         {video.description && <p>{video.description}</p>}
-        <Link href={"/watch/" + video.slug} className="nhen-watch-link-label">Watch now ↗</Link>
+        <Link href={"/watch/" + video.slug} className="nhen-watch-link-label">{copy.watch}</Link>
       </div>
     </article>)}</div>
   </section>;
