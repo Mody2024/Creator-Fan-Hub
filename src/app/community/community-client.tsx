@@ -11,7 +11,7 @@ type Member = { id: string; handle: string; displayName: string };
 
 const reactions = [{ key: "like", label: "Like", icon: "♡" }, { key: "love", label: "Love", icon: "♥" }, { key: "insightful", label: "Insightful", icon: "✦" }, { key: "funny", label: "Funny", icon: "笑" }] as const;
 
-export default function CommunityClient({ initialPosts }: { initialPosts: CommunityPost[] }) {
+export default function CommunityClient({ initialPosts, selectedFeed }: { initialPosts: CommunityPost[]; selectedFeed: "following" | "latest" }) {
   const router = useRouter();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [member, setMember] = useState<Member | null>(null);
@@ -200,7 +200,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
           <p className="nhen-muted" style={{fontSize:11,marginTop:12}}>Community membership is separate from creator/admin access. Never share your password.</p>
         </section>}
         {status && <p role="status" aria-live="polite" className="nhen-card nhen-card-pad" style={{fontSize:13}}>{status}</p>}
-        <div className="nhen-card-heading" id="latest"><h2 className="nhen-card-title">Latest conversations</h2><span className="nhen-muted" style={{fontSize:12}}>{initialPosts.length} posts</span></div>
+        <div className="nhen-feed-tabs"><Link className={selectedFeed==="latest"?"active":""} href="/community">Latest</Link><Link className={selectedFeed==="following"?"active":""} href="/community?feed=following">Following</Link></div><div className="nhen-card-heading" id="latest"><h2 className="nhen-card-title">{selectedFeed==="following"?"From people you follow":"Latest conversations"}</h2><span className="nhen-muted" style={{fontSize:12}}>{initialPosts.length} posts</span></div>
         {initialPosts.length===0 ? <div className="nhen-card nhen-empty-state"><div><div style={{fontSize:32,marginBottom:12}}>✳</div><strong>The first conversation is waiting.</strong><p className="nhen-muted">Official updates and approved member posts will appear here.</p></div></div> : initialPosts.map(post=><article className="nhen-card" key={post.id}>
           <div className="nhen-post-header"><div className="nhen-avatar" style={{display:"grid",placeItems:"center",fontWeight:800,color:"var(--nhen-accent)"}}>{post.author.display_name.slice(0,1).toUpperCase()}</div><div style={{minWidth:0,flex:1}}><strong style={{fontSize:13}}>{post.author.display_name}</strong><div className="nhen-muted" style={{fontSize:11,marginTop:3}}>@{post.author.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div>{post.type==="official" && <span className="nhen-pill nhen-pill-official">✦ OFFICIAL</span>}<button className="nhen-action" onClick={()=>void report(post.id)} aria-label="Report post">•••</button></div>
           <div className="nhen-post-body">{post.body}</div>
