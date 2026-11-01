@@ -81,8 +81,8 @@ export default function MediaLibrary() {
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before uploading.");
-      const {data:admin,error:adminError} = await supabase.from("creator_admins").select("user_id").eq("user_id",userData.user.id).eq("active",true).maybeSingle();
-      if (adminError || !admin) throw new Error("This account does not have creator upload permission.");
+      const {data:admin,error:adminError} = await supabase.from("creator_admins").select("role").eq("user_id",userData.user.id).eq("active",true).maybeSingle();
+      if (adminError || !admin || !["owner","admin","creator"].includes(admin.role)) throw new Error("Official video and media publishing is restricted to assigned NHEN creators.");
       const path = `${userData.user.id}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
       const {error:uploadError} = await supabase.storage.from("creator-media-private").upload(path,file,{contentType:file.type,upsert:false});
       if (uploadError) throw uploadError;
