@@ -124,6 +124,7 @@ export default function CommunityShortsClient(){
    storageRemoved=true;
    const {error:rowError}=await supabase.from("community_short_videos").delete().eq("id",item.id).eq("author_id",userId);
    if(rowError){
+    if(!backup) throw new Error("The original video backup is unavailable. Contact an administrator.");
     const {error:restoreError}=await supabase.storage.from("nhen-community-shorts").upload(item.storage_path,backup,{contentType:backup.type||"video/mp4",upsert:false});
     if(restoreError)throw new Error("The database removal failed and the video could not be restored. Contact an administrator.");
     storageRemoved=false;
