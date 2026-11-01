@@ -1,4 +1,4 @@
--- Trigger-only SECURITY DEFINER functions are not RPC endpoints.
+-- Trigger-only database functions are not RPC endpoints.
 -- PostgreSQL executes attached trigger functions without requiring callers
 -- to hold EXECUTE on the trigger function itself.
 revoke all on function public.award_follow_achievements() from public, anon, authenticated;
