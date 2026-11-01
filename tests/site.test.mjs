@@ -446,9 +446,13 @@ test("video navigation is consistently gated without duplicate Watch and Videos 
   assert.ok(mobileNav.includes('<a href="/shorts">Shorts</a>'));
   assert.ok(mobileNav.includes('<a href="#videos">Watch</a>'));
 });
-test("publishing a site draft is blocked while selected media assets remain private", async () => {
+test("publishing a site draft requires compatible published media assets", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
-  assert.ok(settings.includes("const unpublished = selectedMedia.filter"));
-  assert.ok(settings.includes("Publish those assets in Media Library"));
+  assert.ok(settings.includes("const invalidAsset = selectedMedia.find"));
+  assert.ok(settings.includes('label: "logo", allowed: ["image"]'));
+  assert.ok(settings.includes('label: "mascot", allowed: ["image", "sprite"]'));
+  assert.ok(settings.includes('label: "narration", allowed: ["audio"]'));
+  assert.ok(settings.includes('label: "hero background", allowed: ["image", "video"]'));
+  assert.ok(settings.includes("!stored || !stored.is_published || !asset.allowed.includes(stored.media_type)"));
   assert.ok(settings.includes("if (publish)"));
 });
