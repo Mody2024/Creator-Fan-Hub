@@ -3,7 +3,7 @@ import {useMemo,useState} from "react";
 import Link from "next/link";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 export type Notice={id:string;type:string;targetType:string;targetId:string;message:string;readAt:string|null;createdAt:string;actor:string;handle:string|null};
-function href(n:Notice){if(n.targetType==="video")return "/watch/"+n.targetId;if(n.targetType==="profile")return n.handle?"/u/"+n.handle:"/community";return "/community"}
+function href(n:Notice){if(n.targetType==="video")return "/#videos";if(n.targetType==="profile")return n.handle?"/u/"+n.handle:"/community";return "/community"}
 export default function NotificationsClient({initialNotices}:{initialNotices:Notice[]}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);const [items,setItems]=useState(initialNotices);const [notice,setNotice]=useState("");
  const unread=items.filter(x=>!x.readAt).length;
