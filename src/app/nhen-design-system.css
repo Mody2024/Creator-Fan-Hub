@@ -232,3 +232,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-invite-accept-card>p{color:var(--nhen-muted);font-size:13px;line-height:1.7}
 .nhen-invite-accept-actions{display:grid;gap:14px;margin-top:20px}.nhen-invite-accept-actions p{font-size:13px;line-height:1.7;color:var(--nhen-muted)}
 @media(max-width:800px){.nhen-team-invite-form{grid-template-columns:1fr 1fr}.nhen-team-invite-form button{grid-column:1/-1}.nhen-team-row{grid-template-columns:minmax(0,1fr) 100px;gap:8px}.nhen-team-row .nhen-team-status{grid-column:1}.nhen-team-row button{grid-column:2;grid-row:2}.nhen-role-guide{grid-template-columns:1fr}}
+
+
+.nhen-profile-actions{display:flex;gap:8px;align-items:center}
+.nhen-profile-block{border:1px solid var(--nhen-line);border-radius:999px;padding:10px 15px;background:var(--nhen-surface-raised);color:var(--nhen-muted);font-size:11px;font-weight:750}
