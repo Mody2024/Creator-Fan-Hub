@@ -107,6 +107,6 @@ export default async function HomePage() {
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو NHEN." : "Approved creators can publish official videos and manage their channel from NHEN Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
       </aside>
     </div>
-    <nav className="mobile-nav" aria-label={isArabic ? "التنقل" : "Mobile navigation"}><Link href="/">⌂<span>{t.home}</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}<Link href="/community">◉<span>{t.community}</span></Link><Link href="/community#join">◎<span>{t.profile}</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>{t.home}</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}<Link href="/community">◉<span>{t.community}</span></Link><Link href="/community#join">◎<span>{t.profile}</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
