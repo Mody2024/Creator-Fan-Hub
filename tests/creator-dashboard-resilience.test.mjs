@@ -21,7 +21,7 @@ test("creator dashboard quick navigation points to all ten management areas", as
   for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
     assert.ok(source.includes(`id="${id}"`), `management panel target missing: ${id}`);
   }
-  assert.ok(page.includes("10 ACTIVE AREAS"));
+  assert.ok(page.includes('10 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
   assert.ok(!page.includes("More control, coming next."));
 });
 
