@@ -90,7 +90,7 @@ export default function CommunityShortsClient(){
    const path=uploadSession.objectName;
    await uploadToSupabaseStorage({client:supabase,bucketName:"nhen-community-shorts",objectName:path,file,onProgress:setUploadProgress});
    uploaded=true;
-   const {error:saveError}=await supabase.from("community_short_videos").insert({author_id:userId,title:title.trim(),caption:caption.trim(),storage_path:path,duration_seconds:duration,status:"published"});
+   const {error:saveError}=await supabase.from("community_short_videos").insert({author_id:userId,title:title.trim(),caption:caption.trim(),storage_path:path,duration_seconds:duration,status:"published",provider:"supabase",asset_key:path,playback_kind:"file",processing_status:"ready",size_bytes:file.size,mime_type:file.type});
    if(saveError){
     const {error:cleanupError}=await supabase.storage.from("nhen-community-shorts").remove([path]);
     if(cleanupError)throw new Error("The post could not be saved and its uploaded file needs administrator cleanup.");
