@@ -506,3 +506,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-analytics-tools p { margin:0; color:var(--nhen-muted); font-size:13px; line-height:1.6; }
 .nhen-analytics-tools button { flex:0 0 auto; }
 @media(max-width:600px){.nhen-analytics-tools{align-items:stretch;flex-direction:column}.nhen-analytics-tools button{width:100%}}
+
+/* NHEN reaction selector — compact, keyboard-accessible and touch friendly. */
+.nhen-reaction-picker{position:relative;display:inline-flex;align-items:center}
+.nhen-reaction-menu{display:none;position:absolute;z-index:30;left:0;bottom:calc(100% + 8px);min-width:210px;padding:8px;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;border:1px solid var(--nhen-line);border-radius:16px;background:var(--nhen-surface);box-shadow:var(--nhen-shadow)}
+.nhen-reaction-picker:hover .nhen-reaction-menu,.nhen-reaction-picker:focus-within .nhen-reaction-menu{display:grid}
+.nhen-reaction-menu .nhen-action{display:flex;align-items:center;gap:8px;text-align:left;border-radius:10px}
+.nhen-reaction-menu .nhen-action span{font-size:11px}
+.nhen-reaction-menu .nhen-action[aria-pressed=true]{background:rgba(255,100,124,.14);color:var(--nhen-accent)}
+.nhen-shorts-heading .nhen-section-label{letter-spacing:.16em}
