@@ -83,8 +83,9 @@ export default function CommunityShortsClient(){
    if(!reservationId){
     const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"nhen-community-shorts"});
     if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("NHEN free storage capacity is unavailable. No upload was started.");
-    reservationId=reservation[0].reservation_id;
-    uploadSession.saveReservation(reservationId);
+    const newReservationId=reservation[0].reservation_id as string;
+    reservationId=newReservationId;
+    uploadSession.saveReservation(newReservationId);
    }
    const path=uploadSession.objectName;
    await uploadToSupabaseStorage({client:supabase,bucketName:"nhen-community-shorts",objectName:path,file,onProgress:setUploadProgress});
