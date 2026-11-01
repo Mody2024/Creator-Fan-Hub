@@ -11,14 +11,17 @@
     "test": "node --test",
     "check": "node scripts/validate-static-site.mjs"
   },
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@supabase/ssr": "0.7.0",
     "@supabase/supabase-js": "2.57.4",
     "next": "15.5.28",
     "react": "19.1.7",
     "react-dom": "19.1.7",
-    "sharp": "0.35.5"
+    "sharp": "0.35.5",
+    "tus-js-client": "4.3.1"
   },
   "devDependencies": {
     "@types/node": "22.18.6",
