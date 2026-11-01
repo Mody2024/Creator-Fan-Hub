@@ -87,3 +87,13 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
   assert.ok(page.includes('10 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
 });
+
+test("community interactions restore optimistic state and recover from failed requests", async () => {
+  const source = await read("../src/app/community/community-client.tsx");
+  assert.ok(source.includes("Your previous reaction has been restored."));
+  assert.ok(source.includes("Your previous setting has been restored."));
+  assert.ok(source.includes("Comments could not be loaded. Check your connection and try again."));
+  assert.ok(source.includes("Your text is still here so you can retry."));
+  assert.ok(source.includes("We could not send your report. Please try again later."));
+  assert.ok(source.includes("We could not sign you out because the connection failed."));
+});
