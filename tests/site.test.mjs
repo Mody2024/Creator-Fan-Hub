@@ -383,6 +383,9 @@ test("community moderation uses a private role helper across every moderation qu
   assert.match(communityRoleMigration, /Moderators manage video comments/);
   assert.match(communityRoleMigration, /Moderators review reports/);
   assert.match(communityRoleMigration, /Moderators update reports/);
+  assert.match(communityRoleMigration, /private\.can_moderate_community\(\)/);
+  assert.match(communityRoleMigration, /create or replace function public\.moderate_public_idea/);
+  assert.match(communityRoleMigration, /if auth\.uid\(\) is null or not private\.can_moderate_community\(\)/);
   assert.match(communityRoleMigration, /drop function if exists public\.can_moderate_community\(\)/i);
   assert.doesNotMatch(communityRoleMigration, /create or replace function public\.can_moderate_community/i);
 });
