@@ -1,6 +1,6 @@
 "use client";
 
-import {useMemo,useState} from "react";
+import {useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 
 export type QueueItem={id:string;kind:"post"|"comment"|"video_comment";body:string;status:string;createdAt:string;author:string;handle:string;postType?:string;postId?:string};
