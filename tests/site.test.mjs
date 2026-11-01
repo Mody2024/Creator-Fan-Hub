@@ -352,7 +352,7 @@ test("creator analytics exports ranked aggregate metrics as safe CSV", async () 
   assert.match(page, /AnalyticsExport/);
   assert.match(exportComponent, /nhen-video-analytics\.csv/);
   assert.match(exportComponent, /text\.replace\(\/"\/g, '""'\)/);
-  assert.ok(exportComponent.includes(String.raw\`if (/^[\s]*[=+\-@]/.test(text))\`));
+  assert.ok(exportComponent.includes("if (/^[\\s]*[=+\\-@]/.test(text))"));
   assert.match(exportComponent, /Approved comments/);
   assert.match(exportComponent, /URL\.createObjectURL/);
   assert.match(exportComponent, /anchor\.remove\(\)/);
