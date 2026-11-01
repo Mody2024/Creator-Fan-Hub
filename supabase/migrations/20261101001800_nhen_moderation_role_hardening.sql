@@ -116,7 +116,7 @@ returns table (updated boolean, result_code text)
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $function$
 declare
   v_count integer;
 begin
@@ -138,7 +138,7 @@ begin
   values (auth.uid(), 'idea.moderated', 'idea', p_idea_id::text, jsonb_build_object('new_status',p_new_status));
   return query select true, 'updated'::text;
 end;
-$;
+$function$;
 revoke all on function public.moderate_public_idea(uuid,text) from public, anon;
 grant execute on function public.moderate_public_idea(uuid,text) to authenticated;
 
