@@ -131,7 +131,7 @@ export default function MediaLibrary() {
       const input=document.getElementById("creator-media-file") as HTMLInputElement|null; if(input) input.value="";
       setStatus("Upload saved as a private draft. Publish it when ready.");
       await load();
-    } catch (e) { setStatus(e instanceof Error ? e.message : "Upload failed. Please try again."); }
+    } catch (e) { setStatus(!uploaded ? "Upload interrupted. Your resumable session is retained; choose the same file again to continue. " + (e instanceof Error ? e.message : "") : e instanceof Error ? e.message : "The uploaded file could not be saved. Please refresh the media library."); }
     finally {
       if(uploaded && uploadSession) {
         uploadSession.clear();
