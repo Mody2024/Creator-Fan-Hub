@@ -9,6 +9,7 @@ type Author = { handle: string; display_name: string; avatar_url: string | null 
 export type CommunityPost = { id: string; authorId: string; type: string; body: string; createdAt: string; linkedVideoId: string | null; author: Author };
 type Member = { id: string; handle: string; displayName: string };
 type MomentVideo = { media_id: string; slug: string; title: string; duration_seconds: number | null };
+type MomentCatalogRow = { media_id: string; slug: string; duration_seconds: number | null; media_items: { title: string; is_published: boolean; media_type: string } | Array<{ title: string; is_published: boolean; media_type: string }> | null };
 
 const reactions = [{ key: "like", label: "Like", icon: "♡" }, { key: "love", label: "Love", icon: "♥" }, { key: "insightful", label: "Insightful", icon: "✦" }, { key: "funny", label: "Funny", icon: "笑" }, { key: "spark", label: "Spark", icon: "✧" }, { key: "hype", label: "Hype", icon: "⚡" }, { key: "respect", label: "Respect", icon: "✊" }, { key: "curious", label: "Curious", icon: "◉" }] as const;
 
@@ -54,7 +55,7 @@ export default function CommunityClient({ initialPosts, selectedFeed }: { initia
   useEffect(() => {
     if (!supabase) return;
     let alive = true;
-    void supabase.from("video_catalog").select("media_id,slug,duration_seconds,media_items!inner(title,is_published,media_type)").not("published_at","is",null).eq("media_items.is_published",true).then(({data,error}) => {
+    void supabase.from("video_catalog").select("media_id,slug,duration_seconds,media_items!inner(title,is_published,media_type)").not("published_at","is",null).eq("media_items.is_published",true).then(({data,error}: {data: MomentCatalogRow[] | null; error: unknown}) => {
       if (!alive || error) return;
       const rows = (data ?? []).flatMap(item => {
         const media = Array.isArray(item.media_items) ? item.media_items[0] : item.media_items;
