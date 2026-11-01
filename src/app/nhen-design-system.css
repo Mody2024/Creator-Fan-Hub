@@ -433,3 +433,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
     max-width: 88px;
   }
 }
+
+.nhen-logo-theme-previews { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.nhen-logo-theme-preview { min-height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; border:1px solid var(--nhen-line); border-radius:16px; overflow:hidden; }
+.nhen-logo-theme-preview > span { align-self:flex-start; font-size:9px; font-weight:800; letter-spacing:.14em; opacity:.65; }
+.nhen-logo-theme-preview img { display:block; max-width:min(100%,420px); max-height:112px; width:auto; height:auto; object-fit:contain; }
+.nhen-logo-theme-dark { color:#f3f7ed; background:#10160d; }
+.nhen-logo-theme-light { color:#171b14; background:#f3f5ee; border-color:rgba(23,27,20,.15); }
+@media(max-width:600px){.nhen-logo-theme-previews{grid-template-columns:1fr}.nhen-logo-theme-preview{min-height:130px}}
