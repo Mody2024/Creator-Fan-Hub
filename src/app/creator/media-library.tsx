@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 
 type MediaKind = "image" | "video" | "audio" | "sprite";
 type StorageCapacity = {used_bytes:number;reserved_bytes:number;quota_bytes:number;available_bytes:number;usage_percent:number};
@@ -23,6 +24,7 @@ export default function MediaLibrary() {
   const [filter,setFilter] = useState<"all"|"published"|"drafts">("all");
   const [kind,setKind] = useState<MediaKind>("image");
   const [busy,setBusy] = useState(false);
+  const [uploadProgress,setUploadProgress] = useState<number|null>(null);
   const [status,setStatus] = useState("Media uploads use the free Supabase Storage project.");
   const [ready,setReady] = useState(false);
 
@@ -90,17 +92,28 @@ export default function MediaLibrary() {
     if (!supabase || !file || busy) return;
     setBusy(true);
     let reservationId:string|null=null;
+    let uploadSession:ReturnType<typeof getResumableUploadSession>|null=null;
+    let uploaded=false;
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before uploading.");
-      const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"creator-media-private"});
-      if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("Free storage capacity could not be reserved. No upload was started.");
-      reservationId=reservation[0].reservation_id;
       const {data:admin,error:adminError} = await supabase.from("creator_admins").select("role").eq("user_id",userData.user.id).eq("active",true).maybeSingle();
       if (adminError || !admin || !["owner","admin","creator"].includes(admin.role)) throw new Error("Official video and media publishing is restricted to assigned NHEN creators.");
-      const path = `${userData.user.id}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
-      const {error:uploadError} = await supabase.storage.from("creator-media-private").upload(path,file,{contentType:file.type,upsert:false});
-      if (uploadError) throw uploadError;
+      uploadSession=getResumableUploadSession(userData.user.id,"creator-media-private",file);
+      const previousReservation=uploadSession.getReservationId();
+      if(previousReservation){
+        const {data:reused,error:reuseError}=await supabase.rpc("reuse_nhen_media_upload_reservation",{p_reservation_id:previousReservation,p_bytes:file.size,p_bucket:"creator-media-private"});
+        if(!reuseError && reused) reservationId=previousReservation;
+      }
+      if(!reservationId){
+        const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{p_bytes:file.size,p_bucket:"creator-media-private"});
+        if(reservationError || !reservation?.[0]?.reservation_id) throw reservationError??new Error("Free storage capacity could not be reserved. No upload was started.");
+        reservationId=reservation[0].reservation_id;
+        uploadSession.saveReservation(reservationId);
+      }
+      const path = uploadSession.objectName;
+      await uploadToSupabaseStorage({client:supabase,bucketName:"creator-media-private",objectName:path,file,onProgress:setUploadProgress});
+      uploaded=true;
       const {data:saved,error:saveError} = await supabase.rpc("save_creator_media",{
         p_media_id:null,p_title:title.trim(),p_media_type:kind,p_source_url:null,
         p_storage_path:`creator-media-private/${path}`,p_alt_text:alt.trim(),
@@ -120,10 +133,11 @@ export default function MediaLibrary() {
       await load();
     } catch (e) { setStatus(e instanceof Error ? e.message : "Upload failed. Please try again."); }
     finally {
-      if(reservationId) {
-        const supabase=getSupabaseBrowserClient();
-        if(supabase) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
+      if(uploaded && uploadSession) {
+        uploadSession.clear();
+        if(reservationId) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
       }
+      setUploadProgress(null);
       setBusy(false);
     }
   }
@@ -322,7 +336,7 @@ export default function MediaLibrary() {
       <form className="poll-create-form" onSubmit={e=>{e.preventDefault();if(editingId) void saveMetadata(); else void upload();}}>
         {!editingId && <div className="media-upload-note"><strong>Add an externally hosted official video</strong><label>YouTube video URL<input type="url" value={youtubeUrl} onChange={e=>setYoutubeUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" /></label><button className="button button-secondary" type="button" disabled={busy||!youtubeUrl.trim()||!title.trim()} onClick={()=>void addYoutubeSource()}>Add YouTube source ↗</button><p>YouTube hosts the video; NHEN manages its watch page and community features. It does not use NHEN video storage.</p></div>}
         {!editingId && <label>Choose file<input id="creator-media-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,audio/mpeg,audio/mp4,audio/wav,audio/ogg" onChange={selectFile} required /></label>}{editingId && <p className="media-upload-note">Editing metadata only. The stored file and publication state will not change.</p>}
-        {!editingId && file && <p className="media-selected-file">{file.name} · {(file.size/1024/1024).toFixed(1)} MB</p>}
+        {!editingId && file && <p className="media-selected-file">{file.name} · {(file.size/1024/1024).toFixed(1)} MB</p>}{uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>Uploading · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label="Upload progress"/><small>If the connection drops, select the same file again to resume this upload.</small></div>}
         <label>Asset name<input value={title} maxLength={120} onChange={e=>setTitle(e.target.value)} required /></label>
         <label>Alternative text / description<input value={alt} maxLength={500} onChange={e=>setAlt(e.target.value)} placeholder="Describe the image for accessibility" /></label>
         {!editingId && <p className="media-upload-note">Maximum 50 MB per file. SVG and executable files are not accepted. 3D model files are not enabled yet.</p>}
