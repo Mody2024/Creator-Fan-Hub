@@ -57,7 +57,7 @@ export default async function HomePage() {
   }
   return <main className="nhen-app-shell nhen-home-shell">
     <header className="nhen-app-header">
-      <Link className="nhen-brand" href="/" aria-label="Nhen? home">{config.logoUrl && <img src={config.logoUrl} alt="" style={{width:30,height:30,objectFit:"contain"}}/>}<span>Nhen?<small lang="ar" dir="rtl">نهين؟</small></span></Link>
+      <Link className="nhen-brand portal-wordmark" href="/" aria-label="Nhen? home">{config.logoUrl && <img src={config.logoUrl} alt="" style={{width:30,height:30,objectFit:"contain"}}/>}<span>Nhen?<small lang="ar" dir="rtl">نهين؟</small></span></Link>
       <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder="Search videos, creators and community" aria-label="Search NHEN" maxLength={80}/></form>
       <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">Join NHEN</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
@@ -97,6 +97,6 @@ export default async function HomePage() {
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">CREATOR ACCESS</span><h2 className="nhen-card-title">Have a channel?</h2><p className="nhen-muted">Approved creators can publish official videos and manage their channel from NHEN Studio.</p><Link className="button button-secondary" href="/creator/login">Open Creator Studio ↗</Link></section>
       </aside>
     </div>
-    <nav className="nhen-mobile-nav mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="/watch">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="/#videos">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
