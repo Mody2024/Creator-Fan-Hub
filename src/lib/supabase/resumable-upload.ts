@@ -94,3 +94,56 @@ export async function uploadToSupabaseStorage({
     });
   });
 }
+
+export type ResumableUploadSession = {
+  objectName: string;
+  getReservationId: () => string | null;
+  saveReservation: (id: string) => void;
+  clear: () => void;
+};
+
+/**
+ * Reuses the same object path after a reload so tus-js-client can discover
+ * and resume the previous upload for the same selected file.
+ */
+export function getResumableUploadSession(
+  userId: string,
+  bucketName: string,
+  file: File,
+): ResumableUploadSession {
+  const identity = [userId, bucketName, file.name, file.size, file.lastModified, file.type].join("|");
+  const key = "nhen-tus-session:" + encodeURIComponent(identity);
+  const createObjectName = () => {
+    const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(-100) || "asset";
+    return userId + "/" + crypto.randomUUID() + "-" + safeName;
+  };
+  let saved: { objectName?: string; reservationId?: string } = {};
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) saved = JSON.parse(raw) as typeof saved;
+  } catch {
+    saved = {};
+  }
+  const objectName = typeof saved.objectName === "string" && saved.objectName.startsWith(userId + "/")
+    ? saved.objectName
+    : createObjectName();
+  const persist = (reservationId?: string) => {
+    try {
+      localStorage.setItem(key, JSON.stringify({ objectName, ...(reservationId ? { reservationId } : {}) }));
+    } catch {
+      // Upload still works without persistent resume metadata in restricted browsers.
+    }
+  };
+  persist(saved.reservationId);
+  return {
+    objectName,
+    getReservationId: () => typeof saved.reservationId === "string" ? saved.reservationId : null,
+    saveReservation: id => {
+      saved = { objectName, reservationId: id };
+      persist(id);
+    },
+    clear: () => {
+      try { localStorage.removeItem(key); } catch { /* storage may be unavailable */ }
+    },
+  };
+}
