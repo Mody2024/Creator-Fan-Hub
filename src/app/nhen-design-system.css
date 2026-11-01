@@ -193,3 +193,19 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-video-analytics-row strong{font-size:12px;color:var(--nhen-ink);overflow-wrap:anywhere}
 .nhen-video-analytics-row b{color:var(--nhen-accent);font-size:13px}
 @media(max-width:600px){.nhen-video-analytics-row{grid-template-columns:1fr 1fr}.nhen-video-analytics-row strong{grid-column:1/-1}}
+
+
+/* Public NHEN video collections */
+.nhen-series-wrap{width:min(100%,1100px);margin:50px auto;padding:0 22px 90px}
+.nhen-series-wrap>h1{font-size:clamp(34px,5vw,54px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
+.nhen-series-wrap>p{font-size:13px;margin-bottom:26px}
+.nhen-series-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:26px}
+.nhen-series-card{display:grid;align-content:start;gap:10px;min-height:230px;padding:22px;border:1px solid var(--nhen-line);border-radius:22px;background:linear-gradient(150deg,var(--nhen-surface-raised),var(--nhen-surface));color:var(--nhen-ink);transition:transform .2s,border-color .2s}
+.nhen-series-card:hover{transform:translateY(-3px);border-color:var(--nhen-violet)}
+.nhen-series-icon{font-size:28px;color:var(--nhen-accent)}
+.nhen-series-card h2{font-size:20px;font-weight:850;letter-spacing:-.05em}
+.nhen-series-card p{font-size:12px;line-height:1.65;color:var(--nhen-muted)}
+.nhen-series-card small{margin-top:auto;font-size:10px;color:var(--nhen-violet);font-weight:750}
+.nhen-series-video-list{display:grid;gap:5px;margin-top:28px}
+@media(max-width:800px){.nhen-series-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.nhen-series-wrap{margin:28px auto;padding:0 13px 80px}.nhen-series-grid{grid-template-columns:1fr}}
