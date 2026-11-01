@@ -23,6 +23,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
   const [reactionsByPost, setReactionsByPost] = useState<Record<string, { count: number; mine: string | null }>>({});
+  const [savedByPost, setSavedByPost] = useState<Record<string, boolean>>({});
   const [commentsFor, setCommentsFor] = useState<string | null>(null);
   const [comments, setComments] = useState<Array<{id:string;body:string;author_id:string;created_at:string}>>([]);
   const [commentText, setCommentText] = useState("");
@@ -65,6 +66,13 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
         for (const item of ownReactions ?? []) grouped[item.post_id].mine = item.reaction;
       }
       setReactionsByPost(grouped);
+      if (userResult.data.user) {
+        const { data: saved } = await supabase.from("community_bookmarks").select("post_id").eq("user_id", userResult.data.user.id).in("post_id", ids);
+        if (!alive) return;
+        const savedMap: Record<string, boolean> = {};
+        for (const item of saved ?? []) savedMap[item.post_id] = true;
+        setSavedByPost(savedMap);
+      }
     })();
     return () => { alive = false; };
   }, [supabase, initialPosts]);
@@ -141,6 +149,16 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
     else { setCommentText(""); setStatus("Comment sent for review."); }
   }
 
+  async function toggleSave(postId: string) {
+    if (!supabase || !member) { setStatus("Sign in to save community posts."); return; }
+    const next = !savedByPost[postId];
+    setSavedByPost(value => ({ ...value, [postId]: next }));
+    const result = next
+      ? await supabase.from("community_bookmarks").insert({ post_id: postId, user_id: member.id })
+      : await supabase.from("community_bookmarks").delete().eq("post_id", postId).eq("user_id", member.id);
+    if (result.error) { setSavedByPost(value => ({ ...value, [postId]: !next })); setStatus("Could not update saved posts."); }
+  }
+
   async function report(postId: string) {
     if (!supabase || !member) { setStatus("Sign in to report content."); return; }
     const { error } = await supabase.from("content_reports").insert({ reporter_id: member.id, target_type: "post", target_id: postId, reason: "other", details: "Reported from the community feed." });
@@ -161,7 +179,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
         <a className="nhen-sidebar-link" href="#latest"><span>◷</span> Latest</a>
         <span className="nhen-section-label">YOUR SPACE</span>
         <a className="nhen-sidebar-link" href="#join"><span>◎</span> Profile</a>
-        <a className="nhen-sidebar-link" href="#join"><span>♡</span> Saved</a>
+        <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> Saved</Link>
       </aside>
       <section className="nhen-feed-column">
         <div className="nhen-card nhen-card-pad">
@@ -186,7 +204,7 @@ export default function CommunityClient({ initialPosts }: { initialPosts: Commun
         {initialPosts.length===0 ? <div className="nhen-card nhen-empty-state"><div><div style={{fontSize:32,marginBottom:12}}>✳</div><strong>The first conversation is waiting.</strong><p className="nhen-muted">Official updates and approved member posts will appear here.</p></div></div> : initialPosts.map(post=><article className="nhen-card" key={post.id}>
           <div className="nhen-post-header"><div className="nhen-avatar" style={{display:"grid",placeItems:"center",fontWeight:800,color:"var(--nhen-accent)"}}>{post.author.display_name.slice(0,1).toUpperCase()}</div><div style={{minWidth:0,flex:1}}><strong style={{fontSize:13}}>{post.author.display_name}</strong><div className="nhen-muted" style={{fontSize:11,marginTop:3}}>@{post.author.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div>{post.type==="official" && <span className="nhen-pill nhen-pill-official">✦ OFFICIAL</span>}<button className="nhen-action" onClick={()=>void report(post.id)} aria-label="Report post">•••</button></div>
           <div className="nhen-post-body">{post.body}</div>
-          <div className="nhen-post-actions">{reactions.map(item=><button className="nhen-action" key={item.key} aria-pressed={reactionsByPost[post.id]?.mine===item.key} onClick={()=>void react(post.id,item.key)}>{item.icon} {item.label}{reactionsByPost[post.id]?.mine===item.key?" · You":""}</button>)}<button className="nhen-action" onClick={()=>void openComments(post.id)}>Comments</button></div>
+          <div className="nhen-post-actions">{reactions.map(item=><button className="nhen-action" key={item.key} aria-pressed={reactionsByPost[post.id]?.mine===item.key} onClick={()=>void react(post.id,item.key)}>{item.icon} {item.label}{reactionsByPost[post.id]?.mine===item.key?" · You":""}</button>)}<button className="nhen-action" onClick={()=>void openComments(post.id)}>Comments</button><button className="nhen-action" aria-pressed={!!savedByPost[post.id]} onClick={()=>void toggleSave(post.id)}>{savedByPost[post.id]?"▣ Saved":"▢ Save"}</button></div>
           {commentsFor===post.id && <div className="nhen-card-pad" style={{borderTop:"1px solid var(--nhen-line)"}}><strong style={{fontSize:13}}>Discussion</strong>{comments.map(comment=><p key={comment.id} style={{fontSize:13,padding:"8px 0",borderBottom:"1px solid var(--nhen-line)"}}>{comment.body}</p>)}{member && <div style={{display:"flex",gap:8,marginTop:12}}><input className="nhen-search" value={commentText} onChange={e=>setCommentText(e.target.value)} placeholder="Write a reply…" maxLength={1000}/><button className="nhen-action" onClick={()=>void submitComment()}>Send</button></div>}<p className="nhen-muted" style={{fontSize:10,marginTop:8}}>Comments are reviewed before they become public.</p></div>}
         </article>)}
       </section>
