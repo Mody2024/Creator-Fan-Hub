@@ -6,6 +6,7 @@ import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supaba
 
 type MediaKind = "image" | "video" | "audio" | "sprite";
 type StorageCapacity = {used_bytes:number;reserved_bytes:number;quota_bytes:number;available_bytes:number;usage_percent:number};
+type MediaHealth = StorageCapacity & {orphan_candidate_count:number;orphan_candidate_bytes:number;oldest_orphan_candidate_at:string|null;expired_reservations_cleaned:number};
 type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; preview_url?: string | null };
 const LIMIT = 50 * 1024 * 1024;
 const ACCEPTED: Record<string, MediaKind> = { "image/jpeg":"image", "image/png":"image", "image/webp":"image", "image/gif":"image", "video/mp4":"video", "video/webm":"video", "audio/mpeg":"audio", "audio/mp4":"audio", "audio/wav":"audio", "audio/ogg":"audio" };
@@ -15,6 +16,7 @@ function safeFileName(name: string) { return name.normalize("NFKD").replace(/[^a
 export default function MediaLibrary() {
   const [rows,setRows] = useState<MediaRow[]>([]);
   const [capacity,setCapacity] = useState<StorageCapacity|null>(null);
+  const [health,setHealth] = useState<MediaHealth|null>(null);
   const [file,setFile] = useState<File|null>(null);
   const [title,setTitle] = useState("");
   const [alt,setAlt] = useState("");
@@ -35,12 +37,14 @@ export default function MediaLibrary() {
     try {
       const {data:userData,error:userError} = await supabase.auth.getUser();
       if (userError || !userData.user) { setRows([]); setStatus("Sign in with an authorized creator account to manage media."); setReady(true); return; }
-      const [{data,error},{data:capacityData}] = await Promise.all([
+      const [{data,error},{data:capacityData},{data:healthData,error:healthError}] = await Promise.all([
         supabase.rpc("get_creator_media",{p_limit:100}),
-        supabase.rpc("get_nhen_storage_capacity")
+        supabase.rpc("get_nhen_storage_capacity"),
+        supabase.rpc("get_nhen_media_health")
       ]);
       if (error) throw new Error("Could not load media. Confirm the creator-media migration is applied and this account is authorized.");
       setCapacity((capacityData?.[0] as StorageCapacity|undefined)??null);
+      if(!healthError) setHealth((healthData?.[0] as MediaHealth|undefined)??null);
       const items = (data ?? []) as MediaRow[];
       const enriched = await Promise.all(items.map(async item => {
         if (item.media_type === "youtube" && item.source_url) {
