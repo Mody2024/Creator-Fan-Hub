@@ -79,3 +79,11 @@ test("invitation verification and acceptance recover from network failures", asy
   assert.ok(source.includes('finally {setBusy(false);}'));
   assert.ok(source.includes('return ()=>{active=false;}'));
 });
+
+
+test("creator dashboard only advertises modules allowed by the signed-in role", async () => {
+  const page = await read("../src/app/creator/page.tsx");
+  assert.ok(page.includes('{admin.role === "owner" && ('));
+  assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
+  assert.ok(page.includes('10 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
+});
