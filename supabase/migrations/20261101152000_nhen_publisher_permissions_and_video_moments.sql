@@ -64,7 +64,7 @@ begin
  end if;
  if length(btrim(coalesce(p_title,''))) not between 1 and 120
  or length(coalesce(p_alt_text,''))>500
- or p_media_type not in ('video','image','audio','sprite','model3d')
+ or p_media_type not in ('youtube','video','image','audio','sprite')
  or length(coalesce(p_storage_path,''))>500
  or p_storage_path !~ '^(creator-media-private|creator-media-public)/[a-zA-Z0-9_-]+/[a-zA-Z0-9_.-]+$'
 
