@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./nhen-design-system.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
+import LanguageSwitch from "./language-switch";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
@@ -23,8 +24,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr">
       <body>
+        <LanguageSwitch />
         {children}
         <footer className="creator-credit">MADE BY ALMUDDATHTHIR</footer>
       </body>
