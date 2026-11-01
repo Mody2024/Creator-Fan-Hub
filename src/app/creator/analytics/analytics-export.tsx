@@ -8,12 +8,12 @@ function safeCell(value: string | number) {
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
-export default function AnalyticsExport({ metrics }: { metrics: Metric[] }) {
+export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Metric[]; locale?: "en"|"ar" }) {
   function download() {
-    const header = ["Video", "Published", "Views", "Reactions", "Approved comments"];
+    const header = locale==="ar" ? ["الفيديو", "تاريخ النشر", "المشاهدات", "التفاعلات", "التعليقات المعتمدة"] : ["Video", "Published", "Views", "Reactions", "Approved comments"];
     const rows = metrics.map(item => [
       item.title,
-      item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : "Draft",
+      item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : (locale==="ar" ? "مسودة" : "Draft"),
       item.views,
       item.reactions,
       item.comments
@@ -23,12 +23,12 @@ export default function AnalyticsExport({ metrics }: { metrics: Metric[] }) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = "nhen-video-analytics.csv";
+    anchor.download = locale==="ar" ? "nhen-video-analytics-ar.csv" : "nhen-video-analytics.csv";
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
     URL.revokeObjectURL(url);
   }
 
-  return <button className="editor-reload" type="button" onClick={download} disabled={!metrics.length}>Export CSV ↓</button>;
+  return <button className="editor-reload" type="button" onClick={download} disabled={!metrics.length}>{locale==="ar"?"تصدير CSV ↓":"Export CSV ↓"}</button>;
 }
