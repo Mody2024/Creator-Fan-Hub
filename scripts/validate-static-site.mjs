@@ -212,7 +212,7 @@ check("media metadata RPCs require creator-owned storage paths and grant only au
 
 check("event and social managers show helpful empty states", eventSocial.includes("No events yet.") && eventSocial.includes("No social links yet."));
 check("media filters provide a clearable no-results state", media.includes("No matching assets.") && media.includes('onClick={()=>{setSearch("");setFilter("all");}}'));
-check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">{t.empty}</p>') && ideasModeration.includes('className="moderation-empty" role="status"><h3>No submissions yet.'));
+check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">{t.empty}</p>') && ideasModeration.includes('className="moderation-empty" role="status"><h3>{t.empty}</h3>'));
 check("publishing history explains the first-version empty state", historyComponent.includes('className="moderation-empty" role="status"><h3>No published versions yet.'));
 check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">{t.loading}</p>'));
 
