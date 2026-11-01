@@ -55,17 +55,16 @@ export default async function HomePage() {
     const profileMap=new Map((profiles??[]).map(p=>[p.user_id,p]));
     posts=(postRows??[]).map(p=>{const profile=profileMap.get(p.author_id);return{id:p.id,body:p.body,createdAt:p.created_at,handle:profile?.handle??"member",displayName:profile?.display_name??"NHEN member",avatarUrl:profile?.avatar_url??null}});
   }
-  return <main className="nhen-app-shell nhen-home-shell">
+  return <main className="nhen-app-shell nhen-home-shell" data-color-mode={config.colorMode} data-motion={config.motion}>
     <header className="nhen-app-header">
-      <Link className="nhen-brand portal-wordmark" href="/" aria-label="Nhen? home">{config.logoUrl && <img src={config.logoUrl} alt="" style={{width:30,height:30,objectFit:"contain"}}/>}<span>Nhen?<small lang="ar" dir="rtl">نهين؟</small></span></Link>
+      <Link className="nhen-brand" href="/" aria-label="Nhen? home">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span></Link>
       <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder="Search videos, creators and community" aria-label="Search NHEN" maxLength={80}/></form>
       <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">Join NHEN</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
     <div className="nhen-platform-grid">
       <aside className="desktop-nav" aria-label="Main navigation">
         <Link className="nhen-sidebar-link" href="/"><span>⌂</span> Home</Link>
-        <Link className="nhen-sidebar-link" href="/#videos"><span>▶</span> Watch</Link>
-        <Link className="nhen-sidebar-link" href="/shorts"><span>✦</span> Nhenbits</Link>
+        {config.visibleSections.includes("videos") && <><a href="#videos">Watch</a><a href="/shorts">Shorts</a></>}
         <Link className="nhen-sidebar-link" href="/community"><span>◉</span> Community</Link>
         <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> Explore</Link>
         <span className="nhen-section-label">YOUR NHEN</span>
@@ -97,6 +96,6 @@ export default async function HomePage() {
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">CREATOR ACCESS</span><h2 className="nhen-card-title">Have a channel?</h2><p className="nhen-muted">Approved creators can publish official videos and manage their channel from NHEN Studio.</p><Link className="button button-secondary" href="/creator/login">Open Creator Studio ↗</Link></section>
       </aside>
     </div>
-    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="#videos">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">Watch</a><a href="/shorts">Shorts</a></>}<Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
