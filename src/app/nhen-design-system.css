@@ -258,3 +258,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-short-info p{font-size:13px;line-height:1.7;color:var(--nhen-muted);white-space:pre-wrap}
 .nhen-short-info a{display:inline-block;margin-top:16px;color:var(--nhen-accent);font-size:12px;font-weight:800}
 @media(max-width:650px){.nhen-shorts-heading{margin:25px auto 16px;padding:0 14px}.nhen-shorts-feed{padding:0 12px 80px;gap:14px}.nhen-short-card{grid-template-columns:minmax(0,1fr);gap:13px;padding:12px}.nhen-short-player{width:min(100%,420px);margin:auto;max-height:70vh}.nhen-short-info h2{font-size:20px}}
+
+/* Respect device motion preferences across every N7EN surface. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Keep embedded management grids from forcing horizontal overflow. */
+@media (max-width: 760px) {
+  .nhen-platform-grid { grid-template-columns: minmax(0,1fr); padding: 14px; }
+  .nhen-sidebar, .nhen-discovery-column { position: static; }
+  .nhen-video-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 520px) {
+  .nhen-video-grid { grid-template-columns: minmax(0,1fr); }
+  .nhen-app-header { grid-template-columns: 1fr auto; gap: 10px; padding: 10px 14px; }
+  .nhen-app-header .nhen-search { grid-column: 1 / -1; grid-row: 2; }
+}
