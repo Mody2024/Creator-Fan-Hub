@@ -62,9 +62,9 @@ export default async function HomePage() {
       <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">Join NHEN</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
     <div className="nhen-platform-grid">
-      <aside className="nhen-sidebar desktop-nav" aria-label="Main navigation">
+      <aside className="desktop-nav" aria-label="Main navigation">
         <Link className="nhen-sidebar-link" href="/"><span>⌂</span> Home</Link>
-        <Link className="nhen-sidebar-link" href="/watch"><span>▶</span> Watch</Link>
+        <Link className="nhen-sidebar-link" href="/#videos"><span>▶</span> Watch</Link>
         <Link className="nhen-sidebar-link" href="/shorts"><span>✦</span> Nhenbits</Link>
         <Link className="nhen-sidebar-link" href="/community"><span>◉</span> Community</Link>
         <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> Explore</Link>
@@ -97,6 +97,6 @@ export default async function HomePage() {
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">CREATOR ACCESS</span><h2 className="nhen-card-title">Have a channel?</h2><p className="nhen-muted">Approved creators can publish official videos and manage their channel from NHEN Studio.</p><Link className="button button-secondary" href="/creator/login">Open Creator Studio ↗</Link></section>
       </aside>
     </div>
-    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="/#videos">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="#videos">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
