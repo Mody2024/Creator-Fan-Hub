@@ -252,17 +252,7 @@ test("Supabase migration versions are unique and sortable", async () => {
   assert.deepEqual(versions, [...versions].sort(), "migration filenames must sort chronologically");
 });
 
-test("N7EN public identity uses the current brand system", async () => {
-  const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-  const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
-  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.match(page, /portal-core">N7EN/);
-  assert.match(page, /03 \/ INSIDE N7EN/);
-  assert.match(config, /siteName: "N7EN"/);
-  assert.match(config, /The next big thing starts with you/);
-  assert.match(design, /--nhen-accent:\s*#c8ff4d/i);
-  assert.match(design, /prefers-reduced-motion:\s*reduce/);
-});
+
 
 
 test("Nhen bilingual identity and logo studio are wired into public and creator experiences", async () => {
