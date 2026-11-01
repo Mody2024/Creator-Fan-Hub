@@ -129,7 +129,7 @@ export default function LogoStudio({ onCreated }: Props) {
       const id = crypto.randomUUID();
       const base = userData.user.id + "/" + id;
       const originalPath = base + "-original-" + safeName(file.name);
-      const outputExtension = "png";
+      const outputExtension = removeBackground ? "png" : (file.type === "image/jpeg" ? "jpg" : "webp");
       const outputPath = base + "-logo." + outputExtension;
       const {error:originalError} = await supabase.storage.from("creator-media-private").upload(originalPath,file,{contentType:file.type,upsert:false});
       if (originalError) throw originalError;
