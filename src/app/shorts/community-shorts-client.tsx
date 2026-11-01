@@ -98,7 +98,7 @@ export default function CommunityShortsClient(){
   finally{setBusy(false);}
  }
 
- return <main className="nhen-shorts-page">
+ return <section className="nhen-community-shorts-section">
   <header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/#videos">Watch</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></nav></header>
   <div className="nhen-shorts-heading"><span className="nhen-section-label">NHEN COMMUNITY / SHORT VIDEOS</span><h1>Community <em>Nhenbits.</em></h1><p className="nhen-muted">Quick moments shared by the people who make NHEN a community.</p></div>
   <section className="nhen-community-short-composer">
