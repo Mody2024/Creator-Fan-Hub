@@ -501,3 +501,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
     transition-duration: .01ms;
   }
 }
+
+.nhen-analytics-tools { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:18px 0 24px; padding:16px 18px; border:1px solid var(--nhen-line); border-radius:16px; background:var(--nhen-surface); }
+.nhen-analytics-tools p { margin:0; color:var(--nhen-muted); font-size:13px; line-height:1.6; }
+.nhen-analytics-tools button { flex:0 0 auto; }
+@media(max-width:600px){.nhen-analytics-tools{align-items:stretch;flex-direction:column}.nhen-analytics-tools button{width:100%}}
