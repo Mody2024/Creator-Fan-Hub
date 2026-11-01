@@ -21,7 +21,7 @@ export default async function HomePage() {
   return (
     <main className={`site theme-${config.theme}`} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}>
       <header className="topbar">
-        <a className="wordmark" href="#home" aria-label={config.siteName}>{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : config.siteName}<span className="wordmark-kind">COMMUNITY</span></a>
+        <a className="wordmark nhen-wordmark" href="#home" aria-label="Nhen? — نهين؟">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span><span className="wordmark-kind">COMMUNITY</span></a>
         <nav className="desktop-nav" aria-label="Main navigation">
           {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.featureFlags.events && config.visibleSections.includes("events") && <a href="#events">Events</a>}{config.visibleSections.includes("community") && <a href="/community">Community</a>}<a href="/search">Explore</a><a href="#videos">Watch</a><a href="/shorts">Shorts</a>{config.visibleSections.includes("socials") && <a href="#socials">Socials</a>}{config.visibleSections.includes("videos") && <a href="#videos">Videos</a>}
         </nav>
@@ -44,7 +44,7 @@ export default async function HomePage() {
           <div className="proof"><span className="proof-dots"><i>✳</i><i>✦</i><i>◉</i></span><span>Made with the people who watch.</span></div>
         </div>
         <div className={config.heroMediaUrl ? "hero-art hero-art-media" : "hero-art"} style={{ "--hero-overlay": config.heroOverlay } as CSSProperties & { "--hero-overlay": number }} aria-label={config.heroMediaUrl ? "Creator-selected hero media" : "Abstract glowing portal artwork"} role="img">
-          {config.heroMediaUrl ? (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay={config.heroMuted} muted={config.heroMuted} playsInline loop={config.heroLoop} preload="metadata" /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />) : <><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">N7EN<span>✳</span></div></div><span className="art-label label-top">N7EN / IDEAS IN MOTION</span><span className="art-label label-bottom">N7EN / 001</span></>}
+          {config.heroMediaUrl ? (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay={config.heroMuted} muted={config.heroMuted} playsInline loop={config.heroLoop} preload="metadata" /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />) : <><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">{config.logoUrl ? <img src={config.logoUrl} alt="" /> : <span className="portal-wordmark"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span>}<i>✳</i></div></div><span className="art-label label-top">NHEN? / IDEAS IN MOTION</span><span className="art-label label-bottom">NHEN? / 001</span></>}
         </div>
         <div className="hero-index"><span>01 — 03</span><span>SCROLL TO EXPLORE ↓</span></div>
       </section>}
@@ -56,7 +56,7 @@ export default async function HomePage() {
       </section>}</div>;
           case "poll": return <div key="poll">{config.featureFlags.polls && config.visibleSections.includes("poll") && <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Vote on published polls and help decide what comes next.</p></div><PublishedPolls /></section>}</div>;
           case "events": return <div key="events">{config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}</div>;
-          case "community": return <div key="community">{config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE N7EN</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}</div>;
+          case "community": return <div key="community">{config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE NHEN?</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}</div>;
           case "socials": return <div key="socials">{config.visibleSections.includes("socials") && <PublicSocialLinks />}</div>;
           case "videos": return <div key="videos">{config.visibleSections.includes("videos") && <PublicVideos />}</div>;
           default: return null;
@@ -64,7 +64,7 @@ export default async function HomePage() {
       })}
       {config.featureFlags.voice && config.narrationUrl && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay} />}
       {config.featureFlags.guidedTour && <GuidedWelcomeTour narrationUrl={config.featureFlags.voice ? config.narrationUrl : null} />}
-      <footer className="site-footer"><span>{config.siteName} / THE COMMUNITY PLATFORM</span><a href="#home">BACK TO TOP ↑</a></footer>
+      <footer className="site-footer"><span>Nhen? / نهين؟ · THE COMMUNITY PLATFORM</span><a href="#home">BACK TO TOP ↑</a></footer>
     </main>
   );
 }
