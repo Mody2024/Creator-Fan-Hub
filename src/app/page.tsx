@@ -5,6 +5,9 @@ import PublicVideoPlayer from "@/app/videos/public-video-player";
 import PublishedPolls from "@/app/vote/published-polls";
 import PublicVideos from "@/app/videos/public-videos";
 import NarrationControl from "@/app/narration-control";
+import ApprovedIdeas from "@/app/ideas/approved-ideas";
+import PublicEvents from "@/app/events/public-events";
+import PublicSocialLinks from "@/app/socials/public-social-links";
 
 export const dynamic = "force-dynamic";
 
@@ -78,7 +81,7 @@ export default async function HomePage() {
           <p className="nhen-muted">{config.heroBody || "Official creator videos, community-made Nhenbits, and conversations — all connected in one place."}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
           <div className="nhen-home-quicklinks"><Link className="button button-primary" href="/watch">Explore videos ↗</Link><Link className="button button-secondary" href="/community">Join the community</Link></div>
         </section>
-        {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="nhen-card nhen-card-pad" id="poll"><span className="nhen-section-label">COMMUNITY VOTE</span><h2 className="nhen-card-title">Your voice shapes what comes next.</h2><PublishedPolls /></section>}
+        {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="nhen-card nhen-card-pad" id="poll"><span className="nhen-section-label">COMMUNITY VOTE</span><h2 className="nhen-card-title">Your voice shapes what comes next.</h2><PublishedPolls /></section>}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
         <div className="nhen-feed-tabs"><Link className="active" href="/">For you</Link><Link href="/watch">Videos</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></div>
         {config.visibleSections.includes("videos") && <PublicVideos />}
         <div className="nhen-card-heading"><h2 className="nhen-card-title">Latest from creators</h2><Link className="nhen-muted" href="/watch">See all ↗</Link></div>
