@@ -28,6 +28,8 @@ begin
  return new;
 end;
 $$;
+revoke all on function public.notify_member_follow() from public, anon, authenticated;
+grant execute on function public.notify_member_follow() to postgres;
 drop trigger if exists member_follow_notification on public.member_follows;
 create trigger member_follow_notification after insert on public.member_follows for each row execute function public.notify_member_follow();
 
@@ -44,6 +46,8 @@ begin
  return new;
 end;
 $$;
+revoke all on function public.notify_community_reaction() from public, anon, authenticated;
+grant execute on function public.notify_community_reaction() to postgres;
 drop trigger if exists community_reaction_notification on public.community_reactions;
 create trigger community_reaction_notification after insert on public.community_reactions for each row execute function public.notify_community_reaction();
 
@@ -62,6 +66,8 @@ begin
  return new;
 end;
 $$;
+revoke all on function public.notify_community_comment() from public, anon, authenticated;
+grant execute on function public.notify_community_comment() to postgres;
 drop trigger if exists community_comment_notification on public.community_comments;
 create trigger community_comment_notification after update of status on public.community_comments for each row execute function public.notify_community_comment();
 
@@ -78,6 +84,8 @@ begin
  return new;
 end;
 $$;
+revoke all on function public.notify_video_reaction() from public, anon, authenticated;
+grant execute on function public.notify_video_reaction() to postgres;
 drop trigger if exists video_reaction_notification on public.video_reactions;
 create trigger video_reaction_notification after insert on public.video_reactions for each row execute function public.notify_video_reaction();
 
@@ -96,5 +104,7 @@ begin
  return new;
 end;
 $$;
+revoke all on function public.notify_video_comment() from public, anon, authenticated;
+grant execute on function public.notify_video_comment() to postgres;
 drop trigger if exists video_comment_notification on public.video_comments;
 create trigger video_comment_notification after update of status on public.video_comments for each row execute function public.notify_video_comment();
