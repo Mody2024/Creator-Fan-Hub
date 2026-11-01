@@ -15,11 +15,11 @@ export default async function HomePage() {
   const config = await getPublicSiteConfig();
 
   if (config.maintenance.enabled) {
-    return <main className={`maintenance theme-${config.theme}`} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
+    return <main className={`maintenance theme-${config.theme}`} data-color-mode={config.colorMode} data-motion={config.motion} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
   }
 
   return (
-    <main className={`site theme-${config.theme}`} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}>
+    <main className={`site theme-${config.theme}`} data-color-mode={config.colorMode} data-motion={config.motion} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}>
       <header className="topbar">
         <a className="wordmark nhen-wordmark" href="#home" aria-label="Nhen? — نهين؟">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span><span className="wordmark-kind">COMMUNITY</span></a>
         <nav className="desktop-nav" aria-label="Main navigation">
