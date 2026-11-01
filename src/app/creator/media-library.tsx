@@ -122,7 +122,7 @@ export default function MediaLibrary() {
     finally {
       if(reservationId) {
         const supabase=getSupabaseBrowserClient();
-        if(supabase) await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId});
+        if(supabase) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
       }
       setBusy(false);
     }
