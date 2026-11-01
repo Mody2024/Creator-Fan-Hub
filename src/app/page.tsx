@@ -1,70 +1,94 @@
-import type { CSSProperties } from "react";
+import Link from "next/link";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
-import PublishedPolls from "@/app/vote/published-polls";
-import IdeaSubmissionForm from "@/app/ideas/idea-submission-form";
-import ApprovedIdeas from "@/app/ideas/approved-ideas";
-import PublicEvents from "@/app/events/public-events";
-import PublicSocialLinks from "@/app/socials/public-social-links";
-import PublicVideos from "@/app/videos/public-videos";
-import NarrationControl from "@/app/narration-control";
-import GuidedWelcomeTour from "@/app/guided-welcome-tour";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import PublicVideoPlayer from "@/app/videos/public-video-player";
 
 export const dynamic = "force-dynamic";
 
+type VideoCard = { id:string; slug:string; title:string; description:string; category:string; src:string; youtubeEmbedUrl:string|null; publishedAt:string };
+type PostCard = { id:string; body:string; createdAt:string; handle:string; displayName:string; avatarUrl:string|null };
+
 export default async function HomePage() {
-  const config = await getPublicSiteConfig();
-
+  const [config,supabase] = await Promise.all([getPublicSiteConfig(),createSupabaseServerClient()]);
   if (config.maintenance.enabled) {
-    return <main className={`maintenance theme-${config.theme}`} data-color-mode={config.colorMode} data-motion={config.motion} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}><span className="eyebrow">TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
+    return <main className={`maintenance theme-${config.theme}`}><span className="eyebrow">NHEN? / TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
   }
-
-  return (
-    <main className={`site theme-${config.theme}`} data-color-mode={config.colorMode} data-motion={config.motion} style={{ "--accent": config.accent } as CSSProperties & { "--accent": string }}>
-      <header className="topbar">
-        <a className="wordmark nhen-wordmark" href="#home" aria-label="Nhen? — نهين؟">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span><span className="wordmark-kind">COMMUNITY</span></a>
-        <nav className="desktop-nav" aria-label="Main navigation">
-          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.featureFlags.events && config.visibleSections.includes("events") && <a href="#events">Events</a>}{config.visibleSections.includes("community") && <a href="/community">Community</a>}<a href="/search">Explore</a>{config.visibleSections.includes("videos") && <><a href="#videos">Watch</a><a href="/shorts">Shorts</a></>}{config.visibleSections.includes("socials") && <a href="#socials">Socials</a>}
-        </nav>
-        <nav className="mobile-nav" aria-label="Mobile navigation">
-          {config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a href="#ideas">Ideas</a>}{config.featureFlags.polls && config.visibleSections.includes("poll") && <a href="#vote">Vote</a>}{config.featureFlags.events && config.visibleSections.includes("events") && <a href="#events">Events</a>}{config.visibleSections.includes("community") && <a href="/community">Community</a>}{config.visibleSections.includes("videos") && <><a href="#videos">Watch</a><a href="/shorts">Shorts</a></>}{config.visibleSections.includes("socials") && <a href="#socials">Socials</a>}
-        </nav>
-        <a className="nav-cta" href={config.featureFlags.polls && config.visibleSections.includes("poll") ? "#vote" : config.featureFlags.ideas && config.visibleSections.includes("ideas") ? "#ideas" : config.visibleSections.includes("events") && config.featureFlags.events ? "#events" : config.visibleSections.includes("community") ? "#community" : "#home"}>Shape the next drop <span>↗</span></a>
-      </header>
-
-      {config.sectionOrder.map(section => {
-        if (!config.visibleSections.includes(section)) return null;
-        switch (section) {
-          case "hero": return <div key="hero">{config.visibleSections.includes("hero") && <section className="hero" id="home">
-        {config.featureFlags.mascot && config.mascotUrl && <img className="public-mascot" src={config.mascotUrl} alt="" aria-hidden="true" />}
-        <div className="hero-copy">
-          <span className="eyebrow"><i /> {config.tagline}</span>
-          <h1>{config.heroTitle}</h1>
-          <p>{config.heroBody}</p>
-          <div className="hero-actions">{config.featureFlags.polls && config.visibleSections.includes("poll") && <a className="button button-primary" href="#vote">Cast your vote <span>↗</span></a>}{config.featureFlags.ideas && config.visibleSections.includes("ideas") && <a className="text-link" href="#ideas">Submit an idea <span>↓</span></a>}</div>
-          <div className="proof"><span className="proof-dots"><i>✳</i><i>✦</i><i>◉</i></span><span>Made with the people who watch.</span></div>
-        </div>
-        <div className={config.heroMediaUrl ? "hero-art hero-art-media" : "hero-art"} style={{ "--hero-overlay": config.heroOverlay } as CSSProperties & { "--hero-overlay": number }} aria-label={config.heroMediaUrl ? "Creator-selected hero media" : "Abstract glowing portal artwork"} role="img">
-          {config.heroMediaUrl ? (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay={config.heroMuted} muted={config.heroMuted} playsInline loop={config.heroLoop} preload="metadata" /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />) : <><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="portal"><div className="portal-core">{config.logoUrl && <img src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span><i>✳</i></div></div><span className="art-label label-top">NHEN? / IDEAS IN MOTION</span><span className="art-label label-bottom">NHEN? / 001</span></>}
-        </div>
-        <div className="hero-index"><span>01 — 03</span><span>SCROLL TO EXPLORE ↓</span></div>
-      </section>}
-
-      {config.visibleSections.includes("hero") && <section className="intro-strip"><span>NOT JUST WATCHING.</span><span>YOU’RE PART OF WHAT’S NEXT.</span><span>BUILT TOGETHER <b>✳</b></span></section>}</div>;
-          case "ideas": return <div key="ideas">{config.featureFlags.ideas && config.visibleSections.includes("ideas") && <section className="content-section" id="ideas">
-        <div className="section-heading"><div><span className="eyebrow">01 / THE IDEA BOARD</span><h2>What should we<br/><em>make next?</em></h2></div><p>Every great upload starts somewhere. Put your idea on the table and help steer the next one.</p></div>
-        <div className="idea-panel"><div className="idea-panel-top"><span>COMMUNITY SUGGESTIONS</span><span className="live-dot">● MODERATED SUBMISSIONS</span></div><IdeaSubmissionForm /><ApprovedIdeas /></div>
-      </section>}</div>;
-          case "poll": return <div key="poll">{config.featureFlags.polls && config.visibleSections.includes("poll") && <section className="vote-section" id="vote"><div className="section-heading"><div><span className="eyebrow">02 / THE NEXT DROP</span><h2>Help choose<br/><em>the next move.</em></h2></div><p>Vote on published polls and help decide what comes next.</p></div><PublishedPolls /></section>}</div>;
-          case "events": return <div key="events">{config.featureFlags.events && config.visibleSections.includes("events") && <PublicEvents />}</div>;
-          case "community": return <div key="community">{config.visibleSections.includes("community") && <section className="community-section" id="community"><span className="eyebrow">03 / INSIDE NHEN?</span><h2>It’s better when<br/>we <em>make it together.</em></h2><p>One place for new uploads, community events, and the ideas that make it to the screen.</p>{config.featureFlags.ideas && <a className="button button-light" href="#ideas">Bring an idea <span>↗</span></a>}<div className="community-orbit">✳</div></section>}</div>;
-          case "socials": return <div key="socials">{config.visibleSections.includes("socials") && <PublicSocialLinks />}</div>;
-          case "videos": return <div key="videos">{config.visibleSections.includes("videos") && <PublicVideos />}</div>;
-          default: return null;
-        }
-      })}
-      {config.featureFlags.voice && config.narrationUrl && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay} />}
-      {config.featureFlags.guidedTour && <GuidedWelcomeTour narrationUrl={config.featureFlags.voice ? config.narrationUrl : null} />}
-      <footer className="site-footer"><span>Nhen? / نهين؟ · THE COMMUNITY PLATFORM</span><a href="#home">BACK TO TOP ↑</a></footer>
-    </main>
-  );
+  let videos:VideoCard[]=[];
+  let posts:PostCard[]=[];
+  if(supabase){
+    const {data:videoRows}=await supabase.from("video_catalog")
+      .select("media_id,slug,description,category,published_at,media_items!inner(title,storage_path,source_url,alt_text,is_published,media_type)")
+      .not("published_at","is",null).eq("media_items.is_published",true)
+      .order("published_at",{ascending:false}).limit(12);
+    videos=(videoRows??[]).flatMap(item=>{
+      const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;
+      if(!media||!media.is_published)return[];
+      let src="",youtubeEmbedUrl:string|null=null;
+      if(media.media_type==="video"){
+        if(!media.storage_path?.startsWith("creator-media-public/"))return[];
+        const parts=media.storage_path.split("/");
+        if(parts.length<2)return[];
+        src=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+      }else if(media.media_type==="youtube"){
+        try{
+          const u=new URL(media.source_url??"");
+          if(!["youtube.com","www.youtube.com","m.youtube.com","youtu.be"].includes(u.hostname))return[];
+          const parts=u.pathname.split("/").filter(Boolean);
+          const id=u.hostname==="youtu.be"?parts[0]:u.searchParams.get("v")??parts[parts.length-1];
+          if(!id||!/^[A-Za-z0-9_-]{11}$/.test(id))return[];
+          youtubeEmbedUrl="https://www.youtube-nocookie.com/embed/"+id+"?rel=0";
+        }catch{return[]}
+      }else return[];
+      return[{id:item.media_id,slug:item.slug,title:media.title,description:item.description||media.alt_text||"",category:item.category||"Video",src,youtubeEmbedUrl,publishedAt:item.published_at}];
+    });
+    const {data:postRows}=await supabase.from("community_posts")
+      .select("id,body,created_at,author_id").eq("status","published")
+      .order("created_at",{ascending:false}).limit(5);
+    const ids=[...new Set((postRows??[]).map(p=>p.author_id))];
+    const {data:profiles}=ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",ids):{data:[]};
+    const profileMap=new Map((profiles??[]).map(p=>[p.user_id,p]));
+    posts=(postRows??[]).map(p=>{const profile=profileMap.get(p.author_id);return{id:p.id,body:p.body,createdAt:p.created_at,handle:profile?.handle??"member",displayName:profile?.display_name??"NHEN member",avatarUrl:profile?.avatar_url??null}});
+  }
+  return <main className="nhen-app-shell nhen-home-shell">
+    <header className="nhen-app-header">
+      <Link className="nhen-brand" href="/" aria-label="Nhen? home">{config.logoUrl?<img src={config.logoUrl} alt="" style={{width:30,height:30,objectFit:"contain"}}/>:null}<span>Nhen?<small lang="ar" dir="rtl">نهين؟</small></span></Link>
+      <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder="Search videos, creators and community" aria-label="Search NHEN" maxLength={80}/></form>
+      <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">Join NHEN</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
+    </header>
+    <div className="nhen-platform-grid">
+      <aside className="nhen-sidebar" aria-label="Main navigation">
+        <Link className="nhen-sidebar-link" href="/"><span>⌂</span> Home</Link>
+        <Link className="nhen-sidebar-link" href="/watch"><span>▶</span> Watch</Link>
+        <Link className="nhen-sidebar-link" href="/shorts"><span>✦</span> Nhenbits</Link>
+        <Link className="nhen-sidebar-link" href="/community"><span>◉</span> Community</Link>
+        <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> Explore</Link>
+        <span className="nhen-section-label">YOUR NHEN</span>
+        <Link className="nhen-sidebar-link" href="/community#join"><span>◎</span> Your profile</Link>
+        <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> Saved</Link>
+        <Link className="nhen-sidebar-link" href="/notifications"><span>♧</span> Notifications</Link>
+        <Link className="nhen-sidebar-link" href="/creator/login"><span>＋</span> Creator Studio</Link>
+      </aside>
+      <section className="nhen-feed-column">
+        <section className="nhen-home-welcome nhen-card nhen-card-pad">
+          <span className="nhen-section-label">NHEN? / YOUR WORLD, IN MOTION</span>
+          <h1>Watch what matters.<br/><em>Be part of it.</em></h1>
+          <p className="nhen-muted">Official creator videos, community-made Nhenbits, and conversations — all connected in one place.</p>
+          <div className="nhen-home-quicklinks"><Link className="button button-primary" href="/watch">Explore videos ↗</Link><Link className="button button-secondary" href="/community">Join the community</Link></div>
+        </section>
+        <div className="nhen-feed-tabs"><Link className="active" href="/">For you</Link><Link href="/watch">Videos</Link><Link href="/community">Community</Link><Link href="/shorts">Nhenbits</Link></div>
+        <div className="nhen-card-heading"><h2 className="nhen-card-title">Latest from creators</h2><Link className="nhen-muted" href="/watch">See all ↗</Link></div>
+        {videos.length?<div className="nhen-home-video-grid">{videos.slice(0,8).map(video=><article className="nhen-home-video-card" key={video.id}>
+          <Link className="nhen-home-video-player" href={"/watch/"+video.slug}><PublicVideoPlayer src={video.src} title={video.title} description={video.description} youtubeEmbedUrl={video.youtubeEmbedUrl}/></Link>
+          <div className="nhen-home-video-meta"><span className="nhen-section-label">{video.category.toUpperCase()} · OFFICIAL</span><h3><Link href={"/watch/"+video.slug}>{video.title}</Link></h3><p>{video.description}</p><small>{new Date(video.publishedAt).toLocaleDateString()}</small></div>
+        </article>)}</div>:<div className="nhen-card nhen-empty-state"><strong>Your watch feed is getting ready.</strong><p className="nhen-muted">New official creator videos will appear here.</p></div>}
+        <div className="nhen-card-heading"><h2 className="nhen-card-title">From the community</h2><Link className="nhen-muted" href="/community">Open community ↗</Link></div>
+        {posts.length?posts.map(post=><article className="nhen-card nhen-home-post" key={post.id}><div className="nhen-post-header"><div className="nhen-avatar">{post.avatarUrl?<img src={post.avatarUrl} alt=""/>:post.displayName.slice(0,1).toUpperCase()}</div><div><strong>{post.displayName}</strong><div className="nhen-muted">@{post.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div></div><p className="nhen-post-body">{post.body}</p><Link className="nhen-action" href="/community">Join the conversation ↗</Link></article>):<div className="nhen-card nhen-empty-state"><p className="nhen-muted">Community conversations will appear here as people share.</p><Link href="/community">Visit community ↗</Link></div>}
+      </section>
+      <aside className="nhen-discovery-column">
+        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">DISCOVER NHEN</span><h2 className="nhen-card-title">Every format.<br/>One community.</h2><p className="nhen-muted">Long-form creator uploads, short community videos, shared moments and conversations.</p><div className="nhen-home-discovery-links"><Link href="/watch">▶ Watch videos</Link><Link href="/shorts">✦ Nhenbits</Link><Link href="/community">◉ Community</Link><Link href="/search">⌕ Find creators</Link></div></section>
+        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">CREATOR ACCESS</span><h2 className="nhen-card-title">Have a channel?</h2><p className="nhen-muted">Approved creators can publish official videos and manage their channel from NHEN Studio.</p><Link className="button button-secondary" href="/creator/login">Open Creator Studio ↗</Link></section>
+      </aside>
+    </div>
+    <nav className="nhen-mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link><Link href="/watch">▶<span>Watch</span></Link><Link href="/shorts">✦<span>Nhenbits</span></Link><Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>
+  </main>;
 }
