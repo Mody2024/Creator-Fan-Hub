@@ -5,7 +5,7 @@ import Link from "next/link";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 
-type Props={mediaId:string;title:string;description:string;src:string;publishedAt:string;allowComments:boolean;category:string;tags:string[]};
+type Props={mediaId:string;title:string;description:string;src:string;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[]};
 type Comment={id:string;body:string;created_at:string;author_id:string};
 
 export default function WatchDetailClient(props:Props){
@@ -53,7 +53,7 @@ export default function WatchDetailClient(props:Props){
   <header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/">Home</Link><Link href="/community">Community</Link><Link href="/notifications">Notifications</Link><Link href="/#videos">Videos</Link></nav></header>
   <div className="nhen-watch-layout">
    <article className="nhen-watch-main">
-    <div className="nhen-watch-player"><PublicVideoPlayer src={props.src} title={props.title} description={props.description}/></div>
+    <div className="nhen-watch-player"><PublicVideoPlayer src={props.src} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl}/></div>
     <div className="nhen-watch-title-row"><div><span className="nhen-section-label">{props.category} / NHEN WATCH</span><h1>{props.title}</h1><p className="nhen-muted">{new Date(props.publishedAt).toLocaleDateString()} · Official creator upload</p></div><span className="nhen-pill nhen-pill-official">✦ OFFICIAL</span></div>
     <div className="nhen-watch-actions"><button className={liked?"active":""} onClick={()=>void toggleReaction()}>♡ {likes} Likes</button><button className={saved?"active":""} onClick={()=>void toggleBookmark()}>▣ {saved?"Saved":"Save"}</button><button onClick={()=>{void navigator.clipboard?.writeText(window.location.href);setNotice("Video link copied.");}}>↗ Share</button></div>
     <section className="nhen-card nhen-card-pad nhen-watch-description"><h2>About this video</h2><p>{props.description||"No description has been added yet."}</p>{props.tags.length>0&&<div className="nhen-watch-tags">{props.tags.map(t=><span key={t}>#{t}</span>)}</div>}</section>
