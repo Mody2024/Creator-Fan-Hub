@@ -18,14 +18,14 @@ export default async function PublishedPolls({locale="en"}:{locale?:"en"|"ar"}) 
     const poll = options[0];
     const total = options.reduce((sum, option) => sum + Number(option.vote_count || 0), 0);
     return <article className="published-poll" key={id}>
-      <div className="poll-meta"><span className="eyebrow">{poll.poll_status === "open" ? "{isArabic?"تصويت المجتمع / مفتوح":"COMMUNITY POLL / OPEN"}" : "{isArabic?"تصويت المجتمع / مغلق":"COMMUNITY POLL / CLOSED"}"}</span><span className="status-pill">{poll.poll_status === "open" ? "{isArabic?"التصويت مفتوح":"VOTING OPEN"}" : "{isArabic?"النتائج النهائية":"FINAL RESULTS"}"}</span></div>
+      <div className="poll-meta"><span className="eyebrow">{poll.poll_status === "open" ? (isArabic?"تصويت المجتمع / مفتوح":"COMMUNITY POLL / OPEN") : (isArabic?"تصويت المجتمع / مغلق":"COMMUNITY POLL / CLOSED")}</span><span className="status-pill">{poll.poll_status === "open" ? (isArabic?"التصويت مفتوح":"VOTING OPEN") : (isArabic?"النتائج النهائية":"FINAL RESULTS")}</span></div>
       <h3>{poll.poll_title}</h3>{poll.poll_description && <p className="poll-description">{poll.poll_description}</p>}
       {poll.poll_status === "open" ? <PollVoteForm pollId={id} options={options} locale={locale} /> : <div className="poll-results">{options.map(option => {
         const count = Number(option.vote_count || 0);
         const percent = total ? Math.round(count / total * 100) : 0;
         return <div className="poll-result" key={option.option_id}><div><span>{option.option_label}</span><span>{percent}% · {count}</span></div><span className="poll-track"><i style={{ width: percent + "%" }} /></span></div>;
       })}</div>}
-      <p className="poll-total">{poll.poll_status === "open" ? "{isArabic?"تظل أعداد الأصوات مخفية حتى إغلاق التصويت.":"Vote counts stay hidden until this poll closes."}" : `${total} ${isArabic?"صوتًا مسجلًا · انتهى هذا التصويت.":"recorded votes · This poll is closed."}`}</p>
+      <p className="poll-total">{poll.poll_status === "open" ? (isArabic?"تظل أعداد الأصوات مخفية حتى إغلاق التصويت.":"Vote counts stay hidden until this poll closes.") : `${total} ${isArabic?"صوتًا مسجلًا · انتهى هذا التصويت.":"recorded votes · This poll is closed."}`}</p>
     </article>;
   })}</div>;
 }
