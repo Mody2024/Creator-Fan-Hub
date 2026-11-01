@@ -113,15 +113,31 @@ export default function CommunityShortsClient(){
   if(!supabase||!userId||item.author_id!==userId)return;
   if(!window.confirm("Remove this Nhenbit from the community?"))return;
   setBusy(true);
+  let backup:Blob|null=null;
+  let storageRemoved=false;
   try{
-   const {error}=await supabase.from("community_short_videos").delete().eq("id",item.id).eq("author_id",userId);
-   if(error)throw error;
+   const {data:download,error:downloadError}=await supabase.storage.from("nhen-community-shorts").download(item.storage_path);
+   if(downloadError||!download)throw downloadError??new Error("Could not verify the original video before removal.");
+   backup=download;
    const {error:storageError}=await supabase.storage.from("nhen-community-shorts").remove([item.storage_path]);
-   if(storageError)setStatus("The Nhenbit was removed from the feed; its media file may need cleanup.");
-   else setStatus("Your Nhenbit was removed.");
+   if(storageError)throw storageError;
+   storageRemoved=true;
+   const {error:rowError}=await supabase.from("community_short_videos").delete().eq("id",item.id).eq("author_id",userId);
+   if(rowError){
+    const {error:restoreError}=await supabase.storage.from("nhen-community-shorts").upload(item.storage_path,backup,{contentType:backup.type||"video/mp4",upsert:false});
+    if(restoreError)throw new Error("The database removal failed and the video could not be restored. Contact an administrator.");
+    storageRemoved=false;
+    throw rowError;
+   }
+   setStatus("Your Nhenbit and its stored video were removed.");
    await load();
-  }catch(error){setStatus(error instanceof Error?error.message:"Could not remove this Nhenbit.");}
-  finally{setBusy(false);}
+  }catch(error){
+   if(storageRemoved&&backup){
+    const {error:restoreError}=await supabase.storage.from("nhen-community-shorts").upload(item.storage_path,backup,{contentType:backup.type||"video/mp4",upsert:false});
+    if(restoreError)setStatus("Removal failed and the video backup could not be restored. Contact an administrator.");
+    else setStatus(error instanceof Error?error.message:"Could not remove this Nhenbit; the original video was restored.");
+   }else setStatus(error instanceof Error?error.message:"Could not remove this Nhenbit.");
+  }finally{setBusy(false);}
  }
 
  return <section className="nhen-community-shorts-section">
