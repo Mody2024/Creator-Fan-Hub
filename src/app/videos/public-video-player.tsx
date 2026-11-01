@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Props = { src: string; title: string; description?: string | null; youtubeEmbedUrl?: string | null; startAt?: number };
+type Props = { src: string; title: string; description?: string | null; youtubeEmbedUrl?: string | null; startAt?: number; locale?: "en"|"ar" };
 
-export default function PublicVideoPlayer({ src, title, description, youtubeEmbedUrl, startAt = 0 }: Props) {
+export default function PublicVideoPlayer({ src, title, description, youtubeEmbedUrl, startAt = 0, locale="en" }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -23,15 +23,15 @@ export default function PublicVideoPlayer({ src, title, description, youtubeEmbe
   if (failed) {
     return <div className="public-video-unavailable" role="status">
       <span aria-hidden="true">▶</span>
-      <p>This video could not be loaded right now.</p>
-      <button type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>Try again</button>
+      <p>{locale==="ar"?"تعذر تحميل هذا الفيديو حاليًا.":"This video could not be loaded right now."}</p>
+      <button type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>{locale==="ar"?"حاول مرة أخرى":"Try again"}</button>
     </div>;
   }
 
   return <div className={`nhen-player-shell ${loaded ? "is-loaded" : "is-loading"}`}>
     {!loaded && <div className="nhen-player-loading" role="status" aria-live="polite">
       <span className="nhen-player-loading-mark" aria-hidden="true">N</span>
-      <span>Preparing your video</span>
+      <span>{locale==="ar"?"جارٍ تجهيز الفيديو":"Preparing your video"}</span>
       <i aria-hidden="true" />
     </div>}
     {youtubeEmbedUrl ? <iframe key={attempt} src={startAt > 0 ? youtubeEmbedUrl + (youtubeEmbedUrl.includes("?") ? "&" : "?") + "start=" + Math.floor(startAt) : youtubeEmbedUrl} title={title} loading="lazy"
