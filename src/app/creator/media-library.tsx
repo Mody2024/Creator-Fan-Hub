@@ -4,7 +4,8 @@ import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type MediaKind = "image" | "video" | "audio" | "sprite";
-type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; preview_url?: string | null };
+type MediaType = MediaKind | "youtube" | "model3d";
+type MediaRow = { media_id: string; title: string; media_type: MediaType; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; preview_url?: string | null };
 const LIMIT = 50 * 1024 * 1024;
 const ACCEPTED: Record<string, MediaKind> = { "image/jpeg":"image", "image/png":"image", "image/webp":"image", "image/gif":"image", "video/mp4":"video", "video/webm":"video", "audio/mpeg":"audio", "audio/mp4":"audio", "audio/wav":"audio", "audio/ogg":"audio" };
 
@@ -15,6 +16,7 @@ export default function MediaLibrary() {
   const [file,setFile] = useState<File|null>(null);
   const [title,setTitle] = useState("");
   const [alt,setAlt] = useState("");
+  const [youtubeUrl,setYoutubeUrl] = useState("");
   const [editingId,setEditingId] = useState("");
   const [search,setSearch] = useState("");
   const [filter,setFilter] = useState<"all"|"published"|"drafts">("all");
@@ -107,6 +109,31 @@ export default function MediaLibrary() {
     finally { setBusy(false); }
   }
 
+  async function addYoutubeSource() {
+    const supabase=getSupabaseBrowserClient();
+    if(!supabase || busy) return;
+    let parsed: URL;
+    try { parsed=new URL(youtubeUrl.trim()); } catch { setStatus("Enter a valid YouTube video URL."); return; }
+    const host=parsed.hostname.replace(/^www\\./,"").toLowerCase();
+    const segments=parsed.pathname.split("/").filter(Boolean);
+    const videoId=host==="youtu.be" ? segments[0] : ["youtube.com","m.youtube.com","youtube-nocookie.com"].includes(host) ? (parsed.pathname==="/watch" ? parsed.searchParams.get("v") : segments[0]==="shorts"||segments[0]==="live"||segments[0]==="embed" ? segments[1] : null) : null;
+    if(!videoId || !/^[A-Za-z0-9_-]{11}$/.test(videoId)) { setStatus("That URL is not a supported YouTube video link."); return; }
+    if(!title.trim()) { setStatus("Add a title for this YouTube video."); return; }
+    setBusy(true);
+    try {
+      const {data:userData,error:userError}=await supabase.auth.getUser();
+      if(userError || !userData.user) throw new Error("Sign in before adding a YouTube source.");
+      const {data:admin,error:adminError}=await supabase.from("creator_admins").select("role").eq("user_id",userData.user.id).eq("active",true).maybeSingle();
+      if(adminError || !admin || !["owner","admin","creator"].includes(admin.role)) throw new Error("Only assigned NHEN creators can publish official videos.");
+      const canonicalUrl="https://www.youtube.com/watch?v="+videoId;
+      const {data,error}=await supabase.rpc("save_creator_media",{p_media_id:null,p_title:title.trim(),p_media_type:"youtube",p_source_url:canonicalUrl,p_storage_path:null,p_alt_text:alt.trim(),p_metadata:{provider:"youtube",playbackKind:"youtube_embed",youtubeVideoId:videoId},p_is_published:false});
+      if(error || !data?.[0]?.saved) throw error ?? new Error("YouTube source could not be saved.");
+      setYoutubeUrl("");setTitle("");setAlt("");setStatus("YouTube source added as a private draft. Configure its watch page in Video Studio.");
+      await load();
+    } catch(e) { setStatus(e instanceof Error ? e.message : "Could not add YouTube source."); }
+    finally { setBusy(false); }
+  }
+
   function beginEdit(item: MediaRow) { setEditingId(item.media_id); setTitle(item.title); setAlt(item.alt_text); setStatus("Editing asset details. Save to update its library metadata."); }
 
   async function saveMetadata() {
@@ -125,7 +152,19 @@ export default function MediaLibrary() {
 
   async function setPublished(item: MediaRow) {
     const supabase = getSupabaseBrowserClient();
-    if (!supabase || !item.storage_path || busy) return;
+    if (!supabase || busy) return;
+    if (item.media_type === "youtube") {
+      setBusy(true);
+      try {
+        const {data,error}=await supabase.rpc("save_creator_media",{p_media_id:item.media_id,p_title:item.title,p_media_type:"youtube",p_source_url:item.source_url,p_storage_path:null,p_alt_text:item.alt_text,p_metadata:item.metadata ?? {},p_is_published:!item.is_published});
+        if(error || !data?.[0]?.saved) throw error ?? new Error("YouTube publication could not be updated.");
+        setStatus(item.is_published ? "YouTube video moved to private drafts." : "YouTube video published on NHEN Watch.");
+        await load();
+      } catch(e) { setStatus(e instanceof Error ? e.message : "Could not update YouTube publication."); }
+      finally { setBusy(false); }
+      return;
+    }
+    if (!item.storage_path) return;
     setBusy(true);
     try {
       const {data:userData} = await supabase.auth.getUser();
@@ -182,7 +221,20 @@ export default function MediaLibrary() {
 
   async function removeItem(item: MediaRow) {
     const supabase=getSupabaseBrowserClient();
-    if(!supabase || busy || !item.storage_path) return;
+    if(!supabase || busy) return;
+    if(item.media_type === "youtube") {
+      if(!window.confirm(`Remove “${item.title}” from NHEN? The original YouTube video will not be deleted.`)) return;
+      setBusy(true);
+      try {
+        const {data,error}=await supabase.rpc("delete_creator_media",{p_media_id:item.media_id});
+        if(error || !data?.[0]?.deleted) throw error ?? new Error("YouTube media record could not be removed.");
+        setStatus("YouTube source removed from NHEN. The original YouTube video is unchanged.");
+        await load();
+      } catch(e) { setStatus(e instanceof Error ? e.message : "Could not remove YouTube source."); }
+      finally { setBusy(false); }
+      return;
+    }
+    if(!item.storage_path) return;
     if(item.is_published || !item.storage_path.startsWith("creator-media-private/")) {
       setStatus("Move this asset to private drafts before deleting it."); return;
     }
@@ -241,7 +293,9 @@ export default function MediaLibrary() {
     <div className="editor-section-title"><span>MEDIA / 06</span><h2 id="media-library-title">Your asset <em>library.</em></h2><p>Upload logos, photos, short clips, sound and sprite images. Files stay private until you publish them.</p></div>
     <div className="media-upload-layout">
       <form className="poll-create-form" onSubmit={e=>{e.preventDefault();if(editingId) void saveMetadata(); else void upload();}}>
+        {!editingId && <div className="media-upload-note"><strong>Official YouTube source</strong><label>YouTube video URL<input type="url" value={youtubeUrl} onChange={e=>setYoutubeUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" /></label><button className="button button-secondary" type="button" disabled={busy||!youtubeUrl.trim()||!title.trim()} onClick={()=>void addYoutubeSource()}>Add YouTube source ↗</button><p>NHEN hosts the watch page and community features; YouTube hosts and delivers the video.</p></div>}
         {!editingId && <label>Choose file<input id="creator-media-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,audio/mpeg,audio/mp4,audio/wav,audio/ogg" onChange={selectFile} required /></label>}{editingId && <p className="media-upload-note">Editing metadata only. The stored file and publication state will not change.</p>}
+        {!editingId && <p className="media-upload-note">Or upload a video file below. YouTube links do not consume NHEN video storage.</p>}
         {!editingId && file && <p className="media-selected-file">{file.name} · {(file.size/1024/1024).toFixed(1)} MB</p>}
         <label>Asset name<input value={title} maxLength={120} onChange={e=>setTitle(e.target.value)} required /></label>
         <label>Alternative text / description<input value={alt} maxLength={500} onChange={e=>setAlt(e.target.value)} placeholder="Describe the image for accessibility" /></label>
@@ -251,7 +305,7 @@ export default function MediaLibrary() {
       <div className="media-library-list"><div className="media-list-heading"><h3>Stored assets ({rows.length})</h3><button className="button button-secondary" type="button" onClick={()=>void load()} disabled={busy}>Refresh</button></div><div className="media-filters"><label>Search assets<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Name, type or description" /></label><label>Visibility<select value={filter} onChange={e=>setFilter(e.target.value as "all"|"published"|"drafts")}><option value="all">All assets</option><option value="published">Published</option><option value="drafts">Private drafts</option></select></label></div>
         {!ready ? <p className="editor-status" role="status" aria-live="polite">Loading media…</p> : rows.length===0 ? <p className="editor-status" role="status">No assets yet. Upload your first file to begin.</p> : rows.filter(item=>(filter==="all"||(filter==="published"?item.is_published:!item.is_published))&&[item.title,item.media_type,item.alt_text].some(value=>value.toLowerCase().includes(search.trim().toLowerCase()))).length===0 ? <div className="moderation-empty" role="status"><h3>No matching assets.</h3><p>Try another search or change the visibility filter.</p><button className="button button-secondary" type="button" onClick={()=>{setSearch("");setFilter("all");}}>Clear filters</button></div> : rows.filter(item=>(filter==="all"||(filter==="published"?item.is_published:!item.is_published))&&[item.title,item.media_type,item.alt_text].some(value=>value.toLowerCase().includes(search.trim().toLowerCase()))).map(item=><article className="media-row" key={item.media_id}>
           <div className="media-preview">{item.preview_url && (item.media_type==="image"||item.media_type==="sprite") ? <img src={item.preview_url} alt={item.alt_text||item.title} loading="lazy" /> : item.preview_url && item.media_type==="video" ? <video src={item.preview_url} controls preload="metadata" playsInline aria-label={item.title} /> : item.preview_url && item.media_type==="audio" ? <audio src={item.preview_url} controls preload="metadata" aria-label={item.title} /> : <span>{item.media_type.toUpperCase()}</span>}</div>
-          <div className="media-details"><strong>{item.title}</strong><small>{item.media_type} · {item.is_published?"PUBLIC":"PRIVATE DRAFT"}</small><small>{item.storage_path?.split("/").slice(1).join("/")}</small><div className="media-row-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>beginEdit(item)}>Edit details</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void setPublished(item)}>{item.is_published?"Move to private":"Publish"}</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void removeItem(item)}>Delete file</button></div></div>
+          <div className="media-details"><strong>{item.title}</strong><small>{item.media_type} · {item.is_published?"PUBLIC":"PRIVATE DRAFT"}</small><small>{item.media_type==="youtube" ? "YouTube · externally hosted" : item.storage_path?.split("/").slice(1).join("/")}</small><div className="media-row-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>beginEdit(item)}>Edit details</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void setPublished(item)}>{item.is_published?"Move to private":"Publish"}</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void removeItem(item)}>Delete file</button></div></div>
         </article>)}
       </div>
     </div>
