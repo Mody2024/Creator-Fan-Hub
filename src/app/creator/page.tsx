@@ -12,13 +12,7 @@ import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export const dynamic = "force-dynamic";
 
-const modules = [
-  { number: "01", title: "Site identity", detail: "Name, logo, copy, colors and themes", state: "Editor started" },
-  { number: "02", title: "Ideas & polls", detail: "Submissions, moderation, votes and deadlines", state: "Connected" },
-  { number: "03", title: "Media library", detail: "Hero videos, uploads, mascot and audio", state: "In progress" },
-  { number: "04", title: "Events & socials", detail: "Events, countdowns, social links and presets", state: "Connected" },
-  { number: "05", title: "Publishing history", detail: "Draft preview, published versions and rollback", state: "Database ready" }
-];
+
 
 export default async function CreatorDashboardPage() {
   const [supabase, publicConfig] = await Promise.all([createSupabaseServerClient(), getPublicSiteConfig()]);
