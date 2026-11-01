@@ -441,3 +441,56 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-logo-theme-dark { color:#f3f7ed; background:#10160d; }
 .nhen-logo-theme-light { color:#171b14; background:#f3f5ee; border-color:rgba(23,27,20,.15); }
 @media(max-width:600px){.nhen-logo-theme-previews{grid-template-columns:1fr}.nhen-logo-theme-preview{min-height:130px}}
+
+
+/* Creator-controlled accessibility preferences. */
+.site[data-motion="reduced"] *, .maintenance[data-motion="reduced"] * {
+  scroll-behavior: auto !important;
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+}
+.site[data-motion="off"] *, .maintenance[data-motion="off"] * {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .site[data-motion="full"] *, .maintenance[data-motion="full"] * {
+    scroll-behavior: auto;
+  }
+}
+.site[data-color-mode="light"], .maintenance[data-color-mode="light"] {
+  color-scheme: light;
+}
+.site[data-color-mode="light"] {
+  --surface: #f4f5ef;
+  --surface-raised: #ffffff;
+  --ink: #171b14;
+  --muted: #596052;
+  --line: rgba(25,35,20,.15);
+  background: #f4f5ef;
+  color: #171b14;
+}
+.site[data-color-mode="light"] .topbar,
+.site[data-color-mode="light"] .site-footer,
+.site[data-color-mode="light"] .content-section,
+.site[data-color-mode="light"] .idea-panel,
+.site[data-color-mode="light"] .poll-card,
+.site[data-color-mode="light"] .event-card,
+.site[data-color-mode="light"] .video-card {
+  color: #171b14;
+}
+.site[data-color-mode="system"] {
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: light) {
+  .site[data-color-mode="system"] {
+    background: #f4f5ef;
+    color: #171b14;
+  }
+  .site[data-color-mode="system"] .nhen-wordmark-copy strong,
+  .site[data-color-mode="system"] .portal-wordmark strong {
+    color: #171b14;
+  }
+}
