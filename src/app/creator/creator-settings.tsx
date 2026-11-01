@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import LogoStudio from "./logo-studio";
 
 type MediaOption = { media_id: string; title: string; media_type: string; is_published: boolean };
 
@@ -20,7 +21,7 @@ type SiteDraft = {
 
 const fallback: SiteDraft = {
   schemaVersion: 1,
-  identity: { siteName: "THE INNER CIRCLE", tagline: "A community built around what comes next." },
+  identity: { siteName: "Nhen?", tagline: "The community shaping what comes next. · مجتمع يصنع القادم." },
   appearance: { theme: "obsidian", accent: "#C5A46D", colorMode: "dark", motion: "full" },
   hero: { title: "Your next favorite video starts here.", body: "Vote on ideas, share what you want to see, and help shape the next upload.", mediaId: null, overlay: 0.35, muted: true, loop: true },
   maintenance: { enabled: false, message: "We'll be back soon." },
@@ -174,7 +175,7 @@ export default function CreatorSettings() {
     {busy ? <p className="editor-status" role="status" aria-live="polite">{status}</p> : <>
       <div className="draft-preview-wrap"><div className="draft-preview-label"><span>LIVE DRAFT PREVIEW</span><small>Private until you publish</small></div><div className={"draft-preview theme-" + draft.appearance.theme} style={{"--preview-accent": draft.appearance.accent || "#C5A46D"} as React.CSSProperties & {"--preview-accent": string}}><div className="draft-preview-top"><span>{draft.identity.siteName || "Your website name"}</span><span>PREVIEW / 01</span></div><div className="draft-preview-main"><span className="draft-preview-eyebrow">{draft.identity.tagline || "Your tagline"}</span><h3>{draft.hero.title || "Your headline goes here"}</h3><p>{draft.hero.body || "Your description will appear here."}</p><span className="draft-preview-cta">{draft.featureFlags.polls ? "CAST YOUR VOTE ↗" : draft.featureFlags.ideas ? "SUBMIT AN IDEA ↗" : "EXPLORE ↗"}</span></div><div className="draft-preview-sections">{(draft.layout.sectionOrder ?? []).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index)=><span key={key}>{String(index+1).padStart(2,"0")} / {({hero:"Hero",ideas:"Ideas",poll:"Voting",events:"Events",community:"Community",socials:"Social links",videos:"Published videos"} as Record<string,string>)[key] ?? key}</span>)}</div>{draft.maintenance.enabled && <div className="draft-preview-maintenance">MAINTENANCE MODE · {draft.maintenance.message}</div>}</div></div><div className="editor-section-title"><span>01 / IDENTITY</span><h2>Make it <em>yours.</em></h2><p>These values are stored in Supabase. The public website changes only after publishing.</p></div>
       <div className="editor-grid">
-        <label>Website name<input maxLength={100} value={draft.identity.siteName} onChange={e=>update("identity","siteName",e.target.value)} /></label>
+        <label>Brand identity<input value="Nhen? / نهين؟" readOnly aria-label="Fixed Nhen bilingual brand identity" /><small>The public brand name is fixed to keep the identity consistent.</small></label>
         <label>Tagline<input maxLength={240} value={draft.identity.tagline} onChange={e=>update("identity","tagline",e.target.value)} /></label>
         <label>Hero headline<input maxLength={180} value={draft.hero.title} onChange={e=>update("hero","title",e.target.value)} /></label>
         <label>Hero description<textarea maxLength={1000} rows={3} value={draft.hero.body} onChange={e=>update("hero","body",e.target.value)} /></label>
@@ -182,9 +183,10 @@ export default function CreatorSettings() {
         <label>Accent color<input type="color" value={draft.appearance.accent || "#C5A46D"} onChange={e=>update("appearance","accent",e.target.value)} /></label>
       </div>
       <div className="editor-grid">
-        <label>Published logo image<select value={draft.identity.logoMediaId ?? ""} onChange={e=>update("identity","logoMediaId",e.target.value || null)}><option value="">Text logo only</option>{mediaOptions.filter(item=>item.is_published && item.media_type==="image").map(item=><option key={item.media_id} value={item.media_id}>{item.title}</option>)}</select></label>
+        <label>Website logo asset<select value={draft.identity.logoMediaId ?? ""} onChange={e=>update("identity","logoMediaId",e.target.value || null)}><option value="">Use bilingual Nhen? wordmark</option>{mediaOptions.filter(item=>item.media_type==="image").map(item=><option key={item.media_id} value={item.media_id}>{item.title} · {item.is_published ? "Published" : "Private draft"}</option>)}</select><small>Choose a published image for the public site. Private drafts can be selected now and published in Media Library before the site itself.</small></label>
         <label>Published hero media<select value={draft.hero.mediaId ?? ""} onChange={e=>update("hero","mediaId",e.target.value || null)}><option value="">Use default hero artwork</option>{mediaOptions.filter(item=>item.is_published && (item.media_type==="image" || item.media_type==="video")).map(item=><option key={item.media_id} value={item.media_id}>{item.title} · {item.media_type}</option>)}</select></label>
       </div>
+      <LogoStudio onCreated={item=>{setMediaOptions(current=>[item,...current.filter(existing=>existing.media_id!==item.media_id)]);update("identity","logoMediaId",item.media_id);}} />
       <p className="media-upload-note">Only published assets can be selected for the public site. Upload and publish files in the Media Library first.</p>
       <div className="editor-grid">
         <label>Published mascot image<select value={draft.identity.mascotMediaId ?? ""} onChange={e=>update("identity","mascotMediaId",e.target.value || null)}><option value="">No custom mascot</option>{mediaOptions.filter(item=>item.is_published && item.media_type==="image").map(item=><option key={item.media_id} value={item.media_id}>{item.title}</option>)}</select></label>
