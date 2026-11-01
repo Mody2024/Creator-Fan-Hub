@@ -299,7 +299,8 @@ test("uploaded logo preview shows both themes while bilingual identity remains v
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.match(page, /config\.logoUrl && <img src=\{config\.logoUrl\} alt="" \/><span className="portal-wordmark">/);
+  assert.ok(page.includes('config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />'));
+  assert.ok(page.includes('<span className="portal-wordmark"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span>'));
   assert.match(page, /<small lang="ar" dir="rtl">نهين؟<\/small>/);
   assert.match(studio, /DARK THEME/);
   assert.match(studio, /LIGHT THEME/);
