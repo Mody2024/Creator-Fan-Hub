@@ -283,3 +283,13 @@ test("Nhen theme accent reaches the bilingual brand and creator defaults", async
   assert.match(design, /site \.nhen-wordmark \.site-logo-image/);
   assert.match(design, /Noto Kufi Arabic/);
 });
+
+
+test("deleting a prepared logo also cleans up its private original backup safely", async () => {
+  const media = await readFile(new URL("../src/app/creator/media-library.tsx", import.meta.url), "utf8");
+  const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
+  assert.match(media, /originalStoragePath/);
+  assert.match(media, /originalObjectPath\.split\("\/"\)\[0\] === userData\.user\.id/);
+  assert.match(media, /backupCleanupError/);
+  assert.match(studio, /removeBackground \? "png" : \(file\.type === "image\/jpeg" \? "jpg" : "webp"\)/);
+});
