@@ -263,3 +263,23 @@ test("N7EN public identity uses the current brand system", async () => {
   assert.match(design, /--nhen-accent:\s*#c8ff4d/i);
   assert.match(design, /prefers-reduced-motion:\s*reduce/);
 });
+
+
+test("Nhen bilingual identity and logo studio are wired into public and creator experiences", async () => {
+  const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+  const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
+  const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
+  const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  assert.match(page, /Nhen\?/);
+  assert.match(page, /نهين؟/);
+  assert.match(page, /portal-wordmark/);
+  assert.match(config, /siteName: "Nhen\?"/);
+  assert.match(settings, /LogoStudio/);
+  assert.match(settings, /Nhen\? \/ نهين؟/);
+  assert.match(studio, /backgroundRemoved/);
+  assert.match(studio, /creator-media-private/);
+  assert.match(studio, /removeBackground/);
+  assert.match(design, /nhen-wordmark-copy/);
+  assert.match(design, /nhen-logo-preview/);
+});
