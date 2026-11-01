@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests, mediaOwnershipTests, ideaSubmissionContractTests, publishingHistoryTests, mediaRecoveryTests, resumableUpload] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests, mediaOwnershipTests, ideaSubmissionContractTests, publishingHistoryTests, mediaRecoveryTests, resumableUpload, mediaHealthMigration, resumableReservationMigration, communityShorts] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -47,7 +47,10 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../tests/public-idea-submission-contracts.test.mjs"),
   read("../tests/publishing-history-resilience.test.mjs"),
   read("../tests/media-recovery-contracts.test.mjs"),
-  read("../src/lib/supabase/resumable-upload.ts")
+  read("../src/lib/supabase/resumable-upload.ts"),
+  read("../supabase/migrations/20261101173909_nhen_media_health_and_orphan_audit.sql"),
+  read("../supabase/migrations/20261101172923_nhen_resume_upload_reservations.sql"),
+  read("../src/app/shorts/community-shorts-client.tsx")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -59,6 +62,10 @@ check("creator and community media uploads use the shared TUS resumable uploader
 check("TUS uploader uses bounded chunks, retry backoff, authenticated storage headers, and upload progress", resumableUpload.includes("chunkSize: 6 * 1024 * 1024") && resumableUpload.includes("retryDelays: [0, 3000, 5000, 10000, 20000]") && resumableUpload.includes("authorization: `Bearer ${session.access_token}`") && resumableUpload.includes("onProgress:"));
 check("TUS upload sessions keep stable owner-scoped object paths and resume matching previous transfers", resumableUpload.includes("findPreviousUploads()") && resumableUpload.includes("resumeFromPreviousUpload") && resumableUpload.includes("getResumableUploadSession") && resumableUpload.includes('startsWith(userId + "/")'));
 check("resumable uploads renew matching storage reservations and retain sessions after interruption", media.includes("reuse_nhen_media_upload_reservation") && media.includes("Upload interrupted. Your resumable session is retained") && (await read("../src/app/shorts/community-shorts-client.tsx")).includes("reuse_nhen_media_upload_reservation"));
+check("storage health audit is creator-only, reports only old unlinked candidates, and never deletes media objects", mediaHealthMigration.includes("public.is_nhen_video_publisher()") && mediaHealthMigration.includes("now()-interval '24 hours'") && mediaHealthMigration.includes("orphan_candidate_bytes") && !/delete\\s+from\\s+storage\\.objects/i.test(mediaHealthMigration));
+check("storage health audit checks both creator media metadata and community short records", mediaHealthMigration.includes("public.media_items") && mediaHealthMigration.includes("public.community_short_videos"));
+check("resumable reservation renewal is bound to authenticated owner, bucket, size, and active expiry", resumableReservationMigration.includes("user_id=v_user") && resumableReservationMigration.includes("bucket_id=p_bucket") && resumableReservationMigration.includes("expected_bytes=p_bytes") && resumableReservationMigration.includes("expires_at>now()"));
+check("community video deletion restores the stored file if the metadata deletion fails", communityShorts.includes("download(item.storage_path)") && communityShorts.includes("storageRemoved&&backup") && communityShorts.includes("upsert:false"));
 check("media recovery tests cover failed upload cleanup, publication rollback, and deletion restoration", mediaRecoveryTests.includes("failed media metadata save checks private upload cleanup") && mediaRecoveryTests.includes("publishing a private asset reports when the old private copy cannot be removed") && mediaRecoveryTests.includes("unpublishing removes the public object before metadata changes") && mediaRecoveryTests.includes("media deletion keeps a backup and attempts restoration"));
 check("media ownership contract suite covers storage policies, owner-scoped RPCs, guarded backfill, and authenticated grants", mediaOwnershipTests.includes("storage policies bind mutations to the active creator folder") && mediaOwnershipTests.includes("media metadata backfill guards UUID casts") && mediaOwnershipTests.includes("media listing is owner-scoped and bounded") && mediaOwnershipTests.includes("media save and delete RPCs reject cross-owner paths"));
 check("publishing history validates server data, clears stale snapshots on failure, and confirms restore revision", publishingHistoryTests.includes("validates each server-provided version row before rendering") && publishingHistoryTests.includes("clears stale snapshots after a failed or malformed reload") && publishingHistoryTests.includes("valid new draft revision"));
