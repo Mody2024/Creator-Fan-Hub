@@ -74,7 +74,7 @@ export default async function HomePage() {
         {config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}
         <Link className="nhen-sidebar-link" href="/community"><span>◉</span> {t.community}</Link>
         <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> {t.explore}</Link>
-        <span className="nhen-section-label">YOUR NHEN</span>
+        <span className="nhen-section-label">{isArabic ? "مساحتك في NHEN" : "YOUR NHEN"}</span>
         <Link className="nhen-sidebar-link" href="/community#join"><span>◎</span> {t.profile}</Link>
         <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> {t.saved}</Link>
         <Link className="nhen-sidebar-link" href="/notifications"><span>♧</span> {t.notifications}</Link>
@@ -88,7 +88,7 @@ export default async function HomePage() {
           <div className="nhen-home-quicklinks"><Link className="button button-primary" href="/watch">{t.exploreVideos}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
         </section>
         {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
-        <div className="nhen-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/#videos">{t.videos}</Link><Link href="/community">Community</Link><Link href="/shorts">{t.nhenbits}</Link></div>
+        <div className="nhen-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/#videos">{t.videos}</Link><Link href="/community">{t.community}</Link><Link href="/shorts">{t.nhenbits}</Link></div>
         {config.visibleSections.includes("videos") && <PublicVideos />}
         <div className="nhen-card-heading"><h2 className="nhen-card-title">{t.latest}</h2><Link className="nhen-muted" href="/watch">{t.seeAll}</Link></div>
         {videos.length?<div className="nhen-home-video-grid">{videos.slice(0,8).map(video=><article className="nhen-home-video-card" key={video.id}>
@@ -98,15 +98,15 @@ export default async function HomePage() {
         <div className="nhen-card-heading"><h2 className="nhen-card-title">{t.fromCommunity}</h2><Link className="nhen-muted" href="/community">{t.openCommunity}</Link></div>
         {posts.length?posts.map(post=><article className="nhen-card nhen-home-post" key={post.id}><div className="nhen-post-header"><div className="nhen-avatar">{post.avatarUrl?<img src={post.avatarUrl} alt=""/>:post.displayName.slice(0,1).toUpperCase()}</div><div><strong>{post.displayName}</strong><div className="nhen-muted">@{post.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div></div><p className="nhen-post-body">{post.body}</p><Link className="nhen-action" href="/community">{t.joinConversation}</Link></article>):<div className="nhen-card nhen-empty-state"><p className="nhen-muted">Community conversations will appear here as people share.</p><Link href="/community">Visit community ↗</Link></div>}
         {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="nhen-card nhen-card-pad nhen-home-polls" id="poll" aria-labelledby="nhen-home-polls-title">
-          <div className="nhen-card-heading"><div><span className="nhen-section-label">{t.vote}</span><h2 className="nhen-card-title" id="nhen-home-polls-title" style={{marginTop:6}}>Your voice shapes what comes next.</h2></div><span className="nhen-pill">{t.haveSay}</span></div>
+          <div className="nhen-card-heading"><div><span className="nhen-section-label">{t.vote}</span><h2 className="nhen-card-title" id="nhen-home-polls-title" style={{marginTop:6}}>{isArabic ? "صوّت وشارك في اختيار القادم." : "Your voice shapes what comes next."}</h2></div><span className="nhen-pill">{t.haveSay}</span></div>
           <PublishedPolls />
         </section>}
       </section>
       <aside className="nhen-discovery-column">
-        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.discover}</span><h2 className="nhen-card-title">{t.everyFormat}</h2><p className="nhen-muted">Long-form creator uploads, short community videos, shared moments and conversations.</p><div className="nhen-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ Nhenbits</Link><Link href="/community">◉ Community</Link><Link href="/search">{t.findCreators}</Link></div></section>
-        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">Approved creators can publish official videos and manage their channel from NHEN Studio.</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
+        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.discover}</span><h2 className="nhen-card-title">{t.everyFormat}</h2><p className="nhen-muted">{isArabic ? "فيديوهات المبدعين، ومقاطع المجتمع، واللحظات المشتركة والنقاشات." : "Long-form creator uploads, short community videos, shared moments and conversations."}</p><div className="nhen-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ {t.nhenbits}</Link><Link href="/community">◉ {t.community}</Link><Link href="/search">{t.findCreators}</Link></div></section>
+        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو NHEN." : "Approved creators can publish official videos and manage their channel from NHEN Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
       </aside>
     </div>
-    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>Home</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">Watch</a><a href="/shorts">Shorts</a></>}<Link href="/community">◉<span>Community</span></Link><Link href="/community#join">◎<span>Profile</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label={isArabic ? "التنقل" : "Mobile navigation"}><Link href="/">⌂<span>{t.home}</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}<Link href="/community">◉<span>{t.community}</span></Link><Link href="/community#join">◎<span>{t.profile}</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
