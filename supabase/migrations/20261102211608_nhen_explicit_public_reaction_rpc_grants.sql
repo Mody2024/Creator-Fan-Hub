@@ -1,7 +1,5 @@
--- Explicitly expose only aggregate public reaction counters; never grant access to reaction rows.
-revoke all on function public.get_community_reaction_counts(uuid[]) from public;
+-- Public reaction totals are intentionally aggregate-only endpoints.
+-- Grant only the bounded aggregate RPCs; individual reaction rows remain private.
 grant execute on function public.get_community_reaction_counts(uuid[]) to anon,authenticated;
-revoke all on function public.get_community_short_reaction_counts(uuid[]) from public;
 grant execute on function public.get_community_short_reaction_counts(uuid[]) to anon,authenticated;
-revoke all on function public.get_video_reaction_counts(uuid[]) from public;
 grant execute on function public.get_video_reaction_counts(uuid[]) to anon,authenticated;
