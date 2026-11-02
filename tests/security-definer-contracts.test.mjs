@@ -4,16 +4,16 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [admin, creatorRead, polls, moderation, events, media, history, publicGates, ideas, helper, voterMigration] = await Promise.all([
-  read("../supabase/migrations/20261026000400_creator_admin_publish_functions.sql"),
-  read("../supabase/migrations/20261026000600_harden_creator_draft_read.sql"),
-  read("../supabase/migrations/20261026001300_creator_poll_management.sql"),
-  read("../supabase/migrations/20261026001100_creator_idea_moderation.sql"),
-  read("../supabase/migrations/20261026001500_creator_events_and_socials.sql"),
-  read("../supabase/migrations/20261026001900_scope_media_metadata_to_owner.sql"),
-  read("../supabase/migrations/20261026001800_creator_publish_history_restore.sql"),
-  read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
-  read("../supabase/migrations/20261027000400_fail_closed_public_idea_submissions.sql"),
-  read("../supabase/migrations/20261026000501_restrict_internal_auth_helper.sql"),
+  read("../supabase/migrations/20261026171550_creator_admin_publish_functions.sql"),
+  read("../supabase/migrations/20261026172015_harden_creator_draft_read.sql"),
+  read("../supabase/migrations/20261026174813_creator_poll_management.sql"),
+  read("../supabase/migrations/20261026174310_creator_idea_moderation.sql"),
+  read("../supabase/migrations/20261026175324_creator_events_and_socials.sql"),
+  read("../supabase/migrations/20261031203530_scope_media_metadata_to_owner.sql"),
+  read("../supabase/migrations/20261031203520_creator_publish_history_restore.sql"),
+  read("../supabase/migrations/20261031203509_fail_closed_public_feature_gates.sql"),
+  read("../supabase/migrations/20261031203510_fail_closed_public_idea_submissions.sql"),
+  read("../supabase/migrations/20261102212929_restrict_internal_auth_helper.sql"),
   read("../supabase/migrations/20261031213221_poll_display_names_and_creator_voter_list.sql")
 ]);
 
