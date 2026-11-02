@@ -16,9 +16,9 @@ const voteNicknameMigration = await readFile(new URL("../supabase/migrations/202
 const blockHelperMigration = await readFile(new URL("../supabase/migrations/20261102185029_nhen_restrict_member_block_helper.sql", import.meta.url), "utf8");
 const featuredIdeasMigration = await readFile(new URL("../supabase/migrations/20261031203506_public_featured_ideas.sql", import.meta.url), "utf8");
 const pollVisibilityMigration = await readFile(new URL("../supabase/migrations/20261031203508_public_poll_visibility_gates.sql", import.meta.url), "utf8");
-const boundedReactionMigration = await readFile(new URL("../supabase/migrations/20261102184000_nhen_bound_public_reaction_aggregate_requests.sql", import.meta.url), "utf8");
-const privateShortReactionsMigration = await readFile(new URL("../supabase/migrations/20261102210000_nhen_private_community_short_reactions.sql", import.meta.url), "utf8");
-const excludeBlockedShortReactorsMigration = await readFile(new URL("../supabase/migrations/20261102213000_nhen_exclude_blocked_reactors_from_short_counts.sql", import.meta.url), "utf8");
+const boundedReactionMigration = await readFile(new URL("../supabase/migrations/20261102182458_nhen_bound_public_reaction_aggregate_requests.sql", import.meta.url), "utf8");
+const privateShortReactionsMigration = await readFile(new URL("../supabase/migrations/20261102190914_nhen_private_community_short_reactions.sql", import.meta.url), "utf8");
+const excludeBlockedShortReactorsMigration = await readFile(new URL("../supabase/migrations/20261102200350_nhen_exclude_blocked_reactors_from_short_counts.sql", import.meta.url), "utf8");
 const communityShortClient = await readFile(new URL("../src/app/shorts/community-shorts-client.tsx", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
