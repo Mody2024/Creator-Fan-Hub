@@ -59,12 +59,13 @@ export default function CommunityShortsClient(){
   }));
   if(rows.length){
    const shortIds=rows.map(row=>row.id);
-   const [{data:allReactions},{data:ownReactions}]=await Promise.all([
-    supabase.from("community_short_reactions").select("short_id,reaction").in("short_id",shortIds),
-    userId?supabase.from("community_short_reactions").select("short_id,reaction").in("short_id",shortIds).eq("user_id",userId):Promise.resolve({data:[]})
+   const [{data:aggregateCounts,error:countsError},{data:ownReactions,error:ownError}]=await Promise.all([
+    supabase.rpc("get_community_short_reaction_counts",{p_short_ids:shortIds}),
+    userId?supabase.from("community_short_reactions").select("short_id,reaction").in("short_id",shortIds).eq("user_id",userId):Promise.resolve({data:[],error:null})
    ]);
+   if(countsError||ownError){setStatus(t.reactionError);}
    const counts:Record<string,Record<string,number>>={};
-   (allReactions??[]).forEach((r:{short_id:string;reaction:ShortReaction})=>{counts[r.short_id]??={};counts[r.short_id][r.reaction]=(counts[r.short_id][r.reaction]??0)+1;});
+   (aggregateCounts??[]).forEach((r:{short_id:string;reaction:ShortReaction;reaction_count:number|string})=>{counts[r.short_id]??={};counts[r.short_id][r.reaction]=Number(r.reaction_count)||0;});
    const mine:Record<string,ShortReaction>={};
    (ownReactions??[]).forEach((r:{short_id:string;reaction:ShortReaction})=>{mine[r.short_id]=r.reaction;});
    setReactionCounts(counts);setMyReactions(mine);
