@@ -230,6 +230,8 @@ const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx
 const searchPage = await read("../src/app/search/page.tsx");
 const communityPage = await read("../src/app/community/page.tsx");
 const communityClient = await read("../src/app/community/community-client.tsx");
+const communityPage = await read("../src/app/community/page.tsx");
+const communityClient = await read("../src/app/community/community-client.tsx");
 const notificationDeliveryMigration = await read("../supabase/migrations/20261102100000_nhen_instant_comment_notifications.sql");
 check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
 check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
@@ -246,6 +248,9 @@ check("saved library combines private community and video bookmarks with type fi
 check("member profiles receive saved locale and localize profile editing, follow/block actions, sections, and dates", memberProfilePage.includes('cookieStore.get("nhen_locale")') && memberProfilePage.includes('locale={locale}') && memberProfileClient.includes('dir={isArabic?"rtl":"ltr"}') && memberProfileClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")') && memberProfileClient.includes("تعديل الملف الشخصي") && memberProfileClient.includes("إلغاء الحظر"));
 check("NHEN discovery search uses the saved locale, RTL direction, and translated result sections and empty states", searchPage.includes('cookieStore.get("nhen_locale")') && searchPage.includes('dir={isArabic?"rtl":"ltr"}') && searchPage.includes("اكتشف") && searchPage.includes("لا توجد فيديوهات مطابقة.") && searchPage.includes("لا يوجد أعضاء مطابقون."));
 
+check("community header receives the recipient-scoped unread notification count and exposes an accessible badge", communityPage.includes('from("member_notifications").select("id", { count: "exact", head: true })') && communityPage.includes('eq("recipient_id", userId)') && communityClient.includes('unreadNotificationCount>99?"99+"') && communityClient.includes("unread, t.notifications"));
+check("following feed provides distinct signed-out and empty-following guidance with member discovery", communityClient.includes("signInToFollow") && communityClient.includes("followingEmpty") && communityClient.includes('href="/search"'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
@@ -253,5 +258,3 @@ if (failures.length) {
 } else {
   console.log(`Repository validation passed (${assertionCount} assertions).`);
 }
-\ncheck("community header receives the recipient-scoped unread notification count and exposes an accessible badge", communityPage.includes('from("member_notifications").select("id", { count: "exact", head: true })') && communityPage.includes('eq("recipient_id", userId)') && communityClient.includes("unreadNotificationCount>99?\"99+\"") && communityClient.includes("unread, t.notifications"));
-check("following feed provides distinct signed-out and empty-following guidance with member discovery", communityClient.includes("signInToFollow") && communityClient.includes("followingEmpty") && communityClient.includes('href="/search"'));
