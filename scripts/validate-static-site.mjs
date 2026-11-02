@@ -221,6 +221,7 @@ const communityStyles = await read("../src/app/nhen-design-system.css");
 const shortsPage = await read("../src/app/shorts/page.tsx");
 const communityShorts = await read("../src/app/shorts/community-shorts-client.tsx");
 const notificationsPage = await read("../src/app/notifications/page.tsx");
+const notificationsRealtimeClient = await read("../src/app/notifications/notifications-client.tsx");
 const notificationsClient = await read("../src/app/notifications/notifications-client.tsx");
 const savedPage = await read("../src/app/saved/page.tsx");
 const savedClient = await read("../src/app/saved/saved-client.tsx");
@@ -255,6 +256,8 @@ check("following feed provides distinct signed-out and empty-following guidance 
 check("community suggests public members while excluding self, followed accounts, and accounts blocked by the viewer", communityPage.includes('from("member_profiles").select("user_id,handle,display_name")') && communityPage.includes('eq("visibility", "public")') && communityPage.includes("excluded.has(x.user_id)") && communityPage.includes('from("member_blocks").select("blocked_id")'));
 check("member suggestions provide localized follow actions and profile discovery links", communitySuggestionsClient.includes("followSuggested") && communitySuggestionsClient.includes("People you may like") && communitySuggestionsClient.includes("قد يعجبك") && communitySuggestionsClient.includes('href={"/u/"+person.handle}'));
 
+check("notifications subscribe to recipient-filtered realtime inserts and clean up their channel", notificationsRealtimeClient.includes('table:"member_notifications"') && notificationsRealtimeClient.includes('filter:"recipient_id=eq."+data.user.id') && notificationsRealtimeClient.includes("removeChannel(channel)") && notificationsRealtimeClient.includes("realtimeStatus"));
+check("community feed refreshes from live post changes and removes its subscription on unmount", communityClient.includes('table: "community_posts"') && communityClient.includes("router.refresh()") && communityClient.includes("removeChannel(channel)"));
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
