@@ -13,6 +13,7 @@ const publicGateMigration = await readFile(new URL("../supabase/migrations/20261
 const communityRoleMigration = await readFile(new URL("../supabase/migrations/20261101001800_nhen_moderation_role_hardening.sql", import.meta.url), "utf8");
 const triggerRpcMigration = await readFile(new URL("../supabase/migrations/20261101001900_nhen_revoke_trigger_function_rpc.sql", import.meta.url), "utf8");
 const voteNicknameMigration = await readFile(new URL("../supabase/migrations/20261102203000_nhen_normalize_public_poll_nicknames.sql", import.meta.url), "utf8");
+const blockHelperMigration = await readFile(new URL("../supabase/migrations/20261102204500_nhen_restrict_member_block_helper.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -52,6 +53,18 @@ test("unpublished drafts are separated from the public snapshot", () => {
   assert.match(schema, /create table if not exists public\.published_site_config/i);
   assert.match(sql, /site_config_drafts intentionally has no client-facing policies/i);
   assert.match(sql, /on public\.published_site_config for select/i);
+});
+
+
+test("member block helper is not executable by anonymous clients", () => {
+  assert.match(blockHelperMigration, /revoke all on function public\.is_member_blocked\(uuid\) from public, anon/i);
+  assert.match(blockHelperMigration, /grant execute on function public\.is_member_blocked\(uuid\) to authenticated/i);
+});
+
+test("public voting RPC permissions remain explicit", () => {
+  assert.match(voteNicknameMigration, /grant execute on function public\.cast_public_poll_vote\(uuid, uuid, text, text\) to anon, authenticated/i);
+  assert.match(publicGateMigration, /get_public_approved_ideas/i);
+  assert.match(publicGateMigration, /submit_public_idea/i);
 });
 
 test("public poll vote RPC normalizes and validates voter nicknames", () => {
