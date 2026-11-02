@@ -263,8 +263,21 @@ export default function MediaLibrary() {
       if(saveError || !saved?.[0]?.saved) {
         const {error:cleanupError}=await supabase.storage.from(nextBucket).remove([nextPath]);
         if (item.is_published) {
+          // The original public object was removed before the database update.
+          // A rollback upload is a new object and must reserve destination quota too.
+          const {data:restoreReservation,error:restoreReservationError}=await supabase.rpc("reserve_nhen_media_upload",{
+            p_bytes:download.size,
+            p_bucket:bucket
+          });
+          if(restoreReservationError || !restoreReservation?.[0]?.reservation_id) {
+            throw new Error("Database update failed after the public object was removed, and NHEN could not reserve space to restore it. Keep this item private and contact the site administrator immediately.");
+          }
+          const restoreReservationId=restoreReservation[0].reservation_id as string;
           const {error:restoreError}=await supabase.storage.from(bucket).upload(oldPath,download,{contentType:download.type || String(item.metadata?.mimeType || "application/octet-stream"),upsert:false});
-          if (restoreError) throw new Error("Database update failed and the original public file could not be restored. Contact the site administrator immediately.");
+          if(restoreError) {
+            try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:restoreReservationId}); } catch { /* Expires automatically. */ }
+            throw new Error("Database update failed and the original public file could not be restored. Contact the site administrator immediately.");
+          }
         }
         if(cleanupError) {
           throw new Error(nextBucket==="creator-media-public"
