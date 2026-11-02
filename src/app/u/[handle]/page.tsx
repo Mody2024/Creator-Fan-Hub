@@ -1,11 +1,12 @@
 import {notFound} from "next/navigation";
+import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import MemberProfileClient,{type ProfilePost} from "./profile-client";
 
 export const dynamic="force-dynamic";
 
 export default async function MemberProfilePage({params}:{params:Promise<{handle:string}>}){
- const {handle}=await params;const supabase=await createSupabaseServerClient();if(!supabase)notFound();
+ const {handle}=await params;const cookieStore=await cookies();const locale=cookieStore.get("nhen_locale")?.value==="ar"?"ar":"en";const supabase=await createSupabaseServerClient();if(!supabase)notFound();
  const {data:profile,error}=await supabase.from("member_profiles").select("user_id,handle,display_name,bio,avatar_url,website_url,visibility,created_at").eq("handle",handle.toLowerCase()).maybeSingle();
  if(error||!profile)notFound();
  const {data:posts}=await supabase.from("community_posts").select("id,body,created_at,post_type").eq("author_id",profile.user_id).eq("status","published").order("created_at",{ascending:false}).limit(30);
@@ -25,5 +26,5 @@ export default async function MemberProfilePage({params}:{params:Promise<{handle
   if(!catalog?.slug)return[];
   return[{id:item.id,title:item.title,slug:catalog.slug,description:catalog.description||item.alt_text||"",category:catalog.category||"Video",src:supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl}];
  });
- return <MemberProfileClient profile={{userId:profile.user_id,handle:profile.handle,displayName:profile.display_name,bio:profile.bio,avatarUrl:profile.avatar_url,websiteUrl:profile.website_url,joinedAt:profile.created_at,achievements}} posts={items} videos={videos} communityShorts={communityShorts} followerCount={followers??0} followingCount={following??0}/>;
+ return <MemberProfileClient profile={{userId:profile.user_id,handle:profile.handle,displayName:profile.display_name,bio:profile.bio,avatarUrl:profile.avatar_url,websiteUrl:profile.website_url,joinedAt:profile.created_at,achievements}} posts={items} videos={videos} communityShorts={communityShorts} locale={locale} followerCount={followers??0} followingCount={following??0}/>;
 }
