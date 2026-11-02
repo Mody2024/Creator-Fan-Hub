@@ -228,6 +228,8 @@ const savedPageUnified = await read("../src/app/saved/page.tsx");
 const memberProfilePage = await read("../src/app/u/[handle]/page.tsx");
 const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx");
 const searchPage = await read("../src/app/search/page.tsx");
+const communityPage = await read("../src/app/community/page.tsx");
+const communityClient = await read("../src/app/community/community-client.tsx");
 const notificationDeliveryMigration = await read("../supabase/migrations/20261102100000_nhen_instant_comment_notifications.sql");
 check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
 check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
@@ -251,3 +253,5 @@ if (failures.length) {
 } else {
   console.log(`Repository validation passed (${assertionCount} assertions).`);
 }
+\ncheck("community header receives the recipient-scoped unread notification count and exposes an accessible badge", communityPage.includes('from("member_notifications").select("id", { count: "exact", head: true })') && communityPage.includes('eq("recipient_id", userId)') && communityClient.includes("unreadNotificationCount>99?\"99+\"") && communityClient.includes("unread, t.notifications"));
+check("following feed provides distinct signed-out and empty-following guidance with member discovery", communityClient.includes("signInToFollow") && communityClient.includes("followingEmpty") && communityClient.includes('href="/search"'));
