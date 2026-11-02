@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 export type TeamMember={userId:string;email:string;role:string;active:boolean;createdAt:string};
-const roles=["admin","editor","moderator","analyst"];
+const roles=["admin","creator","editor","moderator","analyst"];
 export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[]}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);const [team,setTeam]=useState(initialTeam),[email,setEmail]=useState(""),[role,setRole]=useState("editor"),[inviteUrl,setInviteUrl]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
  const [locale,setLocale]=useState<"en"|"ar">("en");const isArabic=locale==="ar";
