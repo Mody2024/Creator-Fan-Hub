@@ -216,6 +216,14 @@ check("poll and idea empty states are announced to assistive technology", pollMa
 check("publishing history explains the first-version empty state", historyComponent.includes('className="moderation-empty" role="status"><h3>No published versions yet.'));
 check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">{t.loading}</p>'));
 
+const communityClient = await read("../src/app/community/community-client.tsx");
+const communityStyles = await read("../src/app/nhen-design-system.css");
+check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
+check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
+check("community post links have stable anchor targets and localized dates", communityClient.includes('id={"post-"+post.id}') && communityClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")'));
+check("community feed filters have accessible state and responsive styling", communityClient.includes('aria-pressed={postFilter==="all"}') && communityStyles.includes(".nhen-feed-filter") && communityStyles.includes("@media(max-width:640px){.nhen-feed-filter"));
+check("community feed filter controls follow the selected Arabic or English locale", communityClient.includes('isArabic?"تصفية المنشورات":"Filter posts"') && communityClient.includes('officialPosts:"رسمي"') && communityClient.includes('memberPosts:"Members"'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
