@@ -1,0 +1,24 @@
+import {redirect} from "next/navigation";
+import {cookies} from "next/headers";
+import Link from "next/link";
+import {createSupabaseServerClient} from "@/lib/supabase/server";
+import SavedPostsClient,{type SavedPost} from "./saved-client";
+
+export const dynamic="force-dynamic";
+
+export default async function SavedPostsPage(){
+ const cookieStore=await cookies();const locale=cookieStore.get("nhen_locale")?.value==="ar"?"ar":"en";const isArabic=locale==="ar";
+ const supabase=await createSupabaseServerClient();if(!supabase)redirect("/community#join");
+ const {data:claims}=await supabase.auth.getClaims();const userId=claims?.claims?.sub;if(typeof userId!=="string")redirect("/community#join");
+ const [{data:saves},{data:videoSaves}]=await Promise.all([supabase.from("community_bookmarks").select("post_id,created_at").eq("user_id",userId).order("created_at",{ascending:false}).limit(100),supabase.from("video_bookmarks").select("media_id,created_at,video_catalog!inner(slug,media_items!inner(title,alt_text))").eq("user_id",userId).order("created_at",{ascending:false}).limit(100)]);
+ const ids=(saves??[]).map(x=>x.post_id);
+ const {data:posts}=ids.length?await supabase.from("community_posts").select("id,author_id,body,created_at,post_type").in("id",ids).eq("status","published"):{data:[]};
+ const authorIds=[...new Set((posts??[]).map(x=>x.author_id))];
+ const {data:profiles}=authorIds.length?await supabase.from("member_profiles").select("user_id,handle,display_name").in("user_id",authorIds):{data:[]};
+ const byId=new Map((profiles??[]).map(x=>[x.user_id,x]));
+ const ordered=ids.map(id=>(posts??[]).find(x=>x.id===id)).filter(Boolean);
+ const postItems:SavedPost[]=ordered.map(x=>({id:x!.id,kind:"post",body:x!.body,createdAt:x!.created_at,type:x!.post_type,author:byId.get(x!.author_id)?.display_name??"NHEN Member",handle:byId.get(x!.author_id)?.handle??"member"}));
+ const videoItems:SavedPost[]=(videoSaves??[]).flatMap(row=>{const video=Array.isArray(row.video_catalog)?row.video_catalog[0]:row.video_catalog;const media=video&&Array.isArray(video.media_items)?video.media_items[0]:video?.media_items;return video?.slug&&media?.title?[{id:row.media_id,kind:"video" as const,slug:video.slug,body:media.alt_text??"",createdAt:row.created_at,type:"video",author:"NHEN",handle:"official",title:media.title}]:[]});
+ const items:SavedPost[]=[...postItems,...videoItems].sort((a,b)=>new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime());
+ return <main className="nhen-profile-page" dir={isArabic?"rtl":"ltr"} lang={locale}><header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/community">{isArabic?"المجتمع":"Community"}</Link><Link href="/#videos">{isArabic?"شاهد":"Watch"}</Link></nav></header><div className="nhen-saved-wrap"><span className="nhen-section-label">{isArabic?"مكتبتك في NHEN":"YOUR NHEN LIBRARY"}</span><h1>{isArabic?<>منشورات <em>محفوظة.</em></>:<>Saved <em>conversations.</em></>}</h1><p className="nhen-muted">{isArabic?"مجموعة خاصة من المنشورات التي تريد الرجوع إليها.":"A private collection of posts you want to return to."}</p><SavedPostsClient initialPosts={items} locale={locale}/></div></main>
+}
