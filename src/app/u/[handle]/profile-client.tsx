@@ -32,7 +32,7 @@ export default function MemberProfileClient({profile,posts,videos,communityShort
    if(error){setNotice(t.unblockError);return;}
    setBlocked(false);setNotice(t.unblocked);
   }
-  }finally{setRelationshipBusy(false)}
+  }catch{setNotice(blocked?t.unblockError:t.blockError)}finally{setRelationshipBusy(false)}
  }
  async function saveProfile(){if(!supabase||!viewer||viewer!==profile.userId)return;const {error}=await supabase.from("member_profiles").update({display_name:displayName.trim().slice(0,40),bio:bio.trim().slice(0,240),website_url:website.trim()||null}).eq("user_id",viewer);setNotice(error?t.saveError:t.saved);if(!error)setEditing(false)}
  return <main className="nhen-profile-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
