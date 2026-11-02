@@ -330,7 +330,7 @@ test("security-definer migration functions pin search_path and explicitly manage
 });
 test("Supabase migration versions are unique and sortable", async () => {
   const files = await readdir(new URL("../supabase/migrations/", import.meta.url));
-  const migrations = files.filter((name) => /^\\d{14}_.+\\.sql$/.test(name));
+  const migrations = files.filter((name) => /^\d{14}_.+\.sql$/.test(name));
   assert.ok(migrations.length > 0, "expected timestamped Supabase migration files");
   const versions = migrations.map((name) => name.slice(0, 14));
   assert.equal(new Set(versions).size, versions.length, "duplicate migration version found");
