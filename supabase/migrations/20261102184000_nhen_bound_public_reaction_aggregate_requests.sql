@@ -28,3 +28,13 @@ begin
  group by r.media_id;
 end;
 $$;
+
+-- These are intentionally public aggregate endpoints; grant only the roles
+-- that consume the published reaction counts.
+revoke all on function public.get_community_reaction_counts(uuid[]) from public;
+revoke all on function public.get_community_reaction_counts(uuid[]) from anon;
+grant execute on function public.get_community_reaction_counts(uuid[]) to anon, authenticated;
+
+revoke all on function public.get_video_reaction_counts(uuid[]) from public;
+revoke all on function public.get_video_reaction_counts(uuid[]) from anon;
+grant execute on function public.get_video_reaction_counts(uuid[]) to anon, authenticated;
