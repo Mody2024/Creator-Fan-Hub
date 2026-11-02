@@ -7,6 +7,10 @@ import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supaba
 
 type ShortRow={id:string;author_id:string;title:string;caption:string;storage_path:string;duration_seconds:number;created_at:string;status:string};
 type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};
+type ShortReaction="spark"|"orbit"|"legend"|"laugh"|"mindblown"|"support";
+type ShortComment={id:string;body:string;created_at:string};
+const SHORT_REACTIONS:ShortReaction[]=["spark","orbit","legend","laugh","mindblown","support"];
+const REACTION_ICON:Record<ShortReaction,string>={spark:"✨",orbit:"🪐",legend:"🏆",laugh:"😂",mindblown:"🤯",support:"💙"};
 type ShortCard=ShortRow&{handle:string;displayName:string;avatarUrl:string|null;src:string};
 const MAX_BYTES=50*1024*1024;
 const MAX_SECONDS=180;
@@ -16,6 +20,12 @@ export default function CommunityShortsClient(){
  const input=useRef<HTMLInputElement>(null);
  const [userId,setUserId]=useState<string|null>(null);
  const [items,setItems]=useState<ShortCard[]>([]);
+ const [reactionCounts,setReactionCounts]=useState<Record<string,Record<string,number>>>({});
+ const [myReactions,setMyReactions]=useState<Record<string,ShortReaction>>({});
+ const [comments,setComments]=useState<Record<string,ShortComment[]>>({});
+ const [commentDrafts,setCommentDrafts]=useState<Record<string,string>>({});
+ const [openComments,setOpenComments]=useState<Record<string,boolean>>({});
+ const [engagementBusy,setEngagementBusy]=useState<string|null>(null);
  const [title,setTitle]=useState("");
  const [caption,setCaption]=useState("");
  const [file,setFile]=useState<File|null>(null);
@@ -47,8 +57,20 @@ export default function CommunityShortsClient(){
    const profile=byId.get(row.author_id);
    return {...row,handle:profile?.handle??"member",displayName:profile?.display_name??"NHEN member",avatarUrl:profile?.avatar_url??null,src:supabase.storage.from("nhen-community-shorts").getPublicUrl(row.storage_path).data.publicUrl};
   }));
+  if(rows.length){
+   const shortIds=rows.map(row=>row.id);
+   const [{data:allReactions},{data:ownReactions}]=await Promise.all([
+    supabase.from("community_short_reactions").select("short_id,reaction").in("short_id",shortIds),
+    userId?supabase.from("community_short_reactions").select("short_id,reaction").in("short_id",shortIds).eq("user_id",userId):Promise.resolve({data:[]})
+   ]);
+   const counts:Record<string,Record<string,number>>={};
+   (allReactions??[]).forEach((r:{short_id:string;reaction:ShortReaction})=>{counts[r.short_id]??={};counts[r.short_id][r.reaction]=(counts[r.short_id][r.reaction]??0)+1;});
+   const mine:Record<string,ShortReaction>={};
+   (ownReactions??[]).forEach((r:{short_id:string;reaction:ShortReaction})=>{mine[r.short_id]=r.reaction;});
+   setReactionCounts(counts);setMyReactions(mine);
+  }else{setReactionCounts({});setMyReactions({});}
   setLoading(false);
- },[supabase]);
+ },[supabase,userId]);
 
  useEffect(()=>{
   if(!supabase)return;
@@ -59,6 +81,42 @@ export default function CommunityShortsClient(){
   return()=>{alive=false;listener.subscription.unsubscribe();};
  },[supabase,load]);
 
+ async function react(shortId:string,reaction:ShortReaction){
+  if(!supabase||!userId){setStatus(t.signInReact);return;}
+  if(engagementBusy)return;
+  setEngagementBusy(shortId);
+  const previous=myReactions[shortId];
+  try{
+   if(previous===reaction){
+    const {error}=await supabase.from("community_short_reactions").delete().eq("short_id",shortId).eq("user_id",userId);
+    if(error)throw error;
+    setMyReactions(current=>{const next={...current};delete next[shortId];return next;});
+    setReactionCounts(current=>({...current,[shortId]:{...(current[shortId]??{}),[reaction]:Math.max(0,(current[shortId]?.[reaction]??0)-1)}}));
+   }else{
+    const {error}=await supabase.from("community_short_reactions").upsert({short_id:shortId,user_id:userId,reaction},{onConflict:"short_id,user_id"});
+    if(error)throw error;
+    setMyReactions(current=>({...current,[shortId]:reaction}));
+    setReactionCounts(current=>{const counts={...(current[shortId]??{})};if(previous)counts[previous]=Math.max(0,(counts[previous]??0)-1);counts[reaction]=(counts[reaction]??0)+1;return {...current,[shortId]:counts};});
+   }
+  }catch{setStatus(t.reactionError);}finally{setEngagementBusy(null);}
+ }
+ async function toggleComments(shortId:string){
+  const opening=!openComments[shortId];
+  setOpenComments(current=>({...current,[shortId]:opening}));
+  if(!opening||comments[shortId]||!supabase)return;
+  const {data,error}=await supabase.from("community_short_comments").select("id,body,created_at").eq("short_id",shortId).eq("status","published").order("created_at",{ascending:false}).limit(40);
+  if(error){setStatus(t.commentsError);return;}
+  setComments(current=>({...current,[shortId]:(data??[]) as ShortComment[]}));
+ }
+ async function sendComment(shortId:string){
+  const body=(commentDrafts[shortId]??"").trim();
+  if(!supabase||!userId||!body||engagementBusy)return;
+  setEngagementBusy(shortId);
+  const {error}=await supabase.from("community_short_comments").insert({short_id:shortId,author_id:userId,body,status:"pending"});
+  setStatus(error?t.commentError:t.commentPending);
+  if(!error)setCommentDrafts(current=>({...current,[shortId]:""}));
+  setEngagementBusy(null);
+ }
  async function chooseFile(selected:File|null){
   setFile(null);setDuration(0);setStatus("");
   if(!selected)return;
@@ -162,7 +220,7 @@ export default function CommunityShortsClient(){
   </section>
   <div className="nhen-community-shorts-grid">{loading?<div className="nhen-card nhen-empty-state">{t.loading}</div>:items.length?items.map(item=><article className="nhen-community-short-card" key={item.id}>
    <video src={item.src} controls playsInline preload="metadata" aria-label={item.title}/>
-   <div className="nhen-community-short-card-body"><div className="nhen-community-short-author">{item.avatarUrl?<img src={item.avatarUrl} alt=""/>:<span>{item.displayName.slice(0,1).toUpperCase()}</span>}<Link href={"/u/"+item.handle}>@{item.handle}</Link><time>{new Date(item.created_at).toLocaleDateString(isArabic?"ar-EG":"en-US")}</time></div><h3>{item.title}</h3>{item.caption&&<p>{item.caption}</p>}{item.author_id===userId&&<button className="nhen-action" disabled={busy} onClick={()=>void remove(item)}>{t.remove}</button>}</div>
+   <div className="nhen-community-short-card-body"><div className="nhen-community-short-author">{item.avatarUrl?<img src={item.avatarUrl} alt=""/>:<span>{item.displayName.slice(0,1).toUpperCase()}</span>}<Link href={"/u/"+item.handle}>@{item.handle}</Link><time>{new Date(item.created_at).toLocaleDateString(isArabic?"ar-EG":"en-US")}</time></div><h3>{item.title}</h3>{item.caption&&<p>{item.caption}</p>}<div className="nhen-community-short-engagement"><div className="nhen-community-short-reactions" aria-label={t.react}>{SHORT_REACTIONS.map(reaction=><button type="button" key={reaction} className={myReactions[item.id]===reaction?"nhen-action is-active":"nhen-action"} aria-pressed={myReactions[item.id]===reaction} disabled={engagementBusy===item.id} onClick={()=>void react(item.id,reaction)}><span aria-hidden="true">{REACTION_ICON[reaction]}</span><span>{reactionCounts[item.id]?.[reaction]??0}</span></button>)}<button type="button" className="nhen-action nhen-short-comments-toggle" aria-expanded={!!openComments[item.id]} onClick={()=>void toggleComments(item.id)}>💬 {t.comments}</button></div>{openComments[item.id]&&<section className="nhen-short-comments-panel"><div className="nhen-short-comments-list">{(comments[item.id]??[]).length?comments[item.id].map(comment=><p key={comment.id}>{comment.body}</p>):<p className="nhen-muted">{t.noComments}</p>}</div>{userId?<form onSubmit={event=>{event.preventDefault();void sendComment(item.id);}}><input value={commentDrafts[item.id]??""} maxLength={1000} placeholder={t.commentPlaceholder} aria-label={t.commentPlaceholder} onChange={event=>setCommentDrafts(current=>({...current,[item.id]:event.target.value}))}/><button type="submit" disabled={!commentDrafts[item.id]?.trim()||engagementBusy===item.id}>{t.sendComment}</button></form>:<p className="nhen-muted">{t.signInReact}</p>}</section>}</div>{item.author_id===userId&&<button className="nhen-action" disabled={busy} onClick={()=>void remove(item)}>{t.remove}</button>}</div>
   </article>):<div className="nhen-card nhen-empty-state">{t.empty}</div>}</div>
  </section>;
 }
