@@ -4,10 +4,10 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [pollVisibilityMigration, gateMigration, ideaSubmissionMigration, initialSchema, pollReadMigration, pollVotingMigration] = await Promise.all([
-  read("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql"),
-  read("../supabase/migrations/20261027000300_fail_closed_public_feature_gates.sql"),
+  read("../supabase/migrations/20261031203508_public_poll_visibility_gates.sql"),
+  read("../supabase/migrations/20261031203509_fail_closed_public_feature_gates.sql"),
   read("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql"),
-  read("../supabase/migrations/20261026000100_initial_schema.sql"),
+  read("../supabase/migrations/20261026170941_initial_schema.sql"),
   read("../supabase/migrations/20261031213116_restore_open_poll_discovery_without_tallies.sql"),
   read("../supabase/migrations/20261031213221_poll_display_names_and_creator_voter_list.sql")
 ]);
