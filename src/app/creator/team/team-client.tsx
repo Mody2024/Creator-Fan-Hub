@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 export type TeamMember={userId:string;email:string;role:string;active:boolean;createdAt:string};
-const roles=["creator","admin","editor","moderator","analyst"];
+const roles=["admin","editor","moderator","analyst"];
 export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[]}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);const [team,setTeam]=useState(initialTeam),[email,setEmail]=useState(""),[role,setRole]=useState("editor"),[inviteUrl,setInviteUrl]=useState(""),[busy,setBusy]=useState(false),[notice,setNotice]=useState("");
  const [locale,setLocale]=useState<"en"|"ar">("en");const isArabic=locale==="ar";
@@ -59,7 +59,7 @@ export default function CreatorTeamClient({initialTeam}:{initialTeam:TeamMember[
    {notice&&<p className="nhen-mod-notice" role="status">{notice}</p>}
   </div>
   <div className="nhen-card nhen-card-pad"><div className="nhen-card-heading"><div><span className="nhen-section-label">{t.roster}</span><h2>{t.team}</h2></div><span className="nhen-pill">{team.length} {t.accounts}</span></div>
-   <div className="nhen-team-list">{team.map(member=><article className="nhen-team-row" key={member.userId}><div><strong>{member.email}</strong><small>{roleLabel(member.role)} · {t.added} {new Date(member.createdAt).toLocaleDateString(locale==="ar"?"ar-EG":"en-US")}</small></div><select aria-label={"Role for "+member.email} value={member.role} disabled={busy||member.role==="owner"||!member.active} onChange={e=>void changeRole(member,e.target.value)}>{roles.map(r=><option key={r} value={r}>{r==="creator"?"Creator":r}</option>)}</select><span className={"nhen-team-status "+(member.active?"active":"inactive")}>{member.active?t.active:t.inactive}</span><button disabled={busy||member.role==="owner"} onClick={()=>void toggleActive(member)}>{member.active?t.deactivate:t.reactivate}</button></article>)}</div>
+   <div className="nhen-team-list">{team.map(member=><article className="nhen-team-row" key={member.userId}><div><strong>{member.email}</strong><small>{roleLabel(member.role)} · {t.added} {new Date(member.createdAt).toLocaleDateString(locale==="ar"?"ar-EG":"en-US")}</small></div><select aria-label={"Role for "+member.email} value={member.role} disabled={busy||member.role==="owner"||!member.active} onChange={e=>void changeRole(member,e.target.value)}>{roles.map(r=><option key={r} value={r}>{roleLabel(r)}</option>)}</select><span className={"nhen-team-status "+(member.active?"active":"inactive")}>{member.active?t.active:t.inactive}</span><button disabled={busy||member.role==="owner"} onClick={()=>void toggleActive(member)}>{member.active?t.deactivate:t.reactivate}</button></article>)}</div>
   </div>
   <div className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.guide}</span><div className="nhen-role-guide"><p>{t.owner}</p><p>{t.admin}</p><p>{t.creator}</p><p>{t.editor}</p><p>{t.moderator}</p><p>{t.analyst}</p></div></div>
  </section>
