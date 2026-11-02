@@ -5,6 +5,7 @@ import { validateSiteConfig } from "../src/lib/site-config.mjs";
 import { publishSiteConfig } from "../src/lib/publish-site-config.mjs";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const memberProfileClient = await readFile(new URL("../src/app/u/[handle]/profile-client.tsx", import.meta.url), "utf8");
 const sql = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
 const schema = await readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8");
 const security = await readFile(new URL("../docs/BACKEND-SECURITY.md", import.meta.url), "utf8");
@@ -455,4 +456,14 @@ test("publishing a site draft requires compatible published media assets", async
   assert.ok(settings.includes('label: "hero background", allowed: ["image", "video"]'));
   assert.ok(settings.includes("!stored || !stored.is_published || !asset.allowed.includes(stored.media_type)"));
   assert.ok(settings.includes("if (publish)"));
+});
+
+
+test("member follow and block actions prevent overlapping requests and handle failures", () => {
+  assert.match(memberProfileClient, /relationshipBusy\s*\|\|\s*viewer===profile\.userId/);
+  assert.match(memberProfileClient, /finally\{setRelationshipBusy\(false\)\}/);
+  assert.match(memberProfileClient, /catch\{setNotice\(blocked\?t\.unblockError:t\.blockError\)\}/);
+  assert.match(memberProfileClient, /disabled=\{blocked\|\|relationshipBusy\}/);
+  assert.match(memberProfileClient, /disabled=\{relationshipBusy\}/);
+  assert.match(memberProfileClient, /if\(followError\)[\s\S]*member_blocks/);
 });
