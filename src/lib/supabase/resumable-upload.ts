@@ -114,9 +114,12 @@ export function getResumableUploadSession(
 ): ResumableUploadSession {
   const identity = [userId, bucketName, file.name, file.size, file.lastModified, file.type].join("|");
   const key = "nhen-tus-session:" + encodeURIComponent(identity);
+  const extension = file.type === "video/webm" ? "webm" : file.type === "video/mp4" ? "mp4" : "";
+  if (!extension) throw new Error("Only MP4 and WebM uploads are supported.");
   const createObjectName = () => {
-    const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(-100) || "asset";
-    return userId + "/" + crypto.randomUUID() + "-" + safeName;
+    const originalBase = file.name.replace(/\.[^.]*$/, "");
+    const safeBase = originalBase.normalize("NFKD").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(-80) || "video";
+    return userId + "/" + crypto.randomUUID() + "-" + safeBase + "." + extension;
   };
   let saved: { objectName?: string; reservationId?: string } = {};
   try {
@@ -125,8 +128,12 @@ export function getResumableUploadSession(
   } catch {
     saved = {};
   }
-  const objectName = typeof saved.objectName === "string" && saved.objectName.startsWith(userId + "/")
-    ? saved.objectName
+  const savedLeaf = typeof saved.objectName === "string" && saved.objectName.startsWith(userId + "/")
+    ? saved.objectName.slice(userId.length + 1)
+    : "";
+  const validSavedObjectName = /^[A-Za-z0-9_-]+\.(mp4|webm)$/.test(savedLeaf) && savedLeaf.endsWith("." + extension);
+  const objectName = validSavedObjectName
+    ? saved.objectName as string
     : createObjectName();
   const persist = (reservationId?: string) => {
     try {
