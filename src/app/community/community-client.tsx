@@ -45,6 +45,14 @@ export default function CommunityClient({ initialPosts, selectedFeed, unreadNoti
   const [commentText, setCommentText] = useState("");
   const [locale,setLocale]=useState<"en"|"ar">("en");
   const [postFilter,setPostFilter]=useState<"all"|"official"|"members">("all");
+  useEffect(() => {
+    if (!supabase) return;
+    const channel = supabase.channel("nhen-community-live-feed")
+      .on("postgres_changes", { event: "*", schema: "public", table: "community_posts" }, () => router.refresh())
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [supabase, router]);
+
   const isArabic=locale==="ar";
   const visiblePosts=useMemo(()=>initialPosts.filter(post=>postFilter==="all"||(postFilter==="official"?post.type==="official":post.type!=="official")),[initialPosts,postFilter]);
   const t=isArabic?{
