@@ -9,7 +9,7 @@ returns table(display_name text, option_label text, voted_at timestamptz)
 language plpgsql stable security definer set search_path=''
 as $$
 begin
-  if auth.uid() is null or not public.is_active_creator() then
+  if auth.uid() is null or not public.can_view_creator_workspace() then
     raise exception 'creator access required' using errcode='42501';
   end if;
   if p_poll_id is null then
