@@ -224,6 +224,7 @@ const notificationsPage = await read("../src/app/notifications/page.tsx");
 const notificationsClient = await read("../src/app/notifications/notifications-client.tsx");
 const savedPage = await read("../src/app/saved/page.tsx");
 const savedClient = await read("../src/app/saved/saved-client.tsx");
+const savedPageUnified = await read("../src/app/saved/page.tsx");
 const memberProfilePage = await read("../src/app/u/[handle]/page.tsx");
 const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx");
 const searchPage = await read("../src/app/search/page.tsx");
@@ -239,6 +240,7 @@ check("notifications page and interactions honor Arabic RTL and localize status,
 check("notification delivery covers instantly published community comments as well as approved comments", notificationDeliveryMigration.includes("after insert or update of status on public.community_comments") && notificationDeliveryMigration.includes("tg_op='INSERT'"));
 check("notification cards localize activity text, link to the exact community post, and restore optimistic read state on failure", notificationsClient.includes('"/community#post-"+n.targetId') && notificationsClient.includes("started following you") && notificationsClient.includes("بدأ بمتابعتك") && notificationsClient.includes("setItems(xs=>xs.map(x=>x.id===id?{...x,readAt:previous.readAt}:x))"));
 check("saved library page and interactions honor Arabic RTL and localize dates, removal, and empty state", savedPage.includes('dir={isArabic?"rtl":"ltr"}') && savedPage.includes('locale={locale}') && savedClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")') && savedClient.includes("إزالة من المحفوظات"));
+check("saved library combines private community and video bookmarks with type filters and correct removal targets", savedPageUnified.includes('from("video_bookmarks")') && savedPageUnified.includes('from("community_bookmarks")') && savedClient.includes('filter==="videos"') && savedClient.includes('from("video_bookmarks").delete()') && savedClient.includes('from("community_bookmarks").delete()') && savedClient.includes('"/watch/"+item.slug'));
 check("member profiles receive saved locale and localize profile editing, follow/block actions, sections, and dates", memberProfilePage.includes('cookieStore.get("nhen_locale")') && memberProfilePage.includes('locale={locale}') && memberProfileClient.includes('dir={isArabic?"rtl":"ltr"}') && memberProfileClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")') && memberProfileClient.includes("تعديل الملف الشخصي") && memberProfileClient.includes("إلغاء الحظر"));
 check("NHEN discovery search uses the saved locale, RTL direction, and translated result sections and empty states", searchPage.includes('cookieStore.get("nhen_locale")') && searchPage.includes('dir={isArabic?"rtl":"ltr"}') && searchPage.includes("اكتشف") && searchPage.includes("لا توجد فيديوهات مطابقة.") && searchPage.includes("لا يوجد أعضاء مطابقون."));
 
