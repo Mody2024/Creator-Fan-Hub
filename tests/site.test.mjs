@@ -14,6 +14,7 @@ const communityRoleMigration = await readFile(new URL("../supabase/migrations/20
 const triggerRpcMigration = await readFile(new URL("../supabase/migrations/20261101001900_nhen_revoke_trigger_function_rpc.sql", import.meta.url), "utf8");
 const voteNicknameMigration = await readFile(new URL("../supabase/migrations/20261102203000_nhen_normalize_public_poll_nicknames.sql", import.meta.url), "utf8");
 const blockHelperMigration = await readFile(new URL("../supabase/migrations/20261102204500_nhen_restrict_member_block_helper.sql", import.meta.url), "utf8");
+const featuredIdeasMigration = await readFile(new URL("../supabase/migrations/20261027000100_public_featured_ideas.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -63,7 +64,7 @@ test("member block helper is not executable by anonymous clients", () => {
 
 test("public voting RPC permissions remain explicit", () => {
   assert.match(voteNicknameMigration, /grant execute on function public\.cast_public_poll_vote\(uuid, uuid, text, text\) to anon, authenticated/i);
-  assert.match(publicGateMigration, /get_public_approved_ideas/i);
+  assert.match(featuredIdeasMigration, /get_public_approved_ideas/i);
   assert.match(publicGateMigration, /submit_public_idea/i);
 });
 
