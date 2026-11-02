@@ -17,6 +17,8 @@ const blockHelperMigration = await readFile(new URL("../supabase/migrations/2026
 const featuredIdeasMigration = await readFile(new URL("../supabase/migrations/20261027000100_public_featured_ideas.sql", import.meta.url), "utf8");
 const pollVisibilityMigration = await readFile(new URL("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql", import.meta.url), "utf8");
 const boundedReactionMigration = await readFile(new URL("../supabase/migrations/20261102184000_nhen_bound_public_reaction_aggregate_requests.sql", import.meta.url), "utf8");
+const privateShortReactionsMigration = await readFile(new URL("../supabase/migrations/20261102210000_nhen_private_community_short_reactions.sql", import.meta.url), "utf8");
+const communityShortClient = await readFile(new URL("../src/app/shorts/community-shorts-client.tsx", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -79,6 +81,25 @@ test("public reaction aggregate RPCs are bounded and expose published content on
   assert.match(boundedReactionMigration, /grant execute on function public\.get_community_reaction_counts\(uuid\[\]\) to anon, authenticated/i);
   assert.match(boundedReactionMigration, /grant execute on function public\.get_video_reaction_counts\(uuid\[\]\) to anon, authenticated/i);
   assert.match(boundedReactionMigration, /set search_path=''/i);
+});
+
+
+test("community Shorts expose aggregate reaction totals but keep individual reactions private", () => {
+  assert.match(privateShortReactionsMigration, /drop policy if exists "Public read reactions on visible community shorts"/i);
+  assert.match(privateShortReactionsMigration, /using\(\s*user_id=\(select auth\.uid\(\)\)/i);
+  assert.match(privateShortReactionsMigration, /revoke select on public\.community_short_reactions from anon/i);
+  assert.match(privateShortReactionsMigration, /grant select on public\.community_short_reactions to authenticated/i);
+  assert.match(privateShortReactionsMigration, /function public\.get_community_short_reaction_counts\(p_short_ids uuid\[\]\)/i);
+  assert.match(privateShortReactionsMigration, /cardinality\(p_short_ids\),0\)>100/i);
+  assert.match(privateShortReactionsMigration, /not public\.is_member_blocked\(s\.author_id\)/i);
+  assert.match(privateShortReactionsMigration, /grant execute on function public\.get_community_short_reaction_counts\(uuid\[\]\) to anon,authenticated/i);
+  assert.match(privateShortReactionsMigration, /set search_path=''/i);
+});
+
+test("community Shorts UI loads public aggregates and only the signed-in member's reaction rows", () => {
+  assert.match(communityShortClient, /rpc\("get_community_short_reaction_counts"/);
+  assert.match(communityShortClient, /eq\("user_id",userId\)/);
+  assert.doesNotMatch(communityShortClient, /from\("community_short_reactions"\)\.select\("short_id,reaction"\)\.in\("short_id",shortIds\),/);
 });
 
 test("public poll results hide live tallies and respect public feature gates", () => {
