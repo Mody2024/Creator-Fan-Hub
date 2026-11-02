@@ -219,7 +219,6 @@ check("creator loading states are announced politely", eventSocial.includes('rol
 const communityClient = await read("../src/app/community/community-client.tsx");
 const communityStyles = await read("../src/app/nhen-design-system.css");
 const shortsPage = await read("../src/app/shorts/page.tsx");
-const communityShorts = await read("../src/app/shorts/community-shorts-client.tsx");
 const notificationsPage = await read("../src/app/notifications/page.tsx");
 const notificationsRealtimeClient = await read("../src/app/notifications/notifications-client.tsx");
 const notificationsClient = await read("../src/app/notifications/notifications-client.tsx");
@@ -231,9 +230,6 @@ const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx
 const searchPage = await read("../src/app/search/page.tsx");
 const communityPage = await read("../src/app/community/page.tsx");
 const communitySuggestionsClient = await read("../src/app/community/community-client.tsx");
-const communityClient = await read("../src/app/community/community-client.tsx");
-const communityPage = await read("../src/app/community/page.tsx");
-const communityClient = await read("../src/app/community/community-client.tsx");
 const notificationDeliveryMigration = await read("../supabase/migrations/20261102100000_nhen_instant_comment_notifications.sql");
 check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
 check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
