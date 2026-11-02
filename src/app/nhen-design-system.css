@@ -642,3 +642,14 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 [dir="rtl"] .nhen-community-short-controls{direction:rtl}
 [dir="rtl"] .nhen-reaction-picker{direction:rtl}
 .nhen-watch-page[dir="rtl"] nav{direction:rtl}
+
+/* Community feed refinements: compact category controls and clearer sharing actions */
+.nhen-feed-filter{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 16px}
+.nhen-feed-filter button{border:1px solid var(--nhen-line);border-radius:999px;padding:8px 14px;background:var(--nhen-surface);color:var(--nhen-muted);font:700 12px var(--font);cursor:pointer;transition:background .18s ease,color .18s ease,border-color .18s ease}
+.nhen-feed-filter button:hover{border-color:var(--nhen-accent);color:var(--nhen-ink)}
+.nhen-feed-filter button.active{background:var(--nhen-surface-raised);border-color:color-mix(in srgb,var(--nhen-accent) 55%,var(--nhen-line));color:var(--nhen-accent)}
+.nhen-post-actions{flex-wrap:wrap}
+.nhen-post-actions .nhen-action{min-height:38px}
+.nhen-post-body{overflow-wrap:anywhere}
+.nhen-reaction-menu{max-width:min(300px,calc(100vw - 36px))}
+@media(max-width:640px){.nhen-feed-filter{position:sticky;top:64px;z-index:12;padding:8px 0;background:var(--nhen-bg)}.nhen-post-actions{gap:3px}.nhen-post-actions .nhen-action{padding:8px 9px;font-size:11px}}
