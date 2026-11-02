@@ -16,8 +16,16 @@ as $$ select public.has_creator_role(array['owner','admin','editor','moderator',
 create or replace function public.can_view_creator_analytics()
 returns boolean language sql stable security definer set search_path=''
 as $$ select public.has_creator_role(array['owner','admin','analyst']); $$;
-revoke all on function public.has_creator_role(text[]),public.can_edit_creator_content(),public.can_moderate_community(),public.can_view_creator_workspace(),public.can_view_creator_analytics() from public;
-grant execute on function public.has_creator_role(text[]),public.can_edit_creator_content(),public.can_moderate_community(),public.can_view_creator_workspace(),public.can_view_creator_analytics() to anon,authenticated;
+revoke all on function public.has_creator_role(text[]) from public;
+revoke all on function public.can_edit_creator_content() from public;
+revoke all on function public.can_moderate_community() from public;
+revoke all on function public.can_view_creator_workspace() from public;
+revoke all on function public.can_view_creator_analytics() from public;
+grant execute on function public.has_creator_role(text[]) to anon,authenticated;
+grant execute on function public.can_edit_creator_content() to anon,authenticated;
+grant execute on function public.can_moderate_community() to anon,authenticated;
+grant execute on function public.can_view_creator_workspace() to anon,authenticated;
+grant execute on function public.can_view_creator_analytics() to anon,authenticated;
 
 -- Replace broad creator policies with least-privilege role gates.
 drop policy if exists "Creators moderate posts" on public.community_posts;
