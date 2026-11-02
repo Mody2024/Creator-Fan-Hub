@@ -535,3 +535,22 @@ button:disabled { opacity: .52; }
  .nhen-home-shell .mobile-nav a span{font-size:10px}
  .nhen-home-shell{padding-bottom:86px}
 }
+
+
+/* NHEN community Shorts engagement */
+.nhen-community-short-engagement{display:grid;gap:12px;margin-top:14px}
+.nhen-community-short-reactions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.nhen-community-short-reactions .nhen-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface-soft);font-size:12px;cursor:pointer}
+.nhen-community-short-reactions .nhen-action.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.nhen-community-short-reactions .nhen-action:disabled{cursor:wait}
+.nhen-short-comments-panel{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface-soft)}
+.nhen-short-comments-list{display:grid;gap:8px;max-height:260px;overflow:auto}
+.nhen-short-comments-list p{margin:0;padding:9px 11px;border-radius:8px;background:var(--surface-raised);font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.nhen-short-comments-panel form{display:flex;gap:8px;min-width:0}
+.nhen-short-comments-panel input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink)}
+.nhen-short-comments-panel form button{padding:9px 14px;border:1px solid var(--accent);border-radius:7px;background:var(--accent-soft);color:var(--ink);cursor:pointer}
+.nhen-mod-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}
+.nhen-mod-tabs button{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface-soft);color:var(--ink);cursor:pointer}
+.nhen-mod-tabs button.active{border-color:var(--accent);background:var(--accent-soft)}
+.nhen-mod-tabs b{font:inherit;color:var(--accent)}
+@media(max-width:600px){.nhen-community-short-reactions{gap:6px}.nhen-community-short-reactions .nhen-action{min-height:40px;padding:8px}.nhen-short-comments-panel form{flex-wrap:wrap}.nhen-short-comments-panel form button{min-height:42px}.nhen-mod-tabs{gap:6px}.nhen-mod-tabs button{font-size:11px}}
