@@ -4,8 +4,8 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [storage, metadata] = await Promise.all([
-  read("../supabase/migrations/20261026001700_scope_media_storage_ownership.sql"),
-  read("../supabase/migrations/20261026001900_scope_media_metadata_to_owner.sql")
+  read("../supabase/migrations/20261026181022_scope_media_storage_ownership.sql"),
+  read("../supabase/migrations/20261031203530_scope_media_metadata_to_owner.sql")
 ]);
 
 test("storage policies bind mutations to the active creator folder", () => {
