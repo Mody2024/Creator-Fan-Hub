@@ -15,9 +15,8 @@ export default async function SavedPostsPage(){
   supabase.from("video_bookmarks").select("media_id,created_at").eq("user_id",userId).order("created_at",{ascending:false}).limit(100)
  ]);
  const postIds=(postSaves??[]).map(x=>x.post_id);const videoIds=(videoSaves??[]).map(x=>x.media_id);
- const [{data:posts},{data:profiles},{data:videos}]=await Promise.all([
+ const [{data:posts},{data:videos}]=await Promise.all([
   postIds.length?supabase.from("community_posts").select("id,author_id,body,created_at,post_type").in("id",postIds).eq("status","published"):Promise.resolve({data:[]}),
-  Promise.resolve({data:[] as {user_id:string;handle:string;display_name:string|null}[]}),
   videoIds.length?supabase.from("video_catalog").select("media_id,slug,media_items!inner(title,alt_text)").in("media_id",videoIds).not("published_at","is",null):Promise.resolve({data:[]})
  ]);
  const authorIds=[...new Set((posts??[]).map(x=>x.author_id))];
