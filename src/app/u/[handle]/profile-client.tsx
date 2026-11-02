@@ -13,7 +13,24 @@ export default function MemberProfileClient({profile,posts,videos,communityShort
  const [viewer,setViewer]=useState<string|null>(null),[following,setFollowing]=useState(false),[blocked,setBlocked]=useState(false),[followers,setFollowers]=useState(followerCount),[editing,setEditing]=useState(false),[displayName,setDisplayName]=useState(profile.displayName),[bio,setBio]=useState(profile.bio),[website,setWebsite]=useState(profile.websiteUrl??""),[notice,setNotice]=useState("");
  useEffect(()=>{if(!supabase)return;let alive=true;void(async()=>{const {data}=await supabase.auth.getUser();if(!alive||!data.user)return;setViewer(data.user.id);if(data.user.id!==profile.userId){const {data:edge}=await supabase.from("member_follows").select("follower_id").eq("follower_id",data.user.id).eq("followed_id",profile.userId).maybeSingle();if(alive)setFollowing(!!edge);const {data:block}=await supabase.from("member_blocks").select("blocked_id").eq("blocker_id",data.user.id).eq("blocked_id",profile.userId).maybeSingle();if(alive)setBlocked(!!block)}})();return()=>{alive=false}},[supabase,profile.userId]);
  async function toggleFollow(){if(!supabase||!viewer){setNotice(t.signIn);return}const next=!following;setFollowing(next);setFollowers(n=>Math.max(0,n+(next?1:-1)));const result=next?await supabase.from("member_follows").insert({follower_id:viewer,followed_id:profile.userId}):await supabase.from("member_follows").delete().eq("follower_id",viewer).eq("followed_id",profile.userId);if(result.error){setFollowing(!next);setFollowers(n=>Math.max(0,n+(next?-1:1)));setNotice(t.followError)}}
- async function toggleBlock(){if(!supabase||!viewer||viewer===profile.userId)return;const next=!blocked;setBlocked(next);if(next){setFollowing(false);if(following)setFollowers(n=>Math.max(0,n-1));const {error}=await supabase.from("member_blocks").insert({blocker_id:viewer,blocked_id:profile.userId});if(!error)await supabase.from("member_follows").delete().eq("follower_id",viewer).eq("followed_id",profile.userId);else{setBlocked(false);setNotice(t.blockError);}}else{const {error}=await supabase.from("member_blocks").delete().eq("blocker_id",viewer).eq("blocked_id",profile.userId);if(error){setBlocked(true);setNotice(t.unblockError);}else setNotice(t.unblocked);}}
+ async function toggleBlock(){
+  if(!supabase||!viewer||viewer===profile.userId)return;
+  if(!blocked){
+   const {error:blockError}=await supabase.from("member_blocks").insert({blocker_id:viewer,blocked_id:profile.userId});
+   if(blockError){setNotice(t.blockError);return;}
+   const {error:followError}=await supabase.from("member_follows").delete().eq("follower_id",viewer).eq("followed_id",profile.userId);
+   if(followError){
+    await supabase.from("member_blocks").delete().eq("blocker_id",viewer).eq("blocked_id",profile.userId);
+    setNotice(t.blockError);return;
+   }
+   if(following){setFollowing(false);setFollowers(n=>Math.max(0,n-1));}
+   setBlocked(true);setNotice(isArabic?"تم حظر العضو وإلغاء المتابعة.":"Member blocked and follow removed.");
+  }else{
+   const {error}=await supabase.from("member_blocks").delete().eq("blocker_id",viewer).eq("blocked_id",profile.userId);
+   if(error){setNotice(t.unblockError);return;}
+   setBlocked(false);setNotice(t.unblocked);
+  }
+ }
  async function saveProfile(){if(!supabase||!viewer||viewer!==profile.userId)return;const {error}=await supabase.from("member_profiles").update({display_name:displayName.trim().slice(0,40),bio:bio.trim().slice(0,240),website_url:website.trim()||null}).eq("user_id",viewer);setNotice(error?t.saveError:t.saved);if(!error)setEditing(false)}
  return <main className="nhen-profile-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/community">{t.community}</Link><Link href="/#videos">{t.watch}</Link></nav></header>
