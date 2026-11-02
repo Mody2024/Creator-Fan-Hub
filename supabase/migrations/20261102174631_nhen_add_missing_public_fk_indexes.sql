@@ -1,0 +1,17 @@
+create index if not exists community_bookmarks_user_fk_idx on public.community_bookmarks(user_id);
+create index if not exists community_comments_author_fk_idx on public.community_comments(author_id);
+create index if not exists community_posts_linked_video_fk_idx on public.community_posts(linked_video_id);
+create index if not exists community_reactions_user_fk_idx on public.community_reactions(user_id);
+create index if not exists content_reports_reporter_fk_idx on public.content_reports(reporter_id);
+create index if not exists creator_invites_created_by_fk_idx on public.creator_invites(created_by);
+create index if not exists member_achievements_achievement_fk_idx on public.member_achievements(achievement_code);
+create index if not exists member_blocks_blocked_fk_idx on public.member_blocks(blocked_id);
+create index if not exists member_follows_followed_fk_idx on public.member_follows(followed_id);
+create index if not exists member_notifications_actor_fk_idx on public.member_notifications(actor_id);
+create index if not exists nhen_media_upload_reservations_user_fk_idx on public.nhen_media_upload_reservations(user_id);
+create index if not exists video_bookmarks_user_fk_idx on public.video_bookmarks(user_id);
+create index if not exists video_catalog_thumbnail_media_fk_idx on public.video_catalog(thumbnail_media_id);
+create index if not exists video_comments_author_fk_idx on public.video_comments(author_id);
+create index if not exists video_playlist_items_media_fk_idx on public.video_playlist_items(media_id);
+create index if not exists video_reactions_user_fk_idx on public.video_reactions(user_id);
+create index if not exists video_views_viewer_fk_idx on public.video_views(viewer_id);
