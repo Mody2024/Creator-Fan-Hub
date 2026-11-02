@@ -220,6 +220,10 @@ const communityClient = await read("../src/app/community/community-client.tsx");
 const communityStyles = await read("../src/app/nhen-design-system.css");
 const shortsPage = await read("../src/app/shorts/page.tsx");
 const communityShorts = await read("../src/app/shorts/community-shorts-client.tsx");
+const notificationsPage = await read("../src/app/notifications/page.tsx");
+const notificationsClient = await read("../src/app/notifications/notifications-client.tsx");
+const savedPage = await read("../src/app/saved/page.tsx");
+const savedClient = await read("../src/app/saved/saved-client.tsx");
 check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
 check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
 check("community post links have stable anchor targets and localized dates", communityClient.includes('id={"post-"+post.id}') && communityClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")'));
@@ -227,6 +231,8 @@ check("community feed filters have accessible state and responsive styling", com
 check("community feed filter controls follow the selected Arabic or English locale", communityClient.includes('isArabic?"تصفية المنشورات":"Filter posts"') && communityClient.includes('officialPosts:"رسمي"') && communityClient.includes('memberPosts:"Members"'));
 check("NHEN Shorts page resolves the saved locale server-side and localizes its navigation, headings, and empty state", shortsPage.includes('cookies()') && shortsPage.includes('cookieStore.get("nhen_locale")') && shortsPage.includes('dir={isArabic?"rtl":"ltr"}') && shortsPage.includes('labels.empty'));
 check("official Shorts pass the selected locale into the shared player and community Shorts localize upload placeholders and dates", shortsPage.includes('locale={locale}') && communityShorts.includes('file?file.name+" · "+duration+" sec":t.none') && communityShorts.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")'));
+check("notifications page and interactions honor Arabic RTL and localize status, timestamps, and empty state", notificationsPage.includes('dir={isArabic?"rtl":"ltr"}') && notificationsPage.includes('locale={locale}') && notificationsClient.includes('toLocaleString(isArabic?"ar-EG":"en-US")') && notificationsClient.includes("تحديد الكل كمقروء"));
+check("saved library page and interactions honor Arabic RTL and localize dates, removal, and empty state", savedPage.includes('dir={isArabic?"rtl":"ltr"}') && savedPage.includes('locale={locale}') && savedClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")') && savedClient.includes("إزالة من المحفوظات"));
 
 if (failures.length) {
   console.error("Repository validation failed:");
