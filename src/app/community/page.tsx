@@ -3,18 +3,28 @@ import CommunityClient, { type CommunityPost } from "./community-client";
 
 export const dynamic = "force-dynamic";
 
+type SuggestedMember = { userId: string; handle: string; displayName: string };
+
 export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ feed?: string }> }) {
   const { feed } = await searchParams;
   const selectedFeed = feed === "following" ? "following" : "latest";
   const supabase = await createSupabaseServerClient();
   let posts: CommunityPost[] = [];
   let unreadNotificationCount = 0;
+  let suggestedMembers: SuggestedMember[] = [];
   if (supabase) {
     const { data: claims } = await supabase.auth.getClaims();
     const userId = claims?.claims?.sub;
     if (typeof userId === "string") {
       const { count } = await supabase.from("member_notifications").select("id", { count: "exact", head: true }).eq("recipient_id", userId).is("read_at", null);
       unreadNotificationCount = count ?? 0;
+      const [{ data: follows }, { data: blocks }, { data: candidates }] = await Promise.all([
+        supabase.from("member_follows").select("followed_id").eq("follower_id", userId),
+        supabase.from("member_blocks").select("blocked_id").eq("blocker_id", userId),
+        supabase.from("member_profiles").select("user_id,handle,display_name").neq("user_id", userId).eq("visibility", "public").order("updated_at", { ascending: false }).limit(24)
+      ]);
+      const excluded = new Set([userId, ...(follows ?? []).map(x => x.followed_id), ...(blocks ?? []).map(x => x.blocked_id)]);
+      suggestedMembers = (candidates ?? []).filter(x => !excluded.has(x.user_id)).slice(0, 5).map(x => ({ userId: x.user_id, handle: x.handle, displayName: x.display_name }));
     }
     let followedIds: string[] | null = null;
     if (selectedFeed === "following") {
@@ -45,5 +55,5 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
       author: byId.get(row.author_id) ?? { handle: "creator", display_name: "NHEN Creator", avatar_url: null }
     }));
   }
-  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} unreadNotificationCount={unreadNotificationCount} />;
+  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} />;
 }
