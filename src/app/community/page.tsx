@@ -8,11 +8,16 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   const selectedFeed = feed === "following" ? "following" : "latest";
   const supabase = await createSupabaseServerClient();
   let posts: CommunityPost[] = [];
+  let unreadNotificationCount = 0;
   if (supabase) {
+    const { data: claims } = await supabase.auth.getClaims();
+    const userId = claims?.claims?.sub;
+    if (typeof userId === "string") {
+      const { count } = await supabase.from("member_notifications").select("id", { count: "exact", head: true }).eq("recipient_id", userId).is("read_at", null);
+      unreadNotificationCount = count ?? 0;
+    }
     let followedIds: string[] | null = null;
     if (selectedFeed === "following") {
-      const { data: claims } = await supabase.auth.getClaims();
-      const userId = claims?.claims?.sub;
       if (typeof userId === "string") {
         const { data: follows } = await supabase.from("member_follows").select("followed_id").eq("follower_id", userId);
         followedIds = (follows ?? []).map(item => item.followed_id);
@@ -40,5 +45,5 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
       author: byId.get(row.author_id) ?? { handle: "creator", display_name: "NHEN Creator", avatar_url: null }
     }));
   }
-  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} />;
+  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} unreadNotificationCount={unreadNotificationCount} />;
 }
