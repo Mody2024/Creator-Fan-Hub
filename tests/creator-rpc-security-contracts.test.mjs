@@ -4,13 +4,13 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const migrationPaths = [
-  "../supabase/migrations/20261026000400_creator_admin_publish_functions.sql",
-  "../supabase/migrations/20261026001100_creator_idea_moderation.sql",
-  "../supabase/migrations/20261026001300_creator_poll_management.sql",
-  "../supabase/migrations/20261026001500_creator_events_and_socials.sql",
-  "../supabase/migrations/20261026001600_creator_media_library.sql",
-  "../supabase/migrations/20261026001800_creator_publish_history_restore.sql",
-  "../supabase/migrations/20261026001900_scope_media_metadata_to_owner.sql",
+  "../supabase/migrations/20261026171550_creator_admin_publish_functions.sql",
+  "../supabase/migrations/20261026174310_creator_idea_moderation.sql",
+  "../supabase/migrations/20261026174813_creator_poll_management.sql",
+  "../supabase/migrations/20261026175324_creator_events_and_socials.sql",
+  "../supabase/migrations/20261026181000_creator_media_library.sql",
+  "../supabase/migrations/20261031203520_creator_publish_history_restore.sql",
+  "../supabase/migrations/20261031203530_scope_media_metadata_to_owner.sql",
   "../supabase/migrations/20261031211224_creator_social_link_management.sql",
   "../supabase/migrations/20261031211234_creator_social_link_ordering.sql",
   "../supabase/migrations/20261031213221_poll_display_names_and_creator_voter_list.sql"
