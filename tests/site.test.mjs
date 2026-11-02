@@ -18,6 +18,7 @@ const featuredIdeasMigration = await readFile(new URL("../supabase/migrations/20
 const pollVisibilityMigration = await readFile(new URL("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql", import.meta.url), "utf8");
 const boundedReactionMigration = await readFile(new URL("../supabase/migrations/20261102184000_nhen_bound_public_reaction_aggregate_requests.sql", import.meta.url), "utf8");
 const privateShortReactionsMigration = await readFile(new URL("../supabase/migrations/20261102210000_nhen_private_community_short_reactions.sql", import.meta.url), "utf8");
+const excludeBlockedShortReactorsMigration = await readFile(new URL("../supabase/migrations/20261102213000_nhen_exclude_blocked_reactors_from_short_counts.sql", import.meta.url), "utf8");
 const communityShortClient = await readFile(new URL("../src/app/shorts/community-shorts-client.tsx", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
@@ -100,6 +101,15 @@ test("community Shorts UI loads public aggregates and only the signed-in member'
   assert.match(communityShortClient, /rpc\("get_community_short_reaction_counts"/);
   assert.match(communityShortClient, /eq\("user_id",userId\)/);
   assert.doesNotMatch(communityShortClient, /from\("community_short_reactions"\)\.select\("short_id,reaction"\)\.in\("short_id",shortIds\),/);
+});
+
+
+test("public community Shorts reaction totals exclude blocked authors and reactors", () => {
+  assert.match(excludeBlockedShortReactorsMigration, /and not public\.is_member_blocked\(s\.author_id\)/i);
+  assert.match(excludeBlockedShortReactorsMigration, /and not public\.is_member_blocked\(r\.user_id\)/i);
+  assert.match(excludeBlockedShortReactorsMigration, /cardinality\(p_short_ids\),0\)>100/i);
+  assert.match(excludeBlockedShortReactorsMigration, /set search_path=''/i);
+  assert.match(excludeBlockedShortReactorsMigration, /grant execute on function public\.get_community_short_reaction_counts\(uuid\[\]\) to anon,authenticated/i);
 });
 
 test("public poll results hide live tallies and respect public feature gates", () => {
