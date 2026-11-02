@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 const moderationPage = await readFile(new URL("../src/app/creator/community/page.tsx", import.meta.url), "utf8");
 const moderationClient = await readFile(new URL("../src/app/creator/community/moderation-client.tsx", import.meta.url), "utf8");
 const shortsClient = await readFile(new URL("../src/app/shorts/community-shorts-client.tsx", import.meta.url), "utf8");
-const shortsMigration = await readFile(new URL("../supabase/migrations/20261101170000_nhen_member_community_shorts.sql", import.meta.url), "utf8");
+const shortsMigration = await readFile(new URL("../supabase/migrations/20261102173846_nhen_community_short_engagement.sql", import.meta.url), "utf8");
 
 test("community Shorts moderation is restricted to active creator roles", () => {
   assert.match(moderationPage, /creator_admins/);
@@ -21,7 +21,8 @@ test("pending community Shorts comments enter a bounded moderation queue", () =>
 });
 
 test("moderators can publish, reject, or remove Shorts comments through the guarded queue", () => {
-  assert.match(moderationClient, /kind:"short_comment"/);
+  assert.match(moderationPage, /kind:"short_comment"/);
+  assert.match(moderationClient, /"video_comment"\|"short_comment"/);
   assert.match(moderationClient, /kind==="short_comment"\?"community_short_comments"/);
   assert.match(moderationClient, /moderate\("short_comment",item\.id,"published"\)/);
   assert.match(moderationClient, /moderate\("short_comment",item\.id,"rejected"\)/);
@@ -31,8 +32,8 @@ test("moderators can publish, reject, or remove Shorts comments through the guar
 test("member Shorts comments are submitted pending and only published comments are shown publicly", () => {
   assert.match(shortsClient, /from\("community_short_comments"\)\.insert\(\{short_id:shortId,author_id:userId,body,status:"pending"\}\)/);
   assert.match(shortsClient, /eq\("status","published"\)/);
-  assert.match(shortsMigration, /status = 'pending'/i);
-  assert.match(shortsMigration, /status = 'published'/i);
+  assert.match(shortsMigration, /status text not null default 'pending' check\(status in \('pending','published','rejected','removed'\)\)/i);
+  assert.match(shortsMigration, /status='published'/i);
 });
 
 test("community Shorts moderation queue has English and Arabic labels", () => {
