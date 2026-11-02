@@ -224,6 +224,8 @@ const notificationsPage = await read("../src/app/notifications/page.tsx");
 const notificationsClient = await read("../src/app/notifications/notifications-client.tsx");
 const savedPage = await read("../src/app/saved/page.tsx");
 const savedClient = await read("../src/app/saved/saved-client.tsx");
+const memberProfilePage = await read("../src/app/u/[handle]/page.tsx");
+const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx");
 check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
 check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
 check("community post links have stable anchor targets and localized dates", communityClient.includes('id={"post-"+post.id}') && communityClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")'));
@@ -233,6 +235,7 @@ check("NHEN Shorts page resolves the saved locale server-side and localizes its 
 check("official Shorts pass the selected locale into the shared player and community Shorts localize upload placeholders and dates", shortsPage.includes('locale={locale}') && communityShorts.includes('file?file.name+" · "+duration+" sec":t.none') && communityShorts.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")'));
 check("notifications page and interactions honor Arabic RTL and localize status, timestamps, and empty state", notificationsPage.includes('dir={isArabic?"rtl":"ltr"}') && notificationsPage.includes('locale={locale}') && notificationsClient.includes('toLocaleString(isArabic?"ar-EG":"en-US")') && notificationsClient.includes("تحديد الكل كمقروء"));
 check("saved library page and interactions honor Arabic RTL and localize dates, removal, and empty state", savedPage.includes('dir={isArabic?"rtl":"ltr"}') && savedPage.includes('locale={locale}') && savedClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")') && savedClient.includes("إزالة من المحفوظات"));
+check("member profiles receive saved locale and localize profile editing, follow/block actions, sections, and dates", memberProfilePage.includes('cookieStore.get("nhen_locale")') && memberProfilePage.includes('locale={locale}') && memberProfileClient.includes('dir={isArabic?"rtl":"ltr"}') && memberProfileClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")') && memberProfileClient.includes("تعديل الملف الشخصي") && memberProfileClient.includes("إلغاء الحظر"));
 
 if (failures.length) {
   console.error("Repository validation failed:");
