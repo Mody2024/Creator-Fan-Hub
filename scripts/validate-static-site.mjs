@@ -229,6 +229,7 @@ const memberProfilePage = await read("../src/app/u/[handle]/page.tsx");
 const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx");
 const searchPage = await read("../src/app/search/page.tsx");
 const communityPage = await read("../src/app/community/page.tsx");
+const communitySuggestionsClient = await read("../src/app/community/community-client.tsx");
 const communityClient = await read("../src/app/community/community-client.tsx");
 const communityPage = await read("../src/app/community/page.tsx");
 const communityClient = await read("../src/app/community/community-client.tsx");
@@ -250,6 +251,9 @@ check("NHEN discovery search uses the saved locale, RTL direction, and translate
 
 check("community header receives the recipient-scoped unread notification count and exposes an accessible badge", communityPage.includes('from("member_notifications").select("id", { count: "exact", head: true })') && communityPage.includes('eq("recipient_id", userId)') && communityClient.includes('unreadNotificationCount>99?"99+"') && communityClient.includes("unread, t.notifications"));
 check("following feed provides distinct signed-out and empty-following guidance with member discovery", communityClient.includes("signInToFollow") && communityClient.includes("followingEmpty") && communityClient.includes('href="/search"'));
+
+check("community suggests public members while excluding self, followed accounts, and accounts blocked by the viewer", communityPage.includes('from("member_profiles").select("user_id,handle,display_name")') && communityPage.includes('eq("visibility", "public")') && communityPage.includes("excluded.has(x.user_id)") && communityPage.includes('from("member_blocks").select("blocked_id")'));
+check("member suggestions provide localized follow actions and profile discovery links", communitySuggestionsClient.includes("followSuggested") && communitySuggestionsClient.includes("People you may like") && communitySuggestionsClient.includes("قد يعجبك") && communitySuggestionsClient.includes('href={"/u/"+person.handle}'));
 
 if (failures.length) {
   console.error("Repository validation failed:");
