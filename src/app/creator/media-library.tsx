@@ -218,6 +218,7 @@ export default function MediaLibrary() {
     }
     if(!item.storage_path) return;
     setBusy(true);
+    let destinationReservationId: string | null = null;
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before changing publication.");
@@ -230,6 +231,18 @@ export default function MediaLibrary() {
       const nextPath=userData.user.id+"/"+crypto.randomUUID()+"-"+fileName;
       const {data:download,error:downloadError}=await supabase.storage.from(bucket).download(oldPath);
       if(downloadError || !download) throw downloadError ?? new Error("Could not read the stored file.");
+
+      // Every destination object must have its own quota reservation. The
+      // Storage trigger consumes this reservation atomically on object insert.
+      const {data:reservation,error:reservationError}=await supabase.rpc("reserve_nhen_media_upload",{
+        p_bytes:download.size,
+        p_bucket:nextBucket
+      });
+      if(reservationError || !reservation?.[0]?.reservation_id) {
+        throw reservationError ?? new Error("Destination storage capacity could not be reserved. The original asset was not changed.");
+      }
+      destinationReservationId=reservation[0].reservation_id as string;
+
       const {error:copyError}=await supabase.storage.from(nextBucket).upload(nextPath,download,{contentType:download.type || String(item.metadata?.mimeType || "application/octet-stream"),upsert:false});
       if(copyError) throw copyError;
 
@@ -268,7 +281,13 @@ export default function MediaLibrary() {
       }
       await load();
     } catch(e) { setStatus(e instanceof Error ? e.message : "Could not change publication status."); }
-    finally { setBusy(false); }
+    finally {
+      if(destinationReservationId) {
+        try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:destinationReservationId}); }
+        catch { /* A consumed reservation is already gone; an unused one expires automatically. */ }
+      }
+      setBusy(false);
+    }
   }
 
   async function removeItem(item: MediaRow) {
