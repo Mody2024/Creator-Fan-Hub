@@ -12,6 +12,7 @@ const security = await readFile(new URL("../docs/BACKEND-SECURITY.md", import.me
 const publicGateMigration = await readFile(new URL("../supabase/migrations/20261031213109_fail_closed_optional_idea_submissions.sql", import.meta.url), "utf8");
 const communityRoleMigration = await readFile(new URL("../supabase/migrations/20261101001800_nhen_moderation_role_hardening.sql", import.meta.url), "utf8");
 const triggerRpcMigration = await readFile(new URL("../supabase/migrations/20261101001900_nhen_revoke_trigger_function_rpc.sql", import.meta.url), "utf8");
+const voteNicknameMigration = await readFile(new URL("../supabase/migrations/20261102203000_nhen_normalize_public_poll_nicknames.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -51,6 +52,14 @@ test("unpublished drafts are separated from the public snapshot", () => {
   assert.match(schema, /create table if not exists public\.published_site_config/i);
   assert.match(sql, /site_config_drafts intentionally has no client-facing policies/i);
   assert.match(sql, /on public\.published_site_config for select/i);
+});
+
+test("public poll vote RPC normalizes and validates voter nicknames", () => {
+  assert.match(voteNicknameMigration, /regexp_replace\(btrim\(coalesce\(p_display_name, ''\)\), '\[\[:space:\]\]\+', ' ', 'g'\)/);
+  assert.match(voteNicknameMigration, /length\(v_name\) not between 1 and 32/);
+  assert.match(voteNicknameMigration, /v_name ~ '\[\[:cntrl:\]\]'/);
+  assert.match(voteNicknameMigration, /on conflict \(poll_id, voter_token_hash\) do nothing/i);
+  assert.match(voteNicknameMigration, /grant execute on function public\.cast_public_poll_vote\(uuid, uuid, text, text\) to anon, authenticated/i);
 });
 
 test("a vote option must belong to the same poll", () => {
