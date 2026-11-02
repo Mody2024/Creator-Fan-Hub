@@ -230,7 +230,7 @@ const memberProfileClient = await read("../src/app/u/[handle]/profile-client.tsx
 const searchPage = await read("../src/app/search/page.tsx");
 const communityPage = await read("../src/app/community/page.tsx");
 const communitySuggestionsClient = await read("../src/app/community/community-client.tsx");
-const notificationDeliveryMigration = await read("../supabase/migrations/20261102100000_nhen_instant_comment_notifications.sql");
+const notificationDeliveryMigration = await read("../supabase/migrations/20261102211553_nhen_instant_comment_notifications.sql");
 check("community feed offers working all, official, and member filters", communityClient.includes('postFilter==="all"') && communityClient.includes('postFilter==="official"') && communityClient.includes('postFilter==="members"') && communityClient.includes("visiblePosts.map(post"));
 check("community post sharing uses native share where available and clipboard fallback", communityClient.includes("navigator.share") && communityClient.includes("navigator.clipboard?.writeText") && communityClient.includes('"/community#post-" + post.id'));
 check("community post links have stable anchor targets and localized dates", communityClient.includes('id={"post-"+post.id}') && communityClient.includes('toLocaleDateString(isArabic?"ar-EG":"en-US")'));
