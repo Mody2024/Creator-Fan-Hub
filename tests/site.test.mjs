@@ -15,6 +15,8 @@ const triggerRpcMigration = await readFile(new URL("../supabase/migrations/20261
 const voteNicknameMigration = await readFile(new URL("../supabase/migrations/20261102203000_nhen_normalize_public_poll_nicknames.sql", import.meta.url), "utf8");
 const blockHelperMigration = await readFile(new URL("../supabase/migrations/20261102204500_nhen_restrict_member_block_helper.sql", import.meta.url), "utf8");
 const featuredIdeasMigration = await readFile(new URL("../supabase/migrations/20261027000100_public_featured_ideas.sql", import.meta.url), "utf8");
+const pollVisibilityMigration = await readFile(new URL("../supabase/migrations/20261027000200_public_poll_visibility_gates.sql", import.meta.url), "utf8");
+const boundedReactionMigration = await readFile(new URL("../supabase/migrations/20261102184000_nhen_bound_public_reaction_aggregate_requests.sql", import.meta.url), "utf8");
 
 test("public page contains the expected primary sections", () => {
   for (const id of ["home", "ideas", "vote", "community", "latest"]) {
@@ -66,6 +68,31 @@ test("public voting RPC permissions remain explicit", () => {
   assert.match(voteNicknameMigration, /grant execute on function public\.cast_public_poll_vote\(uuid, uuid, text, text\) to anon, authenticated/i);
   assert.match(featuredIdeasMigration, /get_public_approved_ideas/i);
   assert.match(publicGateMigration, /submit_public_idea/i);
+});
+
+
+test("public reaction aggregate RPCs are bounded and expose published content only", () => {
+  assert.match(boundedReactionMigration, /cardinality\(p_post_ids\),0\)>100/);
+  assert.match(boundedReactionMigration, /cardinality\(p_media_ids\),0\)>100/);
+  assert.match(boundedReactionMigration, /p\.status='published'/);
+  assert.match(boundedReactionMigration, /v\.published_at is not null and m\.is_published=true/);
+  assert.match(boundedReactionMigration, /grant execute on function public\.get_community_reaction_counts\(uuid\[\]\) to anon, authenticated/i);
+  assert.match(boundedReactionMigration, /grant execute on function public\.get_video_reaction_counts\(uuid\[\]\) to anon, authenticated/i);
+  assert.match(boundedReactionMigration, /set search_path=''/i);
+});
+
+test("public poll results hide live tallies and respect public feature gates", () => {
+  assert.match(pollVisibilityMigration, /case when p\.status = 'closed' then count\(v\.id\)::bigint else 0::bigint end/i);
+  assert.match(pollVisibilityMigration, /featureFlags,polls/);
+  assert.match(pollVisibilityMigration, /maintenance_mode/);
+  assert.match(pollVisibilityMigration, /grant execute on function public\.get_public_poll_results\(\) to anon, authenticated/i);
+});
+
+test("public idea feed returns only approved or featured ideas within a fixed limit", () => {
+  assert.match(featuredIdeasMigration, /i\.status in \('approved', 'featured'\)/i);
+  assert.match(featuredIdeasMigration, /limit 30/i);
+  assert.match(featuredIdeasMigration, /featureFlags,ideas/);
+  assert.match(featuredIdeasMigration, /grant execute on function public\.get_public_approved_ideas\(\) to anon, authenticated/i);
 });
 
 test("public poll vote RPC normalizes and validates voter nicknames", () => {
