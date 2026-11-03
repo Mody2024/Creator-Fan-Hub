@@ -64,7 +64,12 @@
 - [ ] Reconnection, ICE restart and quality telemetry
 - [ ] Consent-gated recording media pipeline, storage access and retention
 
-### Phase D — Watch Together and events
+### Phase D — Watch Together
+- [x] Watch session, participant, shared queue and vote data model with RLS
+- [x] Native published-video and HTTPS YouTube/Vimeo source validation
+- [x] Session create/join/leave, host playback versioning, queue voting/advance/reorder/remove RPCs
+- [x] Realtime publication and participant-scoped room broadcast authorization
+- [ ] Watch Together player UI, playback resynchronization, invite links, in-room reactions/polls and live acceptance
 - [ ] Synchronized native/external player sessions
 - [ ] Queue, voting, room chat/reactions and optional voice
 - [ ] Scheduling, RSVP and reminders
