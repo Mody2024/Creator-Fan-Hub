@@ -4,11 +4,12 @@ import { readFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [voice, foundations, plan, client] = await Promise.all([
+const [voice, foundations, plan, client, preferences] = await Promise.all([
   read("../supabase/migrations/20261104000500_raye2_voice_sessions.sql"),
   read("../supabase/migrations/20261103180000_raye2_community_chat_foundations.sql"),
   read("../docs/RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md"),
-  read("../src/app/raye2/raye2-client.tsx")
+  read("../src/app/raye2/raye2-client.tsx"),
+  read("../supabase/migrations/20261104010000_raye2_voice_preferences.sql")
 ]);
 
 test("voice control plane separates private calls from group rooms and starts with recording off", () => {
@@ -187,4 +188,29 @@ test("private voice controls provide device selection and measured connection qu
   assert.match(component, /currentRoundTripTime/);
   assert.match(component, /packetsLost/);
   assert.match(component, /Quality:/);
+});
+
+
+test("members can independently disable private voice calls and read only their own setting", () => {
+  assert.match(preferences, /create table if not exists public\.raye2_voice_preferences/);
+  assert.match(preferences, /allow_private_calls boolean not null default true/);
+  assert.match(preferences, /using \(user_id=\(select auth\.uid\(\)\)\)/);
+  assert.match(preferences, /raye2_set_voice_preferences/);
+  assert.match(preferences, /revoke all on public\.raye2_voice_preferences from anon,authenticated/);
+  assert.match(preferences, /grant select on public\.raye2_voice_preferences to authenticated/);
+});
+
+test("private-call preferences are enforced server-side for both invitation and acceptance", () => {
+  assert.match(preferences, /before insert or update of status on public\.raye2_voice_participants/);
+  assert.match(preferences, /new\.status in \('invited','joined'\)/);
+  assert.match(preferences, /new\.user_id<>v_creator/);
+  assert.match(preferences, /not coalesce\(v_allowed,true\)/);
+  assert.match(preferences, /not accepting private voice calls/);
+});
+
+test("private-call permission is available in bilingual member contact settings", () => {
+  assert.match(client, /allowVoiceCalls/);
+  assert.match(client, /saveVoicePreferences/);
+  assert.match(client, /raye2_set_voice_preferences/);
+  assert.match(client, /checked=\{allowPrivateCalls\}/);
 });

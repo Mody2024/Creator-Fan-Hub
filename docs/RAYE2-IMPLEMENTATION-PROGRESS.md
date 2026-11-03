@@ -55,6 +55,7 @@
 - [x] Browser-to-browser WebRTC audio negotiation, microphone permission on explicit call action, mute, remote audio and peer-identity-checked signaling
 - [x] Incoming private-call invitations surface across conversations, with caller identity and accept/decline controls
 - [x] Audio input/output device selection where browser support allows, microphone switching, and measured RTT/packet-loss quality status
+- [x] Member-controlled private-call opt-out, enforced by a database trigger on both invitation and acceptance
 - [ ] Production TURN relay credentials/configuration and network-path verification
 - [ ] Group voice SFU integration and participant media controls
 - [ ] Reconnection, ICE restart and quality telemetry

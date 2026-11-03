@@ -67,6 +67,8 @@ export default function Raye2Client() {
   const [messageRequests, setMessageRequests] = useState<MessageRequest[]>([]);
   const [requestProfiles, setRequestProfiles] = useState<Record<string, Profile>>({});
   const [allowMessageRequests, setAllowMessageRequests] = useState(true);
+  const [allowPrivateCalls, setAllowPrivateCalls] = useState(true);
+  const [voicePreferenceSaving, setVoicePreferenceSaving] = useState(false);
   const [contactSaving, setContactSaving] = useState(false);
   const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
   const [reportReason, setReportReason] = useState("harassment");
@@ -160,12 +162,13 @@ export default function Raye2Client() {
       return { id: conversation.id, kind: conversation.conversation_type, title, subtitle: conversation.conversation_type === "group" ? (group?.visibility === "public" ? t.publicLabel : t.privateLabel) : (other?.handle ? "@" + other.handle : t.chats), conversationId: conversation.id, groupId: conversation.group_id, otherUserId: conversation.conversation_type === "direct" ? (otherId ?? null) : null, avatar: initials(title), updatedAt: last?.created_at ?? conversation.created_at, lastMessage: last?.body ?? "", unread, canSend: conversation.conversation_type === "direct" || group?.status === "active" };
     }).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     setThreads(nextThreads);
-    const [{ data: notificationRows }, { data: preferenceRow }, { data: groupPreferenceRows }, { data: requestRows }, { data: contactRow }] = await Promise.all([
+    const [{ data: notificationRows }, { data: preferenceRow }, { data: groupPreferenceRows }, { data: requestRows }, { data: contactRow }, { data: voicePreferenceRow }] = await Promise.all([
       supabase.from("raye2_notifications").select("id,actor_id,conversation_id,message_id,notification_type,preview,read_at,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(80),
       supabase.from("raye2_notification_preferences").select("direct_messages,group_messages,quiet_hours_enabled,quiet_hours_start,quiet_hours_end,quiet_hours_timezone").eq("user_id", uid).maybeSingle(),
       groupIds.length ? supabase.from("raye2_group_notification_preferences").select("group_id,mode").in("group_id", groupIds) : Promise.resolve({ data: [] }),
       supabase.from("raye2_message_requests").select("id,sender_id,recipient_id,initial_message,status,created_at").or(`sender_id.eq.${uid},recipient_id.eq.${uid}`).eq("status", "pending").order("created_at", { ascending: false }).limit(40),
-      supabase.from("raye2_contact_preferences").select("allow_message_requests").eq("user_id", uid).maybeSingle()
+      supabase.from("raye2_contact_preferences").select("allow_message_requests").eq("user_id", uid).maybeSingle(),
+      supabase.from("raye2_voice_preferences").select("allow_private_calls").eq("user_id", uid).maybeSingle()
     ]);
     setNotifications((notificationRows ?? []) as NotificationItem[]);
     setNotificationPreferences((preferenceRow as NotificationPreferences | null) ?? { direct_messages: true, group_messages: true, quiet_hours_enabled: false, quiet_hours_start: "22:00", quiet_hours_end: "08:00", quiet_hours_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" });
@@ -173,6 +176,7 @@ export default function Raye2Client() {
     const pendingRequests = (requestRows ?? []) as MessageRequest[];
     setMessageRequests(pendingRequests);
     setAllowMessageRequests((contactRow as { allow_message_requests: boolean } | null)?.allow_message_requests ?? true);
+    setAllowPrivateCalls((voicePreferenceRow as { allow_private_calls: boolean } | null)?.allow_private_calls ?? true);
     const requestUserIds = [...new Set(pendingRequests.map(item => item.sender_id === uid ? item.recipient_id : item.sender_id))];
     const { data: requestPeople } = requestUserIds.length ? await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id", requestUserIds) : { data: [] };
     setRequestProfiles(Object.fromEntries(((requestPeople ?? []) as Profile[]).map(item => [item.user_id, item])));
@@ -451,6 +455,15 @@ export default function Raye2Client() {
     if (error) setStatus(t.searchError);
     else { setAllowMessageRequests(next); setStatus(t.notificationSaved); }
     setContactSaving(false);
+  }
+
+  async function saveVoicePreferences(next: boolean) {
+    if (!supabase || voicePreferenceSaving) return;
+    setVoicePreferenceSaving(true);
+    const { error } = await supabase.rpc("raye2_set_voice_preferences", { p_allow_private_calls: next });
+    if (error) setStatus(t.searchError);
+    else { setAllowPrivateCalls(next); setStatus(t.notificationSaved); }
+    setVoicePreferenceSaving(false);
   }
 
   async function reviewMessageRequest(request: MessageRequest, decision: "accepted" | "declined") {
@@ -765,7 +778,7 @@ export default function Raye2Client() {
               <div className={styles.quietHours}><b>{t.quietHours}</b><label><span>{t.quietHoursEnable}</span><input type="checkbox" checked={notificationPreferences.quiet_hours_enabled} disabled={notificationSaving} onChange={event => void saveNotificationPreferences({ ...notificationPreferences, quiet_hours_enabled: event.target.checked, quiet_hours_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" })}/></label><div><label>{t.quietStart}<input type="time" value={notificationPreferences.quiet_hours_start.slice(0,5)} disabled={notificationSaving || !notificationPreferences.quiet_hours_enabled} onChange={event => setNotificationPreferences(current => ({ ...current, quiet_hours_start: event.target.value }))} onBlur={() => void saveNotificationPreferences(notificationPreferences)}/></label><label>{t.quietEnd}<input type="time" value={notificationPreferences.quiet_hours_end.slice(0,5)} disabled={notificationSaving || !notificationPreferences.quiet_hours_enabled} onChange={event => setNotificationPreferences(current => ({ ...current, quiet_hours_end: event.target.value }))} onBlur={() => void saveNotificationPreferences(notificationPreferences)}/></label></div></div>
             </section>
             <section className={styles.groupNotificationOverrides}><b>{t.groupOverrides}</b>{groups.map(group => <label key={group.id}><span>{group.name}</span><select value={groupNotificationPreferences[group.id] ?? "inherit"} disabled={notificationSaving} onChange={event => void saveGroupNotificationPreference(group.id, event.target.value as GroupNotificationPreference["mode"])}><option value="inherit">{t.inherit}</option><option value="all">{t.allNotifications}</option><option value="muted">{t.muted}</option></select></label>)}</section>
-            <section className={styles.notificationSettings}><b>{t.contactSettings}</b><label><span>{t.allowRequests}</span><input type="checkbox" checked={allowMessageRequests} disabled={contactSaving} onChange={event => void saveContactPreferences(event.target.checked)}/></label></section>
+            <section className={styles.notificationSettings}><b>{t.contactSettings}</b><label><span>{t.allowRequests}</span><input type="checkbox" checked={allowMessageRequests} disabled={contactSaving} onChange={event => void saveContactPreferences(event.target.checked)}/></label><label><span>{t.allowVoiceCalls}</span><input type="checkbox" checked={allowPrivateCalls} disabled={voicePreferenceSaving} onChange={event => void saveVoicePreferences(event.target.checked)}/></label></section>
             <section className={styles.requestInbox}><b>{t.messageRequests} · {messageRequests.filter(item => item.recipient_id === userId).length}</b>
               {messageRequests.filter(item => item.recipient_id === userId).map(item => { const person = requestProfiles[item.sender_id]; return <article key={item.id} className={styles.requestItem}><div className={styles.avatar}>{initials(person?.display_name ?? person?.handle ?? "R")}</div><div className={styles.personInfo}><b>{person?.display_name ?? person?.handle ?? (isAr ? "عضو" : "Member")}</b><small>{item.initial_message || t.requestPending}</small><small>{relative(item.created_at, locale)}</small></div><button className={styles.miniButton} disabled={busy} onClick={() => void reviewMessageRequest(item,"accepted")}>{t.acceptRequest}</button><button className={styles.dangerButton} disabled={busy} onClick={() => void reviewMessageRequest(item,"declined")}>{t.declineRequest}</button></article>; })}
               {!messageRequests.some(item => item.recipient_id === userId) && <p className={styles.emptySmall}>{t.noMessageRequests}</p>}
