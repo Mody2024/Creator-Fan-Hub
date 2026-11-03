@@ -5,20 +5,27 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Room as LiveKitRoom } from "livekit-client";
 import styles from "./raye2.module.css";
 
+type VoiceParticipant = { identity: string; name: string; isSelf: boolean };
+
 type GroupVoiceProps = {
   supabase: SupabaseClient;
   conversationId: string;
+  groupId: string;
+  userId: string;
   groupName: string;
   locale: "en" | "ar";
 };
 
-export default function Raye2GroupVoiceControls({ supabase, conversationId, groupName, locale }: GroupVoiceProps) {
+export default function Raye2GroupVoiceControls({ supabase, conversationId, groupId, userId, groupName, locale }: GroupVoiceProps) {
   const isAr = locale === "ar";
   const [connected, setConnected] = useState(false);
   const [busy, setBusy] = useState(false);
   const [muted, setMuted] = useState(false);
   const [participantCount, setParticipantCount] = useState(0);
   const [activeSpeakers, setActiveSpeakers] = useState<string[]>([]);
+  const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
+  const [canModerate, setCanModerate] = useState(false);
+  const [locked, setLocked] = useState(false);
   const [error, setError] = useState("");
   const roomRef = useRef<LiveKitRoom | null>(null);
   const sessionRef = useRef<string | null>(null);
@@ -45,6 +52,9 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     setConnected(false);
     setParticipantCount(0);
     setActiveSpeakers([]);
+    setParticipants([]);
+    setCanModerate(false);
+    setLocked(false);
     setMuted(false);
     if (room) await room.disconnect();
     if (sessionId) await supabase.rpc("raye2_leave_voice_session", { p_session_id: sessionId });
@@ -72,6 +82,13 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       createdSessionId = data;
       const { error: joinError } = await supabase.rpc("raye2_join_voice_session", { p_session_id: data });
       if (joinError) throw joinError;
+      const [{ data: ownVoiceMembership }, { data: groupMembership }, { data: sessionInfo }] = await Promise.all([
+        supabase.from("raye2_voice_participants").select("role").eq("session_id", data).eq("user_id", userId).maybeSingle(),
+        supabase.from("raye2_group_members").select("role").eq("group_id", groupId).eq("user_id", userId).eq("status", "active").maybeSingle(),
+        supabase.from("raye2_voice_sessions").select("is_locked").eq("id", data).maybeSingle()
+      ]);
+      setCanModerate(["host","cohost","moderator"].includes(ownVoiceMembership?.role ?? "") || ["owner","admin","moderator"].includes(groupMembership?.role ?? ""));
+      setLocked(Boolean(sessionInfo?.is_locked));
 
       const response = await fetch("/api/raye2/voice/token", {
         method: "POST",
@@ -95,16 +112,26 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       room.on(RoomEvent.TrackUnsubscribed, track => {
         track.detach().forEach(element => element.remove());
       });
-      room.on(RoomEvent.ParticipantConnected, () => setParticipantCount(room.numParticipants));
-      room.on(RoomEvent.ParticipantDisconnected, () => setParticipantCount(room.numParticipants));
+      const refreshParticipants = () => {
+        const remote = Array.from(room.remoteParticipants.values()).map(participant => ({ identity: participant.identity, name: participant.name || participant.identity.slice(0, 8), isSelf: false }));
+        const local = { identity: room.localParticipant.identity, name: room.localParticipant.name || (isAr ? "أنت" : "You"), isSelf: true };
+        setParticipants([local, ...remote]);
+        setParticipantCount(room.numParticipants);
+      };
+      room.on(RoomEvent.ParticipantConnected, refreshParticipants);
+      room.on(RoomEvent.ParticipantDisconnected, refreshParticipants);
       room.on(RoomEvent.ActiveSpeakersChanged, speakers => {
         setActiveSpeakers(speakers.map(speaker => speaker.identity));
+        refreshParticipants();
       });
-      room.on(RoomEvent.Disconnected, () => setConnected(false));
+      room.on(RoomEvent.Disconnected, () => {
+        setConnected(false);
+        if (roomRef.current === room) roomRef.current = null;
+      });
 
       await room.connect(tokenData.url, tokenData.token);
       sessionRef.current = data;
-      setParticipantCount(room.numParticipants);
+      refreshParticipants();
       await room.localParticipant.setMicrophoneEnabled(true);
       setConnected(true);
     } catch (caught) {
@@ -117,6 +144,37 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       sessionRef.current = null;
     } finally {
       setBusy(false);
+    }
+  };
+
+  const toggleRoomLock = async () => {
+    const sessionId = sessionRef.current;
+    if (!sessionId || !canModerate) return;
+    const next = !locked;
+    const { error: lockError } = await supabase.rpc("raye2_moderate_voice_session", {
+      p_session_id: sessionId,
+      p_action: next ? "lock" : "unlock",
+      p_target_user_id: null
+    });
+    if (lockError) setError(copy.failed);
+    else setLocked(next);
+  };
+
+  const removeParticipant = async (targetUserId: string) => {
+    const sessionId = sessionRef.current;
+    if (!sessionId || !canModerate || targetUserId === userId) return;
+    try {
+      const response = await fetch("/api/raye2/voice/moderate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ sessionId, targetUserId })
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || copy.failed);
+      setParticipants(current => current.filter(participant => participant.identity !== targetUserId));
+      setParticipantCount(count => Math.max(1, count - 1));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : copy.failed);
     }
   };
 
@@ -144,7 +202,9 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
           <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members}</span>
           <button type="button" onClick={() => void toggleMute()}>{muted ? copy.unmute : copy.mute}</button>
           <button type="button" className={styles.voiceEnd} onClick={() => void leaveRoom()}>{copy.leave}</button>
+          {canModerate && <button type="button" onClick={() => void toggleRoomLock()}>{locked ? (isAr ? "فتح الغرفة" : "Unlock room") : (isAr ? "قفل الغرفة" : "Lock room")}</button>}
           {activeSpeakers.length > 0 && <small>{copy.speaking}: {activeSpeakers.length}</small>}
+          <div className={styles.groupVoiceRoster}>{participants.map(participant => <div key={participant.identity}><span>{participant.name}{activeSpeakers.includes(participant.identity) ? " · " + copy.speaking : ""}</span>{canModerate && !participant.isSelf && <button type="button" onClick={() => void removeParticipant(participant.identity)}>{isAr ? "إزالة" : "Remove"}</button>}</div>)}</div>
         </>
       )}
       {error && <small className={styles.voiceError}>{error}</small>}

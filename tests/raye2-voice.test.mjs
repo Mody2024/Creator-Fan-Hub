@@ -289,3 +289,34 @@ test("TURN relay URLs and shared secret are documented as server-only environmen
   assert.match(env, /RAYE2_TURN_SHARED_SECRET=/);
   assert.match(env, /Keep the shared secret server-side/);
 });
+
+
+test("group voice moderation authorization checks active host/cohost/moderator or group-manager roles", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/20261104030000_raye2_voice_sfu_moderation.sql", import.meta.url), "utf8");
+  assert.match(migration, /raye2_can_moderate_voice_session/);
+  assert.match(migration, /session_type='group_room'/);
+  assert.match(migration, /v_actor_role not in \('host','cohost','moderator'\)/);
+  assert.match(migration, /raye2_is_group_manager/);
+  assert.match(migration, /v_target_role<>'host'/);
+  assert.match(migration, /grant execute on function public\.raye2_can_moderate_voice_session/);
+});
+
+test("SFU participant removal is authorized in the database before LiveKit room administration", () => {
+  const route = readFileSync(new URL("../src/app/api/raye2/voice/moderate/route.ts", import.meta.url), "utf8");
+  assert.match(route, /supabase\.auth\.getUser/);
+  assert.match(route, /raye2_can_moderate_voice_session/);
+  assert.match(route, /new RoomServiceClient/);
+  assert.match(route, /removeParticipant/);
+  assert.match(route, /raye2_moderate_voice_session/);
+  assert.match(route, /LIVEKIT_API_SECRET/);
+});
+
+test("group voice UI exposes roster, room lock and moderator-only participant removal", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-group-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /groupVoiceRoster/);
+  assert.match(component, /toggleRoomLock/);
+  assert.match(component, /canModerate &&/);
+  assert.match(component, /removeParticipant/);
+  assert.match(component, /\/api\/raye2\/voice\/moderate/);
+  assert.match(client, /groupId=\{selectedGroup\.id\}/);
+});

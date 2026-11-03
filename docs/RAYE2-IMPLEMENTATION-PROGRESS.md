@@ -59,7 +59,8 @@
 - [x] Private-call TURN credential endpoint with short-lived HMAC credentials and participant-scoped authorization
 - [ ] Configure/deploy TURN relay and verify restrictive network paths
 - [x] LiveKit SFU integration path: group-room discovery/start RPC, joined-member token endpoint, short-lived room-scoped grants and browser room client
-- [ ] LiveKit server deployment/credentials, live multi-user acceptance, moderator-to-SFU enforcement and participant media controls
+- [x] Group voice participant roster, room lock/unlock, and moderator-authorized removal wired through the LiveKit room service
+- [ ] LiveKit server deployment/credentials, live multi-user acceptance, remote mute and role-promotion controls
 - [ ] Reconnection, ICE restart and quality telemetry
 - [ ] Consent-gated recording media pipeline, storage access and retention
 

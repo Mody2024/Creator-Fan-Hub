@@ -40,3 +40,9 @@
 .groupVoiceStatus{display:inline-flex;align-items:center;gap:6px;color:var(--r-accent);font-size:9px;white-space:nowrap}
 .groupVoiceStatus i{width:6px;height:6px;border-radius:50%;background:var(--r-accent);box-shadow:0 0 10px var(--r-accent)}
 .groupVoiceLabel{display:none}
+
+
+.groupVoiceRoster{display:flex;align-items:center;gap:6px;max-width:100%;overflow-x:auto;padding:3px 0}
+.groupVoiceRoster>div{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);white-space:nowrap}
+.groupVoiceRoster span{font-size:9px;color:var(--r-muted)}
+.groupVoiceRoster button{border:0;border-radius:7px;background:rgba(255,100,100,.08);color:#ff9292;padding:5px 7px;font-size:8px;cursor:pointer}
