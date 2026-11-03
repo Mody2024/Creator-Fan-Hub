@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [voice, foundations, plan, client] = await Promise.all([
-  read("../supabase/migrations/20261103270000_raye2_voice_sessions.sql"),
+  read("../supabase/migrations/20261104000500_raye2_voice_sessions.sql"),
   read("../supabase/migrations/20261103180000_raye2_community_chat_foundations.sql"),
   read("../docs/RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md"),
   read("../src/app/raye2/raye2-client.tsx")
