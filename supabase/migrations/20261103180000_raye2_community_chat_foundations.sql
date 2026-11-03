@@ -551,14 +551,14 @@ using (visibility='public' and status in ('active','read_only')
   or public.raye2_is_group_member(id) or public.raye2_is_platform_admin());
 create or replace function public.raye2_guard_group_owner()
 returns trigger language plpgsql set search_path=''
-as $
+as $$
 begin
   if new.owner_id is distinct from old.owner_id then
     raise exception 'group ownership cannot be changed through this operation' using errcode='42501';
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.raye2_guard_group_owner() from public,anon,authenticated;
 drop trigger if exists raye2_groups_guard_owner on public.raye2_groups;
 create trigger raye2_groups_guard_owner before update on public.raye2_groups
@@ -591,7 +591,7 @@ with check (
 );
 create or replace function public.raye2_guard_message_update()
 returns trigger language plpgsql set search_path=''
-as $
+as $$
 begin
   if old.sender_id is distinct from (select auth.uid())
     or new.sender_id is distinct from old.sender_id
@@ -601,7 +601,7 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 revoke all on function public.raye2_guard_message_update() from public,anon,authenticated;
 drop trigger if exists raye2_messages_guard_update on public.raye2_messages;
 create trigger raye2_messages_guard_update before update on public.raye2_messages
