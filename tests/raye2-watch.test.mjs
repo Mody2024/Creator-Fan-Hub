@@ -112,3 +112,36 @@ test("Watch Together queue and Realtime helpers fail closed after session expiry
   assert.match(migration, /raye2_reorder_watch_queue_item/);
   assert.match(migration, /raye2_remove_watch_queue_item/);
 });
+
+
+test("Watch Together group UI lists active sessions and creates/joins via guarded RPCs", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-watch-together-controls.tsx", import.meta.url), "utf8");
+  const client = readFileSync(new URL("../src/app/raye2/raye2-client.tsx", import.meta.url), "utf8");
+  assert.match(component, /raye2_create_watch_session/);
+  assert.match(component, /raye2_join_watch_session/);
+  assert.match(component, /raye2_leave_watch_session/);
+  assert.match(component, /raye2_watch_sessions/);
+  assert.match(client, /Raye2WatchTogetherControls/);
+  assert.match(client, /groupVisibility=\{selectedGroup\.visibility\}/);
+});
+
+test("native Watch Together player synchronizes playback through host RPCs and realtime session updates", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-watch-together-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /raye2_update_watch_playback/);
+  assert.match(component, /onPlay=\{\(\) => void updatePlayback\(true\)\}/);
+  assert.match(component, /onPause=\{\(\) => void updatePlayback\(false\)\}/);
+  assert.match(component, /onSeeked=\{\(\) => void updatePlayback/);
+  assert.match(component, /postgres_changes/);
+  assert.match(component, /playback_updated_at/);
+  assert.match(component, /lastAppliedVersionRef/);
+  assert.match(component, /needsPlaybackTap/);
+});
+
+test("Watch Together queue UI supports add, vote and host-controlled advance", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-watch-together-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /raye2_add_watch_queue_item/);
+  assert.match(component, /raye2_vote_watch_queue_item/);
+  assert.match(component, /raye2_advance_watch_queue/);
+  assert.match(component, /copy\.queue/);
+  assert.match(component, /copy\.vote/);
+});

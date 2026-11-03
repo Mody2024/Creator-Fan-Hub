@@ -69,10 +69,11 @@
 - [x] Native published-video and HTTPS YouTube/Vimeo source validation
 - [x] Session create/join/leave, host playback versioning, queue voting/advance/reorder/remove RPCs
 - [x] Realtime publication and participant-scoped room broadcast authorization
-- [ ] Watch Together player UI, playback resynchronization, invite links, in-room reactions/polls and live acceptance
-- [ ] Synchronized native/external player sessions
-- [ ] Queue, voting, room chat/reactions and optional voice
-- [ ] Scheduling, RSVP and reminders
+- [x] Group-chat Watch Together panel for published Raye2-hosted video sessions
+- [x] Host playback controls with persisted position/version and guest resynchronization through Realtime
+- [x] Shared queue UI for adding videos, voting and host advancement
+- [ ] Private invite links, public external-player embeds/synchronization, in-room reactions/polls, scheduled sessions and live acceptance
+
 
 ### Phase E — Hardening
 - [ ] Cleanup worker and physical object deletion

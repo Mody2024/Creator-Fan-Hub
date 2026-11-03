@@ -46,3 +46,21 @@
 .groupVoiceRoster>div{display:flex;align-items:center;gap:6px;padding:5px 7px;border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);white-space:nowrap}
 .groupVoiceRoster span{font-size:9px;color:var(--r-muted)}
 .groupVoiceRoster button{border:0;border-radius:7px;background:rgba(255,100,100,.08);color:#ff9292;padding:5px 7px;font-size:8px;cursor:pointer}
+
+
+.watchTogether{display:inline-flex;position:relative;align-items:center}
+.watchToggle{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);padding:8px 10px;font:inherit;font-size:9px;cursor:pointer;white-space:nowrap}
+.watchPanel{position:absolute;z-index:40;top:calc(100% + 9px);right:0;width:min(440px,calc(100vw - 32px));max-height:min(76vh,720px);overflow:auto;padding:13px;border:1px solid var(--r-line);border-radius:15px;background:var(--r-panel);box-shadow:0 16px 48px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:10px}
+.watchPanelHead,.watchPlayerHeader,.watchQueueHead,.watchCreateRow,.watchQueueItem{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.watchPanelHead b,.watchPlayerHeader b,.watchQueueHead b{font-size:11px;color:var(--r-text)}
+.watchPanel button,.watchPanel select{border:1px solid var(--r-line);border-radius:8px;background:var(--r-raised);color:var(--r-text);padding:7px 9px;font:inherit;font-size:9px;max-width:100%}
+.watchCreateRow select{flex:1;min-width:0}
+.watchSessionList{display:flex;flex-direction:column;gap:6px}
+.watchSessionList button{text-align:left}
+.watchPanel small{font-size:9px;color:var(--r-muted)}
+.watchPlayer{display:block;width:100%;max-height:260px;border-radius:10px;background:#050505}
+.watchPlayerHeader span{font-size:9px;color:var(--r-accent)}
+.watchQueueHead{padding-top:8px;border-top:1px solid var(--r-line)}
+.watchQueueItem{padding:6px 0;border-bottom:1px solid var(--r-line)}
+.watchQueueItem span{font-size:9px;color:var(--r-muted);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.watchError{color:#ff9292!important}
