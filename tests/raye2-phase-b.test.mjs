@@ -29,6 +29,19 @@ test("group moderation prevents changing owner roles and protects higher roles",
   assert.match(migration, /v_target_role='owner'/);
   assert.match(migration, /insufficient group moderation permissions/);
 });
+test("group managers can review requests and moderate members through guarded RPCs", () => {
+  assert.match(client, /raye2_review_group_join_request/);
+  assert.match(client, /raye2_set_group_member_role/);
+  assert.match(client, /raye2_remove_group_member/);
+  assert.match(client, /manageGroup/);
+  assert.match(client, /pendingRequests/);
+  assert.match(client, /canChange/);
+});
+test("Shared Memories expose expiry warnings, preservation and manager pin controls", () => {
+  assert.match(client, /expirySoon/);
+  assert.match(client, /retention_mode: "preserved"/);
+  assert.match(client, /pinned: !memory\.pinned/);
+});
 test("Shared Memories are idempotent and only capture a member-visible group message", () => {
   assert.match(migration, /raye2_shared_memory_source_unique/);
   assert.match(migration, /raye2_save_shared_memory/);

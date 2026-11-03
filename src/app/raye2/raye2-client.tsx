@@ -9,6 +9,8 @@ import styles from "./raye2.module.css";
 type Profile = { user_id: string; handle: string | null; display_name: string | null; avatar_url?: string | null };
 type Group = { id: string; name: string; slug: string; description: string; visibility: "public" | "private"; status: string; conversation_id: string | null; owner_id: string; memberRole?: "owner" | "admin" | "moderator" | "member" };
 type SharedMemory = { id: string; group_id: string | null; created_by: string; source_message_id: string | null; memory_type: string; title: string; caption: string; content: Record<string, unknown>; retention_mode: "temporary" | "group_lifetime" | "preserved"; expires_at: string | null; pinned: boolean; created_at: string };
+type GroupMember = { group_id: string; user_id: string; role: "owner" | "admin" | "moderator" | "member"; status: string; joined_at: string; profile?: Profile };
+type JoinRequest = { id: string; group_id: string; user_id: string; note: string; status: "pending" | "approved" | "declined" | "cancelled"; created_at: string; profile?: Profile };
 type Conversation = { id: string; conversation_type: "direct" | "group"; group_id: string | null; status: string; created_at: string };
 type Message = { id: string; conversation_id: string; sender_id: string; body: string; parent_message_id: string | null; edited_at: string | null; created_at: string };
 type Thread = { id: string; kind: "direct" | "group"; title: string; subtitle: string; conversationId: string; groupId: string | null; avatar: string; updatedAt: string; lastMessage: string; unread: number; canSend: boolean };
@@ -37,6 +39,10 @@ export default function Raye2Client() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [memories, setMemories] = useState<SharedMemory[]>([]);
   const [showInvite, setShowInvite] = useState(false);
+  const [showGroupManage, setShowGroupManage] = useState(false);
+  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
+  const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
+  const [groupManageLoading, setGroupManageLoading] = useState(false);
   const [inviteHours, setInviteHours] = useState("72");
   const [inviteUses, setInviteUses] = useState("10");
   const [inviteUrl, setInviteUrl] = useState("");
@@ -63,9 +69,9 @@ export default function Raye2Client() {
 
   const isAr = locale === "ar";
   const t = isAr ? {
-    eyebrow:"مساحات RAYE2", title:"تواصل أقرب.", intro:"رسائلك ومجموعاتك ومجتمعاتك في مساحة واحدة.", chats:"المحادثات", groups:"مجموعاتي", discover:"اكتشف", saved:"المحفوظات", memories:"الذكريات المشتركة", invite:"دعوة أعضاء", createInvite:"إنشاء رابط دعوة", copyInvite:"نسخ الرابط", revokeInvite:"إلغاء الرابط", inviteExpiry:"صلاحية الرابط (ساعات)", inviteUses:"عدد مرات الاستخدام", inviteReady:"تم إنشاء رابط الدعوة.", inviteRevoked:"تم إلغاء رابط الدعوة.", saveMemory:"حفظ في الذكريات", memorySaved:"تم حفظ الذكرى للمجموعة.", search:"ابحث في المحادثات…", newMessage:"رسالة جديدة", newGroup:"مجموعة جديدة", groupName:"اسم المجموعة", groupDesc:"وصف مختصر (اختياري)", public:"عامة", private:"خاصة", create:"إنشاء المجموعة", cancel:"إلغاء", send:"إرسال", message:"اكتب رسالة…", emptyTitle:"اختر محادثة للبدء", emptyText:"ابدأ محادثة خاصة أو انضم إلى مجموعة.", noThreads:"لا توجد محادثات بعد", noGroups:"لم تنضم إلى مجموعات بعد", findPeople:"ابحث بالاسم أو اسم المستخدم", people:"الأعضاء", startChat:"ابدأ محادثة", join:"انضم", joined:"عضو بالفعل", publicGroups:"مجموعات عامة", noResults:"لا توجد نتائج مطابقة.", signIn:"سجّل الدخول لاستخدام Raye2", signInText:"المحادثات والمجموعات مرتبطة بحسابك وتحميها صلاحيات الوصول.", home:"الرئيسية", loading:"جارٍ التحميل…", failed:"تعذر تحميل البيانات. تحقق من اتصالك ثم أعد المحاولة.", sendError:"تعذر إرسال الرسالة.", createError:"تعذر إنشاء المجموعة. تأكد من الاسم وحاول مجددًا.", searchError:"تعذر إكمال البحث.", savedEmpty:"لا توجد رسائل محفوظة بعد.", save:"حفظ", unsave:"إزالة الحفظ", reply:"رد", edit:"تعديل", delete:"حذف", edited:"معدّلة", react:"تفاعل", privateLabel:"خاصة", publicLabel:"عامة", members:"الأعضاء", noMessages:"ابدأ المحادثة برسالة بسيطة.", back:"رجوع", groupReady:"تم إنشاء المجموعة.", chatReady:"تم فتح المحادثة.", profile:"الملف الشخصي", signOut:"تسجيل الخروج", inviteOnly:"دعوة فقط", rooms:"المساحات", safety:"تظل المجموعات الخاصة مخفية عن غير أعضائها.", loadingChat:"تحميل المحادثة…"
+    eyebrow:"مساحات RAYE2", title:"تواصل أقرب.", intro:"رسائلك ومجموعاتك ومجتمعاتك في مساحة واحدة.", chats:"المحادثات", groups:"مجموعاتي", discover:"اكتشف", saved:"المحفوظات", memories:"الذكريات المشتركة", invite:"دعوة أعضاء", createInvite:"إنشاء رابط دعوة", copyInvite:"نسخ الرابط", revokeInvite:"إلغاء الرابط", inviteExpiry:"صلاحية الرابط (ساعات)", inviteUses:"عدد مرات الاستخدام", inviteReady:"تم إنشاء رابط الدعوة.", inviteRevoked:"تم إلغاء رابط الدعوة.", saveMemory:"حفظ في الذكريات", memorySaved:"تم حفظ الذكرى للمجموعة.", search:"ابحث في المحادثات…", newMessage:"رسالة جديدة", newGroup:"مجموعة جديدة", groupName:"اسم المجموعة", groupDesc:"وصف مختصر (اختياري)", public:"عامة", private:"خاصة", create:"إنشاء المجموعة", cancel:"إلغاء", send:"إرسال", message:"اكتب رسالة…", emptyTitle:"اختر محادثة للبدء", emptyText:"ابدأ محادثة خاصة أو انضم إلى مجموعة.", noThreads:"لا توجد محادثات بعد", noGroups:"لم تنضم إلى مجموعات بعد", findPeople:"ابحث بالاسم أو اسم المستخدم", people:"الأعضاء", startChat:"ابدأ محادثة", join:"انضم", joined:"عضو بالفعل", publicGroups:"مجموعات عامة", noResults:"لا توجد نتائج مطابقة.", signIn:"سجّل الدخول لاستخدام Raye2", signInText:"المحادثات والمجموعات مرتبطة بحسابك وتحميها صلاحيات الوصول.", home:"الرئيسية", loading:"جارٍ التحميل…", failed:"تعذر تحميل البيانات. تحقق من اتصالك ثم أعد المحاولة.", sendError:"تعذر إرسال الرسالة.", createError:"تعذر إنشاء المجموعة. تأكد من الاسم وحاول مجددًا.", searchError:"تعذر إكمال البحث.", savedEmpty:"لا توجد رسائل محفوظة بعد.", save:"حفظ", unsave:"إزالة الحفظ", reply:"رد", edit:"تعديل", delete:"حذف", edited:"معدّلة", react:"تفاعل", privateLabel:"خاصة", publicLabel:"عامة", members:"الأعضاء", noMessages:"ابدأ المحادثة برسالة بسيطة.", back:"رجوع", groupReady:"تم إنشاء المجموعة.", chatReady:"تم فتح المحادثة.", profile:"الملف الشخصي", signOut:"تسجيل الخروج", inviteOnly:"دعوة فقط", rooms:"المساحات", safety:"تظل المجموعات الخاصة مخفية عن غير أعضائها.", loadingChat:"تحميل المحادثة…", manageGroup:"إدارة المجموعة", pendingRequests:"طلبات الانضمام", memberList:"الأعضاء", noRequests:"لا توجد طلبات معلقة.", noMembers:"لا يوجد أعضاء لعرضهم.", approve:"قبول", decline:"رفض", removeMember:"إزالة", roleOwner:"مالك", roleAdmin:"مشرف", roleModerator:"منسق", roleMember:"عضو", roleUpdated:"تم تحديث صلاحية العضو.", memberRemoved:"تمت إزالة العضو.", requestReviewed:"تمت مراجعة الطلب.", preserveMemory:"احتفاظ دائم", preserveMemoryHint:"لن تنتهي هذه الذكرى تلقائيًا.", pinMemory:"تثبيت", unpinMemory:"إلغاء التثبيت", expirySoon:"تقترب هذه الذكرى من الانتهاء.", memoryUpdated:"تم تحديث الذكرى.", close:"إغلاق"
   } : {
-    eyebrow:"RAYE2 / YOUR SPACES", title:"Closer conversations.", intro:"Your messages, groups and communities — connected in one place.", chats:"Chats", groups:"My groups", discover:"Discover", saved:"Saved", memories:"Shared Memories", invite:"Invite members", createInvite:"Create invite link", copyInvite:"Copy link", revokeInvite:"Revoke link", inviteExpiry:"Link expiry (hours)", inviteUses:"Maximum uses", inviteReady:"Invite link created.", inviteRevoked:"Invite link revoked.", saveMemory:"Save to Memories", memorySaved:"Saved to group memories.", search:"Search conversations…", newMessage:"New message", newGroup:"New group", groupName:"Group name", groupDesc:"A short description (optional)", public:"Public", private:"Private", create:"Create group", cancel:"Cancel", send:"Send", message:"Write a message…", emptyTitle:"Choose a conversation", emptyText:"Start a private chat or join a community group.", noThreads:"No conversations yet", noGroups:"You haven't joined any groups yet", findPeople:"Search by name or handle", people:"People", startChat:"Message", join:"Join group", joined:"Joined", publicGroups:"Public groups", noResults:"No matching results.", signIn:"Sign in to use Raye2", signInText:"Your conversations and groups are connected to your account and protected by access controls.", home:"Home", loading:"Loading…", failed:"Couldn't load your spaces. Check your connection and try again.", sendError:"Message couldn't be sent.", createError:"Couldn't create the group. Check the name and try again.", searchError:"Search couldn't be completed.", savedEmpty:"No saved messages yet.", save:"Save", unsave:"Unsave", reply:"Reply", edit:"Edit", delete:"Delete", edited:"edited", react:"React", privateLabel:"Private", publicLabel:"Public", members:"members", noMessages:"Start the conversation with a message.", back:"Back", groupReady:"Your group is ready.", chatReady:"Conversation opened.", profile:"Profile", signOut:"Sign out", inviteOnly:"Invite only", rooms:"Spaces", safety:"Private groups stay hidden from people who aren't members.", loadingChat:"Loading conversation…"
+    eyebrow:"RAYE2 / YOUR SPACES", title:"Closer conversations.", intro:"Your messages, groups and communities — connected in one place.", chats:"Chats", groups:"My groups", discover:"Discover", saved:"Saved", memories:"Shared Memories", invite:"Invite members", createInvite:"Create invite link", copyInvite:"Copy link", revokeInvite:"Revoke link", inviteExpiry:"Link expiry (hours)", inviteUses:"Maximum uses", inviteReady:"Invite link created.", inviteRevoked:"Invite link revoked.", saveMemory:"Save to Memories", memorySaved:"Saved to group memories.", search:"Search conversations…", newMessage:"New message", newGroup:"New group", groupName:"Group name", groupDesc:"A short description (optional)", public:"Public", private:"Private", create:"Create group", cancel:"Cancel", send:"Send", message:"Write a message…", emptyTitle:"Choose a conversation", emptyText:"Start a private chat or join a community group.", noThreads:"No conversations yet", noGroups:"You haven't joined any groups yet", findPeople:"Search by name or handle", people:"People", startChat:"Message", join:"Join group", joined:"Joined", publicGroups:"Public groups", noResults:"No matching results.", signIn:"Sign in to use Raye2", signInText:"Your conversations and groups are connected to your account and protected by access controls.", home:"Home", loading:"Loading…", failed:"Couldn't load your spaces. Check your connection and try again.", sendError:"Message couldn't be sent.", createError:"Couldn't create the group. Check the name and try again.", searchError:"Search couldn't be completed.", savedEmpty:"No saved messages yet.", save:"Save", unsave:"Unsave", reply:"Reply", edit:"Edit", delete:"Delete", edited:"edited", react:"React", privateLabel:"Private", publicLabel:"Public", members:"members", noMessages:"Start the conversation with a message.", back:"Back", groupReady:"Your group is ready.", chatReady:"Conversation opened.", profile:"Profile", signOut:"Sign out", inviteOnly:"Invite only", rooms:"Spaces", safety:"Private groups stay hidden from people who aren't members.", loadingChat:"Loading conversation…", manageGroup:"Manage group", pendingRequests:"Join requests", memberList:"Members", noRequests:"No pending requests.", noMembers:"No members to show.", approve:"Approve", decline:"Decline", removeMember:"Remove", roleOwner:"Owner", roleAdmin:"Admin", roleModerator:"Moderator", roleMember:"Member", roleUpdated:"Member permissions updated.", memberRemoved:"Member removed.", requestReviewed:"Request reviewed.", preserveMemory:"Preserve permanently", preserveMemoryHint:"This memory will not expire automatically.", pinMemory:"Pin", unpinMemory:"Unpin", expirySoon:"This memory is approaching expiry.", memoryUpdated:"Memory updated.", close:"Close"
   };
 
   useEffect(() => {
@@ -173,8 +179,35 @@ export default function Raye2Client() {
 
   const selected = threads.find(thread => thread.id === selectedId) ?? null;
   const selectedGroup = selected?.groupId ? groups.find(group => group.id === selected.groupId) ?? null : null;
+  const canManageSelectedGroup = Boolean(selectedGroup && ["owner", "admin", "moderator"].includes(selectedGroup.memberRole ?? "member"));
   const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
   const currentMessages = messages.filter(message => selected && message.conversation_id === selected.conversationId);
+
+  useEffect(() => {
+    if (!showGroupManage || !supabase || !selectedGroup || !canManageSelectedGroup) return;
+    let alive = true;
+    setGroupManageLoading(true);
+    void (async () => {
+      const [{ data: memberRows, error: memberError }, { data: requestRows, error: requestError }] = await Promise.all([
+        supabase.from("raye2_group_members").select("group_id,user_id,role,status,joined_at").eq("group_id", selectedGroup.id).eq("status", "active").order("joined_at", { ascending: true }),
+        supabase.from("raye2_group_join_requests").select("id,group_id,user_id,note,status,created_at").eq("group_id", selectedGroup.id).eq("status", "pending").order("created_at", { ascending: true })
+      ]);
+      if (!alive) return;
+      if (memberError || requestError) { setStatus(t.searchError); setGroupMembers([]); setJoinRequests([]); setGroupManageLoading(false); return; }
+      const memberData = (memberRows ?? []) as GroupMember[];
+      const requestData = (requestRows ?? []) as JoinRequest[];
+      const ids = [...new Set([...memberData.map(row => row.user_id), ...requestData.map(row => row.user_id)])];
+      const { data: profileRows } = ids.length
+        ? await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id", ids)
+        : { data: [] };
+      if (!alive) return;
+      const byId = new Map(((profileRows ?? []) as Profile[]).map(item => [item.user_id, item]));
+      setGroupMembers(memberData.map(item => ({ ...item, profile: byId.get(item.user_id) })));
+      setJoinRequests(requestData.map(item => ({ ...item, profile: byId.get(item.user_id) })));
+      setGroupManageLoading(false);
+    })().catch(() => { if (alive) { setGroupManageLoading(false); setStatus(t.searchError); } });
+    return () => { alive = false; };
+  }, [showGroupManage, supabase, selectedGroup?.id, canManageSelectedGroup, t.searchError]);
   const savedMessages = savedItems.map(item => {
     const original = item.message_id ? messages.find(message => message.id === item.message_id) : null;
     return { id: item.id, messageId: item.message_id, body: original?.body ?? item.saved_content?.body ?? "", senderId: original?.sender_id ?? item.saved_content?.sender_id ?? "", originalConversationId: original?.conversation_id ?? null };
@@ -283,6 +316,66 @@ export default function Raye2Client() {
     finally { setBusy(false); }
   }
 
+  async function reviewJoinRequest(request: JoinRequest, decision: "approved" | "declined") {
+    if (!supabase || !selectedGroup || !canManageSelectedGroup || busy) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("raye2_review_group_join_request", { p_request_id: request.id, p_decision: decision });
+      if (error) throw error;
+      setJoinRequests(current => current.filter(item => item.id !== request.id));
+      if (decision === "approved") {
+        const { data } = await supabase.from("raye2_group_members").select("group_id,user_id,role,status,joined_at").eq("group_id", selectedGroup.id).eq("user_id", request.user_id).maybeSingle();
+        if (data) setGroupMembers(current => [...current.filter(item => item.user_id !== request.user_id), { ...data, profile: request.profile } as GroupMember]);
+      }
+      setStatus(t.requestReviewed);
+    } catch { setStatus(t.searchError); }
+    finally { setBusy(false); }
+  }
+
+  async function changeMemberRole(member: GroupMember, role: "admin" | "moderator" | "member") {
+    if (!supabase || !selectedGroup || !canManageSelectedGroup || busy || member.role === "owner") return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("raye2_set_group_member_role", { p_group_id: selectedGroup.id, p_user_id: member.user_id, p_role: role });
+      if (error) throw error;
+      setGroupMembers(current => current.map(item => item.user_id === member.user_id ? { ...item, role } : item));
+      setStatus(t.roleUpdated);
+    } catch { setStatus(t.searchError); }
+    finally { setBusy(false); }
+  }
+
+  async function removeGroupMember(member: GroupMember) {
+    if (!supabase || !selectedGroup || !canManageSelectedGroup || busy || member.role === "owner" || member.user_id === userId) return;
+    const name = member.profile?.display_name ?? member.profile?.handle ?? (isAr ? "هذا العضو" : "this member");
+    if (!window.confirm((isAr ? "إزالة " : "Remove ") + name + (isAr ? " من المجموعة؟" : " from this group?"))) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.rpc("raye2_remove_group_member", { p_group_id: selectedGroup.id, p_user_id: member.user_id });
+      if (error) throw error;
+      setGroupMembers(current => current.filter(item => item.user_id !== member.user_id));
+      setStatus(t.memberRemoved);
+      await loadData(userId!);
+    } catch { setStatus(t.searchError); }
+    finally { setBusy(false); }
+  }
+
+  async function updateSharedMemory(memory: SharedMemory, patch: Partial<Pick<SharedMemory, "retention_mode" | "expires_at" | "pinned">>) {
+    if (!supabase || !memory.group_id || busy) return;
+    const group = groups.find(item => item.id === memory.group_id);
+    const isManager = ["owner", "admin", "moderator"].includes(group?.memberRole ?? "member");
+    if (patch.pinned !== undefined && !isManager) return;
+    if (patch.retention_mode === "preserved" && memory.created_by !== userId && !isManager) return;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.from("raye2_shared_memories").update(patch).eq("id", memory.id)
+        .select("id,group_id,created_by,source_message_id,memory_type,title,caption,content,retention_mode,expires_at,pinned,created_at").maybeSingle();
+      if (error || !data) throw error ?? new Error("Memory permission denied");
+      setMemories(current => current.map(item => item.id === memory.id ? data as SharedMemory : item));
+      setStatus(t.memoryUpdated);
+    } catch { setStatus(t.searchError); }
+    finally { setBusy(false); }
+  }
+
   async function sendMessage() {
     if (!supabase || !userId || !selected || !compose.trim() || busy) return;
     const body = compose.trim();
@@ -383,7 +476,12 @@ export default function Raye2Client() {
               <b>{memory.title || (isAr ? "ذكرى مشتركة" : "Shared memory")}</b>
               <p>{String(memory.content.body ?? memory.caption ?? "")}</p>
               <small>{memory.retention_mode === "preserved" ? (isAr ? "محفوظة" : "Preserved") : memory.expires_at ? (isAr ? "تنتهي " : "Expires ") + relative(memory.expires_at, locale) : (isAr ? "مرتبطة بعمر المجموعة" : "Group lifetime")}</small>
-              {groups.find(group => group.id === memory.group_id)?.conversation_id && <button className={styles.miniButton} onClick={() => { const group = groups.find(item => item.id === memory.group_id); if (group?.conversation_id) { setSelectedId(group.conversation_id); setTab("groups"); setMobilePane("chat"); } }}>{isAr ? "فتح المجموعة" : "Open group"}</button>}
+              {memory.expires_at && new Date(memory.expires_at).getTime() - Date.now() < 7 * 86400000 && memory.retention_mode !== "preserved" && <small className={styles.expiryWarning}>⚠ {t.expirySoon}</small>}
+              <div className={styles.memoryActions}>
+                {memory.created_by === userId || ["owner","admin","moderator"].includes(groups.find(group => group.id === memory.group_id)?.memberRole ?? "member") ? <button className={styles.miniButton} disabled={busy || memory.retention_mode === "preserved"} onClick={() => void updateSharedMemory(memory, { retention_mode: "preserved", expires_at: null })}>✦ {t.preserveMemory}</button> : null}
+                {["owner","admin","moderator"].includes(groups.find(group => group.id === memory.group_id)?.memberRole ?? "member") && <button className={styles.miniButton} disabled={busy} onClick={() => void updateSharedMemory(memory, { pinned: !memory.pinned })}>{memory.pinned ? t.unpinMemory : t.pinMemory}</button>}
+                {groups.find(group => group.id === memory.group_id)?.conversation_id && <button className={styles.miniButton} onClick={() => { const group = groups.find(item => item.id === memory.group_id); if (group?.conversation_id) { setSelectedId(group.conversation_id); setTab("groups"); setMobilePane("chat"); } }}>{isAr ? "فتح المجموعة" : "Open group"}</button>}
+              </div>
             </article>)}
             {!memories.length && <p className={styles.emptySmall}>{isAr ? "لا توجد ذكريات مشتركة بعد." : "No shared memories yet."}</p>}
           </div> : tab === "saved" ? <div className={styles.threadList}>{savedMessages.map(message => <button className={styles.thread} key={message.id} onClick={() => { const thread = message.originalConversationId ? threads.find(item => item.conversationId === message.originalConversationId) : null; if (thread) { setSelectedId(thread.id); setTab(thread.kind === "group" ? "groups" : "chats"); setMobilePane("chat"); } }}><div className={styles.avatar}>{initials(profiles[message.senderId]?.display_name ?? "R")}</div><div className={styles.threadText}><b>{profiles[message.senderId]?.display_name ?? (isAr ? "رسالة محفوظة" : "Saved message")}</b><span>{message.body || (isAr ? "تم الاحتفاظ بالنسخة المحفوظة" : "Preserved saved copy")}</span></div></button>)}{!savedMessages.length && <p className={styles.emptySmall}>{t.savedEmpty}</p>}</div> : <div className={styles.threadList}>
@@ -397,7 +495,7 @@ export default function Raye2Client() {
         </aside>
         <section className={`${styles.conversation} ${mobilePane === "list" ? styles.hideMobile : ""}`}>
           {selected ? <>
-            <div className={styles.chatHeader}><button className={styles.backButton} onClick={() => setMobilePane("list")}>← {t.back}</button><div className={styles.avatar}>{selected.avatar}</div><div className={styles.chatHeading}><h2>{selected.title}</h2><span>{selected.subtitle}</span></div><button className={styles.iconButton} title={t.saved} onClick={() => setTab("saved")}>⌑</button>{selectedGroup && ["owner","admin","moderator"].includes(selectedGroup.memberRole ?? "member") && <button className={styles.miniButton} onClick={() => { setInviteUrl(""); setInviteId(null); setShowInvite(true); }}>{t.invite}</button>}</div>
+            <div className={styles.chatHeader}><button className={styles.backButton} onClick={() => setMobilePane("list")}>← {t.back}</button><div className={styles.avatar}>{selected.avatar}</div><div className={styles.chatHeading}><h2>{selected.title}</h2><span>{selected.subtitle}</span></div><button className={styles.iconButton} title={t.saved} onClick={() => setTab("saved")}>⌑</button>{selectedGroup && canManageSelectedGroup && <><button className={styles.miniButton} onClick={() => setShowGroupManage(true)}>{t.manageGroup}</button><button className={styles.miniButton} onClick={() => { setInviteUrl(""); setInviteId(null); setShowInvite(true); }}>{t.invite}</button></>}</div>
             <div className={styles.messageArea}>
               {currentMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
               {currentMessages.map(message => {
@@ -427,6 +525,19 @@ export default function Raye2Client() {
         </section>
       </section>
       {status && <div className={styles.status} role="status">{status}<button onClick={() => setStatus("")}>×</button></div>}
+      {showGroupManage && selectedGroup && canManageSelectedGroup && <div className={styles.modalBackdrop} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShowGroupManage(false); }}><section className={styles.modal + " " + styles.groupManageModal} role="dialog" aria-modal="true" aria-labelledby="raye2-manage-title"><button className={styles.modalClose} onClick={() => setShowGroupManage(false)}>×</button><span className={styles.kicker}>RAYE2 / COMMUNITY CONTROL</span><h2 id="raye2-manage-title">{t.manageGroup}</h2><p className={styles.modalHint}>{selectedGroup.name} · {selectedGroup.visibility === "private" ? t.privateLabel : t.publicLabel}</p>
+        {groupManageLoading ? <p className={styles.emptySmall}>{t.loading}</p> : <>
+          <div className={styles.manageSection}><div className={styles.manageSectionTitle}><b>{t.pendingRequests}</b><span>{joinRequests.length}</span></div>
+            {!joinRequests.length && <p className={styles.emptySmall}>{t.noRequests}</p>}
+            {joinRequests.map(request => <article className={styles.manageRow} key={request.id}><div className={styles.personInfo}><b>{request.profile?.display_name ?? request.profile?.handle ?? (isAr ? "عضو جديد" : "New member")}</b><small>{request.note || relative(request.created_at, locale)}</small></div><button className={styles.miniButton} disabled={busy} onClick={() => void reviewJoinRequest(request, "approved")}>{t.approve}</button><button className={styles.dangerButton} disabled={busy} onClick={() => void reviewJoinRequest(request, "declined")}>{t.decline}</button></article>)}
+          </div>
+          <div className={styles.manageSection}><div className={styles.manageSectionTitle}><b>{t.memberList}</b><span>{groupMembers.length}</span></div>
+            {!groupMembers.length && <p className={styles.emptySmall}>{t.noMembers}</p>}
+            {groupMembers.map(member => { const isOwner = member.role === "owner"; const actor = selectedGroup.memberRole ?? "member"; const canChange = !isOwner && member.user_id !== userId && (actor === "owner" || (actor === "admin" && member.role !== "admin")); const roleLabel = member.role === "owner" ? t.roleOwner : member.role === "admin" ? t.roleAdmin : member.role === "moderator" ? t.roleModerator : t.roleMember; return <article className={styles.manageRow} key={member.user_id}><div className={styles.personInfo}><b>{member.profile?.display_name ?? member.profile?.handle ?? (isAr ? "عضو" : "Member")}</b><small>{member.profile?.handle ? "@" + member.profile.handle : member.user_id.slice(0, 8)}</small></div><span className={styles.rolePill}>{roleLabel}</span>{canChange && <select aria-label={(isAr ? "صلاحية " : "Role for ") + (member.profile?.display_name ?? member.profile?.handle ?? "member")} value={member.role} disabled={busy} onChange={event => void changeMemberRole(member, event.target.value as "admin" | "moderator" | "member")}><option value="member">{t.roleMember}</option><option value="moderator">{t.roleModerator}</option>{actor === "owner" && <option value="admin">{t.roleAdmin}</option>}</select>}{!isOwner && member.user_id !== userId && (actor === "owner" || (actor === "admin" && member.role !== "admin") || (actor === "moderator" && member.role === "member")) && <button className={styles.dangerButton} disabled={busy} onClick={() => void removeGroupMember(member)}>{t.removeMember}</button>}</article>; })}
+          </div>
+        </>}
+        <div className={styles.modalActions}><button className={styles.primaryButton} onClick={() => setShowGroupManage(false)}>{t.close}</button></div>
+      </section></div>}
       {showInvite && selectedGroup && <div className={styles.modalBackdrop} role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setShowInvite(false); }}><section className={styles.modal} role="dialog" aria-modal="true" aria-labelledby="raye2-invite-title"><button className={styles.modalClose} onClick={() => setShowInvite(false)}>×</button><span className={styles.kicker}>RAYE2 / PRIVATE INVITE</span><h2 id="raye2-invite-title">{t.invite}</h2><p className={styles.modalHint}>{selectedGroup.name} · {isAr ? "الرابط لا يكشف المجموعة في الاكتشاف العام." : "The invite does not make this private group publicly discoverable."}</p>
         {!inviteUrl ? <><label>{t.inviteExpiry}<input type="number" min="1" max="2160" value={inviteHours} onChange={event => setInviteHours(event.target.value)}/></label><label>{t.inviteUses}<input type="number" min="1" max="10000" value={inviteUses} onChange={event => setInviteUses(event.target.value)}/></label><div className={styles.modalActions}><button onClick={() => setShowInvite(false)}>{t.cancel}</button><button className={styles.primaryButton} disabled={busy} onClick={() => void createGroupInvite()}>{t.createInvite} ↗</button></div></> : <><label>{isAr ? "رابط الدعوة" : "Invite URL"}<input readOnly value={inviteUrl}/></label><div className={styles.modalActions}><button onClick={() => void navigator.clipboard?.writeText(inviteUrl)}>{t.copyInvite}</button><button onClick={() => void revokeGroupInvite()} disabled={busy}>{t.revokeInvite}</button><button className={styles.primaryButton} onClick={() => setShowInvite(false)}>{t.cancel}</button></div></>}
       </section></div>}

@@ -31,8 +31,9 @@
 - [x] Shared Memories message-saving backend and workspace view
 - [x] Private join-request backend with manager approval/decline RPCs
 - [x] Audited group role-change and member-removal RPCs
-- [ ] Join-request and member-moderation UI
-- [ ] Shared-memory expiry warnings and export
+- [x] Join-request approval/decline inbox and member role/removal controls
+- [x] Shared-memory expiry warnings, permanent-preservation and pin controls
+- [ ] Shared-memory export and per-group collection permissions
 
 ### Phase C — Voice
 - [ ] Private WebRTC calls
