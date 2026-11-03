@@ -155,7 +155,8 @@ test("private call signaling validates the peer identity and cleans up local med
   assert.match(component, /payload\.from !==/);
   assert.match(component, /localStreamRef\.current\?\.getTracks\(\)\.forEach/);
   assert.match(component, /supabase\.removeChannel/);
-  assert.match(component, /NEXT_PUBLIC_RAYE2_ICE_SERVERS/);
+  assert.match(component, /\/api\/raye2\/voice\/ice/);
+  assert.doesNotMatch(component, /NEXT_PUBLIC_RAYE2_ICE_SERVERS/);
 });
 
 test("the direct-message header only renders voice controls for a signed-in direct peer", () => {
@@ -266,4 +267,25 @@ test("private-call opt-out label is translated in both supported locales", () =>
   assert.equal((client.match(/allowVoiceCalls:/g) ?? []).length, 2);
   assert.match(client, /allowVoiceCalls:"Allow private voice calls"/);
   assert.match(client, /allowVoiceCalls:"السماح بالمكالمات الصوتية الخاصة"/);
+});
+
+
+test("private-call TURN credentials are short-lived and issued only to joined call participants", () => {
+  const route = readFileSync(new URL("../src/app/api/raye2/voice/ice/route.ts", import.meta.url), "utf8");
+  assert.match(route, /supabase\.auth\.getUser/);
+  assert.match(route, /raye2_voice_participants/);
+  assert.match(route, /\.eq\("status", "joined"\)/);
+  assert.match(route, /session\.session_type !== "private_call"/);
+  assert.match(route, /createHmac\("sha1", sharedSecret\)/);
+  assert.match(route, /Math\.floor\(Date\.now\(\) \/ 1000\) \+ 600/);
+  assert.match(route, /RAYE2_TURN_SHARED_SECRET/);
+  assert.match(route, /turnConfigured/);
+  assert.doesNotMatch(route, /NEXT_PUBLIC_RAYE2_TURN_SHARED_SECRET/);
+});
+
+test("TURN relay URLs and shared secret are documented as server-only environment settings", () => {
+  const env = readFileSync(new URL("../.env.example", import.meta.url), "utf8");
+  assert.match(env, /RAYE2_TURN_URLS=/);
+  assert.match(env, /RAYE2_TURN_SHARED_SECRET=/);
+  assert.match(env, /Keep the shared secret server-side/);
 });

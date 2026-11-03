@@ -56,7 +56,8 @@
 - [x] Incoming private-call invitations surface across conversations, with caller identity and accept/decline controls
 - [x] Audio input/output device selection where browser support allows, microphone switching, and measured RTT/packet-loss quality status
 - [x] Member-controlled private-call opt-out, enforced by a database trigger on both invitation and acceptance
-- [ ] Production TURN relay credentials/configuration and network-path verification
+- [x] Private-call TURN credential endpoint with short-lived HMAC credentials and participant-scoped authorization
+- [ ] Configure/deploy TURN relay and verify restrictive network paths
 - [x] LiveKit SFU integration path: group-room discovery/start RPC, joined-member token endpoint, short-lived room-scoped grants and browser room client
 - [ ] LiveKit server deployment/credentials, live multi-user acceptance, moderator-to-SFU enforcement and participant media controls
 - [ ] Reconnection, ICE restart and quality telemetry

@@ -28,23 +28,7 @@ type VoiceProps = {
   locale: "en" | "ar";
 };
 
-const ICE_SERVERS: RTCIceServer[] = (() => {
-  const fallback: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
-  const raw = process.env.NEXT_PUBLIC_RAYE2_ICE_SERVERS;
-  if (!raw) return fallback;
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return fallback;
-    const valid = parsed.filter((item): item is RTCIceServer => {
-      if (!item || typeof item !== "object" || !("urls" in item)) return false;
-      const urls = (item as { urls?: unknown }).urls;
-      return typeof urls === "string" || (Array.isArray(urls) && urls.every(url => typeof url === "string"));
-    });
-    return valid.length ? valid : fallback;
-  } catch {
-    return fallback;
-  }
-})();
+const ICE_SERVERS: RTCIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }];
 
 export default function Raye2VoiceControls({ supabase, userId, conversationId, peerUserId, peerName, locale }: VoiceProps) {
   const isAr = locale === "ar";
@@ -133,7 +117,19 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
   const createPeer = useCallback(async () => {
     if (peerRef.current) return peerRef.current;
     const stream = await getMicrophone();
-    const peer = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    let iceServers = ICE_SERVERS;
+    if (session?.id) {
+      try {
+        const response = await fetch("/api/raye2/voice/ice", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: session.id }) });
+        if (response.ok) {
+          const iceData = await response.json() as { iceServers?: RTCIceServer[] };
+          if (Array.isArray(iceData.iceServers) && iceData.iceServers.length) iceServers = iceData.iceServers;
+        }
+      } catch {
+        // Keep the STUN-only fallback if the optional TURN credential endpoint is unavailable.
+      }
+    }
+    const peer = new RTCPeerConnection({ iceServers });
     peerRef.current = peer;
     stream.getAudioTracks().forEach(track => peer.addTrack(track, stream));
     peer.ontrack = event => {
@@ -161,7 +157,7 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
       if (peer.connectionState === "closed") setCallState("idle");
     };
     return peer;
-  }, [copy.failed, getMicrophone, sendSignal]);
+  }, [copy.failed, getMicrophone, sendSignal, session]);
 
   const finishCall = useCallback(async (decline = false) => {
     if (!session) return;
