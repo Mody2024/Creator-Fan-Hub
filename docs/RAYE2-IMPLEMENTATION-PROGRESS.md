@@ -21,10 +21,12 @@
 - [ ] Admin UI for rules, retention and cleanup previews
 
 ### Phase B — Messaging and groups
-- [ ] DM and group-chat interface
-- [ ] Replies, reactions, edit/delete windows, pins and saved messages
-- [ ] Search, presence, typing, delivery/read states and notifications
-- [ ] Public discovery, private invites, join requests and moderation
+- [x] Authenticated responsive Raye2 workspace with DM and group-chat interface
+- [x] Replies, reactions, edit/delete windows and personal saved messages
+- [x] Public member search and realtime message/group refresh foundation
+- [ ] Presence, typing, delivery/read states and notifications
+- [x] Public group discovery, private/public group creation and public joining
+- [ ] Private invite links, join requests and moderation
 - [ ] Shared Memories interface and expiry warnings
 
 ### Phase C — Voice

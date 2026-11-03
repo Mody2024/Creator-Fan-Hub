@@ -694,3 +694,20 @@ revoke insert,update,delete on public.raye2_groups,public.raye2_conversations,pu
  public.raye2_platform_rules,public.raye2_retention_policies,public.raye2_admin_audit_log,
  public.raye2_storage_usage from anon,authenticated;
 revoke update,delete on public.raye2_admin_audit_log from anon,authenticated;
+
+-- Publish Raye2 tables to Supabase Realtime when the standard publication is available.
+do $$
+declare v_table text;
+begin
+  if exists (select 1 from pg_publication where pubname='supabase_realtime' and not puballtables) then
+    foreach v_table in array array['raye2_messages','raye2_group_members','raye2_message_reactions'] loop
+      if not exists (
+        select 1 from pg_publication_tables
+        where pubname='supabase_realtime' and schemaname='public' and tablename=v_table
+      ) then
+        execute format('alter publication supabase_realtime add table public.%I',v_table);
+      end if;
+    end loop;
+  end if;
+end;
+$$;
