@@ -103,13 +103,17 @@ create table if not exists public.raye2_message_reactions (
 create index if not exists raye2_message_reactions_message_idx on public.raye2_message_reactions(message_id);
 
 create table if not exists public.raye2_message_bookmarks (
+  id uuid primary key default gen_random_uuid(),
   message_id uuid references public.raye2_messages(id) on delete set null,
   user_id uuid not null references auth.users(id) on delete cascade,
   saved_content jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
-  primary key (message_id,user_id),
   check (message_id is not null or saved_content <> '{}'::jsonb)
 );
+create unique index if not exists raye2_message_bookmarks_message_user_unique
+  on public.raye2_message_bookmarks(message_id,user_id) where message_id is not null;
+create index if not exists raye2_message_bookmarks_user_idx
+  on public.raye2_message_bookmarks(user_id,created_at desc);
 
 create table if not exists public.raye2_shared_memories (
   id uuid primary key default gen_random_uuid(),
@@ -241,7 +245,7 @@ as $$
 $$;
 create or replace function public.raye2_is_conversation_member(p_conversation_id uuid)
 returns boolean language sql stable security definer set search_path=''
-as $
+as $$
   select (select auth.uid()) is not null and exists (
     select 1 from public.raye2_conversation_members m
     join public.raye2_conversations c on c.id=m.conversation_id
@@ -250,7 +254,7 @@ as $
       and c.status='active'
       and (c.group_id is null or g.status in ('active','read_only'))
   );
-$;
+$$;
 revoke all on function public.raye2_is_platform_admin() from public,anon;
 revoke all on function public.raye2_is_group_member(uuid) from public,anon;
 revoke all on function public.raye2_is_group_manager(uuid) from public,anon;
@@ -638,7 +642,7 @@ using (user_id=(select auth.uid()));
 
 create or replace function public.raye2_bookmark_message(p_message_id uuid)
 returns void language plpgsql security definer set search_path=''
-as $
+as $$
 declare v_snapshot jsonb;
 begin
   if auth.uid() is null then raise exception 'sign in required' using errcode='42501'; end if;
@@ -652,9 +656,10 @@ begin
   if not found then raise exception 'message is unavailable' using errcode='P0002'; end if;
   insert into public.raye2_message_bookmarks(message_id,user_id,saved_content)
   values(p_message_id,auth.uid(),v_snapshot)
-  on conflict(message_id,user_id) do update set saved_content=excluded.saved_content;
+  on conflict(message_id,user_id) where message_id is not null
+  do update set saved_content=excluded.saved_content;
 end;
-$;
+$$;
 revoke all on function public.raye2_bookmark_message(uuid) from public,anon;
 grant execute on function public.raye2_bookmark_message(uuid) to authenticated;
 

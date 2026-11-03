@@ -19,6 +19,10 @@ test("Raye2 private resources are protected by RLS and membership predicates", (
   assert.match(migration, /Raye2 conversation members read messages/);
   assert.match(migration, /Raye2 members send messages/);
   assert.match(migration, /raye2_groups.*visibility text not null default 'private'/s);
+  assert.match(migration, /message_id uuid references public\.raye2_messages\(id\) on delete set null/);
+  assert.match(migration, /saved_content jsonb not null/);
+  assert.match(migration, /raye2_bookmark_message/);
+  assert.match(migration, /group_id is null and created_by=\(select auth\.uid\(\)\) and retention_mode='preserved'/);
 });
 
 test("group and direct-conversation creation are authenticated guarded RPCs", () => {
