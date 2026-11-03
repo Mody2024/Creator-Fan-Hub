@@ -72,6 +72,7 @@ begin
 end;
 $$;
 revoke all on function public.raye2_guard_blocked_direct_message() from public,anon,authenticated;
+grant execute on function public.raye2_guard_blocked_direct_message() to authenticated;
 drop trigger if exists raye2_messages_block_guard on public.raye2_messages;
 create trigger raye2_messages_block_guard before insert on public.raye2_messages
 for each row execute function public.raye2_guard_blocked_direct_message();
