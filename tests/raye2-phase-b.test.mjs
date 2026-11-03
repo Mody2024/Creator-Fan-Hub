@@ -2,13 +2,24 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, client, invitePage, realtimeMigration, notificationMigration] = await Promise.all([
+const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration] = await Promise.all([
   read("../supabase/migrations/20261103190000_raye2_invites_memories.sql"),
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/invite/page.tsx"),
   read("../supabase/migrations/20261103200000_raye2_read_receipts.sql"),
-  read("../supabase/migrations/20261103210000_raye2_notifications.sql")
+  read("../supabase/migrations/20261103210000_raye2_notifications.sql"),
+  read("../supabase/migrations/20261103220000_raye2_safety_controls.sql")
 ]);
+test("Raye2 block and report controls reuse platform block identity and validate report targets", () => {
+  assert.match(client, /member_blocks/);
+  assert.match(client, /raye2_submit_safety_report/);
+  assert.match(client, /reportTarget/);
+  assert.match(client, /blockUser/);
+  assert.match(safetyMigration, /raye2_submit_safety_report/);
+  assert.match(safetyMigration, /raye2_is_conversation_member/);
+  assert.match(safetyMigration, /reporter_id/);
+  assert.match(safetyMigration, /target_type in/);
+});
 test("notifications are recipient-scoped, preference-aware and membership scoped", () => {
   assert.match(client, /raye2_notifications/);
   assert.match(client, /raye2_set_notification_preferences/);

@@ -18,6 +18,8 @@
 - [x] Membership-scoped RLS and guarded group/DM/invite/admin RPCs
 - [x] Initial database migration and contract tests committed to development (not yet applied to Supabase)
 - [ ] Runtime RLS and RPC integration tests
+- [x] Reuse existing account-blocking records in Raye2 DM discovery and conversation controls
+- [x] Message/account reporting workflow with membership-checked submission
 - [x] Owner/admin-gated UI for platform rules, retention policies, cleanup review requests, storage snapshots and audit history
 
 ### Phase B — Messaging and groups
@@ -28,6 +30,7 @@
 - [x] Secure participant-only read-receipt RPC and unread counter clearing
 - [x] Durable direct/group notification preferences and in-app notification inbox with unread state
 - [ ] Per-group notification overrides, quiet hours, push delivery and notification bundles
+- [x] User block controls and message/account reporting submission path
 - [x] Public group discovery, private/public group creation and public joining
 - [x] Private invite link backend with hashed tokens, expiry/use limits and revocation
 - [x] Invite acceptance route with sign-in continuation preserving the token
