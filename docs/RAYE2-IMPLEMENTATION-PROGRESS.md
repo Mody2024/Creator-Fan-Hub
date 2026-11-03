@@ -29,7 +29,7 @@
 - [x] Ephemeral online presence and typing indicators on active conversation channels
 - [x] Secure participant-only read-receipt RPC and unread counter clearing
 - [x] Durable direct/group notification preferences and in-app notification inbox with unread state
-- [ ] Per-group notification overrides, quiet hours, push delivery and notification bundles
+- [x] Per-group notification overrides and timezone-aware quiet hours (push delivery and notification bundles remain pending)
 - [x] Message requests with incoming/outgoing pending states
 - [x] Per-account opt-out for new message requests, enforced by database RPC
 - [x] Conversation-scoped message search with bounded results
