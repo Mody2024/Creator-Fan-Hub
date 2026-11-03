@@ -149,7 +149,7 @@ begin
         and m.processing_status='ready'
     );
   elsif p_source_kind='external' then
-    return p_source_media_id is null and p_external_url ~* '^https://(www\.)?(youtube\.com/watch\?v=[A-Za-z0-9_-]{6,}|youtu\.be/[A-Za-z0-9_-]{6,}|vimeo\.com/[0-9]{5,})([?&][^ ]*)?$';
+    return p_source_media_id is null and p_external_url ~* '^https://(www\.)?(youtube[.]com/watch\?v=[A-Za-z0-9_-]{6,}|youtu[.]be/[A-Za-z0-9_-]{6,}|vimeo[.]com/[0-9]{5,})([?&][^ ]*)?$';
   end if;
   return false;
 end;
