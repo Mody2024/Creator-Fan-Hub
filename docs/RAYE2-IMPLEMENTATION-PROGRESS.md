@@ -26,7 +26,8 @@
 - [x] Public member search and realtime message/group refresh foundation
 - [x] Ephemeral online presence and typing indicators on active conversation channels
 - [x] Secure participant-only read-receipt RPC and unread counter clearing
-- [ ] Durable notification preferences, push/in-app notification center and delivery states
+- [x] Durable direct/group notification preferences and in-app notification inbox with unread state
+- [ ] Per-group notification overrides, quiet hours, push delivery and notification bundles
 - [x] Public group discovery, private/public group creation and public joining
 - [x] Private invite link backend with hashed tokens, expiry/use limits and revocation
 - [x] Invite acceptance route with sign-in continuation preserving the token

@@ -2,12 +2,24 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, client, invitePage, realtimeMigration] = await Promise.all([
+const [migration, client, invitePage, realtimeMigration, notificationMigration] = await Promise.all([
   read("../supabase/migrations/20261103190000_raye2_invites_memories.sql"),
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/invite/page.tsx"),
-  read("../supabase/migrations/20261103200000_raye2_read_receipts.sql")
+  read("../supabase/migrations/20261103200000_raye2_read_receipts.sql"),
+  read("../supabase/migrations/20261103210000_raye2_notifications.sql")
 ]);
+test("notifications are recipient-scoped, preference-aware and membership scoped", () => {
+  assert.match(client, /raye2_notifications/);
+  assert.match(client, /raye2_set_notification_preferences/);
+  assert.match(client, /notificationPreferences/);
+  assert.match(client, /markAllNotificationsRead/);
+  assert.match(notificationMigration, /raye2_notify_conversation_message/);
+  assert.match(notificationMigration, /direct_messages/);
+  assert.match(notificationMigration, /group_messages/);
+  assert.match(notificationMigration, /cm.user_id<>new.sender_id/);
+  assert.match(notificationMigration, /cm.muted_until/);
+});
 test("realtime presence and typing are ephemeral and read receipts are membership guarded", () => {
   assert.match(client, /presenceState/);
   assert.match(client, /event: "typing"/);

@@ -15,6 +15,8 @@ type Conversation = { id: string; conversation_type: "direct" | "group"; group_i
 type Message = { id: string; conversation_id: string; sender_id: string; body: string; parent_message_id: string | null; edited_at: string | null; created_at: string };
 type Thread = { id: string; kind: "direct" | "group"; title: string; subtitle: string; conversationId: string; groupId: string | null; avatar: string; updatedAt: string; lastMessage: string; unread: number; canSend: boolean };
 type SavedItem = { id: string; message_id: string | null; saved_content: { body?: string; sender_id?: string; created_at?: string }; created_at: string };
+type NotificationItem = { id: string; actor_id: string | null; conversation_id: string | null; message_id: string | null; notification_type: string; preview: string; read_at: string | null; created_at: string };
+type NotificationPreferences = { direct_messages: boolean; group_messages: boolean };
 type Locale = "en" | "ar";
 
 const stamp = (value: string, locale: Locale) => new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en", { hour: "2-digit", minute: "2-digit" }).format(new Date(value));
@@ -45,6 +47,9 @@ export default function Raye2Client() {
   const [groupManageLoading, setGroupManageLoading] = useState(false);
   const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
   const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>({ direct_messages: true, group_messages: true });
+  const [notificationSaving, setNotificationSaving] = useState(false);
   const realtimeChannel = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
   const typingActive = useRef(false);
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
@@ -54,7 +59,7 @@ export default function Raye2Client() {
   const [inviteId, setInviteId] = useState<string | null>(null);
   const [discoverGroups, setDiscoverGroups] = useState<Group[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [tab, setTab] = useState<"chats" | "groups" | "discover" | "saved" | "memories">("chats");
+  const [tab, setTab] = useState<"chats" | "groups" | "discover" | "saved" | "memories" | "notifications">("chats");
   const [query, setQuery] = useState("");
   const [compose, setCompose] = useState("");
   const [personQuery, setPersonQuery] = useState("");
@@ -74,9 +79,9 @@ export default function Raye2Client() {
 
   const isAr = locale === "ar";
   const t = isAr ? {
-    eyebrow:"مساحات RAYE2", title:"تواصل أقرب.", intro:"رسائلك ومجموعاتك ومجتمعاتك في مساحة واحدة.", chats:"المحادثات", groups:"مجموعاتي", discover:"اكتشف", saved:"المحفوظات", memories:"الذكريات المشتركة", invite:"دعوة أعضاء", createInvite:"إنشاء رابط دعوة", copyInvite:"نسخ الرابط", revokeInvite:"إلغاء الرابط", inviteExpiry:"صلاحية الرابط (ساعات)", inviteUses:"عدد مرات الاستخدام", inviteReady:"تم إنشاء رابط الدعوة.", inviteRevoked:"تم إلغاء رابط الدعوة.", saveMemory:"حفظ في الذكريات", memorySaved:"تم حفظ الذكرى للمجموعة.", search:"ابحث في المحادثات…", newMessage:"رسالة جديدة", newGroup:"مجموعة جديدة", groupName:"اسم المجموعة", groupDesc:"وصف مختصر (اختياري)", public:"عامة", private:"خاصة", create:"إنشاء المجموعة", cancel:"إلغاء", send:"إرسال", message:"اكتب رسالة…", emptyTitle:"اختر محادثة للبدء", emptyText:"ابدأ محادثة خاصة أو انضم إلى مجموعة.", noThreads:"لا توجد محادثات بعد", noGroups:"لم تنضم إلى مجموعات بعد", findPeople:"ابحث بالاسم أو اسم المستخدم", people:"الأعضاء", startChat:"ابدأ محادثة", join:"انضم", joined:"عضو بالفعل", publicGroups:"مجموعات عامة", noResults:"لا توجد نتائج مطابقة.", signIn:"سجّل الدخول لاستخدام Raye2", signInText:"المحادثات والمجموعات مرتبطة بحسابك وتحميها صلاحيات الوصول.", home:"الرئيسية", loading:"جارٍ التحميل…", failed:"تعذر تحميل البيانات. تحقق من اتصالك ثم أعد المحاولة.", sendError:"تعذر إرسال الرسالة.", createError:"تعذر إنشاء المجموعة. تأكد من الاسم وحاول مجددًا.", searchError:"تعذر إكمال البحث.", savedEmpty:"لا توجد رسائل محفوظة بعد.", save:"حفظ", unsave:"إزالة الحفظ", reply:"رد", edit:"تعديل", delete:"حذف", edited:"معدّلة", react:"تفاعل", privateLabel:"خاصة", publicLabel:"عامة", members:"الأعضاء", noMessages:"ابدأ المحادثة برسالة بسيطة.", back:"رجوع", groupReady:"تم إنشاء المجموعة.", chatReady:"تم فتح المحادثة.", profile:"الملف الشخصي", signOut:"تسجيل الخروج", inviteOnly:"دعوة فقط", rooms:"المساحات", safety:"تظل المجموعات الخاصة مخفية عن غير أعضائها.", loadingChat:"تحميل المحادثة…", manageGroup:"إدارة المجموعة", pendingRequests:"طلبات الانضمام", memberList:"الأعضاء", noRequests:"لا توجد طلبات معلقة.", noMembers:"لا يوجد أعضاء لعرضهم.", approve:"قبول", decline:"رفض", removeMember:"إزالة", roleOwner:"مالك", roleAdmin:"مشرف", roleModerator:"منسق", roleMember:"عضو", roleUpdated:"تم تحديث صلاحية العضو.", memberRemoved:"تمت إزالة العضو.", requestReviewed:"تمت مراجعة الطلب.", preserveMemory:"احتفاظ دائم", preserveMemoryHint:"لن تنتهي هذه الذكرى تلقائيًا.", pinMemory:"تثبيت", unpinMemory:"إلغاء التثبيت", expirySoon:"تقترب هذه الذكرى من الانتهاء.", memoryUpdated:"تم تحديث الذكرى.", close:"إغلاق"
+    eyebrow:"مساحات RAYE2", title:"تواصل أقرب.", intro:"رسائلك ومجموعاتك ومجتمعاتك في مساحة واحدة.", chats:"المحادثات", groups:"مجموعاتي", discover:"اكتشف", saved:"المحفوظات", memories:"الذكريات المشتركة", invite:"دعوة أعضاء", createInvite:"إنشاء رابط دعوة", copyInvite:"نسخ الرابط", revokeInvite:"إلغاء الرابط", inviteExpiry:"صلاحية الرابط (ساعات)", inviteUses:"عدد مرات الاستخدام", inviteReady:"تم إنشاء رابط الدعوة.", inviteRevoked:"تم إلغاء رابط الدعوة.", saveMemory:"حفظ في الذكريات", memorySaved:"تم حفظ الذكرى للمجموعة.", search:"ابحث في المحادثات…", newMessage:"رسالة جديدة", newGroup:"مجموعة جديدة", groupName:"اسم المجموعة", groupDesc:"وصف مختصر (اختياري)", public:"عامة", private:"خاصة", create:"إنشاء المجموعة", cancel:"إلغاء", send:"إرسال", message:"اكتب رسالة…", emptyTitle:"اختر محادثة للبدء", emptyText:"ابدأ محادثة خاصة أو انضم إلى مجموعة.", noThreads:"لا توجد محادثات بعد", noGroups:"لم تنضم إلى مجموعات بعد", findPeople:"ابحث بالاسم أو اسم المستخدم", people:"الأعضاء", startChat:"ابدأ محادثة", join:"انضم", joined:"عضو بالفعل", publicGroups:"مجموعات عامة", noResults:"لا توجد نتائج مطابقة.", signIn:"سجّل الدخول لاستخدام Raye2", signInText:"المحادثات والمجموعات مرتبطة بحسابك وتحميها صلاحيات الوصول.", home:"الرئيسية", loading:"جارٍ التحميل…", failed:"تعذر تحميل البيانات. تحقق من اتصالك ثم أعد المحاولة.", sendError:"تعذر إرسال الرسالة.", createError:"تعذر إنشاء المجموعة. تأكد من الاسم وحاول مجددًا.", searchError:"تعذر إكمال البحث.", savedEmpty:"لا توجد رسائل محفوظة بعد.", save:"حفظ", unsave:"إزالة الحفظ", reply:"رد", edit:"تعديل", delete:"حذف", edited:"معدّلة", react:"تفاعل", privateLabel:"خاصة", publicLabel:"عامة", members:"الأعضاء", noMessages:"ابدأ المحادثة برسالة بسيطة.", back:"رجوع", groupReady:"تم إنشاء المجموعة.", chatReady:"تم فتح المحادثة.", profile:"الملف الشخصي", signOut:"تسجيل الخروج", inviteOnly:"دعوة فقط", rooms:"المساحات", safety:"تظل المجموعات الخاصة مخفية عن غير أعضائها.", loadingChat:"تحميل المحادثة…", manageGroup:"إدارة المجموعة", pendingRequests:"طلبات الانضمام", memberList:"الأعضاء", noRequests:"لا توجد طلبات معلقة.", noMembers:"لا يوجد أعضاء لعرضهم.", approve:"قبول", decline:"رفض", removeMember:"إزالة", roleOwner:"مالك", roleAdmin:"مشرف", roleModerator:"منسق", roleMember:"عضو", roleUpdated:"تم تحديث صلاحية العضو.", memberRemoved:"تمت إزالة العضو.", requestReviewed:"تمت مراجعة الطلب.", preserveMemory:"احتفاظ دائم", preserveMemoryHint:"لن تنتهي هذه الذكرى تلقائيًا.", pinMemory:"تثبيت", unpinMemory:"إلغاء التثبيت", expirySoon:"تقترب هذه الذكرى من الانتهاء.", memoryUpdated:"تم تحديث الذكرى.", close:"إغلاق", notifications:"الإشعارات", notificationSettings:"إعدادات الإشعارات", directNotifications:"رسائل خاصة", groupNotifications:"رسائل المجموعات", noNotifications:"لا توجد إشعارات جديدة.", markAllRead:"تحديد الكل كمقروء", notificationSaved:"تم حفظ إعدادات الإشعارات."
   } : {
-    eyebrow:"RAYE2 / YOUR SPACES", title:"Closer conversations.", intro:"Your messages, groups and communities — connected in one place.", chats:"Chats", groups:"My groups", discover:"Discover", saved:"Saved", memories:"Shared Memories", invite:"Invite members", createInvite:"Create invite link", copyInvite:"Copy link", revokeInvite:"Revoke link", inviteExpiry:"Link expiry (hours)", inviteUses:"Maximum uses", inviteReady:"Invite link created.", inviteRevoked:"Invite link revoked.", saveMemory:"Save to Memories", memorySaved:"Saved to group memories.", search:"Search conversations…", newMessage:"New message", newGroup:"New group", groupName:"Group name", groupDesc:"A short description (optional)", public:"Public", private:"Private", create:"Create group", cancel:"Cancel", send:"Send", message:"Write a message…", emptyTitle:"Choose a conversation", emptyText:"Start a private chat or join a community group.", noThreads:"No conversations yet", noGroups:"You haven't joined any groups yet", findPeople:"Search by name or handle", people:"People", startChat:"Message", join:"Join group", joined:"Joined", publicGroups:"Public groups", noResults:"No matching results.", signIn:"Sign in to use Raye2", signInText:"Your conversations and groups are connected to your account and protected by access controls.", home:"Home", loading:"Loading…", failed:"Couldn't load your spaces. Check your connection and try again.", sendError:"Message couldn't be sent.", createError:"Couldn't create the group. Check the name and try again.", searchError:"Search couldn't be completed.", savedEmpty:"No saved messages yet.", save:"Save", unsave:"Unsave", reply:"Reply", edit:"Edit", delete:"Delete", edited:"edited", react:"React", privateLabel:"Private", publicLabel:"Public", members:"members", noMessages:"Start the conversation with a message.", back:"Back", groupReady:"Your group is ready.", chatReady:"Conversation opened.", profile:"Profile", signOut:"Sign out", inviteOnly:"Invite only", rooms:"Spaces", safety:"Private groups stay hidden from people who aren't members.", loadingChat:"Loading conversation…", manageGroup:"Manage group", pendingRequests:"Join requests", memberList:"Members", noRequests:"No pending requests.", noMembers:"No members to show.", approve:"Approve", decline:"Decline", removeMember:"Remove", roleOwner:"Owner", roleAdmin:"Admin", roleModerator:"Moderator", roleMember:"Member", roleUpdated:"Member permissions updated.", memberRemoved:"Member removed.", requestReviewed:"Request reviewed.", preserveMemory:"Preserve permanently", preserveMemoryHint:"This memory will not expire automatically.", pinMemory:"Pin", unpinMemory:"Unpin", expirySoon:"This memory is approaching expiry.", memoryUpdated:"Memory updated.", close:"Close"
+    eyebrow:"RAYE2 / YOUR SPACES", title:"Closer conversations.", intro:"Your messages, groups and communities — connected in one place.", chats:"Chats", groups:"My groups", discover:"Discover", saved:"Saved", memories:"Shared Memories", invite:"Invite members", createInvite:"Create invite link", copyInvite:"Copy link", revokeInvite:"Revoke link", inviteExpiry:"Link expiry (hours)", inviteUses:"Maximum uses", inviteReady:"Invite link created.", inviteRevoked:"Invite link revoked.", saveMemory:"Save to Memories", memorySaved:"Saved to group memories.", search:"Search conversations…", newMessage:"New message", newGroup:"New group", groupName:"Group name", groupDesc:"A short description (optional)", public:"Public", private:"Private", create:"Create group", cancel:"Cancel", send:"Send", message:"Write a message…", emptyTitle:"Choose a conversation", emptyText:"Start a private chat or join a community group.", noThreads:"No conversations yet", noGroups:"You haven't joined any groups yet", findPeople:"Search by name or handle", people:"People", startChat:"Message", join:"Join group", joined:"Joined", publicGroups:"Public groups", noResults:"No matching results.", signIn:"Sign in to use Raye2", signInText:"Your conversations and groups are connected to your account and protected by access controls.", home:"Home", loading:"Loading…", failed:"Couldn't load your spaces. Check your connection and try again.", sendError:"Message couldn't be sent.", createError:"Couldn't create the group. Check the name and try again.", searchError:"Search couldn't be completed.", savedEmpty:"No saved messages yet.", save:"Save", unsave:"Unsave", reply:"Reply", edit:"Edit", delete:"Delete", edited:"edited", react:"React", privateLabel:"Private", publicLabel:"Public", members:"members", noMessages:"Start the conversation with a message.", back:"Back", groupReady:"Your group is ready.", chatReady:"Conversation opened.", profile:"Profile", signOut:"Sign out", inviteOnly:"Invite only", rooms:"Spaces", safety:"Private groups stay hidden from people who aren't members.", loadingChat:"Loading conversation…", manageGroup:"Manage group", pendingRequests:"Join requests", memberList:"Members", noRequests:"No pending requests.", noMembers:"No members to show.", approve:"Approve", decline:"Decline", removeMember:"Remove", roleOwner:"Owner", roleAdmin:"Admin", roleModerator:"Moderator", roleMember:"Member", roleUpdated:"Member permissions updated.", memberRemoved:"Member removed.", requestReviewed:"Request reviewed.", preserveMemory:"Preserve permanently", preserveMemoryHint:"This memory will not expire automatically.", pinMemory:"Pin", unpinMemory:"Unpin", expirySoon:"This memory is approaching expiry.", memoryUpdated:"Memory updated.", close:"Close", notifications:"Notifications", notificationSettings:"Notification settings", directNotifications:"Direct messages", groupNotifications:"Group messages", noNotifications:"All caught up.", markAllRead:"Mark all as read", notificationSaved:"Notification settings saved."
   };
 
   useEffect(() => {
@@ -134,6 +139,12 @@ export default function Raye2Client() {
       return { id: conversation.id, kind: conversation.conversation_type, title, subtitle: conversation.conversation_type === "group" ? (group?.visibility === "public" ? t.publicLabel : t.privateLabel) : (other?.handle ? "@" + other.handle : t.chats), conversationId: conversation.id, groupId: conversation.group_id, avatar: initials(title), updatedAt: last?.created_at ?? conversation.created_at, lastMessage: last?.body ?? "", unread, canSend: conversation.conversation_type === "direct" || group?.status === "active" };
     }).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     setThreads(nextThreads);
+    const [{ data: notificationRows }, { data: preferenceRow }] = await Promise.all([
+      supabase.from("raye2_notifications").select("id,actor_id,conversation_id,message_id,notification_type,preview,read_at,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(80),
+      supabase.from("raye2_notification_preferences").select("direct_messages,group_messages").eq("user_id", uid).maybeSingle()
+    ]);
+    setNotifications((notificationRows ?? []) as NotificationItem[]);
+    setNotificationPreferences((preferenceRow as NotificationPreferences | null) ?? { direct_messages: true, group_messages: true });
     setSavedIds([]);
     const { data: saved } = await supabase.from("raye2_message_bookmarks").select("id,message_id,saved_content,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(100);
     setSavedItems((saved ?? []) as SavedItem[]);
@@ -231,6 +242,43 @@ export default function Raye2Client() {
       if (!error) setThreads(current => current.map(thread => thread.conversationId === selected.conversationId ? { ...thread, unread: 0 } : thread));
     });
   }, [supabase, userId, selected?.conversationId, currentMessages.length]);
+
+  async function markNotificationRead(item: NotificationItem) {
+    if (!supabase || !userId || item.read_at) return;
+    const readAt = new Date().toISOString();
+    const { error } = await supabase.from("raye2_notifications").update({ read_at: readAt }).eq("id", item.id).eq("user_id", userId);
+    if (!error) setNotifications(current => current.map(row => row.id === item.id ? { ...row, read_at: readAt } : row));
+  }
+
+  async function markAllNotificationsRead() {
+    if (!supabase || !userId) return;
+    const readAt = new Date().toISOString();
+    const { error } = await supabase.from("raye2_notifications").update({ read_at: readAt }).eq("user_id", userId).is("read_at", null);
+    if (error) { setStatus(t.searchError); return; }
+    setNotifications(current => current.map(row => ({ ...row, read_at: row.read_at ?? readAt })));
+  }
+
+  async function saveNotificationPreferences(next: NotificationPreferences) {
+    if (!supabase || notificationSaving) return;
+    setNotificationSaving(true);
+    const { error } = await supabase.rpc("raye2_set_notification_preferences", {
+      p_direct_messages: next.direct_messages,
+      p_group_messages: next.group_messages
+    });
+    if (error) setStatus(t.searchError);
+    else { setNotificationPreferences(next); setStatus(t.notificationSaved); }
+    setNotificationSaving(false);
+  }
+
+  function openNotification(item: NotificationItem) {
+    void markNotificationRead(item);
+    const thread = item.conversation_id ? threads.find(row => row.conversationId === item.conversation_id) : null;
+    if (thread) {
+      setSelectedId(thread.id);
+      setTab(thread.kind === "group" ? "groups" : "chats");
+      setMobilePane("chat");
+    }
+  }
 
   function broadcastTyping(typing: boolean) {
     if (!realtimeChannel.current || !userId) return;
@@ -514,13 +562,25 @@ export default function Raye2Client() {
           <div className={styles.sideTop}><div><span className={styles.kicker}>{t.rooms}</span><h2>{t.chats}</h2></div><button className={styles.iconButton} onClick={() => { setTab("chats"); setPersonQuery(""); setPeople([]); document.getElementById("raye2-people-search")?.focus(); }} aria-label={t.newMessage}>＋</button></div>
           <label className={styles.searchBox}><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder={t.search}/></label>
           <div className={styles.tabs}>
+            <button className={tab === "notifications" ? styles.activeTab : ""} onClick={() => setTab("notifications")}>{t.notifications}{notifications.some(item => !item.read_at) ? <i className={styles.notificationDot}/> : null}</button>
             <button className={tab === "chats" ? styles.activeTab : ""} onClick={() => setTab("chats")}>{t.chats}</button>
             <button className={tab === "groups" ? styles.activeTab : ""} onClick={() => setTab("groups")}>{t.groups}</button>
             <button className={tab === "discover" ? styles.activeTab : ""} onClick={() => setTab("discover")}>{t.discover}</button>
             <button className={tab === "saved" ? styles.activeTab : ""} onClick={() => setTab("saved")}>{t.saved}</button>
             <button className={tab === "memories" ? styles.activeTab : ""} onClick={() => setTab("memories")}>{t.memories}</button>
           </div>
-          {tab === "discover" ? <div className={styles.discoverPanel}>
+          {tab === "notifications" ? <div className={styles.threadList}>
+            <section className={styles.notificationSettings}>
+              <b>{t.notificationSettings}</b>
+              <label><span>{t.directNotifications}</span><input type="checkbox" checked={notificationPreferences.direct_messages} disabled={notificationSaving} onChange={event => void saveNotificationPreferences({ ...notificationPreferences, direct_messages: event.target.checked })}/></label>
+              <label><span>{t.groupNotifications}</span><input type="checkbox" checked={notificationPreferences.group_messages} disabled={notificationSaving} onChange={event => void saveNotificationPreferences({ ...notificationPreferences, group_messages: event.target.checked })}/></label>
+            </section>
+            {notifications.some(item => !item.read_at) && <button className={styles.miniButton} onClick={() => void markAllNotificationsRead()}>{t.markAllRead}</button>}
+            {notifications.map(item => <button key={item.id} className={styles.notificationItem + " " + (!item.read_at ? styles.notificationUnread : "")} onClick={() => openNotification(item)}>
+              <span className={styles.notificationGlyph}>{item.notification_type === "group_message" ? "◈" : "✉"}</span><span className={styles.notificationText}><b>{item.notification_type === "group_message" ? t.groups : t.chats}</b><span>{item.preview || (isAr ? "رسالة جديدة" : "New message")}</span><small>{relative(item.created_at, locale)}</small></span>{!item.read_at && <i/>}
+            </button>)}
+            {!notifications.length && <p className={styles.emptySmall}>{t.noNotifications}</p>}
+          </div> : tab === "discover" ? <div className={styles.discoverPanel}>
             <span className={styles.kicker}>{t.people}</span><div className={styles.searchRow}><input id="raye2-people-search" value={personQuery} onChange={event => setPersonQuery(event.target.value)} onKeyDown={event => { if (event.key === "Enter") void searchPeople(); }} placeholder={t.findPeople}/><button onClick={() => void searchPeople()}>⌕</button></div>
             {people.map(person => <article className={styles.personRow} key={person.user_id}><div className={styles.avatar}>{initials(person.display_name ?? person.handle ?? "R")}</div><div className={styles.personInfo}><b>{person.display_name ?? person.handle}</b><small>@{person.handle}</small></div><button className={styles.miniButton} onClick={() => void openDirect(person)}>{t.startChat}</button></article>)}
             <span className={styles.kicker}>{t.publicGroups}</span>
