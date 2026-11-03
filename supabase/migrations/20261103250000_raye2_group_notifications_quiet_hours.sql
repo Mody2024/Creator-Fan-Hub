@@ -103,7 +103,7 @@ begin
     and case when coalesce(pref.quiet_hours_enabled,false) then
       case when pref.quiet_hours_start < pref.quiet_hours_end
         then local_clock.local_time < pref.quiet_hours_start or local_clock.local_time >= pref.quiet_hours_end
-        else local_clock.local_time < pref.quiet_hours_start and local_clock.local_time >= pref.quiet_hours_end end
+        else local_clock.local_time < pref.quiet_hours_end or local_clock.local_time >= pref.quiet_hours_start end
       else true end
     and case when v_type='group_message' then
       case coalesce(gp.mode,'inherit')
@@ -117,7 +117,6 @@ begin
 end;
 $$;
 revoke all on function public.raye2_notify_conversation_message() from public,anon,authenticated;
-grant execute on function public.raye2_notify_conversation_message() to authenticated;
 drop trigger if exists raye2_messages_create_notifications on public.raye2_messages;
 create trigger raye2_messages_create_notifications after insert on public.raye2_messages
 for each row execute function public.raye2_notify_conversation_message();

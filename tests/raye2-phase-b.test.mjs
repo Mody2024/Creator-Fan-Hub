@@ -19,6 +19,7 @@ test("group notification overrides and quiet hours are enforced by the notificat
   assert.match(client, /groupNotificationPreferences/);
   assert.match(groupNotificationsMigration, /raye2_group_notification_preferences/);
   assert.match(groupNotificationsMigration, /quiet_hours_timezone/);
+  assert.ok(groupNotificationsMigration.includes("local_clock.local_time < pref.quiet_hours_end or local_clock.local_time >= pref.quiet_hours_start"));
   assert.match(groupNotificationsMigration, /local_clock\.local_time/);
   assert.match(groupNotificationsMigration, /'muted'/);
 });
