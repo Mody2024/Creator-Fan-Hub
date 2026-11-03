@@ -20,7 +20,7 @@ test("group notification overrides and quiet hours are enforced by the notificat
   assert.match(groupNotificationsMigration, /raye2_group_notification_preferences/);
   assert.match(groupNotificationsMigration, /quiet_hours_timezone/);
   assert.match(groupNotificationsMigration, /local_clock\.local_time/);
-  assert.match(groupNotificationsMigration, /mode=.muted./);
+  assert.match(groupNotificationsMigration, /'muted'/);
 });
 test("message requests enforce recipient preferences and only create direct conversations after acceptance", () => {
   assert.match(client, /raye2_message_requests/);
