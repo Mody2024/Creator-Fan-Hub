@@ -75,6 +75,7 @@ begin
 end;
 $$;
 revoke all on function public.raye2_notify_conversation_message() from public,anon,authenticated;
+grant execute on function public.raye2_notify_conversation_message() to authenticated;
 drop trigger if exists raye2_messages_create_notifications on public.raye2_messages;
 create trigger raye2_messages_create_notifications
 after insert on public.raye2_messages
