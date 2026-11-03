@@ -26,8 +26,13 @@
 - [x] Public member search and realtime message/group refresh foundation
 - [ ] Presence, typing, delivery/read states and notifications
 - [x] Public group discovery, private/public group creation and public joining
-- [ ] Private invite links, join requests and moderation
-- [ ] Shared Memories interface and expiry warnings
+- [x] Private invite link backend with hashed tokens, expiry/use limits and revocation
+- [x] Invite acceptance route with sign-in continuation preserving the token
+- [x] Shared Memories message-saving backend and workspace view
+- [x] Private join-request backend with manager approval/decline RPCs
+- [x] Audited group role-change and member-removal RPCs
+- [ ] Join-request and member-moderation UI
+- [ ] Shared-memory expiry warnings and export
 
 ### Phase C — Voice
 - [ ] Private WebRTC calls

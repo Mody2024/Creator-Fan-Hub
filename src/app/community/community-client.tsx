@@ -64,6 +64,14 @@ export default function CommunityClient({ initialPosts, selectedFeed, unreadNoti
   useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
   useEffect(() => {
+    if (!member) return;
+    const token = new URLSearchParams(window.location.search).get("raye2_invite");
+    if (token && token.length >= 32 && token.length <= 256) {
+      router.replace("/raye2/invite?token=" + encodeURIComponent(token));
+    }
+  }, [member, router]);
+
+  useEffect(() => {
     if (!supabase) return;
     let alive = true;
     void supabase.auth.getUser().then(async ({ data }: { data: { user: { id: string } | null } }) => {
