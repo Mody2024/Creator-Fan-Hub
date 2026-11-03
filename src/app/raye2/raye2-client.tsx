@@ -173,6 +173,12 @@ export default function Raye2Client() {
     return () => { alive = false; authListener.subscription.unsubscribe(); };
   }, [supabase, loadData, t.failed]);
 
+  const selected = threads.find(thread => thread.id === selectedId) ?? null;
+  const selectedGroup = selected?.groupId ? groups.find(group => group.id === selected.groupId) ?? null : null;
+  const canManageSelectedGroup = Boolean(selectedGroup && ["owner", "admin", "moderator"].includes(selectedGroup.memberRole ?? "member"));
+  const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
+  const currentMessages = messages.filter(message => selected && message.conversation_id === selected.conversationId);
+
   useEffect(() => {
     if (!supabase || !userId || !selected?.conversationId) {
       setOnlineUserIds([]); setTypingUserIds([]);
@@ -180,11 +186,11 @@ export default function Raye2Client() {
     }
     const channel = supabase.channel("raye2-room-" + selected.conversationId, { config: { presence: { key: userId } } })
       .on("presence", { event: "sync" }, () => {
-        const state = channel.presenceState<{ user_id: string }>();
-        const ids = Object.values(state).flat().map(item => item.user_id).filter(Boolean);
+        const state = channel.presenceState() as Record<string, Array<{ user_id?: string }>>;
+        const ids = Object.values(state).flatMap(items => items.map(item => item.user_id).filter((id): id is string => Boolean(id)));
         setOnlineUserIds([...new Set(ids)]);
       })
-      .on("broadcast", { event: "typing" }, ({ payload }) => {
+      .on("broadcast", { event: "typing" }, ({ payload }: { payload?: { user_id?: unknown; typing?: unknown } }) => {
         const sender = typeof payload?.user_id === "string" ? payload.user_id : "";
         if (!sender || sender === userId) return;
         if (payload?.typing === false) {
@@ -204,7 +210,7 @@ export default function Raye2Client() {
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_messages" }, () => { void loadData(userId); })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_group_members" }, () => { void loadData(userId); })
-      .subscribe(async status => {
+      .subscribe(async (status: string) => {
         if (status === "SUBSCRIBED") await channel.track({ user_id: userId, online_at: new Date().toISOString() });
       });
     realtimeChannel.current = channel;
@@ -221,7 +227,7 @@ export default function Raye2Client() {
     if (!supabase || !userId || !selected?.conversationId) return;
     const hasUnread = currentMessages.some(message => message.sender_id !== userId);
     if (!hasUnread) return;
-    void supabase.rpc("raye2_mark_conversation_read", { p_conversation_id: selected.conversationId }).then(({ error }) => {
+    void supabase.rpc("raye2_mark_conversation_read", { p_conversation_id: selected.conversationId }).then(({ error }: { error: unknown }) => {
       if (!error) setThreads(current => current.map(thread => thread.conversationId === selected.conversationId ? { ...thread, unread: 0 } : thread));
     });
   }, [supabase, userId, selected?.conversationId, currentMessages.length]);
@@ -231,11 +237,6 @@ export default function Raye2Client() {
     void realtimeChannel.current.send({ type: "broadcast", event: "typing", payload: { user_id: userId, typing } });
   }
 
-  const selected = threads.find(thread => thread.id === selectedId) ?? null;
-  const selectedGroup = selected?.groupId ? groups.find(group => group.id === selected.groupId) ?? null : null;
-  const canManageSelectedGroup = Boolean(selectedGroup && ["owner", "admin", "moderator"].includes(selectedGroup.memberRole ?? "member"));
-  const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
-  const currentMessages = messages.filter(message => selected && message.conversation_id === selected.conversationId);
 
   useEffect(() => {
     if (!showGroupManage || !supabase || !selectedGroup || !canManageSelectedGroup) return;
