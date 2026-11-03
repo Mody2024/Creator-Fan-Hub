@@ -131,13 +131,13 @@ export default function Raye2Client() {
   useEffect(() => {
     if (!supabase) return;
     let alive = true;
-    void supabase.auth.getUser().then(async ({ data, error }) => {
+    void supabase.auth.getUser().then(async ({ data, error }: { data: { user: { id: string } | null }; error: unknown }) => {
       if (!alive) return;
       if (error || !data.user) { setUserId(null); return; }
       setUserId(data.user.id);
       try { await loadData(data.user.id); } catch { setStatus(t.failed); }
     });
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event: string, session: { user: { id: string } } | null) => {
       if (!alive) return;
       if (!session?.user) { setUserId(null); setProfile(null); setThreads([]); }
       else { setUserId(session.user.id); void loadData(session.user.id).catch(() => setStatus(t.failed)); }

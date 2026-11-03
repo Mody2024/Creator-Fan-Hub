@@ -15,6 +15,7 @@ test("messaging UI covers group creation, public discovery, replies and reaction
   assert.match(client, /raye2_create_group/); assert.match(client, /raye2_join_public_group/);
   assert.match(client, /parent_message_id/); assert.match(client, /raye2_message_reactions/);
   assert.match(client, /raye2_bookmark_message/);
+  assert.match(client, /baseSlug.length >= 2 \? baseSlug : "group"/);
 });
 test("messages are bounded and realtime refresh is published", () => {
   assert.match(client, /maxLength=\{5000\}/); assert.match(client, /limit\(600\)/);
@@ -33,7 +34,7 @@ test("read-only groups cannot submit messages from the client", () => {
 test("recording consent and production restrictions remain confirmed requirements", () => {
   assert.match(plan, /Recording is \*\*off by default\*\*/);
   assert.match(plan, /every participant has actively consented/);
-  assert.match(plan, /Private groups remain private/);
+  assert.match(plan, /private groups remain private/);
   assert.match(plan, /No production deployment or merge to \x60main\x60 is authorized/);
 });
 test("workspace has responsive mobile and reduced-motion styling", () => {
