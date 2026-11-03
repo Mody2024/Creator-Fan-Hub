@@ -5,6 +5,16 @@
 - Implementation branch: \`development\`
 - Production/main: unchanged; no merge or deployment authorized.
 
+## Progress snapshot — 2026-11-04
+- Phase A — Foundations: **92%**
+- Phase B — Messaging and groups: **92%**
+- Phase C — Voice: **75%**
+- Phase D — Watch Together: **88%**
+- Phase E — Hardening: **0%**
+- Overall plan completion: **approximately 69%**
+
+Percentages reflect implemented and repository-verified scope. External service deployment, Supabase migration application, and live multi-device acceptance are not counted as complete.
+
 ## Current delivery status
 
 ### Phase A — Foundations
@@ -16,7 +26,7 @@
 - [x] Cleanup preview request model with explicit chat/memory preservation flags
 - [x] Admin audit log designed as append-only
 - [x] Membership-scoped RLS and guarded group/DM/invite/admin RPCs
-- [x] Initial database migration and contract tests committed to development (not yet applied to Supabase)
+- [x] Raye2 database migrations and contract tests committed to development (not yet applied to Supabase)
 - [ ] Runtime RLS and RPC integration tests
 - [x] Reuse existing account-blocking records in Raye2 DM discovery and conversation controls
 - [x] Message/account reporting workflow with membership-checked submission
