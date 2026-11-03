@@ -8,6 +8,7 @@ type VoiceSession = {
   id: string;
   conversation_id: string;
   created_by: string;
+  session_type: "private_call" | "group_room";
   status: "ringing" | "active" | "ended" | "declined" | "cancelled" | "expired";
   expires_at: string;
 };
@@ -21,8 +22,8 @@ type SignalPayload = {
 type VoiceProps = {
   supabase: SupabaseClient;
   userId: string;
-  conversationId: string;
-  peerUserId: string;
+  conversationId: string | null;
+  peerUserId: string | null;
   peerName: string;
   locale: "en" | "ar";
 };
@@ -55,6 +56,14 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [remoteAudioReady, setRemoteAudioReady] = useState(false);
+  const [activePeerName, setActivePeerName] = useState("");
+  const [activePeerId, setActivePeerId] = useState<string | null>(null);
+  const inputDeviceIdRef = useRef("");
+  const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]);
+  const [audioOutputs, setAudioOutputs] = useState<MediaDeviceInfo[]>([]);
+  const [inputDeviceId, setInputDeviceId] = useState("");
+  const [outputDeviceId, setOutputDeviceId] = useState("");
+  const [quality, setQuality] = useState<"unknown" | "good" | "fair" | "poor">("unknown");
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
   const channelRef = useRef<ReturnType<SupabaseClient["channel"]> | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -110,11 +119,13 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
 
   const getMicrophone = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) throw new Error(copy.permission);
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-      video: false
-    });
+    const audio: MediaTrackConstraints = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+    if (inputDeviceIdRef.current) audio.deviceId = { exact: inputDeviceIdRef.current };
+    const stream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
     localStreamRef.current = stream;
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    setAudioInputs(devices.filter(device => device.kind === "audioinput"));
+    setAudioOutputs(devices.filter(device => device.kind === "audiooutput"));
     return stream;
   }, [copy.permission]);
 
@@ -176,6 +187,8 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
       if (joinError) throw joinError;
       setIncoming(null);
       setSession(call);
+      setActivePeerName(call.callerName);
+      setActivePeerId(call.created_by);
       setRole("guest");
       setCallState("connecting");
     } catch {
@@ -191,12 +204,15 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     setBusy(true);
     setError("");
     try {
+      if (!conversationId || !peerUserId) throw new Error("Select a direct conversation first");
       const { data, error: createError } = await supabase.rpc("raye2_create_voice_session", {
         p_conversation_id: conversationId,
         p_session_type: "private_call"
       });
       if (createError || !data) throw createError ?? new Error("Call could not be created");
-      setSession({ id: data as string, conversation_id: conversationId, created_by: userId, status: "ringing", expires_at: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString() });
+      setSession({ id: data as string, conversation_id: conversationId, created_by: userId, session_type: "private_call", status: "ringing", expires_at: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString() });
+      setActivePeerName(peerName);
+      setActivePeerId(peerUserId);
       setRole("host");
       setCallState("calling");
     } catch {
@@ -204,7 +220,7 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     } finally {
       setBusy(false);
     }
-  }, [busy, conversationId, copy.unavailable, session, supabase, userId]);
+  }, [busy, conversationId, copy.unavailable, peerName, peerUserId, session, supabase, userId]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -212,13 +228,17 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     let active = true;
     const loadIncoming = async () => {
       const { data } = await supabase.from("raye2_voice_participants")
-        .select("session_id,session:raye2_voice_sessions!inner(id,conversation_id,created_by,status,expires_at)")
+        .select("session_id,session:raye2_voice_sessions!inner(id,conversation_id,created_by,status,expires_at,session_type)")
         .eq("user_id", userId).eq("status", "invited");
       if (!active || !data) return;
       const match = (data as unknown as Array<{ session: VoiceSession | VoiceSession[] | null }>)
         .map(row => Array.isArray(row.session) ? row.session[0] : row.session)
-        .find(item => item && item.conversation_id === conversationId && item.status === "ringing" && new Date(item.expires_at).getTime() > Date.now());
-      if (match) setIncoming({ ...match, callerName: peerName });
+        .find(item => item && item.session_type === "private_call" && item.status === "ringing" && new Date(item.expires_at).getTime() > Date.now());
+      if (match) {
+        const { data: caller } = await supabase.from("member_profiles").select("display_name,handle").eq("user_id", match.created_by).maybeSingle();
+        if (!active) return;
+        setIncoming({ ...match, callerName: caller?.display_name || (caller?.handle ? "@" + caller.handle : (isAr ? "عضو Raye2" : "Raye2 member")) });
+      } else setIncoming(null);
     };
     void loadIncoming();
     const channel = supabase.channel("raye2:voice-invites:" + userId)
@@ -231,7 +251,7 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
       void closeChannel();
       cleanupMedia();
     };
-  }, [cleanupMedia, closeChannel, conversationId, peerName, supabase, userId]);
+  }, [cleanupMedia, closeChannel, isAr, supabase, userId]);
 
   useEffect(() => {
     if (!session || !role) return;
@@ -242,7 +262,7 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     channelRef.current = channel;
 
     channel.on("broadcast", { event: "signal" }, async ({ payload }: { payload: SignalPayload }) => {
-      if (!active || !payload || payload.from !== (role === "host" ? peerUserId : session.created_by)) return;
+      if (!active || !payload || payload.from !== (role === "host" ? activePeerId : session.created_by)) return;
       try {
         if (payload.kind === "ready" && role === "host" && !offerStartedRef.current) {
           offerStartedRef.current = true;
@@ -268,11 +288,13 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
           cleanupMedia();
           setSession(null);
           setRole(null);
+          setActivePeerName("");
+          setActivePeerId(null);
           setCallState("idle");
           await closeChannel();
         }
-      } catch {
-        setError(copy.failed);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : copy.failed);
       }
     });
 
@@ -292,7 +314,61 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
       if (channelRef.current === channel) channelRef.current = null;
       void supabase.removeChannel(channel);
     };
-  }, [cleanupMedia, closeChannel, copy.failed, createPeer, peerUserId, role, sendSignal, session, supabase, userId]);
+  }, [activePeerId, cleanupMedia, closeChannel, copy.failed, createPeer, role, sendSignal, session, supabase, userId]);
+
+  const changeInputDevice = async (deviceId: string) => {
+    setInputDeviceId(deviceId);
+    inputDeviceIdRef.current = deviceId;
+    if (!peerRef.current || !localStreamRef.current || !navigator.mediaDevices?.getUserMedia) return;
+    try {
+      const audio: MediaTrackConstraints = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+      if (deviceId) audio.deviceId = { exact: deviceId };
+      const nextStream = await navigator.mediaDevices.getUserMedia({ audio, video: false });
+      const nextTrack = nextStream.getAudioTracks()[0];
+      const sender = peerRef.current.getSenders().find(item => item.track?.kind === "audio");
+      if (!nextTrack || !sender) throw new Error("Audio input could not be changed");
+      nextTrack.enabled = !muted;
+      await sender.replaceTrack(nextTrack);
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = nextStream;
+    } catch {
+      setError(copy.failed);
+    }
+  };
+
+  const changeOutputDevice = async (deviceId: string) => {
+    setOutputDeviceId(deviceId);
+    const audio = remoteAudio.current as (HTMLAudioElement & { setSinkId?: (id: string) => Promise<void> }) | null;
+    if (!audio?.setSinkId) return;
+    try { await audio.setSinkId(deviceId); } catch { setError(copy.failed); }
+  };
+
+  useEffect(() => {
+    const peer = peerRef.current;
+    if (callState !== "connected" || !peer) return;
+    let active = true;
+    const inspect = async () => {
+      try {
+        const stats = await peer.getStats();
+        let roundTrip = 0;
+        let lost = 0;
+        let received = 0;
+        stats.forEach(report => {
+          const row = report as RTCStats & { currentRoundTripTime?: number; packetsLost?: number; packetsReceived?: number; nominated?: boolean; state?: string; kind?: string; mediaType?: string };
+          if (row.type === "candidate-pair" && row.state === "succeeded" && row.nominated && row.currentRoundTripTime !== undefined) roundTrip = row.currentRoundTripTime * 1000;
+          if (row.type === "inbound-rtp" && (row.kind === "audio" || row.mediaType === "audio")) {
+            lost += row.packetsLost ?? 0;
+            received += row.packetsReceived ?? 0;
+          }
+        });
+        const loss = lost + received > 0 ? lost / (lost + received) : 0;
+        if (active) setQuality(roundTrip > 300 || loss > 0.05 ? "poor" : roundTrip > 150 || loss > 0.02 ? "fair" : "good");
+      } catch { if (active) setQuality("unknown"); }
+    };
+    void inspect();
+    const timer = window.setInterval(() => { void inspect(); }, 4000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [callState]);
 
   const toggleMute = () => {
     const next = !muted;
@@ -313,12 +389,16 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     <div className={styles.voiceActive} role="status">
       <audio ref={remoteAudio} autoPlay playsInline />
       <span className={styles.voicePulse}>◉</span>
-      <div><b>{callState === "connected" ? (isAr ? "المكالمة متصلة" : "Call connected") : callState === "calling" ? (isAr ? "جارٍ الاتصال…" : "Calling…") : (isAr ? "جارٍ توصيل الصوت…" : "Connecting audio…")}</b><small>{peerName}{remoteAudioReady ? " · " + (isAr ? "الصوت يعمل" : "Audio ready") : ""}</small></div>
+      <div><b>{callState === "connected" ? (isAr ? "المكالمة متصلة" : "Call connected") : callState === "calling" ? (isAr ? "جارٍ الاتصال…" : "Calling…") : (isAr ? "جارٍ توصيل الصوت…" : "Connecting audio…")}</b><small>{activePeerName}{remoteAudioReady ? " · " + (isAr ? "الصوت يعمل" : "Audio ready") : ""} · {isAr ? "الجودة: " : "Quality: "}{quality === "good" ? (isAr ? "جيدة" : "Good") : quality === "fair" ? (isAr ? "متوسطة" : "Fair") : quality === "poor" ? (isAr ? "ضعيفة" : "Poor") : "—"}</small></div>
+      {audioInputs.length > 1 && <select aria-label={isAr ? "الميكروفون" : "Microphone"} value={inputDeviceId} onChange={event => void changeInputDevice(event.target.value)}><option value="">{isAr ? "الميكروفون الافتراضي" : "Default mic"}</option>{audioInputs.map(device => <option key={device.deviceId} value={device.deviceId}>{device.label || (isAr ? "ميكروفون" : "Microphone")}</option>)}</select>}
+      {audioOutputs.length > 1 && <select aria-label={isAr ? "مخرج الصوت" : "Audio output"} value={outputDeviceId} onChange={event => void changeOutputDevice(event.target.value)}><option value="">{isAr ? "مخرج الصوت الافتراضي" : "Default output"}</option>{audioOutputs.map(device => <option key={device.deviceId} value={device.deviceId}>{device.label || (isAr ? "مخرج صوت" : "Audio output")}</option>)}</select>}
       <button type="button" onClick={toggleMute} disabled={!localStreamRef.current}>{muted ? (isAr ? "إلغاء الكتم" : "Unmute") : (isAr ? "كتم" : "Mute")}</button>
       <button type="button" className={styles.voiceEnd} onClick={() => void finishCall(false)}>{isAr ? "إنهاء" : "End"}</button>
       {error && <small className={styles.voiceError}>{error}</small>}
     </div>
   );
+
+  if (!conversationId || !peerUserId) return null;
 
   return (
     <div className={styles.voiceControls}>

@@ -53,6 +53,8 @@
 - [x] Participant-scoped private Realtime signaling authorization policies
 - [x] Voice control-plane contract tests
 - [x] Browser-to-browser WebRTC audio negotiation, microphone permission on explicit call action, mute, remote audio and peer-identity-checked signaling
+- [x] Incoming private-call invitations surface across conversations, with caller identity and accept/decline controls
+- [x] Audio input/output device selection where browser support allows, microphone switching, and measured RTT/packet-loss quality status
 - [ ] Production TURN relay credentials/configuration and network-path verification
 - [ ] Group voice SFU integration and participant media controls
 - [ ] Reconnection, ICE restart and quality telemetry

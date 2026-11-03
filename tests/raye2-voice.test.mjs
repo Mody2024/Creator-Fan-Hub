@@ -161,3 +161,29 @@ test("the direct-message header only renders voice controls for a signed-in dire
   assert.match(client, /Raye2VoiceControls/);
   assert.match(client, /selected\.kind === "direct" && selected\.otherUserId && supabase && userId/);
 });
+
+
+test("incoming private-call invitations are discovered across conversations, not only the open chat", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /session_type === "private_call" && item\.status === "ringing"/);
+  assert.doesNotMatch(component, /item\.conversation_id === conversationId/);
+  assert.match(client, /voiceGlobalWrap/);
+});
+
+test("active private calls retain their original peer when the user changes chats", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /setActivePeerId\(call\.created_by\)/);
+  assert.match(component, /setActivePeerId\(peerUserId\)/);
+  assert.match(component, /payload\.from !== \(role === "host" \? activePeerId : session\.created_by\)/);
+});
+
+test("private voice controls provide device selection and measured connection quality", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /enumerateDevices/);
+  assert.match(component, /replaceTrack/);
+  assert.match(component, /setSinkId/);
+  assert.match(component, /getStats/);
+  assert.match(component, /currentRoundTripTime/);
+  assert.match(component, /packetsLost/);
+  assert.match(component, /Quality:/);
+});
