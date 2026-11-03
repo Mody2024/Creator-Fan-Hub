@@ -29,9 +29,9 @@ test("native Watch Together sources require a published ready Raye2 video catalo
 });
 
 test("external Watch Together sources are HTTPS allowlisted and never copied into Raye2 storage", () => {
-  assert.match(migration, /youtube[.]com\/watch/);
-  assert.match(migration, /youtu[.]be/);
-  assert.match(migration, /vimeo[.]com/);
+  assert.ok(migration.includes("youtube[.]com/watch"));
+  assert.ok(migration.includes("youtu[.]be"));
+  assert.ok(migration.includes("vimeo[.]com"));
   assert.match(migration, /p_external_url ~\* '\^https:\/\//);
   assert.doesNotMatch(migration, /insert into public\.media_items/);
 });
