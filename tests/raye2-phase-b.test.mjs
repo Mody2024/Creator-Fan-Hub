@@ -9,6 +9,8 @@ const [migration, client, invitePage] = await Promise.all([
 ]);
 test("private invites use expiring hashed tokens and manager-only revocation", () => {
   assert.match(migration, /raye2_revoke_group_invite/);
+  assert.match(migration, /group_invite_created/);
+  assert.match(migration, /extensions\.digest\(p_token,'sha256'\)/);
   assert.match(migration, /group manager access required/);
   assert.match(client, /raye2_create_group_invite/);
   assert.match(client, /crypto\.getRandomValues/);

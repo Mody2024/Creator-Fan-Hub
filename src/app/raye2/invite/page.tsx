@@ -21,6 +21,11 @@ export default function Raye2InvitePage() {
       setReady(true);
       return;
     }
+    if (!supabase) {
+      setMessage("Community sign-in is not configured yet. Please contact the site owner.");
+      setReady(true);
+      return;
+    }
     const signInUrl = "/community?raye2_invite=" + encodeURIComponent(token) + "#join";
     setContinueUrl(signInUrl);
     void supabase.auth.getUser().then(async ({ data, error }) => {

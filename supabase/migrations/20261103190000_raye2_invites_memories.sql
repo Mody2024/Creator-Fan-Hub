@@ -167,3 +167,36 @@ grant select on public.raye2_group_join_requests to authenticated;
 create policy "Raye2 users and managers read join requests" on public.raye2_group_join_requests for select to authenticated
 using (user_id=(select auth.uid()) or public.raye2_is_group_manager(group_id));
 revoke insert,update,delete on public.raye2_group_join_requests from anon,authenticated;
+
+
+-- Record invite creation as well as revocation so group access changes are auditable.
+create or replace function public.raye2_create_group_invite(
+  p_group_id uuid,p_token text,p_expires_at timestamptz,p_max_uses integer default null
+)
+returns uuid language plpgsql security definer set search_path=''
+as $$
+declare v_id uuid;
+begin
+  if auth.uid() is null or not public.raye2_is_group_manager(p_group_id) then
+    raise exception 'group manager access required' using errcode='42501';
+  end if;
+  if p_token is null or length(p_token)<32 or length(p_token)>256 then
+    raise exception 'invalid invite token' using errcode='22023';
+  end if;
+  if p_expires_at is null or p_expires_at<=now() or p_expires_at>now()+interval '90 days' then
+    raise exception 'invite expiry must be within 90 days' using errcode='22023';
+  end if;
+  if p_max_uses is not null and p_max_uses not between 1 and 10000 then
+    raise exception 'invalid invite use limit' using errcode='22023';
+  end if;
+  insert into public.raye2_group_invites(group_id,token_hash,created_by,expires_at,max_uses)
+  values(p_group_id,encode(extensions.digest(p_token,'sha256'),'hex'),auth.uid(),p_expires_at,p_max_uses)
+  returning id into v_id;
+  insert into public.raye2_admin_audit_log(actor_id,action,target_type,target_id,reason,details)
+  values(auth.uid(),'group_invite_created','group_invite',v_id::text,'Invite created',
+    jsonb_build_object('group_id',p_group_id,'expires_at',p_expires_at,'max_uses',p_max_uses));
+  return v_id;
+end;
+$$;
+revoke all on function public.raye2_create_group_invite(uuid,text,timestamptz,integer) from public,anon;
+grant execute on function public.raye2_create_group_invite(uuid,text,timestamptz,integer) to authenticated;
