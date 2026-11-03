@@ -28,7 +28,7 @@ export default function Raye2InvitePage() {
     }
     const signInUrl = "/community?raye2_invite=" + encodeURIComponent(token) + "#join";
     setContinueUrl(signInUrl);
-    void supabase.auth.getUser().then(async ({ data, error }) => {
+    void supabase.auth.getUser().then(async ({ data, error }: { data: { user: { id: string } | null }; error: unknown }) => {
       if (!alive) return;
       if (error || !data.user) {
         setMessage("Sign in or create your free community account to accept this private group invitation. Your invite will be kept while you sign in.");

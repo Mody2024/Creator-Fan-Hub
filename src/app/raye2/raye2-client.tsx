@@ -93,7 +93,7 @@ export default function Raye2Client() {
     const { data: ownGroups } = groupIds.length
       ? await supabase.from("raye2_groups").select("id,name,slug,description,visibility,status,conversation_id,owner_id").in("id", groupIds)
       : { data: [] };
-    const roleMap = new Map((memberships ?? []).map((row: { group_id: string; role: Group["memberRole"] }) => [row.group_id, row.role]));
+    const roleMap = new Map<string, NonNullable<Group["memberRole"]>>((memberships ?? []).map((row: { group_id: string; role: NonNullable<Group["memberRole"]> }) => [row.group_id, row.role]));
     const groupRows = ((ownGroups ?? []) as Group[]).map(group => ({ ...group, memberRole: roleMap.get(group.id) ?? "member" }));
     setGroups(groupRows);
     setDiscoverGroups((publicGroups ?? []) as Group[]);
