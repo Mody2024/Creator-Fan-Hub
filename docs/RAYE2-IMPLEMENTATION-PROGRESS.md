@@ -43,7 +43,8 @@
 - [x] Audited group role-change and member-removal RPCs
 - [x] Join-request approval/decline inbox and member role/removal controls
 - [x] Shared-memory expiry warnings, permanent-preservation and pin controls
-- [ ] Shared-memory export and per-group collection permissions
+- [x] Per-group Shared Memories contribution/export policies enforced by RLS and guarded RPCs
+- [x] Member-authorized JSON metadata export with expiry filtering (media files remain external and are not copied)
 
 ### Phase C — Voice
 - [ ] Private WebRTC calls

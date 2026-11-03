@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration, pinsMigration, requestsMigration, groupNotificationsMigration] = await Promise.all([
+const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration, pinsMigration, requestsMigration, groupNotificationsMigration, memoryPermissionsMigration] = await Promise.all([
   read("../supabase/migrations/20261103190000_raye2_invites_memories.sql"),
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/invite/page.tsx"),
@@ -11,7 +11,8 @@ const [migration, client, invitePage, realtimeMigration, notificationMigration, 
   read("../supabase/migrations/20261103220000_raye2_safety_controls.sql"),
   read("../supabase/migrations/20261103230000_raye2_search_pins.sql"),
   read("../supabase/migrations/20261103240000_raye2_message_requests.sql"),
-  read("../supabase/migrations/20261103250000_raye2_group_notifications_quiet_hours.sql")
+  read("../supabase/migrations/20261103250000_raye2_group_notifications_quiet_hours.sql"),
+  read("../supabase/migrations/20261103260000_raye2_shared_memory_permissions_export.sql")
 ]);
 test("group notification overrides and quiet hours are enforced by the notification trigger", () => {
   assert.match(client, /raye2_set_group_notification_preference/);
@@ -112,4 +113,27 @@ test("Shared Memories are idempotent and only capture a member-visible group mes
   assert.match(migration, /c\.group_id=p_group_id/);
   assert.match(client, /raye2_save_shared_memory/);
   assert.match(client, /Shared Memories/);
+});
+test("Shared Memories contribution settings are enforced in RLS and the save RPC", () => {
+  assert.match(memoryPermissionsMigration, /raye2_group_memory_settings/);
+  assert.match(memoryPermissionsMigration, /raye2_set_group_memory_settings/);
+  assert.match(memoryPermissionsMigration, /contribution_policy/);
+  assert.match(memoryPermissionsMigration, /Shared Memories contributions are restricted/);
+  assert.match(memoryPermissionsMigration, /raye2_guard_shared_memory_identity/);
+  assert.match(memoryPermissionsMigration, /raye2_save_shared_memory/);
+});
+test("Shared Memories export is membership and policy gated and excludes expired entries", () => {
+  assert.match(memoryPermissionsMigration, /raye2_export_shared_memories/);
+  assert.match(memoryPermissionsMigration, /Shared Memories export is restricted/);
+  assert.match(memoryPermissionsMigration, /m\.expires_at is null or m\.expires_at>now\(\)/);
+  assert.match(client, /raye2_export_shared_memories/);
+  assert.match(client, /application\/json/);
+  assert.match(client, /anchor\.download/);
+});
+test("Group managers can configure memory permissions in English and Arabic", () => {
+  assert.match(client, /raye2_set_group_memory_settings/);
+  assert.match(client, /memorySettings\.contribution_policy/);
+  assert.match(client, /memorySettings\.export_policy/);
+  assert.match(client, /Shared Memories permissions/);
+  assert.match(client, /صلاحيات الذكريات المشتركة/);
 });
