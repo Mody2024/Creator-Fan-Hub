@@ -52,9 +52,10 @@
 - [x] Recording-off defaults and unanimous consent state machine, including late-joiner consent reset and stop-on-decline/withdrawal
 - [x] Participant-scoped private Realtime signaling authorization policies
 - [x] Voice control-plane contract tests
-- [ ] Browser WebRTC media transport, TURN configuration and device controls
+- [x] Browser-to-browser WebRTC audio negotiation, microphone permission on explicit call action, mute, remote audio and peer-identity-checked signaling
+- [ ] Production TURN relay credentials/configuration and network-path verification
 - [ ] Group voice SFU integration and participant media controls
-- [ ] Reconnection and quality telemetry
+- [ ] Reconnection, ICE restart and quality telemetry
 - [ ] Consent-gated recording media pipeline, storage access and retention
 
 ### Phase D — Watch Together and events

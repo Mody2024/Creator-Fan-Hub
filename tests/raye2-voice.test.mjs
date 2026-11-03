@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [voice, foundations, plan, client] = await Promise.all([
@@ -117,8 +118,46 @@ test("voice implementation remains aligned with the confirmed plan and does not 
 });
 
 test("voice sessions and consent events publish for realtime invitation and room refresh", () => {
-  assert.match(voice, /alter publication supabase_realtime add table public\\.%I/);
+  assert.ok(voice.includes("alter publication supabase_realtime add table public.%I"));
   assert.match(voice, /'raye2_voice_sessions'/);
   assert.match(voice, /'raye2_voice_participants'/);
   assert.match(voice, /'raye2_voice_recording_consent_events'/);
+});
+
+
+test("private call UI uses explicit user action before requesting microphone access", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /getUserMedia/);
+  assert.match(component, /onClick=\{\(\) => void startCall\(\)\}/);
+  assert.match(component, /onClick=\{\(\) => void acceptCall\(incoming\)\}/);
+  assert.match(component, /raye2_create_voice_session/);
+  assert.match(component, /raye2_join_voice_session/);
+  assert.match(component, /RTCPeerConnection/);
+  assert.match(component, /createOffer/);
+  assert.match(component, /createAnswer/);
+  assert.match(component, /addIceCandidate/);
+  assert.match(component, /onicecandidate/);
+  assert.match(component, /track\.enabled = !next/);
+});
+
+test("private call UI does not start microphone capture during render or initial effects", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /const getMicrophone = useCallback/);
+  assert.match(component, /const startCall = useCallback/);
+  assert.match(component, /const acceptCall = useCallback/);
+  assert.match(component, /await navigator\.mediaDevices\.getUserMedia/);
+  assert.match(component, /await getMicrophone\(\)/);
+});
+
+test("private call signaling validates the peer identity and cleans up local media", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /payload\.from !==/);
+  assert.match(component, /localStreamRef\.current\?\.getTracks\(\)\.forEach/);
+  assert.match(component, /supabase\.removeChannel/);
+  assert.match(component, /NEXT_PUBLIC_RAYE2_ICE_SERVERS/);
+});
+
+test("the direct-message header only renders voice controls for a signed-in direct peer", () => {
+  assert.match(client, /Raye2VoiceControls/);
+  assert.match(client, /selected\.kind === "direct" && selected\.otherUserId && supabase && userId/);
 });
