@@ -190,10 +190,11 @@ export default function Raye2Client() {
   async function createGroup() {
     if (!supabase || !userId || busy) return;
     setBusy(true); setStatus("");
-    const slug = groupName.trim().toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
-    if (groupName.trim().length < 2 || slug.length < 2) { setStatus(t.createError); setBusy(false); return; }
+    const baseSlug = groupName.trim().toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 52);
+    if (groupName.trim().length < 2) { setStatus(t.createError); setBusy(false); return; }
+    const slug = (baseSlug.length >= 2 ? baseSlug : "group") + "-" + crypto.randomUUID().slice(0, 8);
     try {
-      const { data, error } = await supabase.rpc("raye2_create_group", { p_name: groupName.trim(), p_slug: slug + "-" + crypto.randomUUID().slice(0, 8), p_visibility: groupVisibility, p_description: groupDescription.trim() });
+      const { data, error } = await supabase.rpc("raye2_create_group", { p_name: groupName.trim(), p_slug: slug, p_visibility: groupVisibility, p_description: groupDescription.trim() });
       if (error) throw error;
       await loadData(userId);
       const created = (await supabase.from("raye2_groups").select("conversation_id").eq("id", data).single()).data;
@@ -251,12 +252,16 @@ export default function Raye2Client() {
     const isSaved = savedIds.includes(message.id);
     if (isSaved) {
       const result = await supabase.from("raye2_message_bookmarks").delete().eq("message_id", message.id).eq("user_id", userId);
-      if (!result.error) setSavedIds(current => current.filter(id => id !== message.id));
-      else setStatus(t.searchError);
+      if (!result.error) {
+        setSavedIds(current => current.filter(id => id !== message.id));
+        setSavedItems(current => current.filter(item => item.message_id !== message.id));
+      } else setStatus(t.searchError);
     } else {
       const result = await supabase.rpc("raye2_bookmark_message", { p_message_id: message.id });
-      if (!result.error) setSavedIds(current => [...current, message.id]);
-      else setStatus(t.searchError);
+      if (!result.error) {
+        setSavedIds(current => [...current, message.id]);
+        setSavedItems(current => [...current, { id: "local-" + message.id, message_id: message.id, saved_content: { body: message.body, sender_id: message.sender_id, created_at: message.created_at }, created_at: new Date().toISOString() }]);
+      } else setStatus(t.searchError);
     }
   }
 
