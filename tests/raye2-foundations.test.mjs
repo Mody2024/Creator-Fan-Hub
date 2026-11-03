@@ -9,7 +9,7 @@ test("Raye2 foundations create private group, DM, message and preservation model
     "raye2_groups", "raye2_group_members", "raye2_conversations",
     "raye2_conversation_members", "raye2_group_invites", "raye2_messages",
     "raye2_message_reactions", "raye2_message_bookmarks", "raye2_shared_memories"
-  ]) assert.match(migration, new RegExp("create table if not exists public\\\\." + table + "\\\\b"));
+  ]) assert.match(migration, new RegExp("create table if not exists public\\." + table + "\\b"));
 });
 
 test("Raye2 private resources are protected by RLS and membership predicates", () => {
@@ -23,9 +23,9 @@ test("Raye2 private resources are protected by RLS and membership predicates", (
 
 test("group and direct-conversation creation are authenticated guarded RPCs", () => {
   for (const fn of ["raye2_create_group", "raye2_create_direct_conversation", "raye2_join_public_group", "raye2_join_group_invite"]) {
-    assert.match(migration, new RegExp("create or replace function public\\\\." + fn + "\\\\("));
-    assert.match(migration, new RegExp("grant execute on function public\\\\." + fn));
-    assert.match(migration, new RegExp("revoke all on function public\\\\." + fn + ".*from public,anon"));
+    assert.match(migration, new RegExp("create or replace function public\\." + fn + "\\("));
+    assert.match(migration, new RegExp("grant execute on function public\\." + fn));
+    assert.match(migration, new RegExp("revoke all on function public\\." + fn + ".*from public,anon"));
   }
   assert.match(migration, /member_blocks/);
 });

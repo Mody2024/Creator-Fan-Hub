@@ -626,12 +626,16 @@ using (user_id=(select auth.uid()) and exists(select 1 from public.raye2_message
 with check (user_id=(select auth.uid()) and exists(select 1 from public.raye2_messages m where m.id=message_id and public.raye2_is_conversation_member(m.conversation_id)));
 
 create policy "Raye2 group members read shared memories" on public.raye2_shared_memories for select to authenticated
-using (public.raye2_is_group_member(group_id));
+using (created_by=(select auth.uid()) or (group_id is not null and public.raye2_is_group_member(group_id)));
 create policy "Raye2 members contribute memories" on public.raye2_shared_memories for insert to authenticated
 with check (created_by=(select auth.uid()) and public.raye2_is_group_member(group_id));
 create policy "Raye2 contributors edit memories" on public.raye2_shared_memories for update to authenticated
 using (created_by=(select auth.uid()) or public.raye2_is_group_manager(group_id))
-with check (public.raye2_is_group_member(group_id) and (created_by=(select auth.uid()) or public.raye2_is_group_manager(group_id)));
+with check (
+  (group_id is not null and public.raye2_is_group_member(group_id) and
+    (created_by=(select auth.uid()) or public.raye2_is_group_manager(group_id)))
+  or (group_id is null and created_by=(select auth.uid()) and retention_mode='preserved')
+);
 create policy "Raye2 contributors delete memories" on public.raye2_shared_memories for delete to authenticated
 using (created_by=(select auth.uid()) or public.raye2_is_group_manager(group_id));
 
