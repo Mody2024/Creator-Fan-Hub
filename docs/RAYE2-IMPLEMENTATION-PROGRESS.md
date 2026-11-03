@@ -47,10 +47,15 @@
 - [x] Member-authorized JSON metadata export with expiry filtering (media files remain external and are not copied)
 
 ### Phase C — Voice
-- [ ] Private WebRTC calls
-- [ ] Group voice rooms and participant moderation
+- [x] Private-call and group-room session control plane (database schema, membership, invitations, join/decline/leave, expiry)
+- [x] Group-room lock, host/co-host transfer and moderator actions
+- [x] Recording-off defaults and unanimous consent state machine, including late-joiner consent reset and stop-on-decline/withdrawal
+- [x] Participant-scoped private Realtime signaling authorization policies
+- [x] Voice control-plane contract tests
+- [ ] Browser WebRTC media transport, TURN configuration and device controls
+- [ ] Group voice SFU integration and participant media controls
 - [ ] Reconnection and quality telemetry
-- [ ] Recording consent state machine and recording pipeline
+- [ ] Consent-gated recording media pipeline, storage access and retention
 
 ### Phase D — Watch Together and events
 - [ ] Synchronized native/external player sessions
