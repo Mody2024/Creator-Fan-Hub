@@ -2,15 +2,27 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration, pinsMigration] = await Promise.all([
+const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration, pinsMigration, requestsMigration] = await Promise.all([
   read("../supabase/migrations/20261103190000_raye2_invites_memories.sql"),
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/invite/page.tsx"),
   read("../supabase/migrations/20261103200000_raye2_read_receipts.sql"),
   read("../supabase/migrations/20261103210000_raye2_notifications.sql"),
   read("../supabase/migrations/20261103220000_raye2_safety_controls.sql"),
-  read("../supabase/migrations/20261103230000_raye2_search_pins.sql")
+  read("../supabase/migrations/20261103230000_raye2_search_pins.sql"),
+  read("../supabase/migrations/20261103240000_raye2_message_requests.sql")
 ]);
+test("message requests enforce recipient preferences and only create direct conversations after acceptance", () => {
+  assert.match(client, /raye2_message_requests/);
+  assert.match(client, /raye2_set_contact_preferences/);
+  assert.match(client, /raye2_review_message_request/);
+  assert.match(client, /allowMessageRequests/);
+  assert.match(requestsMigration, /allow_message_requests/);
+  assert.match(requestsMigration, /raye2_create_direct_conversation/);
+  assert.match(requestsMigration, /raye2_review_message_request/);
+  assert.match(requestsMigration, /status=.pending./);
+  assert.match(requestsMigration, /member_blocks/);
+});
 test("conversation search and pinned messages are bounded and permission checked", () => {
   assert.match(client, /searchConversationMessages/);
   assert.match(client, /raye2_pin_message/);
