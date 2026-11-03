@@ -30,6 +30,8 @@
 - [x] Secure participant-only read-receipt RPC and unread counter clearing
 - [x] Durable direct/group notification preferences and in-app notification inbox with unread state
 - [ ] Per-group notification overrides, quiet hours, push delivery and notification bundles
+- [x] Conversation-scoped message search with bounded results
+- [x] Pinned messages with direct-member and group-manager permissions
 - [x] User block controls and message/account reporting submission path
 - [x] Public group discovery, private/public group creation and public joining
 - [x] Private invite link backend with hashed tokens, expiry/use limits and revocation

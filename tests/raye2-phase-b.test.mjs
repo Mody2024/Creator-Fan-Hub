@@ -2,14 +2,24 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration] = await Promise.all([
+const [migration, client, invitePage, realtimeMigration, notificationMigration, safetyMigration, pinsMigration] = await Promise.all([
   read("../supabase/migrations/20261103190000_raye2_invites_memories.sql"),
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/invite/page.tsx"),
   read("../supabase/migrations/20261103200000_raye2_read_receipts.sql"),
   read("../supabase/migrations/20261103210000_raye2_notifications.sql"),
-  read("../supabase/migrations/20261103220000_raye2_safety_controls.sql")
+  read("../supabase/migrations/20261103220000_raye2_safety_controls.sql"),
+  read("../supabase/migrations/20261103230000_raye2_search_pins.sql")
 ]);
+test("conversation search and pinned messages are bounded and permission checked", () => {
+  assert.match(client, /searchConversationMessages/);
+  assert.match(client, /raye2_pin_message/);
+  assert.match(client, /raye2_unpin_message/);
+  assert.match(client, /pinnedMessages/);
+  assert.match(pinsMigration, /raye2_is_conversation_member/);
+  assert.match(pinsMigration, /raye2_is_group_manager/);
+  assert.match(pinsMigration, /limit/);
+});
 test("Raye2 block and report controls reuse platform block identity and validate report targets", () => {
   assert.match(client, /member_blocks/);
   assert.match(client, /raye2_submit_safety_report/);
