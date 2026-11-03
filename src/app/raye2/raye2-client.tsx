@@ -76,11 +76,16 @@ export default function Raye2Client() {
     ]);
     if (ownProfile) setProfile(ownProfile as Profile);
     const groupIds = (memberships ?? []).map((row: { group_id: string }) => row.group_id);
-    const [{ data: ownGroups }, { data: conversations }] = await Promise.all([
-      groupIds.length ? supabase.from("raye2_groups").select("id,name,slug,description,visibility,status,conversation_id,owner_id").in("id", groupIds) : Promise.resolve({ data: [] }),
-      Promise.resolve({ data: (memberConversations ?? []).map((row: any) => ({ ...row.conversations, last_read_at: row.last_read_at })).filter((row: any) => row?.status === "active") })
-    ]);
-    const conversationRows = (conversations ?? []) as Array<Conversation & { last_read_at: string | null }>;
+    const conversationRows = ((memberConversations ?? []) as Array<{
+      last_read_at: string | null;
+      conversations: Conversation | Conversation[] | null;
+    }>).flatMap(row => {
+      const conversation = Array.isArray(row.conversations) ? row.conversations[0] : row.conversations;
+      return conversation?.status === "active" ? [{ ...conversation, last_read_at: row.last_read_at }] : [];
+    });
+    const { data: ownGroups } = groupIds.length
+      ? await supabase.from("raye2_groups").select("id,name,slug,description,visibility,status,conversation_id,owner_id").in("id", groupIds)
+      : { data: [] };
     const groupRows = (ownGroups ?? []) as Group[];
     setGroups(groupRows);
     setDiscoverGroups((publicGroups ?? []) as Group[]);
@@ -113,7 +118,7 @@ export default function Raye2Client() {
     setSavedIds([]);
     const { data: saved } = await supabase.from("raye2_message_bookmarks").select("id,message_id,saved_content,created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(100);
     setSavedItems((saved ?? []) as SavedItem[]);
-    setSavedIds((saved ?? []).map((item: any) => item.message_id).filter(Boolean));
+    setSavedIds(((saved ?? []) as SavedItem[]).map(item => item.message_id).filter((id): id is string => Boolean(id)));
     const messageIds = allMessages.map(message => message.id);
     if (messageIds.length) {
       const [{ data: reactions }, { data: mine }] = await Promise.all([

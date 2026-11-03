@@ -35,7 +35,7 @@ test("recording consent and production restrictions remain confirmed requirement
   assert.match(plan, /Recording is \*\*off by default\*\*/);
   assert.match(plan, /every participant has actively consented/);
   assert.match(plan, /private groups remain private/);
-  assert.match(plan, /No production deployment or merge to \x60main\x60 is authorized/);
+  assert.match(plan, /No deployment or merge to \x60main\x60 is authorized/);
 });
 test("workspace has responsive mobile and reduced-motion styling", () => {
   assert.match(styles, /@media\(max-width:680px\)/);
