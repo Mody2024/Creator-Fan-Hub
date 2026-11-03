@@ -2,17 +2,18 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, client, invitePage] = await Promise.all([
+const [migration, client, invitePage, realtimeMigration] = await Promise.all([
   read("../supabase/migrations/20261103190000_raye2_invites_memories.sql"),
   read("../src/app/raye2/raye2-client.tsx"),
-  read("../src/app/raye2/invite/page.tsx")
+  read("../src/app/raye2/invite/page.tsx"),
+  read("../supabase/migrations/20261103200000_raye2_read_receipts.sql")
 ]);
 test("realtime presence and typing are ephemeral and read receipts are membership guarded", () => {
   assert.match(client, /presenceState/);
   assert.match(client, /event: "typing"/);
   assert.match(client, /raye2_mark_conversation_read/);
-  assert.match(migration, /raye2_is_conversation_member/);
-  assert.match(migration, /last_read_at=v_read_at/);
+  assert.match(realtimeMigration, /raye2_is_conversation_member/);
+  assert.match(realtimeMigration, /last_read_at=v_read_at/);
 });
 test("private invites use expiring hashed tokens and manager-only revocation", () => {
   assert.match(migration, /raye2_revoke_group_invite/);
