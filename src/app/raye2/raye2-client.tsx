@@ -416,14 +416,14 @@ export default function Raye2Client() {
     let alive = true;
     setGroupManageLoading(true);
     void (async () => {
-      const [{ data: memberRows, error: memberError }, { data: requestRows, error: requestError }, { data: memoryPolicy }] = await Promise.all([
+      const [{ data: memberRows, error: memberError }, { data: requestRows, error: requestError }, { data: memoryPolicy, error: memoryPolicyError }] = await Promise.all([
         supabase.from("raye2_group_members").select("group_id,user_id,role,status,joined_at").eq("group_id", selectedGroup.id).eq("status", "active").order("joined_at", { ascending: true }),
         supabase.from("raye2_group_join_requests").select("id,group_id,user_id,note,status,created_at").eq("group_id", selectedGroup.id).eq("status", "pending").order("created_at", { ascending: true }),
         supabase.from("raye2_group_memory_settings").select("group_id,contribution_policy,export_policy").eq("group_id", selectedGroup.id).maybeSingle()
       ]);
-      if (memoryPolicy) setMemorySettings(memoryPolicy as MemorySettings);
       if (!alive) return;
-      if (memberError || requestError) { setStatus(t.searchError); setGroupMembers([]); setJoinRequests([]); setGroupManageLoading(false); return; }
+      if (memoryPolicy) setMemorySettings(memoryPolicy as MemorySettings);
+      if (memberError || requestError || memoryPolicyError) { setStatus(t.searchError); setGroupMembers([]); setJoinRequests([]); setGroupManageLoading(false); return; }
       const memberData = (memberRows ?? []) as GroupMember[];
       const requestData = (requestRows ?? []) as JoinRequest[];
       const ids = [...new Set([...memberData.map(row => row.user_id), ...requestData.map(row => row.user_id)])];
