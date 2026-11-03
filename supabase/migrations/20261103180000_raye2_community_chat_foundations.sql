@@ -103,10 +103,12 @@ create table if not exists public.raye2_message_reactions (
 create index if not exists raye2_message_reactions_message_idx on public.raye2_message_reactions(message_id);
 
 create table if not exists public.raye2_message_bookmarks (
-  message_id uuid not null references public.raye2_messages(id) on delete cascade,
+  message_id uuid references public.raye2_messages(id) on delete set null,
   user_id uuid not null references auth.users(id) on delete cascade,
+  saved_content jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
-  primary key (message_id,user_id)
+  primary key (message_id,user_id),
+  check (message_id is not null or saved_content <> '{}'::jsonb)
 );
 
 create table if not exists public.raye2_shared_memories (
@@ -239,12 +241,16 @@ as $$
 $$;
 create or replace function public.raye2_is_conversation_member(p_conversation_id uuid)
 returns boolean language sql stable security definer set search_path=''
-as $$
+as $
   select (select auth.uid()) is not null and exists (
     select 1 from public.raye2_conversation_members m
+    join public.raye2_conversations c on c.id=m.conversation_id
+    left join public.raye2_groups g on g.id=c.group_id
     where m.conversation_id=p_conversation_id and m.user_id=(select auth.uid())
+      and c.status='active'
+      and (c.group_id is null or g.status in ('active','read_only'))
   );
-$$;
+$;
 revoke all on function public.raye2_is_platform_admin() from public,anon;
 revoke all on function public.raye2_is_group_member(uuid) from public,anon;
 revoke all on function public.raye2_is_group_manager(uuid) from public,anon;
@@ -397,7 +403,9 @@ begin
   end if;
   insert into public.raye2_group_members(group_id,user_id,role,status)
   values(v_invite.group_id,auth.uid(),'member','active')
-  on conflict(group_id,user_id) do update set status='active';
+  on conflict(group_id,user_id) do update set status='active'
+    where public.raye2_group_members.status<>'banned';
+  if not found then raise exception 'group membership is unavailable' using errcode='42501'; end if;
   update public.raye2_group_invites set uses=uses+1 where id=v_invite.id;
   return v_invite.group_id;
 end;
@@ -542,8 +550,8 @@ grant select on public.raye2_groups,public.raye2_group_members,public.raye2_conv
  public.raye2_conversation_members,public.raye2_messages,public.raye2_message_reactions,
  public.raye2_shared_memories to authenticated;
 grant insert,update,delete on public.raye2_messages,public.raye2_message_reactions,
- public.raye2_message_bookmarks,public.raye2_shared_memories to authenticated;
-grant select on public.raye2_message_bookmarks to authenticated;
+ public.raye2_shared_memories to authenticated;
+grant select,delete on public.raye2_message_bookmarks to authenticated;
 grant select on public.raye2_platform_rules,public.raye2_retention_policies,
  public.raye2_cleanup_jobs,public.raye2_admin_audit_log,public.raye2_storage_usage to authenticated;
 
@@ -588,7 +596,8 @@ create policy "Raye2 members send messages" on public.raye2_messages for insert 
 with check (
   sender_id=(select auth.uid())
   and public.raye2_is_conversation_member(conversation_id)
-  and exists(select 1 from public.raye2_conversations c where c.id=conversation_id and c.status='active')
+  and exists(select 1 from public.raye2_conversations c where c.id=conversation_id and c.status='active'
+    and (c.group_id is null or exists(select 1 from public.raye2_groups g where g.id=c.group_id and g.status='active')))
 );
 create or replace function public.raye2_guard_message_update()
 returns trigger language plpgsql set search_path=''
@@ -622,9 +631,32 @@ with check (user_id=(select auth.uid()) and exists(select 1 from public.raye2_me
 create policy "Raye2 members remove own reactions" on public.raye2_message_reactions for delete to authenticated
 using (user_id=(select auth.uid()));
 
-create policy "Raye2 members manage personal bookmarks" on public.raye2_message_bookmarks for all to authenticated
-using (user_id=(select auth.uid()) and exists(select 1 from public.raye2_messages m where m.id=message_id and public.raye2_is_conversation_member(m.conversation_id)))
-with check (user_id=(select auth.uid()) and exists(select 1 from public.raye2_messages m where m.id=message_id and public.raye2_is_conversation_member(m.conversation_id)));
+create policy "Raye2 members read personal bookmarks" on public.raye2_message_bookmarks for select to authenticated
+using (user_id=(select auth.uid()));
+create policy "Raye2 members delete personal bookmarks" on public.raye2_message_bookmarks for delete to authenticated
+using (user_id=(select auth.uid()));
+
+create or replace function public.raye2_bookmark_message(p_message_id uuid)
+returns void language plpgsql security definer set search_path=''
+as $
+declare v_snapshot jsonb;
+begin
+  if auth.uid() is null then raise exception 'sign in required' using errcode='42501'; end if;
+  select jsonb_build_object(
+    'body',m.body,'sender_id',m.sender_id,'created_at',m.created_at
+  ) into v_snapshot
+  from public.raye2_messages m
+  where m.id=p_message_id and m.deleted_at is null
+    and (m.expires_at is null or m.expires_at>now())
+    and public.raye2_is_conversation_member(m.conversation_id);
+  if not found then raise exception 'message is unavailable' using errcode='P0002'; end if;
+  insert into public.raye2_message_bookmarks(message_id,user_id,saved_content)
+  values(p_message_id,auth.uid(),v_snapshot)
+  on conflict(message_id,user_id) do update set saved_content=excluded.saved_content;
+end;
+$;
+revoke all on function public.raye2_bookmark_message(uuid) from public,anon;
+grant execute on function public.raye2_bookmark_message(uuid) to authenticated;
 
 create policy "Raye2 group members read shared memories" on public.raye2_shared_memories for select to authenticated
 using (created_by=(select auth.uid()) or (group_id is not null and public.raye2_is_group_member(group_id)));
