@@ -24,7 +24,9 @@
 - [x] Authenticated responsive Raye2 workspace with DM and group-chat interface
 - [x] Replies, reactions, edit/delete windows and personal saved messages
 - [x] Public member search and realtime message/group refresh foundation
-- [ ] Presence, typing, delivery/read states and notifications
+- [x] Ephemeral online presence and typing indicators on active conversation channels
+- [x] Secure participant-only read-receipt RPC and unread counter clearing
+- [ ] Durable notification preferences, push/in-app notification center and delivery states
 - [x] Public group discovery, private/public group creation and public joining
 - [x] Private invite link backend with hashed tokens, expiry/use limits and revocation
 - [x] Invite acceptance route with sign-in continuation preserving the token

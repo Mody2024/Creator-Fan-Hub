@@ -7,6 +7,13 @@ const [migration, client, invitePage] = await Promise.all([
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/invite/page.tsx")
 ]);
+test("realtime presence and typing are ephemeral and read receipts are membership guarded", () => {
+  assert.match(client, /presenceState/);
+  assert.match(client, /event: "typing"/);
+  assert.match(client, /raye2_mark_conversation_read/);
+  assert.match(migration, /raye2_is_conversation_member/);
+  assert.match(migration, /last_read_at=v_read_at/);
+});
 test("private invites use expiring hashed tokens and manager-only revocation", () => {
   assert.match(migration, /raye2_revoke_group_invite/);
   assert.match(migration, /group_invite_created/);

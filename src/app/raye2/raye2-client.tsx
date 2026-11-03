@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -43,6 +43,11 @@ export default function Raye2Client() {
   const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>([]);
   const [groupManageLoading, setGroupManageLoading] = useState(false);
+  const [onlineUserIds, setOnlineUserIds] = useState<string[]>([]);
+  const [typingUserIds, setTypingUserIds] = useState<string[]>([]);
+  const realtimeChannel = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
+  const typingActive = useRef(false);
+  const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [inviteHours, setInviteHours] = useState("72");
   const [inviteUses, setInviteUses] = useState("10");
   const [inviteUrl, setInviteUrl] = useState("");
@@ -169,13 +174,62 @@ export default function Raye2Client() {
   }, [supabase, loadData, t.failed]);
 
   useEffect(() => {
-    if (!supabase || !userId) return;
-    const channel = supabase.channel("raye2-live-" + userId)
+    if (!supabase || !userId || !selected?.conversationId) {
+      setOnlineUserIds([]); setTypingUserIds([]);
+      return;
+    }
+    const channel = supabase.channel("raye2-room-" + selected.conversationId, { config: { presence: { key: userId } } })
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState<{ user_id: string }>();
+        const ids = Object.values(state).flat().map(item => item.user_id).filter(Boolean);
+        setOnlineUserIds([...new Set(ids)]);
+      })
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        const sender = typeof payload?.user_id === "string" ? payload.user_id : "";
+        if (!sender || sender === userId) return;
+        if (payload?.typing === false) {
+          const timer = typingTimers.current[sender];
+          if (timer) clearTimeout(timer);
+          delete typingTimers.current[sender];
+          setTypingUserIds(current => current.filter(id => id !== sender));
+          return;
+        }
+        setTypingUserIds(current => current.includes(sender) ? current : [...current, sender]);
+        const previous = typingTimers.current[sender];
+        if (previous) clearTimeout(previous);
+        typingTimers.current[sender] = setTimeout(() => {
+          setTypingUserIds(current => current.filter(id => id !== sender));
+          delete typingTimers.current[sender];
+        }, 2800);
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_messages" }, () => { void loadData(userId); })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_group_members" }, () => { void loadData(userId); })
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [supabase, userId, loadData]);
+      .subscribe(async status => {
+        if (status === "SUBSCRIBED") await channel.track({ user_id: userId, online_at: new Date().toISOString() });
+      });
+    realtimeChannel.current = channel;
+    return () => {
+      realtimeChannel.current = null;
+      for (const timer of Object.values(typingTimers.current)) clearTimeout(timer);
+      typingTimers.current = {};
+      setTypingUserIds([]);
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, userId, selected?.conversationId, loadData]);
+
+  useEffect(() => {
+    if (!supabase || !userId || !selected?.conversationId) return;
+    const hasUnread = currentMessages.some(message => message.sender_id !== userId);
+    if (!hasUnread) return;
+    void supabase.rpc("raye2_mark_conversation_read", { p_conversation_id: selected.conversationId }).then(({ error }) => {
+      if (!error) setThreads(current => current.map(thread => thread.conversationId === selected.conversationId ? { ...thread, unread: 0 } : thread));
+    });
+  }, [supabase, userId, selected?.conversationId, currentMessages.length]);
+
+  function broadcastTyping(typing: boolean) {
+    if (!realtimeChannel.current || !userId) return;
+    void realtimeChannel.current.send({ type: "broadcast", event: "typing", payload: { user_id: userId, typing } });
+  }
 
   const selected = threads.find(thread => thread.id === selectedId) ?? null;
   const selectedGroup = selected?.groupId ? groups.find(group => group.id === selected.groupId) ?? null : null;
@@ -378,6 +432,7 @@ export default function Raye2Client() {
 
   async function sendMessage() {
     if (!supabase || !userId || !selected || !compose.trim() || busy) return;
+    if (typingActive.current) { broadcastTyping(false); typingActive.current = false; }
     const body = compose.trim();
     if (body.length > 5000) { setStatus(isAr ? "الحد الأقصى للرسالة 5000 حرف." : "Messages are limited to 5,000 characters."); return; }
     setBusy(true); setStatus("");
@@ -495,7 +550,7 @@ export default function Raye2Client() {
         </aside>
         <section className={`${styles.conversation} ${mobilePane === "list" ? styles.hideMobile : ""}`}>
           {selected ? <>
-            <div className={styles.chatHeader}><button className={styles.backButton} onClick={() => setMobilePane("list")}>← {t.back}</button><div className={styles.avatar}>{selected.avatar}</div><div className={styles.chatHeading}><h2>{selected.title}</h2><span>{selected.subtitle}</span></div><button className={styles.iconButton} title={t.saved} onClick={() => setTab("saved")}>⌑</button>{selectedGroup && canManageSelectedGroup && <><button className={styles.miniButton} onClick={() => setShowGroupManage(true)}>{t.manageGroup}</button><button className={styles.miniButton} onClick={() => { setInviteUrl(""); setInviteId(null); setShowInvite(true); }}>{t.invite}</button></>}</div>
+            <div className={styles.chatHeader}><button className={styles.backButton} onClick={() => setMobilePane("list")}>← {t.back}</button><div className={styles.avatar}>{selected.avatar}</div><div className={styles.chatHeading}><h2>{selected.title}</h2><span>{typingUserIds.length ? (isAr ? "يكتب الآن…" : "Typing…") : (onlineUserIds.filter(id => id !== userId).length ? (isAr ? onlineUserIds.filter(id => id !== userId).length + " متصل" : onlineUserIds.filter(id => id !== userId).length + " online") : selected.subtitle)}</span></div><button className={styles.iconButton} title={t.saved} onClick={() => setTab("saved")}>⌑</button>{selectedGroup && canManageSelectedGroup && <><button className={styles.miniButton} onClick={() => setShowGroupManage(true)}>{t.manageGroup}</button><button className={styles.miniButton} onClick={() => { setInviteUrl(""); setInviteId(null); setShowInvite(true); }}>{t.invite}</button></>}</div>
             <div className={styles.messageArea}>
               {currentMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
               {currentMessages.map(message => {
@@ -519,7 +574,7 @@ export default function Raye2Client() {
             </div>
             <div className={styles.composerWrap}>
               {replyTo && <div className={styles.replyingTo}><span>{t.reply}: {replyTo.body.slice(0, 100)}</span><button onClick={() => setReplyTo(null)}>×</button></div>}
-              <form className={styles.composer} onSubmit={event => { event.preventDefault(); void sendMessage(); }}><textarea value={compose} onChange={event => setCompose(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={selected.canSend ? t.message : (isAr ? "هذه المجموعة للقراءة فقط حاليًا" : "This group is currently read-only")} disabled={!selected.canSend} maxLength={5000} rows={1}/><button type="submit" disabled={!compose.trim() || busy || !selected.canSend}>{t.send} ↗</button></form><div className={styles.composerFoot}><span>RAYE2 • PRIVATE BY DESIGN</span><span>{compose.length}/5000</span></div>
+              <form className={styles.composer} onSubmit={event => { event.preventDefault(); void sendMessage(); }}><textarea value={compose} onChange={event => { setCompose(event.target.value); if (event.target.value.trim() && !typingActive.current) { typingActive.current = true; broadcastTyping(true); } else if (!event.target.value.trim() && typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onBlur={() => { if (typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={selected.canSend ? t.message : (isAr ? "هذه المجموعة للقراءة فقط حاليًا" : "This group is currently read-only")} disabled={!selected.canSend} maxLength={5000} rows={1}/><button type="submit" disabled={!compose.trim() || busy || !selected.canSend}>{t.send} ↗</button></form><div className={styles.composerFoot}><span>RAYE2 • PRIVATE BY DESIGN</span><span>{compose.length}/5000</span></div>
             </div>
           </> : <div className={styles.blankState}><div className={styles.blankOrbit}>R</div><span className={styles.kicker}>{t.eyebrow}</span><h2>{t.emptyTitle}</h2><p>{t.emptyText}</p><button className={styles.primaryButton} onClick={() => { setTab("discover"); setMobilePane("list"); }}>{t.discover} ↗</button></div>}
         </section>
