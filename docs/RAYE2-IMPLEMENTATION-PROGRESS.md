@@ -9,9 +9,9 @@
 - Phase A — Foundations: **92%**
 - Phase B — Messaging and groups: **92%**
 - Phase C — Voice: **75%**
-- Phase D — Watch Together: **88%**
+- Phase D — Watch Together: **65%**
 - Phase E — Hardening: **0%**
-- Overall plan completion: **approximately 69%**
+- Overall plan completion: **approximately 65%**
 
 Percentages reflect implemented and repository-verified scope. External service deployment, Supabase migration application, and live multi-device acceptance are not counted as complete.
 
