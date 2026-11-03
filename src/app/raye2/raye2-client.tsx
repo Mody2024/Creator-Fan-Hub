@@ -205,7 +205,8 @@ export default function Raye2Client() {
     let active = true;
     void supabase.from("raye2_pinned_messages").select("message_id")
       .eq("conversation_id", selected.conversationId).order("created_at", { ascending: false }).limit(20)
-      .then(async ({ data, error }) => {
+      .then(async (result: { data: Array<{ message_id: string }> | null; error: unknown }) => {
+        const { data, error } = result;
         if (!active) return;
         if (error || !data?.length) { setPinnedMessages([]); return; }
         const ids = data.map(row => row.message_id);
