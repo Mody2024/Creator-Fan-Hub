@@ -40,9 +40,9 @@ test("voice invitation, joining, decline and leave are guarded server-side", () 
     "raye2_create_voice_session", "raye2_join_voice_session",
     "raye2_decline_voice_invitation", "raye2_leave_voice_session"
   ]) {
-    assert.match(voice, new RegExp("create or replace function public\\\\." + fn + "\\\\("));
-    assert.match(voice, new RegExp("grant execute on function public\\\\." + fn));
-    assert.match(voice, new RegExp("revoke all on function public\\\\." + fn));
+    assert.ok(voice.includes("create or replace function public." + fn + "("));
+    assert.ok(voice.includes("grant execute on function public." + fn));
+    assert.ok(voice.includes("revoke all on function public." + fn));
   }
   assert.match(voice, /voice invitation required/);
   assert.match(voice, /voice room is locked/);
@@ -87,7 +87,7 @@ test("voice data is read-only through direct client grants and uses RLS", () => 
     "raye2_voice_sessions", "raye2_voice_participants",
     "raye2_voice_recording_consent_events"
   ]) {
-    assert.match(voice, new RegExp("alter table public\\\\." + table + " enable row level security"));
+    assert.ok(voice.includes("alter table public." + table + " enable row level security"));
   }
   assert.match(voice, /revoke all on public\.raye2_voice_sessions,public\.raye2_voice_participants/);
   assert.match(voice, /grant select on public\.raye2_voice_sessions,public\.raye2_voice_participants/);
