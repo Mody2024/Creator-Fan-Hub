@@ -57,7 +57,8 @@
 - [x] Audio input/output device selection where browser support allows, microphone switching, and measured RTT/packet-loss quality status
 - [x] Member-controlled private-call opt-out, enforced by a database trigger on both invitation and acceptance
 - [ ] Production TURN relay credentials/configuration and network-path verification
-- [ ] Group voice SFU integration and participant media controls
+- [x] LiveKit SFU integration path: group-room discovery/start RPC, joined-member token endpoint, short-lived room-scoped grants and browser room client
+- [ ] LiveKit server deployment/credentials, live multi-user acceptance, moderator-to-SFU enforcement and participant media controls
 - [ ] Reconnection, ICE restart and quality telemetry
 - [ ] Consent-gated recording media pipeline, storage access and retention
 

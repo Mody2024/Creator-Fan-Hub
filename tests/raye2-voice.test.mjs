@@ -214,3 +214,49 @@ test("private-call permission is available in bilingual member contact settings"
   assert.match(client, /raye2_set_voice_preferences/);
   assert.match(client, /checked=\{allowPrivateCalls\}/);
 });
+
+
+test("group voice room discovery is serialized and restricted to active group members", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/20261104020000_raye2_group_voice_sfu.sql", import.meta.url), "utf8");
+  assert.match(migration, /raye2_start_or_join_group_voice_room/);
+  assert.match(migration, /raye2_is_conversation_member/);
+  assert.match(migration, /raye2_is_group_member/);
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /raye2_create_voice_session\(p_conversation_id,'group_room'\)/);
+  assert.match(migration, /for update/);
+});
+
+test("LiveKit token endpoint authenticates the user and requires joined group-room membership", () => {
+  const route = readFileSync(new URL("../src/app/api/raye2/voice/token/route.ts", import.meta.url), "utf8");
+  assert.match(route, /supabase\.auth\.getUser/);
+  assert.match(route, /raye2_voice_participants/);
+  assert.match(route, /\.eq\("user_id", auth\.user\.id\)/);
+  assert.match(route, /\.eq\("status", "joined"\)/);
+  assert.match(route, /session\.session_type !== "group_room"/);
+  assert.match(route, /new AccessToken/);
+  assert.match(route, /ttl: "10m"/);
+  assert.match(route, /canPublish: membership\.role !== "listener"/);
+  assert.match(route, /LIVEKIT_API_SECRET/);
+  assert.doesNotMatch(route, /NEXT_PUBLIC_LIVEKIT_API_SECRET/);
+});
+
+test("group voice browser client connects through LiveKit and requests microphone only after joining", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-group-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /raye2_start_or_join_group_voice_room/);
+  assert.match(component, /raye2_join_voice_session/);
+  assert.match(component, /\/api\/raye2\/voice\/token/);
+  assert.match(component, /await import\("livekit-client"\)/);
+  assert.match(component, /await room\.connect/);
+  assert.match(component, /setMicrophoneEnabled\(true\)/);
+  assert.match(component, /RoomEvent\.TrackSubscribed/);
+  assert.match(component, /RoomEvent\.ActiveSpeakersChanged/);
+  assert.match(component, /raye2_leave_voice_session/);
+});
+
+test("group chats expose voice-room controls and LiveKit SDKs are explicit dependencies", () => {
+  assert.match(client, /Raye2GroupVoiceControls/);
+  assert.match(client, /selected\.kind === "group" && selectedGroup/);
+  const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  assert.equal(packageJson.dependencies["livekit-client"], "2.23.0");
+  assert.equal(packageJson.dependencies["livekit-server-sdk"], "2.19.2");
+});

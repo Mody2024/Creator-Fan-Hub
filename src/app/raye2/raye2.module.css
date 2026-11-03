@@ -31,3 +31,12 @@
 @media(max-width:680px){.voiceStart{padding:8px;font-size:9px}.voiceIncoming,.voiceActive{flex-wrap:wrap}.voiceIncoming>div,.voiceActive>div{flex-basis:calc(100% - 42px)}}
 
 .voiceGlobalWrap{max-width:1360px;margin:0 auto;padding:10px 28px 0;display:flex;justify-content:flex-end}.voiceGlobalWrap:empty{display:none}
+
+
+.groupVoiceControls{display:flex;align-items:center;gap:7px;flex-wrap:wrap;position:relative}
+.groupVoiceControls>button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);padding:8px 10px;font:inherit;font-size:9px;cursor:pointer}
+.groupVoiceControls>button:disabled{opacity:.5;cursor:default}
+.groupVoiceAudio{display:none}
+.groupVoiceStatus{display:inline-flex;align-items:center;gap:6px;color:var(--r-accent);font-size:9px;white-space:nowrap}
+.groupVoiceStatus i{width:6px;height:6px;border-radius:50%;background:var(--r-accent);box-shadow:0 0 10px var(--r-accent)}
+.groupVoiceLabel{display:none}
