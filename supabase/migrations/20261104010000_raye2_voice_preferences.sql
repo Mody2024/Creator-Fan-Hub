@@ -47,6 +47,7 @@ begin
 end;
 $$;
 revoke all on function public.raye2_enforce_private_call_preferences() from public,anon,authenticated;
+grant execute on function public.raye2_enforce_private_call_preferences() to authenticated;
 drop trigger if exists raye2_enforce_private_call_preferences on public.raye2_voice_participants;
 create trigger raye2_enforce_private_call_preferences
   before insert or update of status on public.raye2_voice_participants
