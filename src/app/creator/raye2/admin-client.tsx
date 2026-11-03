@@ -1,0 +1,111 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import styles from "./admin.module.css";
+
+export type RuleRow = { rule_key: string; category: string; rule_value: unknown; status: "proposed" | "active" | "disabled"; description: string; updated_at: string };
+export type RetentionRow = { category: string; retention_days: number | null; warning_days: number; expiry_action: "archive" | "delete"; enabled: boolean; preserve_shared_memories: boolean; updated_at: string };
+export type CleanupRow = { id: string; status: string; scope: string[]; preserve_chat_history: boolean; preserve_shared_memories: boolean; estimated_items: number | null; estimated_bytes: number | null; reason: string; created_at: string };
+export type StorageRow = { id: string; owner_id: string | null; group_id: string | null; storage_class: string; object_count: number; bytes_used: number; measured_at: string };
+export type AuditRow = { id: number; actor_id: string | null; action: string; target_type: string; target_id: string | null; reason: string; details: Record<string, unknown>; created_at: string };
+
+type Locale = "en" | "ar";
+const bytes = (value: number) => value < 1024 ? value + " B" : value < 1024 ** 2 ? (value / 1024).toFixed(1) + " KB" : value < 1024 ** 3 ? (value / 1024 ** 2).toFixed(1) + " MB" : (value / 1024 ** 3).toFixed(2) + " GB";
+
+export default function Raye2AdminClient({ locale, initialRules, initialRetention, initialJobs, initialStorage, initialAudit }: {
+  locale: Locale; initialRules: RuleRow[]; initialRetention: RetentionRow[]; initialJobs: CleanupRow[]; initialStorage: StorageRow[]; initialAudit: AuditRow[];
+}) {
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const [tab, setTab] = useState<"rules" | "retention" | "cleanup" | "storage" | "audit">("rules");
+  const [rules, setRules] = useState(initialRules);
+  const [retention, setRetention] = useState(initialRetention);
+  const [jobs, setJobs] = useState(initialJobs);
+  const audit = initialAudit;
+  const [jsonDrafts, setJsonDrafts] = useState<Record<string, string>>({});
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [scope, setScope] = useState<string[]>(["temporary_uploads", "failed_encodes", "voice_recordings", "watch_sessions"]);
+  const [preserveChat, setPreserveChat] = useState(true);
+  const [preserveMemories, setPreserveMemories] = useState(true);
+  const isAr = locale === "ar";
+  const t = isAr ? {
+    eyebrow:"RAYE2 / تحكم المنصة", title:"قواعد واضحة. تحكم آمن.", intro:"إدارة الحدود والاحتفاظ والتنظيف من مكان واحد. التغييرات الحساسة تمر عبر عمليات محمية وسجل تدقيق.", back:"العودة إلى Raye2", rules:"القواعد", retention:"الاحتفاظ", cleanup:"معاينة التنظيف", storage:"التخزين", audit:"سجل التدقيق", status:"الحالة", category:"التصنيف", value:"القيمة (JSON)", save:"حفظ القاعدة", description:"الوصف", proposed:"مقترح", active:"مفعّل", disabled:"معطّل", reason:"سبب التغيير (مطلوب)", days:"أيام الاحتفاظ", warning:"أيام التنبيه قبل الانتهاء", action:"الإجراء عند الانتهاء", archive:"أرشفة", delete:"حذف", enabled:"تفعيل السياسة", preserve:"حماية الذكريات المشتركة", saveRetention:"حفظ سياسة الاحتفاظ", scope:"الفئات المطلوب مراجعتها", preserveChat:"استثناء سجل المحادثات", preserveMemories:"استثناء الذكريات المشتركة", preview:"إنشاء طلب معاينة", previewNote:"هذا يسجل طلب مراجعة فقط. لا يتم حذف أي محتوى من هذه الصفحة، وتقدير المساحة ينتظر عامل التنظيف.", request:"الطلبات الأخيرة", items:"العناصر", recovered:"المساحة المقدّرة", storageNote:"هذه لقطات قياس مخزنة، وليست عدّادًا لحظيًا أو ضمانًا للسعة المتاحة.", objects:"ملفات", used:"المساحة", noRows:"لا توجد بيانات بعد.", saved:"تم حفظ التغيير.", error:"تعذر تنفيذ العملية. تحقق من الصلاحيات والاتصال.", reasonRequired:"اكتب سببًا واضحًا قبل الحفظ.", selectScope:"اختر فئة واحدة على الأقل.", requestOnly:"طلب معاينة — لا حذف", created:"تم تسجيل طلب المعاينة.", ownerGuard:"هذه الصفحة متاحة للمالك والمسؤول فقط."
+  } : {
+    eyebrow:"RAYE2 / PLATFORM CONTROL", title:"Clear rules. Safer control.", intro:"Manage limits, retention and cleanup in one place. Sensitive changes use guarded operations and an audit trail.", back:"Back to Raye2", rules:"Rules", retention:"Retention", cleanup:"Cleanup review", storage:"Storage", audit:"Audit log", status:"Status", category:"Category", value:"Value (JSON)", save:"Save rule", description:"Description", proposed:"Proposed", active:"Active", disabled:"Disabled", reason:"Reason for this change (required)", days:"Retention days", warning:"Warning days before expiry", action:"Expiry action", archive:"Archive", delete:"Delete", enabled:"Enable policy", preserve:"Protect Shared Memories", saveRetention:"Save retention policy", scope:"Categories to review", preserveChat:"Exclude chat history", preserveMemories:"Exclude Shared Memories", preview:"Create review request", previewNote:"This records a review request only. This page does not delete content; storage estimates remain pending a cleanup worker.", request:"Recent requests", items:"Estimated items", recovered:"Estimated recovery", storageNote:"These are stored measurement snapshots, not a live counter or a promise of available capacity.", objects:"Objects", used:"Used", noRows:"No data yet.", saved:"Change saved.", error:"The operation failed. Check permissions and connection.", reasonRequired:"Enter a clear reason before saving.", selectScope:"Select at least one category.", requestOnly:"Review request — no deletion", created:"Review request recorded.", ownerGuard:"This page is restricted to owners and admins."
+  };
+  const categories = ["direct_messages","group_messages","inactive_groups","voice_rooms","voice_recordings","voice_messages","chat_attachments","watch_sessions","temporary_uploads","failed_encodes","moments","minis","shared_memories"];
+  const storageTotals = useMemo(() => initialStorage.reduce((acc, row) => {
+    const item = acc[row.storage_class] ?? { objects: 0, bytes: 0 };
+    item.objects += Number(row.object_count) || 0; item.bytes += Number(row.bytes_used) || 0; acc[row.storage_class] = item; return acc;
+  }, {} as Record<string, { objects: number; bytes: number }>), [initialStorage]);
+
+  async function saveRule(rule: RuleRow) {
+    if (!supabase || busy) return;
+    if (reason.trim().length < 3) { setNotice(t.reasonRequired); return; }
+    let value: unknown;
+    try { value = JSON.parse(jsonDrafts[rule.rule_key] ?? JSON.stringify(rule.rule_value)); }
+    catch { setNotice("Invalid JSON. Use a valid JSON value."); return; }
+    setBusy(true); setNotice("");
+    const { error } = await supabase.rpc("raye2_set_platform_rule", {
+      p_rule_key: rule.rule_key, p_category: rule.category, p_value: value, p_status: rule.status,
+      p_description: rule.description, p_reason: reason.trim()
+    });
+    if (error) setNotice(t.error);
+    else { setRules(current => current.map(item => item.rule_key === rule.rule_key ? { ...item, rule_value: value, updated_at: new Date().toISOString() } : item)); setNotice(t.saved); setReason(""); }
+    setBusy(false);
+  }
+
+  async function saveRetention(item: RetentionRow) {
+    if (!supabase || busy) return;
+    if (reason.trim().length < 3) { setNotice(t.reasonRequired); return; }
+    setBusy(true); setNotice("");
+    const { error } = await supabase.rpc("raye2_set_retention_policy", {
+      p_category: item.category, p_retention_days: item.retention_days, p_warning_days: item.warning_days,
+      p_expiry_action: item.expiry_action, p_enabled: item.enabled,
+      p_preserve_shared_memories: item.preserve_shared_memories, p_reason: reason.trim()
+    });
+    if (error) setNotice(t.error);
+    else { setRetention(current => current.map(row => row.category === item.category ? { ...item, updated_at: new Date().toISOString() } : row)); setNotice(t.saved); setReason(""); }
+    setBusy(false);
+  }
+
+  async function createPreview() {
+    if (!supabase || busy) return;
+    if (!scope.length) { setNotice(t.selectScope); return; }
+    if (reason.trim().length < 3) { setNotice(t.reasonRequired); return; }
+    setBusy(true); setNotice("");
+    const { data, error } = await supabase.rpc("raye2_create_cleanup_preview", {
+      p_scope: scope, p_preserve_chat_history: preserveChat, p_preserve_shared_memories: preserveMemories, p_reason: reason.trim()
+    });
+    if (error) setNotice(t.error);
+    else {
+      setJobs(current => [{ id: String(data), status: "preview", scope, preserve_chat_history: preserveChat, preserve_shared_memories: preserveMemories, estimated_items: null, estimated_bytes: null, reason: reason.trim(), created_at: new Date().toISOString() }, ...current]);
+      setNotice(t.created); setReason("");
+    }
+    setBusy(false);
+  }
+
+  const updateRetention = (category: string, patch: Partial<RetentionRow>) => setRetention(current => current.map(item => item.category === category ? { ...item, ...patch } : item));
+  const tabs = [{ id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "storage", label: t.storage }, { id: "audit", label: t.audit }] as const;
+  return <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
+    <header className={styles.header}><Link href="/raye2" className={styles.brand}>RAYE<span>2</span></Link><div><span className={styles.dot}/>{t.eyebrow}</div><Link href="/creator">{t.back}</Link></header>
+    <section className={styles.intro}><span>{t.eyebrow}</span><h1>{t.title}</h1><p>{t.intro}</p></section>
+    <nav className={styles.tabs} aria-label="Raye2 admin sections">{tabs.map(item => <button key={item.id} className={tab === item.id ? styles.active : ""} onClick={() => setTab(item.id)}>{item.label}</button>)}</nav>
+    <section className={styles.content}>
+      {tab === "rules" && <><div className={styles.sectionHead}><h2>{t.rules}</h2><p>{t.status}: {t.proposed} · {t.active} · {t.disabled}</p></div>
+        {rules.map(rule => <article className={styles.card} key={rule.rule_key}><div className={styles.cardHead}><div><span>{rule.category}</span><h3>{rule.rule_key}</h3><p>{rule.description}</p></div><select value={rule.status} onChange={event => setRules(current => current.map(item => item.rule_key === rule.rule_key ? { ...item, status: event.target.value as RuleRow["status"] } : item))}><option value="proposed">{t.proposed}</option><option value="active">{t.active}</option><option value="disabled">{t.disabled}</option></select></div><label>{t.value}<textarea rows={2} value={jsonDrafts[rule.rule_key] ?? JSON.stringify(rule.rule_value)} onChange={event => setJsonDrafts(current => ({ ...current, [rule.rule_key]: event.target.value }))}/></label><button className={styles.action} disabled={busy} onClick={() => void saveRule(rule)}>{t.save}</button></article>)}
+      </>}
+      {tab === "retention" && <><div className={styles.sectionHead}><h2>{t.retention}</h2><p>{t.preserve}</p></div>
+        {retention.map(item => <article className={styles.card} key={item.category}><div className={styles.cardHead}><div><span>RETENTION POLICY</span><h3>{item.category}</h3></div><label className={styles.toggle}><input type="checkbox" checked={item.enabled} onChange={event => updateRetention(item.category, { enabled: event.target.checked })}/>{t.enabled}</label></div><div className={styles.fields}><label>{t.days}<input type="number" min="1" max="3650" value={item.retention_days ?? ""} placeholder="∞" onChange={event => updateRetention(item.category, { retention_days: event.target.value ? Number(event.target.value) : null })}/></label><label>{t.warning}<input type="number" min="0" max="365" value={item.warning_days} onChange={event => updateRetention(item.category, { warning_days: Number(event.target.value) })}/></label><label>{t.action}<select value={item.expiry_action} onChange={event => updateRetention(item.category, { expiry_action: event.target.value as RetentionRow["expiry_action"] })}><option value="archive">{t.archive}</option><option value="delete">{t.delete}</option></select></label></div><label className={styles.toggle}><input type="checkbox" checked={item.preserve_shared_memories} onChange={event => updateRetention(item.category, { preserve_shared_memories: event.target.checked })}/>{t.preserve}</label><button className={styles.action} disabled={busy} onClick={() => void saveRetention(item)}>{t.saveRetention}</button></article>)}
+      </>}
+      {tab === "cleanup" && <><div className={styles.sectionHead}><h2>{t.cleanup}</h2><p>{t.previewNote}</p></div><article className={styles.card}><div className={styles.scopeGrid}>{categories.map(category => <label key={category} className={styles.toggle}><input type="checkbox" checked={scope.includes(category)} onChange={event => setScope(current => event.target.checked ? [...current, category] : current.filter(item => item !== category))}/>{category}</label>)}</div><hr/><label className={styles.toggle}><input type="checkbox" checked={preserveChat} onChange={event => setPreserveChat(event.target.checked)}/>{t.preserveChat}</label><label className={styles.toggle}><input type="checkbox" checked={preserveMemories} onChange={event => setPreserveMemories(event.target.checked)}/>{t.preserveMemories}</label><label>{t.reason}<textarea rows={2} value={reason} onChange={event => setReason(event.target.value)} maxLength={500}/></label><p className={styles.warning}>{t.requestOnly}</p><button className={styles.action} disabled={busy || !scope.length} onClick={() => void createPreview()}>{t.preview}</button></article><div className={styles.sectionHead}><h2>{t.request}</h2></div>{jobs.map(job => <article className={styles.card} key={job.id}><div className={styles.cardHead}><h3>{job.status.toUpperCase()}</h3><time>{new Date(job.created_at).toLocaleString(isAr ? "ar-EG" : "en")}</time></div><p>{job.scope.join(" · ")}</p><small>{job.preserve_chat_history ? t.preserveChat : ""} {job.preserve_shared_memories ? t.preserveMemories : ""}</small><div className={styles.metrics}><span>{t.items}: {job.estimated_items ?? "—"}</span><span>{t.recovered}: {job.estimated_bytes == null ? "—" : bytes(job.estimated_bytes)}</span></div><p>{job.reason}</p></article>)}</>}
+      {tab === "storage" && <><div className={styles.sectionHead}><h2>{t.storage}</h2><p>{t.storageNote}</p></div><div className={styles.storageGrid}>{Object.entries(storageTotals).map(([category, total]) => <article className={styles.card} key={category}><span>{category}</span><strong>{bytes(total.bytes)}</strong><small>{total.objects.toLocaleString()} {t.objects}</small></article>)}</div>{!Object.keys(storageTotals).length && <p>{t.noRows}</p>}</>}
+      {tab === "audit" && <><div className={styles.sectionHead}><h2>{t.audit}</h2><p>Append-only administrative history.</p></div>{audit.map(entry => <article className={styles.card} key={entry.id}><div className={styles.cardHead}><h3>{entry.action}</h3><time>{new Date(entry.created_at).toLocaleString(isAr ? "ar-EG" : "en")}</time></div><p>{entry.target_type} · {entry.target_id ?? "—"}</p><p>{entry.reason}</p><pre>{JSON.stringify(entry.details, null, 2)}</pre></article>)}</>}
+      {notice && <p className={styles.notice} role="status">{notice}</p>}
+    </section>
+    <footer className={styles.footer}>RAYE2 ADMIN · {t.ownerGuard} · NO AUTOMATIC DELETION FROM THIS SCREEN</footer>
+  </main>;
+}

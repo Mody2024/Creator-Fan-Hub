@@ -18,7 +18,7 @@
 - [x] Membership-scoped RLS and guarded group/DM/invite/admin RPCs
 - [x] Initial database migration and contract tests committed to development (not yet applied to Supabase)
 - [ ] Runtime RLS and RPC integration tests
-- [ ] Admin UI for rules, retention and cleanup previews
+- [x] Owner/admin-gated UI for platform rules, retention policies, cleanup review requests, storage snapshots and audit history
 
 ### Phase B — Messaging and groups
 - [x] Authenticated responsive Raye2 workspace with DM and group-chat interface
