@@ -13,7 +13,16 @@ const [migration, client, invitePage, realtimeMigration, notificationMigration, 
   read("../supabase/migrations/20261103240000_raye2_message_requests.sql"),
   read("../supabase/migrations/20261103250000_raye2_group_notifications_quiet_hours.sql")
 ]);
-test("group notification overrides and quiet hours are enforced by the notification trigger", () => {\n  assert.match(client, /raye2_set_group_notification_preference/);\n  assert.match(client, /quiet_hours_enabled/);\n  assert.match(client, /groupNotificationPreferences/);\n  assert.match(groupNotificationsMigration, /raye2_group_notification_preferences/);\n  assert.match(groupNotificationsMigration, /quiet_hours_timezone/);\n  assert.match(groupNotificationsMigration, /local_clock\\.local_time/);\n  assert.match(groupNotificationsMigration, /mode=.muted./);\n});\ntest("message requests enforce recipient preferences and only create direct conversations after acceptance", () => {
+test("group notification overrides and quiet hours are enforced by the notification trigger", () => {
+  assert.match(client, /raye2_set_group_notification_preference/);
+  assert.match(client, /quiet_hours_enabled/);
+  assert.match(client, /groupNotificationPreferences/);
+  assert.match(groupNotificationsMigration, /raye2_group_notification_preferences/);
+  assert.match(groupNotificationsMigration, /quiet_hours_timezone/);
+  assert.match(groupNotificationsMigration, /local_clock\\.local_time/);
+  assert.match(groupNotificationsMigration, /mode=.muted./);
+});
+test("message requests enforce recipient preferences and only create direct conversations after acceptance", () => {
   assert.match(client, /raye2_message_requests/);
   assert.match(client, /raye2_set_contact_preferences/);
   assert.match(client, /raye2_review_message_request/);
