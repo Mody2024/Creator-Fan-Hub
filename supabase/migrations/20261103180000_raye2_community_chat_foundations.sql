@@ -561,7 +561,7 @@ grant select on public.raye2_platform_rules,public.raye2_retention_policies,
 
 create policy "Raye2 visible groups" on public.raye2_groups for select to authenticated
 using (visibility='public' and status in ('active','read_only')
-  or public.raye2_is_group_member(id) or public.raye2_is_platform_admin());
+  or public.raye2_is_group_member(id));
 create or replace function public.raye2_guard_group_owner()
 returns trigger language plpgsql set search_path=''
 as $$
@@ -590,7 +590,7 @@ create policy "Raye2 users leave groups" on public.raye2_group_members for delet
 using (user_id=(select auth.uid()) and role<>'owner');
 
 create policy "Raye2 conversation members read conversations" on public.raye2_conversations for select to authenticated
-using (public.raye2_is_conversation_member(id) or public.raye2_is_platform_admin());
+using (public.raye2_is_conversation_member(id));
 create policy "Raye2 conversation members read roster" on public.raye2_conversation_members for select to authenticated
 using (user_id=(select auth.uid()) or public.raye2_is_conversation_member(conversation_id));
 create policy "Raye2 conversation members read messages" on public.raye2_messages for select to authenticated

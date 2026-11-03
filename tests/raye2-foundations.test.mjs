@@ -16,6 +16,10 @@ test("Raye2 private resources are protected by RLS and membership predicates", (
   assert.match(migration, /enable row level security/);
   assert.match(migration, /raye2_is_group_member/);
   assert.match(migration, /raye2_is_conversation_member/);
+  const privateGroupPolicy = migration.match(/create policy "Raye2 visible groups"[\\s\\S]*?;/)?.[0] ?? "";
+  const conversationPolicy = migration.match(/create policy "Raye2 conversation members read conversations"[\\s\\S]*?;/)?.[0] ?? "";
+  assert.doesNotMatch(privateGroupPolicy, /raye2_is_platform_admin/);
+  assert.doesNotMatch(conversationPolicy, /raye2_is_platform_admin/);
   assert.match(migration, /Raye2 conversation members read messages/);
   assert.match(migration, /Raye2 members send messages/);
   assert.match(migration, /raye2_groups.*visibility text not null default 'private'/s);
