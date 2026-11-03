@@ -101,6 +101,7 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     pendingIceRef.current = [];
     offerStartedRef.current = false;
     setRemoteAudioReady(false);
+    setQuality("unknown");
     setMuted(false);
   }, []);
 
@@ -176,6 +177,8 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     cleanupMedia();
     setSession(null);
     setRole(null);
+    setActivePeerName("");
+    setActivePeerId(null);
     setCallState("idle");
   }, [cleanupMedia, closeChannel, copy.unavailable, sendSignal, session, supabase]);
 

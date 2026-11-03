@@ -159,7 +159,8 @@ test("private call signaling validates the peer identity and cleans up local med
 
 test("the direct-message header only renders voice controls for a signed-in direct peer", () => {
   assert.match(client, /Raye2VoiceControls/);
-  assert.match(client, /selected\.kind === "direct" && selected\.otherUserId && supabase && userId/);
+  assert.match(client, /voiceGlobalWrap/);
+  assert.match(client, /conversationId=\{selected\?\.kind === "direct" \? selected\.conversationId : null\}/);
 });
 
 
