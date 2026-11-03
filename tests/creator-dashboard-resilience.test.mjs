@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 
-test("creator dashboard quick navigation points to all ten management areas", async () => {
+test("creator dashboard quick navigation points to all eleven management areas", async () => {
   const [page, settings, polls, ideas, events, media, history, studio] = await Promise.all([
     read("../src/app/creator/page.tsx"),
     read("../src/app/creator/creator-settings.tsx"),
@@ -21,7 +21,8 @@ test("creator dashboard quick navigation points to all ten management areas", as
   for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
     assert.ok(source.includes(`id="${id}"`), `management panel target missing: ${id}`);
   }
-  assert.ok(page.includes('10 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
+  assert.ok(page.includes('11 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
+  assert.ok(page.includes('href="/creator/raye2"'));
   assert.ok(!page.includes("More control, coming next."));
 });
 
@@ -85,7 +86,7 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   const page = await read("../src/app/creator/page.tsx");
   assert.ok(page.includes('{admin.role === "owner" && ('));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
-  assert.ok(page.includes('10 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
+  assert.ok(page.includes('11 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
 });
 
 test("community interactions restore optimistic state and recover from failed requests", async () => {
