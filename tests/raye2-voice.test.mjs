@@ -260,3 +260,10 @@ test("group chats expose voice-room controls and LiveKit SDKs are explicit depen
   assert.equal(packageJson.dependencies["livekit-client"], "2.23.0");
   assert.equal(packageJson.dependencies["livekit-server-sdk"], "2.19.2");
 });
+
+
+test("private-call opt-out label is translated in both supported locales", () => {
+  assert.equal((client.match(/allowVoiceCalls:/g) ?? []).length, 2);
+  assert.match(client, /allowVoiceCalls:"Allow private voice calls"/);
+  assert.match(client, /allowVoiceCalls:"السماح بالمكالمات الصوتية الخاصة"/);
+});

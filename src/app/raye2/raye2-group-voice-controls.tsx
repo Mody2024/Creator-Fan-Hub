@@ -115,7 +115,6 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         roomRef.current = null;
       }
       sessionRef.current = null;
-      setRoomSessionId(null);
     } finally {
       setBusy(false);
     }
