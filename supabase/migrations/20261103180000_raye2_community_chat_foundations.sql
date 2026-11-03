@@ -273,6 +273,7 @@ begin
 end;
 $$;
 revoke all on function public.raye2_sync_group_conversation_member() from public,anon,authenticated;
+grant execute on function public.raye2_sync_group_conversation_member() to postgres;
 drop trigger if exists raye2_group_members_sync_conversation on public.raye2_group_members;
 create trigger raye2_group_members_sync_conversation
 after insert or update of status or delete on public.raye2_group_members
