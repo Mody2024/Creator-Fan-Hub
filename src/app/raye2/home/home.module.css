@@ -26,3 +26,10 @@
 .notice{margin:9px 0 0;color:var(--r-muted);font-size:10px}
 .shell[dir="rtl"] .reactionMenu{left:auto;right:0}
 .shell[dir="rtl"] .postActions{flex-direction:row-reverse}
+
+
+.videoFrame{position:relative;overflow:hidden;isolation:isolate}
+.videoThumbnail{object-fit:cover;transition:transform .35s ease}
+.videoCard:hover .videoThumbnail{transform:scale(1.035)}
+.videoPlay{position:relative;z-index:1;display:grid;place-items:center;width:42px;height:42px;padding-left:3px;border:1px solid rgba(255,255,255,.42);border-radius:50%;background:rgba(5,12,23,.62);color:#fff;backdrop-filter:blur(8px);font-size:15px}
+@media(prefers-reduced-motion:reduce){.videoThumbnail{transition:none}.videoCard:hover .videoThumbnail{transform:none}}
