@@ -3,3 +3,26 @@
 .shell[dir="rtl"] .postFoot{flex-direction:row-reverse}
 .shell[dir="rtl"] .avatar{font-family:var(--font,Arial,sans-serif)}
 @media(prefers-reduced-motion:reduce){.shell *{scroll-behavior:auto!important;transition:none!important}}
+
+
+.postHead{min-width:0}
+.authorMeta{min-width:0;flex:1}
+.avatarImage{width:38px;height:38px;flex:0 0 auto;border-radius:50%;object-fit:cover;border:1px solid var(--r-line)}
+.followButton{padding:6px 10px;border:1px solid rgba(120,173,255,.3);border-radius:9px;background:rgba(120,173,255,.08);color:var(--r-accent);font-size:10px;font-weight:800;cursor:pointer}
+.followButton:disabled{opacity:.55;cursor:wait}
+.postActions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:12px;margin-top:12px;border-top:1px solid var(--r-line)}
+.actionButton{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--r-muted);font-size:10px;font-weight:750;cursor:pointer}
+.actionButton:hover,.actionButton[aria-pressed="true"]{color:var(--r-accent);background:rgba(120,173,255,.09);border-color:rgba(120,173,255,.17)}
+.actionCount{font-variant-numeric:tabular-nums}
+.reactionWrap{position:relative}
+.reactionMenu{position:absolute;z-index:10;left:0;bottom:calc(100% + 8px);display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:230px;padding:8px;border:1px solid var(--r-line);border-radius:13px;background:var(--r-panel);box-shadow:0 16px 42px rgba(0,0,0,.32)}
+.reactionMenu button{display:flex;align-items:center;gap:7px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--r-text);font-size:10px;text-align:start;cursor:pointer}
+.reactionMenu button:hover,.reactionMenu button[aria-pressed="true"]{background:var(--r-raised);color:var(--r-accent)}
+.commentsPanel{padding:13px;margin-top:10px;border-top:1px solid var(--r-line);color:var(--r-text);font-size:12px}
+.commentsPanel>p{padding:9px 0;margin:0;border-bottom:1px solid var(--r-line);line-height:1.6}
+.commentsPanel form{display:flex;gap:8px;margin-top:12px}
+.commentsPanel input{flex:1;min-width:0;padding:10px;border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);font:inherit}
+.commentsPanel form button{padding:0 13px;border:0;border-radius:9px;background:var(--r-accent);color:#071321;font-size:10px;font-weight:800}
+.notice{margin:9px 0 0;color:var(--r-muted);font-size:10px}
+.shell[dir="rtl"] .reactionMenu{left:auto;right:0}
+.shell[dir="rtl"] .postActions{flex-direction:row-reverse}
