@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import NhenReactionArt from "@/app/watch/[slug]/nhen-reaction-art";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./home.module.css";
@@ -11,6 +11,10 @@ type Props = {
   author: { handle:string; display_name:string; avatar_url?:string|null } | undefined;
   isArabic: boolean;
   currentUserId: string|null;
+  initialCount: number;
+  initialMine: string|null;
+  initialSaved: boolean;
+  initialFollowing: boolean;
 };
 const reactions = [
   {key:"like",labelEn:"Like",labelAr:"إعجاب",art:"support"},
@@ -23,43 +27,20 @@ const reactions = [
   {key:"curious",labelEn:"Curious",labelAr:"فضول",art:"orbit"}
 ] as const;
 
-export default function HomeFeedPost({post,author,isArabic,currentUserId}:Props){
+export default function HomeFeedPost({post,author,isArabic,currentUserId,initialCount,initialMine,initialSaved,initialFollowing}:Props){
   const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
-  const [count,setCount]=useState(0);
-  const [mine,setMine]=useState<string|null>(null);
-  const [saved,setSaved]=useState(false);
+  const [count,setCount]=useState(initialCount);
+  const [mine,setMine]=useState<string|null>(initialMine);
+  const [saved,setSaved]=useState(initialSaved);
   const [picker,setPicker]=useState(false);
   const [commentsOpen,setCommentsOpen]=useState(false);
   const [comments,setComments]=useState<Array<{id:string;body:string;author_id:string;created_at:string}>>([]);
   const [comment,setComment]=useState("");
   const [busy,setBusy]=useState(false);
   const [notice,setNotice]=useState("");
-  const [following,setFollowing]=useState(false);
+  const [following,setFollowing]=useState(initialFollowing);
   const [followBusy,setFollowBusy]=useState(false);
   const labels={react:isArabic?"تفاعل":"React",comments:isArabic?"التعليقات":"Comments",save:isArabic?"حفظ":"Save",saved:isArabic?"تم الحفظ":"Saved",share:isArabic?"مشاركة":"Share",reply:isArabic?"اكتب تعليقًا…":"Write a comment…",send:isArabic?"إرسال":"Send",discussion:isArabic?"النقاش":"Discussion",follow:isArabic?"متابعة":"Follow",following:isArabic?"تتابعه":"Following",official:isArabic?"رسمي":"OFFICIAL",member:isArabic?"المجتمع":"COMMUNITY",signIn:isArabic?"سجّل الدخول للتفاعل مع المنشورات.":"Sign in to interact with posts.",error:isArabic?"تعذر إكمال العملية. حاول مرة أخرى.":"That action could not be completed. Please try again."};
-  useEffect(()=>{
-    let alive=true;
-    void (async()=>{
-      if(!supabase)return;
-      const [counts,user]=await Promise.all([
-        supabase.rpc("get_community_reaction_counts",{p_post_ids:[post.id]}),
-        supabase.auth.getUser()
-      ]);
-      if(!alive)return;
-      setCount(Number(counts.data?.[0]?.reaction_count)||0);
-      if(user.data.user){
-        const id=user.data.user.id;
-        const [reaction,bookmark,follow]=await Promise.all([
-          supabase.from("community_reactions").select("reaction").eq("post_id",post.id).eq("user_id",id).maybeSingle(),
-          supabase.from("community_bookmarks").select("post_id").eq("post_id",post.id).eq("user_id",id).maybeSingle(),
-          supabase.from("member_follows").select("followed_id").eq("follower_id",id).eq("followed_id",post.author_id).maybeSingle()
-        ]);
-        if(!alive)return;
-        setMine(reaction.data?.reaction??null);setSaved(!!bookmark.data);setFollowing(!!follow.data);
-      }
-    })();
-    return()=>{alive=false;};
-  },[supabase,post.id,post.author_id]);
   async function react(key:string){
     if(!supabase||!currentUserId){setNotice(labels.signIn);setPicker(false);return;}
     const old=mine;const next=old===key?null:key;
