@@ -546,3 +546,166 @@ Admin may configure these within actual infrastructure limits. The product must 
 ---
 
 **Implementation instruction:** Read this entire master plan and the companion chat/voice plan before continuing work. Start with Wave 0 repository audit, then execute the waves in dependency order on `development`. Preserve all confirmed decisions, use large complete implementation batches, report verified per-wave and overall percentages, run checks after each meaningful batch, and keep `main` and production untouched until explicit approval.
+
+
+---
+
+## 13. Complete owner-agreed requirements register (binding addendum)
+
+This register is part of the master specification. It expands the earlier summaries into explicit product behavior and acceptance criteria. If a feature appears in this register and its detailed companion document, both apply. A wave is not complete until its applicable checks pass.
+
+### 13.1 Brand, identity and visual system — Wave 1
+
+- [ ] Replace the predecessor NHEN / Nhen? / Creator Fan Hub visual identity across the actual product, not only the landing page.
+- [ ] Use black, white, grey and blue as the complete core palette. Remove the old lime-green identity and audit every route, modal, hover state, chart, badge, skeleton and error state for stray old colors.
+- [ ] The supplied hand-drawn logo is the visual identity. Preserve its character; improve spacing, composition, resolution, sizing and responsive placement without replacing it with a generic mark.
+- [ ] Correct the Arabic typo in the supplied logo artwork when the source asset is available. Do not invent replacement Arabic lettering.
+- [ ] Creator/Admin branding controls must support logo upload, safe crop/fit, preview on light/dark surfaces, background-removal preview where reliable, original-file preservation, transparent PNG/WebP where supported, fallback and theme-aware variants.
+- [ ] The logo must integrate into navigation, loading, favicon/app icon and relevant media/creator surfaces without being repeated as a written “Raye2” wordmark throughout the UI.
+- [ ] Rebuild the home layout, menus, navigation hierarchy, content cards, player shell, profile headers, creator surfaces, feed, dialogs and mobile navigation as one coherent system.
+- [ ] Make the desktop experience the primary design target while delivering complete responsive tablet/mobile behavior, not a squeezed desktop layout.
+- [ ] Provide Arabic and English typography with correct RTL/LTR direction, mixed-language metadata and mirrored layout where appropriate.
+- [ ] Admin-managed themes may change supported theme tokens and logo variants but cannot break accessibility, contrast or brand consistency.
+- [ ] Remove obsolete predecessor branding and legacy marks from Raye2 UI. Preserve third-party marks/player controls required by providers.
+- [ ] **Open branding decision:** the existing README says a permanent “MADE BY ALMUDDATHTHIR” credit remains in the shared public layout, while the Raye2 redesign direction says obsolete/unapproved predecessor watermarks are removed. Do not silently choose. Before changing that credit, record the owner's explicit decision: retain it as a deliberate creator credit, redesign/reposition it, or remove it. It must not be mistaken for a third-party legal mark.
+
+### 13.2 Home, navigation and connected discovery — Waves 1 and 3
+
+- [ ] Home is the central YouTube-style browsing experience: a clear primary feed with connected video discovery, creator identity, categories/topics and recommendations—not a collection of isolated feature pages.
+- [ ] Use familiar media-platform information architecture while retaining Raye2's own design. Include useful side navigation on desktop and compact navigation on mobile.
+- [ ] Home sections can include recommended, following, latest, creators, videos, Mini's, Moments, live now, communities and events, subject to available content and Admin feature flags.
+- [ ] Every media card, feed post and creator mention links to the canonical content/profile. Follow, subscribe, reactions, comments, save and share state remains consistent wherever the item appears.
+- [ ] Include feed polls with question, options, voting rules, closing time where enabled, results visibility and anti-repeat/abuse controls.
+- [ ] Search and discovery span public creators/users, native videos, Mini's, active public Moments, public communities and events; privacy, blocks, moderation and expiry apply to every result.
+- [ ] Build connected menus, contextual actions, notification entry points, account controls and search—not dead-end buttons or disconnected mock pages.
+
+### 13.3 Native video, external video and player behavior — Wave 3
+
+- [ ] Native Raye2 uploads are stored, processed, delivered and played through a real supported media pipeline. The player, upload state and processing state must reflect real backend state.
+- [ ] Native video pages have Raye2-owned comments, replies, reactions, creator profile links, saves, share actions and community discussion.
+- [ ] Support direct phone/computer upload, secure resumable/retryable upload where the provider supports it, thumbnail selection, title, description, category, visibility, captions and expiry.
+- [ ] External YouTube videos use the official permitted embed/player. Keep YouTube's required branding, controls, restrictions and player behavior. Raye2's own title, creator context, comments, reactions, polls where appropriate and discussion can surround it.
+- [ ] Never imply Raye2 owns, stores or controls an external YouTube video's availability; do not download, proxy, cache, alter or extract its audiovisual stream without authorization.
+- [ ] Share a whole video, timestamp/moment, or an eligible clip into DMs, groups, communities and Watch Together.
+- [ ] Shared links must re-check current permissions, moderation and expiry at view time.
+
+### 13.4 Publishing permissions, Creator Panel and quotas — Waves 2 and 4
+
+- [ ] Admin/Owner assigns Creator and Streamer roles; users cannot self-assign them. Creator-only, Streamer-only and combined Creator + Streamer permissions are distinct.
+- [ ] Creator-only may publish long videos and exclusives; Streamer-only may start streams; combined role receives only the explicit combined quota below, never additive quotas.
+- [ ] Ordinary users may publish allowed community content and create eligible clips from existing Raye2 content, but cannot use Creator Studio upload controls to publish official long-form uploads unless granted the role.
+- [ ] Creator Studio shows only permitted actions and explains why an action is unavailable. Every permission and quota is checked server-side.
+- [ ] Current planned role quota matrix:
+
+| Content | Creator only | Streamer only | Creator + Streamer |
+|---|---:|---:|---:|
+| Long videos/month | 5 | 0 | 3 |
+| Long-video cooldown | 4 days | — | 1 per week |
+| Streams/month | 0 | 5 | 3 |
+| Streams/week | — | 2 | 1 |
+| Mini's/month | 30 | 30 | 20 |
+| Moments/month | 30 | 30 | 30 |
+
+- [ ] Long-video user-selected expiry: up to 14 days, subject to Admin policy. Exclusivity: up to 7 days.
+- [ ] Stream replay retention: 24 hours after stream end. This is not the stream's live duration.
+- [ ] Mini's maximum duration: 15 seconds; planned maximum lifetime 30 days. Ordinary-user planned Mini cap is 3/day, configurable by Admin.
+- [ ] Moments planned default lifetime: 6 hours; role quotas are 30/month for each listed role. Ordinary-user limits remain an explicit Admin-configurable policy.
+- [ ] Admin can tune quotas, cooldowns, file-size/duration ceilings, retention, allowed sources, role overrides and feature access within provider/system limits.
+- [ ] Quota calculations, timezone/month boundaries, concurrent upload reservations, failed upload refunds and race conditions must be defined and tested. A client-side counter is not enforcement.
+- [ ] Creator Panel includes content library, drafts, processing/publishing status, retryable errors, moderation/takedown state, quota/cooldown display and real analytics (views, watch time, completion/retention where measurable, engagement and followers).
+- [ ] Never fabricate views, watch time, live viewers or analytics when instrumentation is unavailable.
+
+### 13.5 Mini's, Moments and community-created clips — Waves 3 and 5
+
+- [ ] “Mini's” is the Raye2 product term; do not replace it with generic Shorts/Reels labels.
+- [ ] Mini's may be directly uploaded from a phone or created from eligible Raye2 long videos and streams.
+- [ ] Extracted Mini's retain source attribution and must survive source expiry/deletion for their own allowed lifetime. Materialize an independent clip asset only when a durable reference cannot meet the retention requirement.
+- [ ] Add a distinct **community clip** flow: ordinary fans can select an allowed portion of an already-published eligible Raye2 video/stream and publish it as a community contribution with their own caption and Raye2 interactions. This is not permission to upload arbitrary official long videos.
+- [ ] Community clips must follow source creator permissions, clip-length rules, attribution, privacy, takedown, reporting, copyright and Admin policy. A source creator/Admin must be able to disable clipping for a source where appropriate.
+- [ ] The owner's requested low-friction community creation should not require manual pre-approval for every ordinary clip by default; automated safeguards, rate limits, reporting and post-publication moderation remain available. Admin can enable review for specific accounts/sources/categories.
+- [ ] Define ordinary-user clip limits explicitly in Admin policy rather than accidentally inheriting Creator quotas. Do not describe ordinary clip creation as unlimited until the owner sets and infrastructure validates an actual limit.
+- [ ] Provide trim/preview, caption, attribution, visibility, share, report and remove/takedown behavior.
+- [ ] Clips shared into communities or chats must remain subject to source and clip permissions.
+
+### 13.6 Custom Raye2 reactions and social engagement — Waves 3 and 5
+
+- [ ] Build a Raye2-owned reaction pack with original image assets, distinct reaction names, accessible text labels and a consistent visual style.
+- [ ] Reaction picker opens as a clear popup/overlay from posts, videos, comments and supported messages. It must work by pointer, touch and keyboard.
+- [ ] Show the selected reaction state and real reaction counts; support changing/removing a reaction and enforce one active reaction per user per target unless the product explicitly defines otherwise.
+- [ ] Do not substitute generic emoji-only reactions for the requested custom reaction artwork. Emoji may be used only as a temporary accessible fallback while the final assets are unavailable.
+- [ ] Include comments, threaded replies, edit/delete permissions, pinning, moderation, reporting and notification preferences across supported content types.
+- [ ] Polls, saves/bookmarks, collections, follows/subscriptions, repost/quote where enabled and share-to-chat/community must use consistent canonical records.
+
+### 13.7 Profiles, creator identity and achievements — Waves 2, 3 and 5
+
+- [ ] Public/private profile controls with avatar, cover, display name, unique handle, bio, links, interests and creator identity.
+- [ ] Profile surfaces connect to videos, Mini's, Moments while active, community posts/clips, public communities, playlists/collections and achievements where enabled.
+- [ ] Include meaningful achievement/badge framework with defined eligibility, anti-abuse checks and transparent criteria; do not award fabricated achievements.
+- [ ] Provide profile customization and visibility controls without exposing private activity, private groups or restricted media.
+- [ ] Creator profiles are connected from every eligible media card, comment, live event and community surface.
+- [ ] Support follow/unfollow, follower/following views and notification preferences with block/mute/privacy enforcement.
+
+### 13.8 Communities and fan participation — Wave 5
+
+- [ ] Public discoverable and private invite-only communities, with ownership, moderators, rules, join requests, invites, bans and member controls.
+- [ ] Community feed supports posts, announcements, polls, Mini's/community clips, shared video moments, pinned items, topic channels and collections.
+- [ ] Fans can discuss official creator videos and create eligible community clips without being granted official Creator publishing privileges.
+- [ ] Admin/Owner and authorized moderators can edit/remove community posts and clips, handle reports and apply restrictions with audit history.
+- [ ] Support events, RSVP/reminders, Q&A, creator office hours, collaborations and optional attached chat/voice/Watch Together spaces.
+- [ ] Community activity, user mentions and shared media obey membership visibility, privacy, blocking and content expiry.
+
+### 13.9 Chat, voice, Watch Together and Shared Memories — Wave 6 and 7
+
+- [ ] The companion document `docs/RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md` is mandatory and remains incorporated by reference. Its detailed requirements are not optional or superseded by this checklist.
+- [ ] Direct messages, public/private groups, message requests, reactions, replies, edits/deletes, pins, bookmarks, search, polls, scheduled events, shared collections, notification controls, block/report and group moderation.
+- [ ] Private one-to-one voice calls and group voice rooms, with join/leave, mute, speaker/device controls, speaking indicators, raise hand, host/co-host moderation, lock/waiting room and reconnect/quality state.
+- [ ] Optional recording is off by default and requires active consent from every participant. New joiners must consent before inclusion; declined/withdrawn consent stops recording or excludes the participant safely. Visible recording indicator and elapsed time are mandatory. No secret/background recording.
+- [ ] Watch Together supports synchronized eligible native video, shared queue, queue voting, chat/reactions and optional voice; external player limitations must be clear.
+- [ ] Automatic cleanup of messages, groups, rooms, attachments, recordings and session artifacts follows independent Admin-configurable retention clocks.
+- [ ] Shared Memories remain separate from ordinary chat retention and are excluded from bulk cleanup unless their own explicit policy permits deletion.
+- [ ] Bulk cleanup must preview affected records, estimated storage, exclusions, reason and recovery options, require confirmation, and write an audit record.
+
+### 13.10 Admin/Owner platform control center — Wave 8
+
+- [ ] Central Admin Rules Engine for roles, quotas, cooldowns, publishing permissions, duration/file limits, visibility, feature flags, retention, cleanup and storage thresholds.
+- [ ] Admin can assign/remove Creator and Streamer roles, set account-specific overrides and temporary grants, suspend/restrict accounts, and moderate official and community content.
+- [ ] Admin can edit/remove community posts/clips and manage reported content; actions require appropriate permissions and audit records.
+- [ ] Admin dashboards show real users, creators, uploads, views, watch time, active streams, reports, moderation queues, storage by category/bucket, delivery/realtime usage, failed processing and cleanup backlog.
+- [ ] Provide feature switches and safe staged rollout; disabling a feature must not orphan data or break unrelated routes.
+- [ ] Storage cleanup controls allow selecting categories to clear while preserving explicitly selected categories such as chat history or Shared Memories.
+- [ ] Destructive bulk actions require scope preview, reason, elevated authorization, confirmation, audit log and recovery/quarantine where feasible.
+- [ ] Owner/Super Admin powers are separate from ordinary Admin; no self-escalation through normal role controls.
+
+### 13.11 Safety, privacy, security, reliability and operations — Wave 9
+
+- [ ] Enforce authorization and quotas server-side, with database policies and tests for every role/content combination.
+- [ ] Apply age-appropriate defaults, reporting, blocking, moderation queues, anti-spam/rate limits, copyright/takedown workflows and privacy-aware discovery.
+- [ ] Validate media type, size, duration, ownership, source permissions and processing output. Use signed uploads and safe access policies.
+- [ ] Ensure expired content becomes inaccessible immediately even if physical storage deletion is delayed.
+- [ ] Background jobs must be durable, retryable, idempotent and observable; track orphaned assets and failed cleanup.
+- [ ] Test Arabic/English, RTL/LTR, mobile/tablet/desktop, keyboard accessibility, slow network, reconnects, upload interruption and permission edge cases.
+- [ ] Test concurrent quota reservations, role changes during uploads, source deletion while clips survive, late voice-room joiners, recording consent withdrawal, cleanup exclusions and private-group link leakage.
+- [ ] Maintain real cost/capacity accounting. No unlimited-free storage/streaming or zero-latency promises.
+- [ ] Complete repository audit, schema/migration review, RLS/security review, automated tests, preview validation and owner acceptance before production release.
+
+### 13.12 Explicit decision register — do not silently resolve
+
+1. **Long-video duration conflict:** earlier product direction requested videos of at least 20–30 minutes or longer; the later quota policy says a 10-minute maximum. The current 10-minute value is retained as a provisional policy, but Wave 0 must obtain the owner's final decision before implementation locks the limit. Keep architecture capable of a configurable higher ceiling if provider capacity permits.
+2. **Permanent creator credit:** README currently requires the “MADE BY ALMUDDATHTHIR” credit, while the redesign calls for removal of obsolete/unapproved legacy marks. Wave 0 must confirm retain, redesign/reposition or remove before editing the shared layout.
+3. **Ordinary-user community clips:** low-friction/no manual pre-review by default is the direction; exact per-day/month limits, clip duration and source-creator opt-out rules must be set in Admin policy before launch.
+4. **Live session duration:** 3 hours is only a proposed starting maximum, not an owner-confirmed requirement. Keep it configurable and validate against the selected live provider.
+5. **Ordinary-user Mini's and Moments quotas:** Mini's 3/day is a proposed starting cap; ordinary-user Moments quota is not yet fixed. These remain Admin-configurable launch decisions.
+6. **Infrastructure/provider choices:** storage, transcoding, CDN, live ingest, WebRTC SFU/TURN and realtime providers must be selected from measured free-tier limits, reliability, legal terms and cost. Product requirements do not imply unlimited capacity.
+
+### 13.13 Wave completion and reporting contract
+
+For each wave, report:
+- planned scope and acceptance criteria;
+- implemented items with exact routes/components/schema/services changed;
+- automated checks run and their outcomes;
+- preview-tested behavior and known limitations;
+- remaining blockers and decisions;
+- separate percentages for implementation, automated verification and preview/owner acceptance.
+
+A wave is **not complete** because a plan exists, a route renders, a placeholder is present, or a commit was pushed. Mark a requirement complete only when the corresponding behavior exists and its acceptance test passes. Never collapse planned, implemented, tested and owner-accepted into one percentage.
+
