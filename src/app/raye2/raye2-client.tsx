@@ -756,7 +756,7 @@ export default function Raye2Client() {
   }
 
   const platformNav = [
-    { href: "/community", en: "Home", ar: "الرئيسية", icon: "⌂" },
+    { href: "/raye2/home", en: "Home", ar: "الرئيسية", icon: "⌂" },
     { href: "/watch", en: "Watch", ar: "المشاهدة", icon: "▶" },
     { href: "/shorts", en: "Mini's", ar: "ميني", icon: "▤" },
     { href: "/search", en: "Explore", ar: "استكشف", icon: "⌕" },
