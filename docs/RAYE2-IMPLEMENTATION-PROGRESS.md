@@ -5,7 +5,7 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `5554261fa3567c0ffce3b9e87f7a76d0ffdf3818` (2026-11-04).
+- Snapshot commit reviewed: `9f8e7167819016d88418e6967b7989d7cf54ffc2` (2026-11-04).
 
 ## Progress snapshot — 2026-11-04
 
@@ -14,22 +14,22 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | Wave | Scope | Implementation estimate | Current evidence / remaining work |
 |---|---|---:|---|
 | 0 | Repository audit and implementation map | **55%** | Master plan and initial source/migration/test inventory exist. Complete route-by-route and requirement-by-requirement gap matrix, provider/config audit, and unresolved decision closure remain. |
-| 1 | Brand system and full product redesign | **25%** | Raye2 messaging has blue/graphite tokens, dark/light controls and bilingual responsive navigation; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
-| 2 | Core architecture, accounts and permissions | **25%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
+| 1 | Brand system and full product redesign | **28%** | Raye2 messaging has blue/graphite tokens, dark/light controls and bilingual responsive navigation; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
+| 2 | Core architecture, accounts and permissions | **27%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
 | 3 | Video, feed and discovery | **22%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards support native reactions, comments, bookmarks, follow/unfollow and share with batch-loaded state; published video thumbnail assets are surfaced where configured; `/search` has been redesigned as a bilingual Raye2 Explore experience across videos, people and community posts. Full player previews, search ranking, richer recommendations and complete media journey remain. |
 | 4 | Creator Studio, exclusives and live streaming | **5%** | Existing creator tools are present elsewhere in the app, but Raye2-specific role/quota workflow, media lifecycle, exclusives and real live ingest/delivery are not complete. |
-| 5 | Social graph, communities and engagement | **15%** | Raye2 public/private groups, membership and moderation foundations exist. Full profiles/follows, community publishing, polls/events/collections and connected engagement surfaces remain. |
+| 5 | Social graph, communities and engagement | **16%** | Raye2 public/private groups, membership and moderation foundations exist. Full profiles/follows, community publishing, polls/events/collections and connected engagement surfaces remain. |
 | 6 | Messaging and chat | **85%** | Strong implementation: DMs/groups, message actions, requests, search, pins, notifications, quiet hours, moderation, invites, Shared Memories and group controls. Remaining: runtime DB/RLS acceptance, delivery/push, attachment/media lifecycle, and end-to-end operational verification. |
 | 7 | Voice and Watch Together | **55%** | Private WebRTC call path, LiveKit group-room integration path/moderation, voice preferences, Watch Together sessions/queue/playback sync exist. Real provider deployment, multi-device/network acceptance, reconnection/telemetry, consented recording pipeline, external embeds/invites and remaining session features are outstanding. |
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
 | 9 | Security, reliability and release readiness | **15%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~34%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~35%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
-- **Automated verification:** `Validate site` passed on code HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The newer thumbnail and Explore batch on `5554261f` passed the 207 prototype/configuration tests; its full production build/lint validation is still running, so no pass is claimed for that newer HEAD yet. The separate `Free CI` run is also pending.
+- **Automated verification:** `Validate site` passed on code HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The video-thumbnail and Explore batch on `5554261f` passed the full `Validate site` workflow, including 207 prototype/configuration tests, Next.js type-check + production build, and lint. The subsequent member-profile redesign is committed on `76752f79`; its full validation is still running, and the latest `9f8e7167` naming follow-up has not yet completed validation. The separate `Free CI` run is pending.
 - **Database/runtime verification:** Raye2 migrations are committed in the repository; this snapshot does not prove they have been applied to the intended Supabase project or passed live RLS/RPC tests.
-- **Preview/owner acceptance:** Vercel development deployment completed successfully for `f42de989`. The newer `5554261f` development preview deployment is pending; browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces are still outstanding.
+- **Preview/owner acceptance:** Vercel development deployment completed successfully for `f42de989`. The `5554261f` development preview deployment is pending at last check; the member-profile redesign is newer and has not yet completed preview verification. Browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces are still outstanding.
 - **Production:** no merge/deployment authorized.
 
 ## Verified implemented areas
@@ -73,6 +73,13 @@ These are conservative repository-based estimates against the **entire ten-wave 
 - [ ] Public external-player embeds and synchronization
 - [ ] In-room reactions/polls and live multi-device acceptance
 
+## Latest member profile redesign batch (through commit `9f8e7167`)
+- [x] Replace the legacy NHEN profile presentation with a Raye2 blue/graphite member profile layout.
+- [x] Preserve profile editing, follow/unfollow, block/unblock and follower/following counts.
+- [x] Present achievements, creator videos, Mini's and community posts in responsive sections.
+- [x] Add responsive mobile profile layout and bilingual labels.
+- [ ] Add profile-level activity feed reactions, media thumbnails and richer creator/verification identity.
+
 ## Latest home/feed, engagement and Explore batch (through commit `5554261f`)
 - [x] Add a dedicated `/raye2/home` server-rendered platform home route.
 - [x] Load latest community posts and a following-only feed using authenticated membership.
@@ -98,7 +105,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 
 ## Next large implementation batches
 
-1. **Wave 1 redesign:** extend the new design system and navigation across Watch, Mini's, profiles, Creator Studio and all public platform surfaces.
+1. **Wave 1 redesign:** extend the new design system and navigation across Watch, Mini's, Creator Studio and all remaining public platform surfaces.
 2. **Core product surfaces:** build the connected Raye2 home/feed, Explore/search, profiles and community surfaces on shared data contracts.
 3. **Media + Creator Studio:** integrate native video lifecycle, Mini's/Moments, creator/streamer role quotas and publishing workflows.
 4. **Community + engagement:** connect follows, communities, posts, polls, events, collections and custom reactions.
