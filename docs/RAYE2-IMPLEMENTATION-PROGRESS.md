@@ -24,7 +24,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
 | 9 | Security, reliability and release readiness | **15%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~28%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~29%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
 - **Automated verification:** meaningful contract-test coverage exists for chat, voice, Watch Together and admin contracts, but the latest confirmed successful GitHub Actions run is for commit `1dec9e0d`, not the reviewed HEAD. The reviewed HEAD has a successful Vercel development deployment status; that is not a test pass.
