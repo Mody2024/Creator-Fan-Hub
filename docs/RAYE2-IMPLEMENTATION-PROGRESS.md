@@ -5,7 +5,7 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `bfb4322f76b9c8a9be04517666f6ff4460d72396` (2026-11-04).
+- Snapshot commit reviewed: `f42de98919a6c0baab70067bb4cd2c9dd8f49f73` (2026-11-04).
 
 ## Progress snapshot — 2026-11-04
 
@@ -14,9 +14,9 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | Wave | Scope | Implementation estimate | Current evidence / remaining work |
 |---|---|---:|---|
 | 0 | Repository audit and implementation map | **55%** | Master plan and initial source/migration/test inventory exist. Complete route-by-route and requirement-by-requirement gap matrix, provider/config audit, and unresolved decision closure remain. |
-| 1 | Brand system and full product redesign | **0%** | Current Raye2 CSS still uses the legacy lime-accent visual system. Black/white/grey/blue tokens, shared shell, typography, responsive redesign and full-surface review remain. |
+| 1 | Brand system and full product redesign | **23%** | Raye2 messaging has blue/graphite tokens, dark/light controls and bilingual responsive navigation; the new home has matching scoped blue/graphite tokens, desktop/mobile layout and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
 | 2 | Core architecture, accounts and permissions | **25%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
-| 3 | Video, feed and discovery | **5%** | The repository contains older/adjacent video and community code, but no verified integrated Raye2 home/feed, discovery and complete native-media journey. Do not count legacy surfaces as finished Raye2 features. |
+| 3 | Video, feed and discovery | **18%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards now support native reactions, comments, bookmarks, follow/unfollow and share, with batch-loaded interaction state and profile identity. Real video thumbnails/player previews, full Explore/search, ranked recommendations and end-to-end media journey remain. |
 | 4 | Creator Studio, exclusives and live streaming | **5%** | Existing creator tools are present elsewhere in the app, but Raye2-specific role/quota workflow, media lifecycle, exclusives and real live ingest/delivery are not complete. |
 | 5 | Social graph, communities and engagement | **15%** | Raye2 public/private groups, membership and moderation foundations exist. Full profiles/follows, community publishing, polls/events/collections and connected engagement surfaces remain. |
 | 6 | Messaging and chat | **85%** | Strong implementation: DMs/groups, message actions, requests, search, pins, notifications, quiet hours, moderation, invites, Shared Memories and group controls. Remaining: runtime DB/RLS acceptance, delivery/push, attachment/media lifecycle, and end-to-end operational verification. |
@@ -24,12 +24,12 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
 | 9 | Security, reliability and release readiness | **15%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~32%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~33%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
-- **Automated verification:** meaningful contract-test coverage exists for chat, voice, Watch Together and admin contracts, but the latest confirmed successful GitHub Actions run is for commit `1dec9e0d`, not the reviewed HEAD. A prior home-feed attempt (`32323529`) failed the Next.js build due to malformed JSX in the new empty-state branch; the JSX was corrected in follow-up commits. The latest `Validate site` and `Free CI` runs for `bfb4322f` are in progress, so no latest-HEAD pass is claimed. The failed run completed 207 Node tests successfully before the build step. Source checks confirm the new Raye2 home route, latest/following server queries, profile links, published-video catalog query, bilingual cookie handling and navigation destination.
+- **Automated verification:** `Validate site` passed on reviewed HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The separate `Free CI` run is still in progress. Earlier home-feed attempts exposed and fixed a duplicate locale declaration, unescaped Mini's labels, and feed-state lint errors; do not treat those failed intermediate commits as current failures.
 - **Database/runtime verification:** Raye2 migrations are committed in the repository; this snapshot does not prove they have been applied to the intended Supabase project or passed live RLS/RPC tests.
-- **Preview/owner acceptance:** not yet recorded for the complete platform or redesigned primary surfaces.
+- **Preview/owner acceptance:** Vercel development deployment completed successfully for `f42de989`; browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces are still outstanding.
 - **Production:** no merge/deployment authorized.
 
 ## Verified implemented areas
@@ -73,7 +73,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 - [ ] Public external-player embeds and synchronization
 - [ ] In-room reactions/polls and live multi-device acceptance
 
-## Latest home/feed batch (through commit `bfb4322f`)
+## Latest home/feed and engagement batch (through commit `f42de989`)
 - [x] Add a dedicated `/raye2/home` server-rendered platform home route.
 - [x] Load latest community posts and a following-only feed using authenticated membership.
 - [x] Resolve post author profiles and link through to public member profiles.
