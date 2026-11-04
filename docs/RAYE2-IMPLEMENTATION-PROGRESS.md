@@ -5,7 +5,7 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `365bd91251f3d94beb84f129e7cd32fd22984396` (2026-11-04).
+- Snapshot commit reviewed: `bfb4322f76b9c8a9be04517666f6ff4460d72396` (2026-11-04).
 
 ## Progress snapshot — 2026-11-04
 
@@ -24,10 +24,10 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
 | 9 | Security, reliability and release readiness | **15%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~31%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~32%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
-- **Automated verification:** meaningful contract-test coverage exists for chat, voice, Watch Together and admin contracts, but the latest confirmed successful GitHub Actions run is for commit `1dec9e0d`, not the reviewed HEAD. The last successful Validate site and Free CI runs are on commit `e7947ea6`, before the responsive navigation batch. Source-level checks confirm the new desktop/mobile navigation, ten route destinations, locale cookie switch and RTL root wiring are present. CI and Vercel for the current navigation HEAD have not yet been confirmed successful; no latest-HEAD test pass is claimed.
+- **Automated verification:** meaningful contract-test coverage exists for chat, voice, Watch Together and admin contracts, but the latest confirmed successful GitHub Actions run is for commit `1dec9e0d`, not the reviewed HEAD. A prior home-feed attempt (`32323529`) failed the Next.js build due to malformed JSX in the new empty-state branch; the JSX was corrected in follow-up commits. The latest `Validate site` and `Free CI` runs for `bfb4322f` are in progress, so no latest-HEAD pass is claimed. The failed run completed 207 Node tests successfully before the build step. Source checks confirm the new Raye2 home route, latest/following server queries, profile links, published-video catalog query, bilingual cookie handling and navigation destination.
 - **Database/runtime verification:** Raye2 migrations are committed in the repository; this snapshot does not prove they have been applied to the intended Supabase project or passed live RLS/RPC tests.
 - **Preview/owner acceptance:** not yet recorded for the complete platform or redesigned primary surfaces.
 - **Production:** no merge/deployment authorized.
@@ -73,6 +73,16 @@ These are conservative repository-based estimates against the **entire ten-wave 
 - [ ] Public external-player embeds and synchronization
 - [ ] In-room reactions/polls and live multi-device acceptance
 
+## Latest home/feed batch (through commit `bfb4322f`)
+- [x] Add a dedicated `/raye2/home` server-rendered platform home route.
+- [x] Load latest community posts and a following-only feed using authenticated membership.
+- [x] Resolve post author profiles and link through to public member profiles.
+- [x] Surface recently published video catalog items and connect to Watch detail pages.
+- [x] Add desktop left navigation, main feed column and discovery rail, with responsive mobile layout.
+- [x] Add Arabic/English home content using the existing locale cookie and RTL direction.
+- [x] Route the Raye2 workspace Home navigation to the new home surface and highlight the current route.
+- [ ] Add real video thumbnails/player previews, feed-level reactions/comments/save controls, ranking and richer discovery.
+
 ## Latest design batches (through commit `365bd912`)
 - [x] Add connected desktop navigation for Home, Watch, Mini's, Explore, Series, Creator Studio, Messages, Alerts, Saved and Profile.
 - [x] Add horizontally scrollable compact mobile navigation.
@@ -88,7 +98,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 
 ## Next large implementation batches
 
-1. **Wave 0 completion + Wave 1 redesign foundation:** finish the implementation map, then replace the legacy lime theme with the Raye2 black/white/grey/blue design tokens, typography, shared navigation and responsive shell.
+1. **Wave 1 redesign:** extend the new design system and navigation across Watch, Mini's, Explore, profiles, Creator Studio and all public platform surfaces.
 2. **Core product surfaces:** build the connected Raye2 home/feed, Explore/search, profiles and community surfaces on shared data contracts.
 3. **Media + Creator Studio:** integrate native video lifecycle, Mini's/Moments, creator/streamer role quotas and publishing workflows.
 4. **Community + engagement:** connect follows, communities, posts, polls, events, collections and custom reactions.
