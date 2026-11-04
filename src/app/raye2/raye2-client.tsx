@@ -755,6 +755,23 @@ export default function Raye2Client() {
     else setMessages(current => current.filter(item => item.id !== message.id));
   }
 
+  const platformNav = [
+    { href: "/community", en: "Home", ar: "الرئيسية", icon: "⌂" },
+    { href: "/watch", en: "Watch", ar: "المشاهدة", icon: "▶" },
+    { href: "/shorts", en: "Mini's", ar: "ميني", icon: "▤" },
+    { href: "/search", en: "Explore", ar: "استكشف", icon: "⌕" },
+    { href: "/series", en: "Series", ar: "السلاسل", icon: "▥" },
+    { href: "/creator", en: "Creator Studio", ar: "استوديو المبدعين", icon: "✳" },
+    { href: "/raye2", en: "Messages", ar: "الرسائل", icon: "✉" },
+    { href: "/notifications", en: "Alerts", ar: "الإشعارات", icon: "◉" },
+    { href: "/saved", en: "Saved", ar: "المحفوظات", icon: "▱" },
+    { href: "/profile", en: "Profile", ar: "الملف الشخصي", icon: "◎" }
+  ];
+  const switchLocale = () => {
+    const next: Locale = locale === "en" ? "ar" : "en";
+    setLocale(next);
+    document.cookie = `nhen_locale=${next}; path=/; max-age=31536000; samesite=lax`;
+  };
   const reactionOptions = ["❤️", "👍", "😂", "✨", "🔥"];
   if (!supabase) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link></main>;
   if (!userId) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link><Link className={styles.backLink} href="/">{t.home}</Link></main>;
@@ -763,10 +780,22 @@ export default function Raye2Client() {
     <main className={styles.page} data-theme={theme} dir={isAr ? "rtl" : "ltr"} lang={locale}>
       <div className={styles.voiceGlobalWrap}>{supabase && userId && <Raye2VoiceControls supabase={supabase} userId={userId} conversationId={selected?.kind === "direct" ? selected.conversationId : null} peerUserId={selected?.kind === "direct" ? selected.otherUserId : null} peerName={selected?.title ?? ""} locale={locale} />}</div>
       <header className={styles.header}>
-        <Link href="/" className={styles.brand}>RAYE<span>2</span></Link>
-        <div className={styles.headerCenter}><span className={styles.liveDot}/><span>{t.eyebrow}</span><span className={styles.headerDivider}/><span>{profile?.display_name ?? profile?.handle ?? "Member"}</span></div>
-        <div className={styles.headerActions}><Link href="/community">{t.home}</Link><Link href="/profile">{t.profile}</Link><button className={styles.themeToggle} type="button" aria-label={theme === "dark" ? (isAr ? "تفعيل المظهر الفاتح" : "Switch to light theme") : (isAr ? "تفعيل المظهر الداكن" : "Switch to dark theme")} onClick={() => { const next = theme === "dark" ? "light" : "dark"; setTheme(next); try { window.localStorage.setItem("raye2-theme", next); } catch { /* Theme remains active for this session. */ } }}><span aria-hidden="true">{theme === "dark" ? "☼" : "◐"}</span>{theme === "dark" ? (isAr ? "فاتح" : "Light") : (isAr ? "داكن" : "Dark")}</button><button onClick={() => void supabase.auth.signOut().then(() => router.push("/"))}>{t.signOut}</button></div>
+        <Link href="/" className={styles.brand} aria-label="Raye2 home">RAYE<span>2</span></Link>
+        <nav className={styles.platformNav} aria-label={isAr ? "التنقل الرئيسي" : "Main navigation"}>
+          {platformNav.map(item => <Link key={item.href} href={item.href} className={item.href === "/raye2" ? styles.platformNavActive : ""} aria-current={item.href === "/raye2" ? "page" : undefined}>
+            <span className={styles.platformNavIcon} aria-hidden="true">{item.icon}</span><span>{isAr ? item.ar : item.en}</span>
+          </Link>)}
+        </nav>
+        <div className={styles.headerActions}>
+          <span className={styles.headerMember}>{profile?.display_name ?? profile?.handle ?? "Member"}</span>
+          <button className={styles.utilityToggle} type="button" onClick={switchLocale} aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}>{isAr ? "EN" : "عربي"}</button>
+          <button className={styles.themeToggle} type="button" aria-label={theme === "dark" ? (isAr ? "تفعيل المظهر الفاتح" : "Switch to light theme") : (isAr ? "تفعيل المظهر الداكن" : "Switch to dark theme")} onClick={() => { const next = theme === "dark" ? "light" : "dark"; setTheme(next); try { window.localStorage.setItem("raye2-theme", next); } catch { /* Theme remains active for this session. */ } }}><span aria-hidden="true">{theme === "dark" ? "☼" : "◐"}</span>{theme === "dark" ? (isAr ? "فاتح" : "Light") : (isAr ? "داكن" : "Dark")}</button>
+          <button onClick={() => void supabase.auth.signOut().then(() => router.push("/"))}>{t.signOut}</button>
+        </div>
       </header>
+      <nav className={styles.mobilePlatformNav} aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
+        {platformNav.slice(0, 6).map(item => <Link key={item.href} href={item.href} className={item.href === "/raye2" ? styles.platformNavActive : ""} aria-current={item.href === "/raye2" ? "page" : undefined}><span aria-hidden="true">{item.icon}</span>{isAr ? item.ar : item.en}</Link>)}
+      </nav>
       <section className={styles.intro}><div><span className={styles.kicker}>RAYE2 / COMMUNITY LAYER</span><h1>{t.title}</h1><p>{t.intro}</p></div><div className={styles.introMark}><span>R</span><i>✳</i></div></section>
       <section className={styles.workspace}>
         <aside className={`${styles.sidebar} ${mobilePane === "chat" ? styles.hideMobile : ""}`}>
