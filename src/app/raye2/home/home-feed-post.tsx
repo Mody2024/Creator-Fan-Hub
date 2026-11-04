@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import NhenReactionArt from "@/app/watch/[slug]/nhen-reaction-art";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -83,7 +84,7 @@ export default function HomeFeedPost({post,author,isArabic,currentUserId,initial
   const selected=reactions.find(r=>r.key===mine);
   return <article className={styles.post} id={"post-"+post.id}>
     <div className={styles.postHead}>
-      {author?.avatar_url?<img className={styles.avatarImage} src={author.avatar_url} alt="" />:<div className={styles.avatar}>{(author?.display_name??"R").slice(0,1).toUpperCase()}</div>}
+      {author?.avatar_url?<Image className={styles.avatarImage} src={author.avatar_url} alt="" width={38} height={38} unoptimized />:<div className={styles.avatar}>{(author?.display_name??"R").slice(0,1).toUpperCase()}</div>}
       <div className={styles.authorMeta}><Link className={styles.author} href={author?.handle?`/u/${author.handle}`:"/community"}>{author?.display_name??(isArabic?"عضو Raye2":"Raye2 member")}</Link><div className={styles.handle}>@{author?.handle??"member"} · <time className={styles.date} dateTime={post.created_at}>{new Date(post.created_at).toLocaleDateString(isArabic?"ar-EG":"en-US",{month:"short",day:"numeric"})}</time></div></div>
       {currentUserId&&currentUserId!==post.author_id&&<button className={styles.followButton} type="button" onClick={()=>void follow()} disabled={followBusy}>{followBusy?"…":following?labels.following:labels.follow}</button>}
       <span className={styles.postType}>{post.post_type==="official"?labels.official:labels.member}</span>
