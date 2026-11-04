@@ -19,6 +19,10 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
   let authors=new Map<string,{handle:string;display_name:string;avatar_url:string|null}>();
   let videos:VideoCard[]=[];
   let memberId:string|null=null;
+  let reactionCounts=new Map<string,number>();
+  let myReactions=new Map<string,string>();
+  let savedIds=new Set<string>();
+  let followedAuthorIds=new Set<string>();
   if(supabase){
     const {data:claims}=await supabase.auth.getClaims();
     const subject=claims?.claims?.sub;
@@ -40,7 +44,20 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
     const authorIds=[...new Set(posts.map(post=>post.author_id))];
     if(authorIds.length){
       const {data:profiles}=await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",authorIds);
-      authors=new Map((profiles??[]).map(profile=>[profile.user_id,{handle:profile.handle,display_name:profile.display_name}]));
+      authors=new Map((profiles??[]).map(profile=>[profile.user_id,{handle:profile.handle,display_name:profile.display_name,avatar_url:profile.avatar_url}]));
+    }
+    if(posts.length){
+      const postIds=posts.map(post=>post.id);
+      const [counts,ownReactions,bookmarks,follows]=await Promise.all([
+        supabase.rpc("get_community_reaction_counts",{p_post_ids:postIds}),
+        memberId?supabase.from("community_reactions").select("post_id,reaction").eq("user_id",memberId).in("post_id",postIds):Promise.resolve({data:[]}),
+        memberId?supabase.from("community_bookmarks").select("post_id").eq("user_id",memberId).in("post_id",postIds):Promise.resolve({data:[]}),
+        memberId&&authorIds.length?supabase.from("member_follows").select("followed_id").eq("follower_id",memberId).in("followed_id",authorIds):Promise.resolve({data:[]})
+      ]);
+      for(const item of counts.data??[])reactionCounts.set(item.post_id,Number(item.reaction_count)||0);
+      for(const item of ownReactions.data??[])myReactions.set(item.post_id,item.reaction);
+      for(const item of bookmarks.data??[])savedIds.add(item.post_id);
+      for(const item of follows.data??[])followedAuthorIds.add(item.followed_id);
     }
     videos=(videoRows??[]).flatMap(row=>{
       const media=Array.isArray(row.media_items)?row.media_items[0]:row.media_items;
@@ -67,7 +84,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
         <div className={styles.sectionHead}><h2>{isArabic?"نُشر حديثًا":"Recently published"}</h2><Link className={styles.count} href="/watch">View all videos ↗</Link></div>
         {videos.length?<div className={styles.videoGrid}>{videos.map(video=><article className={styles.videoCard} key={video.id}><Link href={`/watch/${video.slug}`}><div className={styles.videoFrame}>▶</div><div className={styles.videoInfo}><span className={styles.eyebrow}>{video.category.toUpperCase()}</span><h3>{video.title}</h3><p>{video.description}</p></div></Link></article>)}</div>:<div className={styles.empty}>{isArabic?"ستظهر فيديوهات المبدعين هنا عند نشرها.":"New creator videos will appear here when published."}</div>}
         <div className={styles.feedBar}><div><span className={styles.eyebrow}>{isArabic?"منشورات المجتمع":"COMMUNITY FEED"}</span><h2 style={{fontSize:19,margin:"6px 0 0"}}>{isArabic?"حوارات تستحق وقتك":"Conversations that matter"}</h2></div><div className={styles.feedTabs}><Link className={selectedFeed==="latest"?`${styles.feedTab} ${styles.feedTabActive}`:styles.feedTab} href="/raye2/home?feed=latest">{isArabic?"الأحدث":"Latest"}</Link><Link className={selectedFeed==="following"?`${styles.feedTab} ${styles.feedTabActive}`:styles.feedTab} href="/raye2/home?feed=following">{isArabic?"تتابعهم":"Following"}</Link></div></div>
-        {posts.length?posts.map(post=><HomeFeedPost key={post.id} post={post} author={authors.get(post.author_id)} isArabic={isArabic} currentUserId={memberId}/>):<div className={styles.empty}>{selectedFeed==="following"?(memberId?(isArabic?"لا توجد منشورات من الأشخاص الذين تتابعهم بعد. استكشف المجتمع وتابع بعض الأعضاء.":"No posts from followed creators yet. Explore the community and follow members to shape this feed."):(isArabic?"سجّل الدخول لمشاهدة منشورات من تتابعهم.":"Sign in to see posts from members you follow.")):(isArabic?"لا توجد منشورات مجتمعية منشورة بعد. عُد لاحقًا.":"No published community posts yet. Check back when creators and members start a conversation.")}</div>}
+        {posts.length?posts.map(post=><HomeFeedPost key={post.id} post={post} author={authors.get(post.author_id)} isArabic={isArabic} currentUserId={memberId} initialCount={reactionCounts.get(post.id)??0} initialMine={myReactions.get(post.id)??null} initialSaved={savedIds.has(post.id)} initialFollowing={followedAuthorIds.has(post.author_id)}/>):<div className={styles.empty}>{selectedFeed==="following"?(memberId?(isArabic?"لا توجد منشورات من الأشخاص الذين تتابعهم بعد. استكشف المجتمع وتابع بعض الأعضاء.":"No posts from followed creators yet. Explore the community and follow members to shape this feed."):(isArabic?"سجّل الدخول لمشاهدة منشورات من تتابعهم.":"Sign in to see posts from members you follow.")):(isArabic?"لا توجد منشورات مجتمعية منشورة بعد. عُد لاحقًا.":"No published community posts yet. Check back when creators and members start a conversation.")}</div>}
       </section>
       <aside className={`${styles.rail} ${styles.rightRail}`}><section className={styles.sideCard}><h2>Find your next thing</h2><form className={styles.search} action="/search"><input name="q" placeholder={isArabic?"ابحث عن صُنّاع المحتوى والفيديوهات":"Search creators and videos"}/><button type="submit">↗</button></form></section><section className={styles.sideCard}><h2>Explore Raye2</h2><Link className={styles.sideLink} href="/watch">{isArabic?"شاهد أحدث الفيديوهات":"Watch the latest videos"}</Link><Link className={styles.sideLink} href="/shorts">Discover Mini's</Link><Link className={styles.sideLink} href="/series">{isArabic?"تصفح السلاسل":"Browse series"}</Link><Link className={styles.sideLink} href="/community">{isArabic?"انضم إلى مساحات المجتمع":"Join community spaces"}</Link></section><section className={styles.sideCard}><h2>Be part of it</h2><p style={{fontSize:11,lineHeight:1.7,color:"var(--r-muted)"}}>{isArabic?"تابع صُنّاع المحتوى وشارك منشورات مفيدة واكتشف أصحاب الأعمال.":"Follow creators, share thoughtful posts and discover the people behind the work."}</p><Link className={styles.sideLink} href="/profile">{isArabic?"أكمل ملفك الشخصي ↗":"Set up your profile ↗"}</Link></section></aside>
     </div>
