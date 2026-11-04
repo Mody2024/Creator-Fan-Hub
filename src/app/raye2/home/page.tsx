@@ -70,7 +70,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
       <aside className={`${styles.rail} ${styles.leftRail}`}><span className={styles.railTitle}>RAYE2 / YOUR SPACE</span>
         <Link className={`${styles.railLink} ${styles.railActive}`} href="/raye2/home"><span className={styles.railIcon}>⌂</span>Home</Link>
         <Link className={styles.railLink} href="/watch"><span className={styles.railIcon}>▶</span>Watch</Link>
-        <Link className={styles.railLink} href="/shorts"><span className={styles.railIcon}>▤</span>Mini's</Link>
+        <Link className={styles.railLink} href="/shorts"><span className={styles.railIcon}>▤</span>Mini&apos;s</Link>
         <Link className={styles.railLink} href="/search"><span className={styles.railIcon}>⌕</span>Explore</Link>
         <Link className={styles.railLink} href="/series"><span className={styles.railIcon}>▥</span>Series</Link>
         <Link className={styles.railLink} href="/community"><span className={styles.railIcon}>◉</span>Communities</Link>
