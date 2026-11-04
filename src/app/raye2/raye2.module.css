@@ -188,3 +188,24 @@
 @media(forced-colors:active){
   .page button:focus-visible,.page a:focus-visible{outline:2px solid Highlight}
 }
+
+
+.page .themeToggle{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border:1px solid var(--r-line);
+  border-radius:10px;
+  background:var(--r-raised);
+  color:var(--r-text);
+  font-size:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+.page .themeToggle span{font-size:15px;color:var(--r-accent)}
+.page .themeToggle:hover{border-color:var(--r-accent);color:var(--r-accent)}
+@media(max-width:680px){
+  .page .themeToggle{padding:7px 9px}
+  .page .headerActions{gap:8px}
+}
