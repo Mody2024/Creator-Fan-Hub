@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./raye2.module.css";
 import Raye2VoiceControls from "./raye2-voice-controls";
@@ -39,6 +39,7 @@ const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part
 
 export default function Raye2Client() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [locale, setLocale] = useState<Locale>("en");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -782,7 +783,7 @@ export default function Raye2Client() {
       <header className={styles.header}>
         <Link href="/" className={styles.brand} aria-label="Raye2 home">RAYE<span>2</span></Link>
         <nav className={styles.platformNav} aria-label={isAr ? "التنقل الرئيسي" : "Main navigation"}>
-          {platformNav.map(item => <Link key={item.href} href={item.href} className={item.href === "/raye2" ? styles.platformNavActive : ""} aria-current={item.href === "/raye2" ? "page" : undefined}>
+          {platformNav.map(item => <Link key={item.href} href={item.href} className={pathname === item.href || (item.href !== "/raye2/home" && pathname.startsWith(item.href + "/")) ? styles.platformNavActive : ""} aria-current={pathname === item.href ? "page" : undefined}>
             <span className={styles.platformNavIcon} aria-hidden="true">{item.icon}</span><span>{isAr ? item.ar : item.en}</span>
           </Link>)}
         </nav>
