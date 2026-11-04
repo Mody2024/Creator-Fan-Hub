@@ -5,7 +5,7 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `aecac247596ec7abcd9acb5c6fbc24a39ac7e22f` (2026-11-04).
+- Snapshot commit reviewed: `a1da70354536ae88dddf1bf9f5638b66a45debbb` (2026-11-04).
 
 ## Progress snapshot — 2026-11-04
 
@@ -24,10 +24,10 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
 | 9 | Security, reliability and release readiness | **15%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~29%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~30%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
-- **Automated verification:** meaningful contract-test coverage exists for chat, voice, Watch Together and admin contracts, but the latest confirmed successful GitHub Actions run is for commit `1dec9e0d`, not the reviewed HEAD. The reviewed HEAD has a successful Vercel development deployment status; that is not a test pass.
+- **Automated verification:** meaningful contract-test coverage exists for chat, voice, Watch Together and admin contracts, but the latest confirmed successful GitHub Actions run is for commit `1dec9e0d`, not the reviewed HEAD. The last successful Validate site and Free CI runs are on commit `7a28ad46`, before the latest theme-switcher commits. The latest HEAD's Vercel development deployment is pending at the time of this snapshot; no latest-HEAD test pass is claimed.
 - **Database/runtime verification:** Raye2 migrations are committed in the repository; this snapshot does not prove they have been applied to the intended Supabase project or passed live RLS/RPC tests.
 - **Preview/owner acceptance:** not yet recorded for the complete platform or redesigned primary surfaces.
 - **Production:** no merge/deployment authorized.
@@ -72,6 +72,13 @@ These are conservative repository-based estimates against the **entire ten-wave 
 - [ ] Private invitation links and scheduled sessions
 - [ ] Public external-player embeds and synchronization
 - [ ] In-room reactions/polls and live multi-device acceptance
+
+## Latest design batch (commit `a1da7035`)
+- [x] Establish Raye2-only blue/graphite design tokens and layered panel/surface styling.
+- [x] Add explicit accessible focus states and reduced-motion-compatible existing motion behavior.
+- [x] Add light-theme CSS variables and light surface overrides.
+- [x] Add a persistent user-controlled light/dark switcher, with graceful fallback if browser storage is unavailable.
+- [ ] Extend the new design system to the full product shell, brand/logo, typography, global navigation, creator surfaces, feed and video UI.
 
 ## Next large implementation batches
 
