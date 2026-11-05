@@ -24,7 +24,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
 | 9 | Security, reliability and release readiness | **15%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~35%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~36%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
 - **Automated verification:** `Validate site` passed on code HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The video-thumbnail and Explore batch on `5554261f` passed the full `Validate site` workflow, including 207 prototype/configuration tests, Next.js type-check + production build, and lint. The subsequent member-profile redesign is committed on `76752f79`; its full validation is still running, and the latest `9f8e7167` naming follow-up has not yet completed validation. The separate `Free CI` run is pending.
@@ -73,7 +73,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 - [ ] Public external-player embeds and synchronization
 - [ ] In-room reactions/polls and live multi-device acceptance
 
-## Latest member profile redesign batch (through commit `9f8e7167`)
+## Latest Creator Studio entry-point batch (in this commit)\n- [x] Add an authenticated Raye2 Creator Studio landing page at `/raye2/studio`.\n- [x] Gate the page by active creator-workspace roles on the server and show edit, analytics and moderation destinations only to roles allowed to use them.\n- [x] Load media-library and watch-catalog counts from existing Supabase sources; show unavailable states rather than inventing zero counts when a query fails.\n- [x] Add responsive blue/graphite styling and Arabic RTL support.\n- [x] Add a separate Beta / Coming Soon backlog so proposed ideas do not become fake controls or silently block private beta.\n- [ ] Replace the legacy creator tool surfaces with the shared Raye2 shell; this entry point currently links to existing functional tools.\n\n## Latest member profile redesign batch (through commit `9f8e7167`)
 - [x] Replace the legacy NHEN profile presentation with a Raye2 blue/graphite member profile layout.
 - [x] Preserve profile editing, follow/unfollow, block/unblock and follower/following counts.
 - [x] Present achievements, creator videos, Mini's and community posts in responsive sections.
@@ -103,7 +103,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 - [x] Add a persistent user-controlled light/dark switcher, with graceful fallback if browser storage is unavailable.
 - [ ] Extend the new design system to the full product shell, brand/logo, typography, global navigation, creator surfaces, feed and video UI.
 
-## Next large implementation batches
+## Latest Creator Studio entry-point batch (this commit)\n- [x] Add a role-aware Raye2 Creator Studio route at `/raye2/studio`.\n- [x] Load media and published watch-page totals from existing Supabase RPC/table sources.\n- [x] Provide role-scoped navigation for content management, analytics and moderation.\n- [x] Add a dedicated beta/coming-soon idea backlog with explicit delivery lanes.\n- [ ] Complete the end-to-end upload/draft/publish workflow and provider-backed live streaming; this batch does not claim those workflows are complete.\n\n## Next large implementation batches
 
 1. **Wave 1 redesign:** extend the new design system and navigation across Watch, Mini's, Creator Studio and all remaining public platform surfaces.
 2. **Core product surfaces:** build the connected Raye2 home/feed, Explore/search, profiles and community surfaces on shared data contracts.
