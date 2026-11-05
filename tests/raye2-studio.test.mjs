@@ -115,3 +115,17 @@ test("editor workspace copy does not grant official media publishing controls", 
   assert.ok(page.includes('role === "editor"'));
   assert.ok(page.includes("Editorial workspace is being prepared"));
 });
+
+
+test("video publishing studio validates metadata before writing to the catalog", async () => {
+  const video = await read("../src/app/creator/video-studio.tsx");
+  assert.ok(video.includes("Number.isSafeInteger(parsedDuration)"));
+  assert.ok(video.includes("parsedDuration<1||parsedDuration>86400"));
+  assert.ok(video.includes("cleanDescription.length>5000"));
+  assert.ok(video.includes("cleanCategory.length>40"));
+  assert.ok(video.includes("cleanTags.length>12||cleanTags.some(tag=>tag.length>40)"));
+  assert.ok(video.includes("[...new Set(tags.split"));
+  assert.ok(video.includes("duration_seconds:parsedDuration"));
+  assert.ok(video.includes("durationError:"));
+  assert.ok(video.includes("tagsError:"));
+});
