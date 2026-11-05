@@ -25,12 +25,12 @@ export default async function Raye2CreatorStudioPage() {
     .eq("user_id", userId)
     .eq("active", true)
     .maybeSingle();
-  if (accessError || !access || !["owner", "admin", "editor", "moderator", "analyst"].includes(access.role)) {
+  if (accessError || !access || !["owner", "admin", "creator", "editor", "moderator", "analyst"].includes(access.role)) {
     redirect("/creator/login?access=restricted");
   }
 
-  const role = access.role as "owner" | "admin" | "editor" | "moderator" | "analyst";
-  const canEdit = ["owner", "admin", "editor"].includes(role);
+  const role = access.role as "owner" | "admin" | "creator" | "editor" | "moderator" | "analyst";
+  const canEdit = ["owner", "admin", "creator", "editor"].includes(role);
   const canModerate = ["owner", "admin", "moderator"].includes(role);
   const canAnalyze = ["owner", "admin", "analyst"].includes(role);
 

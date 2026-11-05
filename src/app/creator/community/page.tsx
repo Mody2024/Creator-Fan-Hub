@@ -29,10 +29,10 @@ export default async function CommunityModerationPage() {
   const videoComments:QueueItem[]=(videoCommentsResult.data??[]).map(x=>({id:x.id,kind:"video_comment",body:x.body,status:x.status,createdAt:x.created_at,author:profileMap.get(x.author_id)?.display_name??"Member",handle:profileMap.get(x.author_id)?.handle??"member",postId:x.media_id}));
   const shortComments:QueueItem[]=(shortCommentsResult.data??[]).map(x=>({id:x.id,kind:"short_comment",body:x.body,status:x.status,createdAt:x.created_at,author:profileMap.get(x.author_id)?.display_name??"Member",handle:profileMap.get(x.author_id)?.handle??"member",postId:x.short_id}));
   const reports:ReportItem[]=(reportsResult.data??[]).map(x=>({id:x.id,targetType:x.target_type,targetId:x.target_id,reason:x.reason,details:x.details,status:x.status,createdAt:x.created_at}));
-  return <main className="dashboard-shell">
-    <header className="dashboard-topbar"><Link className="wordmark nhen-wordmark" href="/creator"><span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span></Link><span className="admin-session"><i/> COMMUNITY SAFETY</span><Link className="logout-button" href="/creator">Back to Studio ↗</Link></header>
+  return <main className="dashboard-shell raye2-creator-shell">
+    <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home"><span><strong>Raye2</strong><small>CREATOR WORKSPACE</small></span></Link><span className="admin-session"><i/> COMMUNITY SAFETY</span><Link className="logout-button" href="/raye2/studio">Back to Raye2 Studio ↗</Link></header>
     <div className="dashboard-content">
-      <div className="dashboard-welcome"><div><span className="eyebrow">NHEN? / TRUST & SAFETY</span><h1>Community <em>review.</em></h1><p>Review member submissions, handle reports and keep official creator content distinct.</p></div><span className="draft-badge">● PRIVATE WORKSPACE</span></div>
+      <div className="dashboard-welcome"><div><span className="eyebrow">RAYE2 / TRUST & SAFETY</span><h1>Community <em>review.</em></h1><p>Review member submissions, handle reports and keep official creator content distinct.</p></div><span className="draft-badge">● PRIVATE WORKSPACE</span></div>
       <CommunityModerationClient initialPosts={posts} initialComments={comments} initialVideoComments={videoComments} initialShortComments={shortComments} initialReports={reports}/>
     </div>
   </main>;
