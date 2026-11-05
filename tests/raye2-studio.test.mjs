@@ -27,7 +27,6 @@ test("Creator Studio metrics use real creator media and published video catalog 
 test("Creator Studio only exposes tools permitted by the assigned role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.ok(page.includes('["owner", "admin", "creator"].includes(role)'));
-  assert.ok(!page.includes('["owner", "admin", "creator"].includes(role)'));
   assert.ok(page.includes('role === "editor"'));
   assert.ok(page.includes("Editorial review"));
   assert.ok(page.includes("official uploads and publishing remain restricted"));

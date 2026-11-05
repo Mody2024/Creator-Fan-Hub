@@ -156,7 +156,7 @@ Keep updating this file after each meaningful batch. Report implementation, auto
 - [ ] Add an explicit owner/admin orphan review workflow only after confirming safe object ownership and recovery behavior.
 
 
-## Latest Creator Studio permission-alignment batch (2026-11-05, commit `1b44f42e`)
+## Latest Creator Studio permission-alignment batch (2026-11-05, commit `1b44f42e`; superseded test expectation removed in this follow-up)
 - [x] Align the Raye2 Studio publishing entry point with the database publisher policy: owner, admin and assigned creator only.
 - [x] Keep editor access to the Studio landing page while clearly separating the upcoming editorial-review workspace from official upload/publish privileges.
 - [x] Add regression tests to prevent editor UI access from implying publisher permissions.
