@@ -413,18 +413,17 @@ test("creator appearance preferences control public color mode and motion safely
 });
 
 
-test("all creator entry points use the fixed Nhen bilingual identity", async () => {
+test("Raye2 creator workspace entry points use the Raye2 identity and shared navigation", async () => {
   const paths = [
+    "../src/app/creator/page.tsx",
     "../src/app/creator/analytics/page.tsx",
-    "../src/app/creator/community/page.tsx",
-    "../src/app/creator/team/page.tsx",
-    "../src/app/creator/login/page.tsx",
-    "../src/app/creator/accept-invite/page.tsx"
+    "../src/app/creator/community/page.tsx"
   ];
   for (const path of paths) {
     const source = await readFile(new URL(path, import.meta.url), "utf8");
-    assert.match(source, /Nhen\?/);
-    assert.match(source, /نهين؟/);
+    assert.match(source, /Raye2/);
+    assert.match(source, /raye2-creator-shell/);
+    assert.doesNotMatch(source, /Nhen\?/);
   }
 });
 

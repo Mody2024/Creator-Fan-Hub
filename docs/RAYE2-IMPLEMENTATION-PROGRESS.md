@@ -130,7 +130,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 Keep updating this file after each meaningful batch. Report implementation, automated verification, preview verification and owner acceptance separately. Do not mark a wave complete based on a plan, placeholder, route render or successful deployment alone.
 
 
-## Latest Creator workspace integration batch (2026-11-05, commit pending)
+## Latest Creator workspace integration batch (2026-11-05, implementation commit `d3bcd8ff`; verification follow-up in this commit)
 - [x] Apply the Raye2 blue/graphite design tokens to the existing creator dashboard and its functional management modules.
 - [x] Replace obsolete NHEN identity in creator dashboard, analytics and moderation entry surfaces with Raye2.
 - [x] Add direct navigation between the Raye2 Creator Studio landing page and the existing content-management workspace.

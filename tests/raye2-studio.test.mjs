@@ -9,7 +9,7 @@ test("Raye2 Creator Studio is authenticated and role-gated on the server", async
   assert.ok(page.includes("supabase.auth.getClaims()"));
   assert.ok(page.includes('.from("creator_admins")'));
   assert.ok(page.includes('.eq("active", true)'));
-  assert.ok(page.includes('["owner", "admin", "editor", "moderator", "analyst"]'));
+  assert.ok(page.includes('["owner", "admin", "creator", "editor", "moderator", "analyst"]'));
   assert.ok(page.includes('redirect("/creator/login?access=restricted")'));
 });
 
@@ -26,7 +26,7 @@ test("Creator Studio metrics use real creator media and published video catalog 
 
 test("Creator Studio only exposes tools permitted by the assigned role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
-  assert.ok(page.includes('["owner", "admin", "editor"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "creator", "editor"].includes(role)'));
   assert.ok(page.includes('["owner", "admin", "moderator"].includes(role)'));
   assert.ok(page.includes('["owner", "admin", "analyst"].includes(role)'));
   assert.ok(page.includes('href="/creator"'));
