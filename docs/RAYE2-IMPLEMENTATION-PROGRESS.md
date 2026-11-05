@@ -148,7 +148,7 @@ Keep updating this file after each meaningful batch. Report implementation, auto
 - [ ] Continue the detailed interaction/accessibility redesign and runtime role verification for nested media tools.
 
 
-## Latest media operations visibility batch (2026-11-05, commit pending)
+## Latest media operations visibility batch (2026-11-05, implementation commit `c3a6e96f`; verification follow-up in this commit)
 - [x] Surface existing creator-only storage health metrics in the media library.
 - [x] Show possible orphan object count/size, oldest candidate timestamp and expired reservation cleanup count.
 - [x] Clearly label orphan objects as review candidates; no automatic object deletion is added.
