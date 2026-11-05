@@ -26,7 +26,11 @@ test("Creator Studio metrics use real creator media and published video catalog 
 
 test("Creator Studio only exposes tools permitted by the assigned role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
-  assert.ok(page.includes('["owner", "admin", "creator", "editor"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "creator"].includes(role)'));
+  assert.ok(!page.includes('["owner", "admin", "creator", "editor"].includes(role)'));
+  assert.ok(page.includes('role === "editor"'));
+  assert.ok(page.includes("Editorial review"));
+  assert.ok(page.includes("official uploads and publishing remain restricted"));
   assert.ok(page.includes('["owner", "admin", "moderator"].includes(role)'));
   assert.ok(page.includes('["owner", "admin", "analyst"].includes(role)'));
   assert.ok(page.includes('href="/creator"'));
@@ -101,4 +105,13 @@ test("Raye2 media, video studio and team surfaces use the new platform identity"
   assert.ok(!team.includes("Nhen?"));
   assert.ok(analyticsExport.includes("raye2-video-analytics.csv"));
   assert.ok(css.includes(".raye2-creator-shell .nhen-team-workspace"));
+});
+
+
+test("editor workspace copy does not grant official media publishing controls", async () => {
+  const page = await read("../src/app/raye2/studio/page.tsx");
+  assert.ok(page.includes('const canPublish = ["owner", "admin", "creator"].includes(role)'));
+  assert.ok(page.includes('{canPublish && <article'));
+  assert.ok(page.includes('role === "editor"'));
+  assert.ok(page.includes("Editorial workspace is being prepared"));
 });

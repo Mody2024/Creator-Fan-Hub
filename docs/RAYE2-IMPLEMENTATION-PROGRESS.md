@@ -17,7 +17,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, dark/light controls and bilingual responsive navigation; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
 | 2 | Core architecture, accounts and permissions | **27%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
 | 3 | Video, feed and discovery | **22%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards support native reactions, comments, bookmarks, follow/unfollow and share with batch-loaded state; published video thumbnail assets are surfaced where configured; `/search` has been redesigned as a bilingual Raye2 Explore experience across videos, people and community posts. Full player previews, search ranking, richer recommendations and complete media journey remain. |
-| 4 | Creator Studio, exclusives and live streaming | **7%** | Existing creator tools are present elsewhere in the app, but Raye2-specific role/quota workflow, media lifecycle, exclusives and real live ingest/delivery are not complete. |
+| 4 | Creator Studio, exclusives and live streaming | **8%** | Existing creator tools are being integrated into Raye2 with publisher-role-aware workspace entry and storage health visibility. The full upload/draft/processing/publish lifecycle, role/quota workflow, exclusives and real live ingest/delivery are not complete. |
 | 5 | Social graph, communities and engagement | **16%** | Raye2 public/private groups, membership and moderation foundations exist. Full profiles/follows, community publishing, polls/events/collections and connected engagement surfaces remain. |
 | 6 | Messaging and chat | **85%** | Strong implementation: DMs/groups, message actions, requests, search, pins, notifications, quiet hours, moderation, invites, Shared Memories and group controls. Remaining: runtime DB/RLS acceptance, delivery/push, attachment/media lifecycle, and end-to-end operational verification. |
 | 7 | Voice and Watch Together | **55%** | Private WebRTC call path, LiveKit group-room integration path/moderation, voice preferences, Watch Together sessions/queue/playback sync exist. Real provider deployment, multi-device/network acceptance, reconnection/telemetry, consented recording pipeline, external embeds/invites and remaining session features are outstanding. |
@@ -154,3 +154,10 @@ Keep updating this file after each meaningful batch. Report implementation, auto
 - [x] Clearly label orphan objects as review candidates; no automatic object deletion is added.
 - [x] Add regression coverage for health visibility and update analytics export branding expectations.
 - [ ] Add an explicit owner/admin orphan review workflow only after confirming safe object ownership and recovery behavior.
+
+
+## Latest Creator Studio permission-alignment batch (2026-11-05, commit pending)
+- [x] Align the Raye2 Studio publishing entry point with the database publisher policy: owner, admin and assigned creator only.
+- [x] Keep editor access to the Studio landing page while clearly separating the upcoming editorial-review workspace from official upload/publish privileges.
+- [x] Add regression tests to prevent editor UI access from implying publisher permissions.
+- [ ] Implement a dedicated editor review workflow with explicit server-side authorization before exposing review actions.
