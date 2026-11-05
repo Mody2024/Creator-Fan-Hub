@@ -59,14 +59,14 @@ export default function VideoStudio(){
  async function togglePlaylist(p:Playlist){
   if(!supabase||busy)return;setBusy(true);const {error}=await supabase.from("video_playlists").update({is_published:!p.is_published,updated_at:new Date().toISOString()}).eq("id",p.id);setStatus(error?t.updateFailed:p.is_published?t.playlistPrivate:t.playlistPublic);await load();setBusy(false)
  }
- return <section id="creator-video-studio" className="nhen-video-studio" dir={isArabic?"rtl":"ltr"} lang={locale}>
+ return <section id="creator-video-studio" className="nhen-video-studio raye2-video-studio" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <div className="editor-section-title"><span>{t.section}</span><h2>{t.title}<em>{t.emphasis}</em></h2><p>{t.intro}</p></div>
   <div className="nhen-video-studio-grid">
    <div className="poll-create-form">
     <label>{t.source}<select value={selected} onChange={e=>choose(e.target.value)}><option value="">{t.choose}</option>{assets.map(a=><option key={a.media_id} value={a.media_id}>{a.title} · {a.media_type==="youtube"?t.youtube:a.is_published?t.public:t.private}</option>)}</select></label>
     <label>{t.slug}<input value={slug} onChange={e=>setSlug(e.target.value)} placeholder="my-new-video"/></label>
     <label>{t.description}<textarea value={description} onChange={e=>setDescription(e.target.value)} rows={4} maxLength={5000}/></label>
-    <label>{t.category}<select value={category} onChange={e=>setCategory(e.target.value)}>{["Other","Gaming","Entertainment","Behind the scenes","Announcements","Tutorials","Shorts"].map(x=><option key={x}>{x}</option>)}</select></label>
+    <label>{t.category}<select value={category} onChange={e=>setCategory(e.target.value)}>{["Other","Gaming","Entertainment","Behind the scenes","Announcements","Tutorials","Mini's"].map(x=><option key={x}>{x}</option>)}</select></label>
     <label>{t.tags}<input value={tags} onChange={e=>setTags(e.target.value)} placeholder="gaming, funny, challenge"/></label>
     <label>{t.duration}<input type="number" min="1" max="86400" value={duration} onChange={e=>setDuration(e.target.value)} placeholder={t.optional}/></label>
     <label className="nhen-video-check"><input type="checkbox" checked={featured} onChange={e=>setFeatured(e.target.checked)}/> {t.feature}</label>

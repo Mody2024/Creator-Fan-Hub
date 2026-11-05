@@ -137,3 +137,12 @@ Keep updating this file after each meaningful batch. Report implementation, auto
 - [x] Correct the Creator Studio role gate so assigned `creator` accounts can open the workspace and access publishing tools.
 - [x] Add contract tests for role access, navigation and shared visual tokens.
 - [ ] Continue redesigning the inner upload, video catalog, analytics and moderation components; this batch scopes the shared shell and does not claim every nested control is fully redesigned.
+
+
+## Latest creator tools branding batch (2026-11-05, commit pending)
+- [x] Update visible storage and external-video copy from NHEN to Raye2 without renaming the underlying database buckets or RPC contracts.
+- [x] Rename the video catalog's Shorts category to the platform's Mini's label.
+- [x] Apply the shared Raye2 creator shell to owner team management.
+- [x] Rename analytics CSV exports to Raye2 filenames.
+- [x] Add regression coverage for creator tools branding and team layout.
+- [ ] Continue the detailed interaction/accessibility redesign and runtime role verification for nested media tools.

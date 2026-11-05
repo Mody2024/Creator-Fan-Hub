@@ -23,7 +23,7 @@ export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Met
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = locale==="ar" ? "nhen-video-analytics-ar.csv" : "nhen-video-analytics.csv";
+    anchor.download = locale==="ar" ? "raye2-video-analytics-ar.csv" : "raye2-video-analytics.csv";
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
