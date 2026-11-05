@@ -27,7 +27,7 @@ test("Creator Studio metrics use real creator media and published video catalog 
 test("Creator Studio only exposes tools permitted by the assigned role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.ok(page.includes('["owner", "admin", "creator"].includes(role)'));
-  assert.ok(!page.includes('["owner", "admin", "creator", "editor"].includes(role)'));
+  assert.ok(!page.includes('["owner", "admin", "creator"].includes(role)'));
   assert.ok(page.includes('role === "editor"'));
   assert.ok(page.includes("Editorial review"));
   assert.ok(page.includes("official uploads and publishing remain restricted"));
@@ -54,7 +54,7 @@ test("Creator Studio supports Arabic RTL and responsive Raye2 styling", async ()
 test("Raye2 Creator Studio grants publishing access to the assigned creator role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.ok(page.includes('"creator"'));
-  assert.ok(page.includes('["owner", "admin", "creator", "editor"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "creator"].includes(role)'));
 });
 
 test("legacy creator management tools now inherit the Raye2 workspace theme and navigation", async () => {
