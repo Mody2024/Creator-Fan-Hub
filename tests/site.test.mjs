@@ -433,7 +433,7 @@ test("creator analytics exports ranked aggregate metrics as safe CSV", async () 
   const exportComponent = await readFile(new URL("../src/app/creator/analytics/analytics-export.tsx", import.meta.url), "utf8");
   assert.match(page, /rankedMetrics/);
   assert.match(page, /AnalyticsExport/);
-  assert.match(exportComponent, /nhen-video-analytics\.csv/);
+  assert.match(exportComponent, /raye2-video-analytics\\.csv/);
   assert.match(exportComponent, /text\.replace\(\/"\/g, '""'\)/);
   assert.ok(exportComponent.includes("if (/^[\\s]*[=+\\-@]/.test(text))"));
   assert.match(exportComponent, /Approved comments/);

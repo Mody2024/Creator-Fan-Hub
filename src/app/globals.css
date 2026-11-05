@@ -599,3 +599,7 @@ button:disabled { opacity: .52; }
 .raye2-creator-shell .nhen-team-workspace .nhen-role-guide p{color:var(--muted);border-color:var(--line)}
 .raye2-creator-shell .nhen-team-workspace input,.raye2-creator-shell .nhen-team-workspace select{background:#0b1320;color:var(--ink);border-color:var(--line)}
 .raye2-creator-shell .nhen-team-workspace button{border-radius:9px}
+
+.raye2-creator-shell .media-health-note{border-color:rgba(121,177,255,.25);background:rgba(121,177,255,.045);border-radius:12px}
+.raye2-creator-shell .media-health-note strong{color:var(--accent)}
+.raye2-creator-shell .media-health-note p{font-variant-numeric:tabular-nums}

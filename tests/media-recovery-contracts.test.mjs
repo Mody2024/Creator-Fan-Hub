@@ -29,3 +29,13 @@ test("media deletion keeps a backup and attempts restoration if metadata deletio
   assert.ok(component.includes("if(restoreError) throw new Error(\"Metadata deletion failed and the file could not be restored."));
   assert.ok(component.includes("deletedStoragePath && backup"));
 });
+
+
+test("media library surfaces storage health without automatically deleting orphan candidates", () => {
+  assert.ok(component.includes('rpc("get_nhen_media_health")'));
+  assert.ok(component.includes("orphan_candidate_count"));
+  assert.ok(component.includes("orphan_candidate_bytes"));
+  assert.ok(component.includes("expired_reservations_cleaned"));
+  assert.ok(component.includes("media-health-note"));
+  assert.ok(component.includes("Media objects are never deleted automatically."));
+});

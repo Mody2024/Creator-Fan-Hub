@@ -146,3 +146,11 @@ Keep updating this file after each meaningful batch. Report implementation, auto
 - [x] Rename analytics CSV exports to Raye2 filenames.
 - [x] Add regression coverage for creator tools branding and team layout.
 - [ ] Continue the detailed interaction/accessibility redesign and runtime role verification for nested media tools.
+
+
+## Latest media operations visibility batch (2026-11-05, commit pending)
+- [x] Surface existing creator-only storage health metrics in the media library.
+- [x] Show possible orphan object count/size, oldest candidate timestamp and expired reservation cleanup count.
+- [x] Clearly label orphan objects as review candidates; no automatic object deletion is added.
+- [x] Add regression coverage for health visibility and update analytics export branding expectations.
+- [ ] Add an explicit owner/admin orphan review workflow only after confirming safe object ownership and recovery behavior.
