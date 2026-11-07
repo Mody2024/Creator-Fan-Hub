@@ -4,19 +4,27 @@
  * Platform campaigns cannot override an eligible creator category exclusivity.
  * External ad-network inventory is intentionally outside this resolver.
  */
+const field=(campaign,camel,snake)=>campaign?.[camel]??campaign?.[snake];
+const supportsInventory=(campaign,inventory)=>{
+ if(campaign.inventory)return campaign.inventory===inventory;
+ const scope=field(campaign,"campaignScope","campaign_scope");
+ if(scope)return inventory==="video"?scope.videos===true:scope.live===true;
+ return inventory==="video";
+};
 const activeAt=(campaign,now)=>{
  if(campaign.status!=="active")return false;
- const start=campaign.startsAt?Date.parse(campaign.startsAt):-Infinity;
- const end=campaign.endsAt?Date.parse(campaign.endsAt):Infinity;
+ const starts=field(campaign,"startsAt","starts_at");
+ const ends=field(campaign,"endsAt","ends_at");
+ const start=starts?Date.parse(starts):-Infinity;
+ const end=ends?Date.parse(ends):Infinity;
  return Number.isFinite(now)&&start<=now&&now<=end;
 };
 const allowedRegion=(campaign,region)=>{
- const regions=Array.isArray(campaign.allowedRegions)?campaign.allowedRegions:[];
+ const raw=field(campaign,"allowedRegions","allowed_regions");\n const regions=Array.isArray(raw)?raw:[];
  return regions.length===0 || (typeof region==="string"&&regions.includes(region.toUpperCase()));
 };
 const withinFrequency=(campaign,seen)=>{
- const count=Number(seen?.[campaign.id]??0);
- return Number.isFinite(count)&&count<Math.max(1,Math.min(5,Number(campaign.maxPerViewer)||1));
+ const count=Number(seen?.[campaign.id]??0);\n const cap=field(campaign,"maxPerViewer","max_per_viewer");\n return Number.isFinite(count)&&count<Math.max(1,Math.min(5,Number(cap)||1));
 };
 
 /**
@@ -28,18 +36,18 @@ export function resolveRaye2SponsorEligibility(input={}) {
  const region=input.region?.toUpperCase()??"";
  const seen=input.viewerFrequency??{};
  const creator=(input.creatorCampaigns??[]).filter(c=>
-  activeAt(c,now)&&c.inventory===inventory&&allowedRegion(c,region)&&withinFrequency(c,seen)
+  activeAt(c,now)&&supportsInventory(c,inventory)&&allowedRegion(c,region)&&withinFrequency(c,seen)
  ).sort((a,b)=>(a.priority??100)-(b.priority??100));
  const platform=(input.platformCampaigns??[]).filter(c=>
   activeAt(c,now)&&c.inventory===inventory&&allowedRegion(c,region)&&withinFrequency(c,seen)
  ).filter(c=>!creator.some(own=>
-  own.categoryExclusive&&own.categoryKey===c.categoryKey
- )).sort((a,b)=>(b.priority??50)-(a.priority??50));
+  (own.categoryExclusive??own.category_exclusive)&&(own.categoryKey??own.category_key)===(c.categoryKey??c.category_key)
+ )).sort((a,b)=>((b.priority??50))-(a.priority??50));
  return {
   creatorCampaigns:creator,
   platformCampaigns:platform,
   blockedPlatformCampaignIds:(input.platformCampaigns??[])
-   .filter(c=>creator.some(own=>own.categoryExclusive&&own.categoryKey===c.categoryKey))
+   .filter(c=>creator.some(own=>(own.categoryExclusive??own.category_exclusive)&&(own.categoryKey??own.category_key)===(c.categoryKey??c.category_key)))
    .map(c=>c.id),
   deliveryEnabled:false
  };
