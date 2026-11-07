@@ -40,6 +40,7 @@ begin
 
  if v_is_youtube then
   if p_storage_path is not null
+   or p_source_url is null
    or p_source_url !~* '^https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-]{11}$' then
    raise exception 'invalid YouTube source' using errcode='22023';
   end if;
