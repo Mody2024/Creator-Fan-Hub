@@ -7,7 +7,7 @@ import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supaba
 type MediaKind = "image" | "video" | "audio" | "sprite";
 type StorageCapacity = {used_bytes:number;reserved_bytes:number;quota_bytes:number;available_bytes:number;usage_percent:number};
 type MediaHealth = StorageCapacity & {orphan_candidate_count:number;orphan_candidate_bytes:number;oldest_orphan_candidate_at:string|null;expired_reservations_cleaned:number};
-type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; processing_status?: string; processing_attempts?: number; processing_error?: string|null; processing_updated_at?: string; processing_completed_at?: string|null; size_bytes?: number|null; mime_type?: string|null; preview_url?: string | null };
+type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; processing_status?: string; processing_attempts?: number; processing_error?: string|null; processing_updated_at?: string; processing_completed_at?: string|null; size_bytes?: number|null; mime_type?: string|null; thumbnail_path?: string|null; preview_url?: string | null };
 const LIMIT = 50 * 1024 * 1024;
 const ACCEPTED: Record<string, MediaKind> = { "image/jpeg":"image", "image/png":"image", "image/webp":"image", "image/gif":"image", "video/mp4":"video", "video/webm":"video", "audio/mpeg":"audio", "audio/mp4":"audio", "audio/wav":"audio", "audio/ogg":"audio" };
 
@@ -58,7 +58,7 @@ export default function MediaLibrary() {
       const {data:processingRows,error:processingError}=items.length
         ? await supabase.rpc("get_creator_media_processing_status",{p_media_ids:items.map(item=>item.media_id)})
         : {data:[],error:null};
-      const processingById=new Map((processingRows??[]).map((entry:{media_id:string;processing_status:string;processing_attempts:number;processing_error:string|null;processing_updated_at:string;processing_completed_at:string|null;size_bytes:number|null;mime_type:string|null})=>[entry.media_id,entry]));
+      const processingById=new Map((processingRows??[]).map((entry:{media_id:string;processing_status:string;processing_attempts:number;processing_error:string|null;processing_updated_at:string;processing_completed_at:string|null;size_bytes:number|null;mime_type:string|null;thumbnail_path:string|null})=>[entry.media_id,entry]));
       const enriched = await Promise.all(items.map(async original => {
         const item={...original,...(processingById.get(original.media_id)??{})};
 
@@ -66,8 +66,9 @@ export default function MediaLibrary() {
           const id = item.source_url.match(/[?&]v=([A-Za-z0-9_-]{11})/)?.[1];
           return {...item,preview_url:id ? "https://img.youtube.com/vi/"+id+"/hqdefault.jpg" : null};
         }
-        if (!item.storage_path) return {...item,preview_url:null};
-        const [bucket,...parts] = item.storage_path.split("/");
+        const previewPath=item.thumbnail_path??item.storage_path;
+        if (!previewPath) return {...item,preview_url:null};
+        const [bucket,...parts] = previewPath.split("/");
         const path = parts.join("/");
         if (!path || !["creator-media-private","creator-media-public"].includes(bucket) || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(path)) return {...item,preview_url:null};
         try {
@@ -86,7 +87,7 @@ export default function MediaLibrary() {
         }
       }));
       setRows(enriched);
-      const missingPreviews = enriched.some(item => item.storage_path && !item.preview_url);
+      const missingPreviews = enriched.some(item => (item.thumbnail_path || item.storage_path) && !item.preview_url);
       const waitingProcessing=enriched.filter(item=>item.media_type!=="youtube"&&item.processing_status!=="ready").length;
       setStatus(processingError
         ? "Media loaded, but processing status is unavailable. Apply the media lifecycle migration."
