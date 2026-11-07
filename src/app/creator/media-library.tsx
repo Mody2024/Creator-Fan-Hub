@@ -7,7 +7,7 @@ import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supaba
 type MediaKind = "image" | "video" | "audio" | "sprite";
 type StorageCapacity = {used_bytes:number;reserved_bytes:number;quota_bytes:number;available_bytes:number;usage_percent:number};
 type MediaHealth = StorageCapacity & {orphan_candidate_count:number;orphan_candidate_bytes:number;oldest_orphan_candidate_at:string|null;expired_reservations_cleaned:number};
-type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; preview_url?: string | null };
+type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; processing_status?: string; processing_attempts?: number; processing_error?: string|null; processing_updated_at?: string; processing_completed_at?: string|null; size_bytes?: number|null; mime_type?: string|null; preview_url?: string | null };
 const LIMIT = 50 * 1024 * 1024;
 const ACCEPTED: Record<string, MediaKind> = { "image/jpeg":"image", "image/png":"image", "image/webp":"image", "image/gif":"image", "video/mp4":"video", "video/webm":"video", "audio/mpeg":"audio", "audio/mp4":"audio", "audio/wav":"audio", "audio/ogg":"audio" };
 
@@ -55,7 +55,13 @@ export default function MediaLibrary() {
       setCapacity((capacityData?.[0] as StorageCapacity|undefined)??null);
       if(!healthError) setHealth((healthData?.[0] as MediaHealth|undefined)??null);
       const items = (data ?? []) as MediaRow[];
-      const enriched = await Promise.all(items.map(async item => {
+      const {data:processingRows,error:processingError}=items.length
+        ? await supabase.rpc("get_creator_media_processing_status",{p_media_ids:items.map(item=>item.media_id)})
+        : {data:[],error:null};
+      const processingById=new Map((processingRows??[]).map((entry:{media_id:string;processing_status:string;processing_attempts:number;processing_error:string|null;processing_updated_at:string;processing_completed_at:string|null;size_bytes:number|null;mime_type:string|null})=>[entry.media_id,entry]));
+      const enriched = await Promise.all(items.map(async original => {
+        const item={...original,...(processingById.get(original.media_id)??{})};
+
         if (item.media_type === "youtube" && item.source_url) {
           const id = item.source_url.match(/[?&]v=([A-Za-z0-9_-]{11})/)?.[1];
           return {...item,preview_url:id ? "https://img.youtube.com/vi/"+id+"/hqdefault.jpg" : null};
@@ -81,7 +87,14 @@ export default function MediaLibrary() {
       }));
       setRows(enriched);
       const missingPreviews = enriched.some(item => item.storage_path && !item.preview_url);
-      setStatus(missingPreviews ? "Media library loaded, but some previews are unavailable. Check storage permissions and file paths." : "Media library loaded. Unpublished files stay in private storage.");
+      const waitingProcessing=enriched.filter(item=>item.media_type!=="youtube"&&item.processing_status!=="ready").length;
+      setStatus(processingError
+        ? "Media loaded, but processing status is unavailable. Apply the media lifecycle migration."
+        : waitingProcessing
+          ? `Media loaded. ${waitingProcessing} asset(s) are uploaded and awaiting a processing worker; they are not marked playback-ready.`
+          : missingPreviews
+            ? "Media library loaded, but some previews are unavailable. Check storage permissions and file paths."
+            : "Media library loaded. Unpublished files stay in private storage.");
     } catch (e) {
       setRows([]);
       setStatus(e instanceof Error ? e.message : "Could not load the media library. Check your connection and try again.");
@@ -395,7 +408,7 @@ export default function MediaLibrary() {
       <div className="media-library-list"><div className="media-list-heading"><h3>{t.stored} ({rows.length})</h3><button className="button button-secondary" type="button" onClick={()=>void load()} disabled={busy}>{t.refresh}</button></div><div className="media-filters"><label>{t.search}<input value={search} onChange={e=>setSearch(e.target.value)} placeholder={t.searchPlaceholder} /></label><label>{t.visibility}<select value={filter} onChange={e=>setFilter(e.target.value as "all"|"published"|"drafts")}><option value="all">{t.all}</option><option value="published">{t.published}</option><option value="drafts">{t.drafts}</option></select></label></div>
         {!ready ? <p className="editor-status" role="status" aria-live="polite">{t.loading}</p> : rows.length===0 ? <p className="editor-status" role="status">{t.empty}</p> : rows.filter(item=>(filter==="all"||(filter==="published"?item.is_published:!item.is_published))&&[item.title,item.media_type,item.alt_text].some(value=>value.toLowerCase().includes(search.trim().toLowerCase()))).length===0 ? <div className="moderation-empty" role="status"><h3>{t.noMatch}</h3><p>{t.tryAgain}</p><button className="button button-secondary" type="button" onClick={()=>{setSearch("");setFilter("all");}}>{t.clear}</button></div> : rows.filter(item=>(filter==="all"||(filter==="published"?item.is_published:!item.is_published))&&[item.title,item.media_type,item.alt_text].some(value=>value.toLowerCase().includes(search.trim().toLowerCase()))).map(item=><article className="media-row" key={item.media_id}>
           <div className="media-preview">{item.preview_url && (item.media_type==="image"||item.media_type==="sprite"||item.media_type==="youtube") ? <img src={item.preview_url} alt={item.alt_text||item.title} loading="lazy" /> : item.preview_url && item.media_type==="video" ? <video src={item.preview_url} controls preload="metadata" playsInline aria-label={item.title} /> : item.preview_url && item.media_type==="audio" ? <audio src={item.preview_url} controls preload="metadata" aria-label={item.title} /> : <span>{item.media_type.toUpperCase()}</span>}</div>
-          <div className="media-details"><strong>{item.title}</strong><small>{item.media_type==="youtube"?t.youtubeSource:item.media_type+" · "+(item.is_published?t.public:t.privateDraft)}</small><small>{item.media_type==="youtube"?t.hosted:item.storage_path?.split("/").slice(1).join("/")}</small><div className="media-row-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>beginEdit(item)}>{t.edit}</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void setPublished(item)}>{item.is_published?t.private:t.publish}</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void removeItem(item)}>{t.delete}</button></div></div>
+          <div className="media-details"><strong>{item.title}</strong><small>{item.media_type==="youtube"?t.youtubeSource:item.media_type+" · "+(item.is_published?t.public:t.privateDraft)}</small><small>{item.media_type==="youtube"?t.hosted:item.storage_path?.split("/").slice(1).join("/")}</small>{item.media_type!=="youtube"&&<small className={"media-processing-status media-processing-"+(item.processing_status??"unknown")}><strong>Processing: {(item.processing_status??"unknown").replaceAll("_"," ")}</strong>{item.size_bytes!=null?` · ${(item.size_bytes/1048576).toFixed(1)} MiB`:""}{item.mime_type?` · ${item.mime_type}`:""}{item.processing_error?` · ${item.processing_error}`:""}</small>}<div className="media-row-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>beginEdit(item)}>{t.edit}</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void setPublished(item)}>{item.is_published?t.private:t.publish}</button><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void removeItem(item)}>{t.delete}</button></div></div>
         </article>)}
       </div>
     </div>
