@@ -13,7 +13,7 @@ create index if not exists media_items_processing_claim_idx
 create or replace function public.claim_raye2_media_processing_job()
 returns table(
  media_id uuid,owner_id uuid,media_type text,storage_path text,
- mime_type text,metadata jsonb,processing_attempts integer,lease_token uuid
+ mime_type text,metadata jsonb,processing_attempts integer,lease_token uuid,previous_thumbnail_path text
 )
 language plpgsql security definer set search_path='' as $$
 declare v_id uuid; v_token uuid:=gen_random_uuid();
@@ -43,7 +43,7 @@ begin
   processing_lease_token=v_token
  where m.id=v_id
  returning m.id,m.owner_id,m.media_type,m.storage_path,m.mime_type,m.metadata,
-  m.processing_attempts,m.processing_lease_token;
+  m.processing_attempts,m.processing_lease_token,m.thumbnail_path;
 end;
 $$;
 revoke all on function public.claim_raye2_media_processing_job() from public,anon,authenticated;
