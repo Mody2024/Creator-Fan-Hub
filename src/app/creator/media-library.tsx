@@ -246,6 +246,9 @@ export default function MediaLibrary() {
     if(!item.storage_path) return;
     setBusy(true);
     let destinationReservationId: string | null = null;
+    let destinationThumbnailReservationId: string | null = null;
+    let nextThumbnailPath: string | null = null;
+    const previousThumbnailPath = item.thumbnail_path ?? null;
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before changing publication.");
@@ -273,6 +276,39 @@ export default function MediaLibrary() {
       const {error:copyError}=await supabase.storage.from(nextBucket).upload(nextPath,download,{contentType:download.type || String(item.metadata?.mimeType || "application/octet-stream"),upsert:false});
       if(copyError) throw copyError;
 
+      // Move the worker-generated thumbnail with its source object. Otherwise
+      // the published Watch page points at a private poster (or loses it).
+      if(previousThumbnailPath) {
+        const [thumbnailBucket,...thumbnailParts]=previousThumbnailPath.split("/");
+        const thumbnailObjectPath=thumbnailParts.join("/");
+        const expectedThumbnailPrefix=userData.user.id+"/thumbnails/"+item.media_id+"-";
+        if(thumbnailBucket!==bucket || !thumbnailObjectPath.startsWith(expectedThumbnailPrefix) || !thumbnailObjectPath.endsWith(".webp")) {
+          await supabase.storage.from(nextBucket).remove([nextPath]);
+          throw new Error("The generated thumbnail path does not match this media item. Refresh the library before changing publication.");
+        }
+        const {data:thumbnailBlob,error:thumbnailDownloadError}=await supabase.storage.from(thumbnailBucket).download(thumbnailObjectPath);
+        if(thumbnailDownloadError || !thumbnailBlob) {
+          await supabase.storage.from(nextBucket).remove([nextPath]);
+          throw thumbnailDownloadError ?? new Error("Could not read the generated thumbnail; the original media remains unchanged.");
+        }
+        const {data:thumbnailReservation,error:thumbnailReservationError}=await supabase.rpc("reserve_nhen_media_upload",{
+          p_bytes:thumbnailBlob.size,
+          p_bucket:nextBucket
+        });
+        if(thumbnailReservationError || !thumbnailReservation?.[0]?.reservation_id) {
+          await supabase.storage.from(nextBucket).remove([nextPath]);
+          throw thumbnailReservationError ?? new Error("Thumbnail storage capacity could not be reserved; the original media remains unchanged.");
+        }
+        destinationThumbnailReservationId=thumbnailReservation[0].reservation_id as string;
+        const thumbnailFileName=userData.user.id+"/thumbnails/"+item.media_id+"-"+crypto.randomUUID()+".webp";
+        const {error:thumbnailCopyError}=await supabase.storage.from(nextBucket).upload(thumbnailFileName,thumbnailBlob,{contentType:"image/webp",upsert:false});
+        if(thumbnailCopyError) {
+          await supabase.storage.from(nextBucket).remove([nextPath]);
+          throw thumbnailCopyError;
+        }
+        nextThumbnailPath=nextBucket+"/"+thumbnailFileName;
+      }
+
       // Revoke public access before changing the database publication state.
       if (item.is_published) {
         const {error:removePublicError}=await supabase.storage.from(bucket).remove([oldPath]);
@@ -289,6 +325,7 @@ export default function MediaLibrary() {
       });
       if(saveError || !saved?.[0]?.saved) {
         const {error:cleanupError}=await supabase.storage.from(nextBucket).remove([nextPath]);
+        if(nextThumbnailPath) await supabase.storage.from(nextBucket).remove([nextThumbnailPath.slice(nextBucket.length+1)]);
         if (item.is_published) {
           // The original public object was removed before the database update.
           // A rollback upload is a new object and must reserve destination quota too.
@@ -313,17 +350,35 @@ export default function MediaLibrary() {
         }
         throw saveError ?? new Error("Publication status was not saved. The temporary copy was removed.");
       }
+      let thumbnailNotice="";
+      if(nextThumbnailPath) {
+        const {data:thumbnailSaved,error:thumbnailSaveError}=await supabase.rpc("set_creator_media_thumbnail_path",{
+          p_media_id:item.media_id,p_thumbnail_path:nextThumbnailPath
+        });
+        if(thumbnailSaveError || thumbnailSaved!==true) {
+          await supabase.storage.from(nextBucket).remove([nextThumbnailPath.slice(nextBucket.length+1)]);
+          thumbnailNotice=" The media changed visibility, but its thumbnail pointer could not be updated; refresh and retry thumbnail repair.";
+        } else if(previousThumbnailPath) {
+          const [previousBucket,...previousParts]=previousThumbnailPath.split("/");
+          const {error:previousThumbnailCleanupError}=await supabase.storage.from(previousBucket).remove([previousParts.join("/")]);
+          if(previousThumbnailCleanupError) thumbnailNotice=" The old thumbnail copy needs storage cleanup.";
+        }
+      }
       if (!item.is_published) {
         const {error:cleanupError}=await supabase.storage.from(bucket).remove([oldPath]);
-        setStatus(cleanupError ? "Asset published. The old private copy could not be cleaned up; it remains private and needs storage cleanup." : "Asset published. Its public URL is now available.");
+        setStatus((cleanupError ? "Asset published. The old private copy could not be cleaned up; it remains private and needs storage cleanup." : "Asset published. Its public URL and thumbnail are now available.")+thumbnailNotice);
       } else {
-        setStatus("Asset moved back to private drafts; the public object was removed before metadata changed.");
+        setStatus("Asset moved back to private drafts; the public object was removed before metadata changed."+thumbnailNotice);
       }
       await load();
     } catch(e) { setStatus(e instanceof Error ? e.message : "Could not change publication status."); }
     finally {
       if(destinationReservationId) {
         try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:destinationReservationId}); }
+        catch { /* A consumed reservation is already gone; an unused one expires automatically. */ }
+      }
+      if(destinationThumbnailReservationId) {
+        try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:destinationThumbnailReservationId}); }
         catch { /* A consumed reservation is already gone; an unused one expires automatically. */ }
       }
       setBusy(false);
