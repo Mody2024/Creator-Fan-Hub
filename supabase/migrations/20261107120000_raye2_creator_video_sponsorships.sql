@@ -72,7 +72,7 @@ begin
     into v_sponsor_owner,v_sponsor_type,v_sponsor_public
     from public.media_items m where m.id=new.sponsor_asset_media_id;
   if v_sponsor_owner is distinct from new.creator_id
-     or v_sponsor_type<>'video' or v_sponsor_public is distinct from true then
+     or v_sponsor_type not in ('video','image') or v_sponsor_public is distinct from true then
     raise exception 'sponsor creative must be your own published video asset' using errcode='42501';
   end if;
 
