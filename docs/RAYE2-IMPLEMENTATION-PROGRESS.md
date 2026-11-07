@@ -438,3 +438,16 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 ### Progress estimate
 - Overall Raye2 remains approximately **39%**, provisional.
 - Wave 4 remains approximately **22%**, provisional; thumbnail display closes a small end-to-end presentation gap but does not complete transcoding, live ingest, sponsor delivery, applied migrations or end-to-end acceptance.
+
+## 2026-11-07 — Native media processing and watch-publication hardening
+
+- [x] Worker validates the expected primary video/audio stream, duration, video dimensions and audio channel bounds before marking processing successful.
+- [x] Video poster extraction samples a duration-aware frame instead of always seeking to the first second.
+- [x] Creator Media Library already polls active processing jobs, displays processing state/errors and blocks native media publication until the trusted worker reports `ready`.
+- [x] Added a follow-up database migration that independently gates native `video_catalog` publication on `processing_status='ready'`, while retaining the external YouTube source path.
+- [x] Added regression coverage for typed media probing and the watch-catalog processing gate.
+- [ ] Run the complete CI workflow after the latest test/migration changes and fix any failures.
+- [ ] Apply the pending migration chain to a disposable local Supabase instance and verify the complete upload → worker → poster → watch-page publication flow. The cloud Supabase project remains unchanged; no paid branch is permitted.
+- [ ] Add adaptive HLS renditions only after local FFmpeg, storage reservation, player compatibility and low-resource limits are validated together. No HLS capability is claimed yet.
+
+**Verification note:** These are repository changes on `development`; migrations are not claimed as applied to the live Supabase project, the local worker is not claimed to be running, and production remains untouched.
