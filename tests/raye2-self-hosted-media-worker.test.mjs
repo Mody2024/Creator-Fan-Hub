@@ -8,6 +8,8 @@ const worker=await readFile(new URL("../scripts/raye2-media-worker.mjs",import.m
 const packageJson=JSON.parse(await readFile(new URL("../package.json",import.meta.url),"utf8"));
 const lifecycle=await readFile(new URL("../supabase/migrations/20261107200000_raye2_media_processing_lifecycle.sql",import.meta.url),"utf8");
 const library=await readFile(new URL("../src/app/creator/media-library.tsx",import.meta.url),"utf8");
+const publishGate=await readFile(new URL("../supabase/migrations/20261107220000_raye2_processing_gated_media_publication.sql",import.meta.url),"utf8");
+const lifecycle=await readFile(new URL("../supabase/migrations/20261107200000_raye2_media_processing_lifecycle.sql",import.meta.url),"utf8");
 
 test("only trusted service role can claim and complete processing jobs",()=>{
  assert.ok(queue.includes("auth.role() is distinct from 'service_role'"));
@@ -72,4 +74,20 @@ test("processing status exposes thumbnail path and creator library renders it",(
 test("worker accepts both legacy JWT and current server-only Supabase secret keys",()=>{
  assert.ok(worker.includes('SERVICE_ROLE_KEY.startsWith("sb_secret_")'));
  assert.ok(worker.includes('SERVICE_ROLE_KEY.startsWith("sb_publishable_")'));
+});
+
+test("native creator media cannot be published before trusted processing is ready",()=>{
+ assert.ok(publishGate.includes("v_media.processing_status is distinct from 'ready'"));
+ assert.ok(publishGate.includes("native media must finish processing before publication"));
+ assert.ok(library.includes("item.processing_status !== \"ready\""));
+});
+test("visibility moves preserve a verified asset state without resetting its processing job",()=>{
+ assert.ok(lifecycle.includes("old.processing_status='ready'"));
+ assert.ok(lifecycle.includes("new.is_published is distinct from old.is_published"));
+ assert.ok(lifecycle.includes("new.metadata is not distinct from old.metadata"));
+});
+test("creator library accepts safe nested thumbnail object paths and refreshes active jobs",()=>{
+ assert.ok(library.includes('path.split("/").length<2'));
+ assert.ok(library.includes("path.split(\"/\").every(segment"));
+ assert.ok(library.includes("window.setInterval"));
 });
