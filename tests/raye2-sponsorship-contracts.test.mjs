@@ -50,3 +50,17 @@ test("platform sponsor campaigns have a separate admin-only ownership boundary",
   assert.ok(adminComponent.includes("Platform-wide sponsor director setup"));
   assert.ok(adminComponent.includes("automated delivery remains disabled"));
 });
+
+test("creative variants are bound to exactly one owner campaign and published owned media",()=>{
+  assert.ok(migration.includes("raye2_sponsor_creative_variants"));
+  assert.ok(migration.includes("num_nonnulls(creator_campaign_id,platform_campaign_id)=1"));
+  assert.ok(migration.includes("creative variant must use a published image or video owned by the campaign owner"));
+  assert.ok(migration.includes("category_exclusive"));
+});
+
+test("creator breakpoint review is owner-scoped and constrained to video duration",async()=>{
+  const breakpointMigration=await read("../supabase/migrations/20261107140000_raye2_creator_sponsor_breakpoint_reviews.sql");
+  assert.ok(breakpointMigration.includes("creator_id=(select auth.uid())"));
+  assert.ok(breakpointMigration.includes("v_duration is null or new.at_seconds>=v_duration"));
+  assert.ok(breakpointMigration.includes("decision in ('approve','exclude')"));
+});
