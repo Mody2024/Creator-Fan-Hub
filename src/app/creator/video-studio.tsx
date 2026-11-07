@@ -2,6 +2,7 @@
 
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
+import CreatorVideoSponsorship from "./creator-video-sponsorship";
 
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean;storage_path:string|null;alt_text:string};
 type Video={media_id:string;slug:string;description:string;category:string;tags:string[];featured:boolean;allow_comments:boolean;published_at:string|null;duration_seconds:number|null};
@@ -87,6 +88,6 @@ export default function VideoStudio(){
     <div className="nhen-card nhen-card-pad"><span className="eyebrow">{t.playlists}</span><h3>{t.organize}</h3><label>{t.playlistTitle}<input value={playlistTitle} onChange={e=>setPlaylistTitle(e.target.value)} maxLength={100} placeholder="Season one / Best moments"/></label><label>{t.playlistDesc}<textarea value={playlistDescription} onChange={e=>setPlaylistDescription(e.target.value)} rows={2} maxLength={1000}/></label><button className="button button-secondary" type="button" disabled={busy||!playlistTitle.trim()} onClick={()=>void createPlaylist()}>{t.create}</button>{playlists.map(p=><div className="nhen-playlist-row" key={p.id}><span><strong>{p.title}</strong><small>{p.is_published?t.publicList:t.privateList}</small></span><div><button type="button" disabled={busy||!selected} onClick={()=>void addToPlaylist(p.id)}>{t.add}</button><button type="button" disabled={busy} onClick={()=>void togglePlaylist(p)}>{p.is_published?t.makePrivate:t.publishList}</button></div></div>)}</div>
    </div>
   </div>
-  <p className="editor-status" role="status" aria-live="polite">{status}</p>
+  {selected&&current?.published_at&&<CreatorVideoSponsorship mediaId={selected} assets={assets}/>}\n  <p className="editor-status" role="status" aria-live="polite">{status}</p>
  </section>
 }
