@@ -5,6 +5,7 @@ import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import SponsorBreakpointReview from "./sponsor-breakpoint-review";
 import SponsorCreativeVariants from "./sponsor-creative-variants";
 import SponsorBreakpointPreview from "./sponsor-breakpoint-preview";
+import SponsorAnalytics from "./sponsor-analytics";
 
 type SponsorAsset={media_id:string;title:string;media_type:string;is_published:boolean};
 type SponsorCampaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;starts_at:string|null;ends_at:string|null;max_per_viewer:number;status:string;sponsor_asset_media_id:string;category_key:string;category_exclusive:boolean};
@@ -100,6 +101,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
   </div>
+  <SponsorAnalytics mediaId={mediaId}/>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>
  </section>
 }
