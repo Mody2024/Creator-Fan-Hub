@@ -5,6 +5,7 @@ import { selectSponsorBreakpoints } from "../src/lib/raye2/sponsor-breakpoint-di
 test("selects high-confidence natural breakpoints and orders them chronologically", () => {
   const result = selectSponsorBreakpoints({
     durationSeconds: 1800,
+    maxBreaks: 3,
     minSpacingSeconds: 240,
     candidates: [
       { atSeconds: 900, source: "scene_transition", confidence: 0.82 },
