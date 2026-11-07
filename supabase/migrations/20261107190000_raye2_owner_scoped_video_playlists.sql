@@ -32,7 +32,20 @@ with check(public.is_nhen_video_publisher() and owner_id=(select auth.uid()));
 create policy "Publishers update only their playlists"
 on public.video_playlists for update to authenticated
 using(public.is_nhen_video_publisher() and owner_id=(select auth.uid()))
-with check(public.is_nhen_video_publisher() and owner_id=(select auth.uid()));
+with check(
+ public.is_nhen_video_publisher()
+ and owner_id=(select auth.uid())
+ and (
+  not is_published
+  or not exists(
+   select 1 from public.video_playlist_items i
+   join public.video_catalog v on v.media_id=i.media_id
+   join public.media_items m on m.id=v.media_id
+   where i.playlist_id=video_playlists.id
+    and (v.published_at is null or not m.is_published)
+  )
+ )
+);
 
 create policy "Publishers delete only their playlists"
 on public.video_playlists for delete to authenticated
