@@ -23,7 +23,11 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
   if(!media.storage_path?.startsWith("creator-media-public/"))notFound();
   const parts=media.storage_path.split("/");
   if(parts.length<2||!parts.slice(1).every((part: string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part)))notFound();
-  src=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+  const publicUrl=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+  let parsedPublicUrl: URL;
+  try { parsedPublicUrl=new URL(publicUrl); } catch { notFound(); }
+  if(parsedPublicUrl.protocol!=="https:"||parsedPublicUrl.origin!==new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??"https://invalid.local").origin)notFound();
+  src=parsedPublicUrl.toString();
  }else{
   try{
    const source=new URL(media.source_url??"");
