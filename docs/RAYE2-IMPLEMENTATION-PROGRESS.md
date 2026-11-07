@@ -359,3 +359,22 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Overall Raye2 remains approximately **38%** pending a full source audit.
 - Wave 4 (Creator Studio / media publishing / live) is provisionally **16%**. Uploads now transition honestly into an explicit uploaded state, and the creator library can inspect server-recorded processing metadata. No FFmpeg/transcoding worker, thumbnail generation pipeline, media finalizer or live provider integration has been delivered yet.
 - Friend testing remains blocked pending free local migration-chain execution, runtime authorization/storage checks, and end-to-end processing/publishing acceptance.
+
+
+### 2026-11-07 — Self-hosted media worker and thumbnail pipeline
+
+- Added a local Node 22 worker at `scripts/raye2-media-worker.mjs` and `npm run media:worker`. It is deliberately not a Vercel Function: free serverless deployments are not a dependable always-on media queue.
+- Added service-role-only database job claiming/completion with `FOR UPDATE SKIP LOCKED`, 20-minute leases, random lease tokens, stale-lease recovery and a five-attempt cap. Creator sessions cannot forge processing completion.
+- Added owner-bound, byte-exact thumbnail storage reservations under the existing conservative 750 MiB project storage ceiling. The storage insert trigger now permits the trusted service role only when it supplies an owner ID and consumes a matching, unexpired reservation; normal user uploads retain their authenticated-user reservation path.
+- Worker handles images/sprites with the existing `sharp` dependency, extracting dimensions/format and generating WebP thumbnails. It uses local `ffprobe` for video/audio stream and duration metadata and attempts a video poster with local `ffmpeg`. It does not claim to transcode video or package HLS/DASH.
+- Thumbnail objects are unique per processing lease, respect the source asset's private/public bucket, and the previous thumbnail is removed only after the new processing result commits. Failed/expired leases cannot overwrite a newer result.
+- Exposed `thumbnail_path` through the creator-only processing-status RPC and updated the Creator Media Library to render the generated thumbnail instead of always using the full original asset. Storage health audit now treats committed thumbnail paths as referenced objects.
+- Added `docs/RAYE2-SELF-HOSTED-MEDIA-WORKER.md` with local setup, required environment, ffmpeg/ffprobe dependencies, deployment order and explicit limits. Added `tests/raye2-self-hosted-media-worker.test.mjs` for service-role boundaries, lease/retry behavior, quota reservation, metadata extraction and thumbnail rendering.
+- Current Supabase secret formats accepted by the worker are legacy JWT service-role keys and the newer `sb_secret_` form; publishable keys are rejected. Secret must remain only in the private worker environment.
+- The development preview for commit `20cb2d1` was still **BUILDING** when checked. Later changes in this batch have not yet been build-verified. No worker has been run against Supabase, no migrations applied, and no media processing has been claimed as runtime-tested.
+- No production deployment, no main-branch changes, no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **39%** of the full platform pending a comprehensive source audit and end-to-end test execution.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **19%**. A real self-hosted metadata/thumbnail worker and secure job queue now exist in code, but setup/run, migration validation, media finalization, actual transcoding/adaptive delivery, live ingest, and end-to-end acceptance remain outstanding.
+- Friend testing remains blocked.
