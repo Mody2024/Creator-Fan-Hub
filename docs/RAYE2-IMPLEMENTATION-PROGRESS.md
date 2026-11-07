@@ -467,3 +467,45 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - [x] Extended server-side validation to decoded image formats and dimensions, enforcing a 40-megapixel limit before thumbnail generation.
 
 - [x] Added lease-loss cleanup for generated thumbnails: uncommitted attempt objects are removed using a strict owner/media path check, while the previous thumbnail is retained until the database confirms the replacement.
+
+
+## 2026-11-07 — Re-audit correction after media-worker and sponsorship batches
+
+This entry supersedes the older provisional 38% and 39% notes above for the current source snapshot. It does **not** convert source presence into runtime acceptance.
+
+### Evidence checked on current development HEAD `fbb4d714c5aba2449692541cb6f5fc8879826f88`
+
+- Creator sponsorship configuration is present in `src/app/creator/creator-video-sponsorship.tsx`, connected to the Video Studio; creator ownership, published source/creative checks and campaign state are represented in `20261107120000_raye2_creator_video_sponsorships.sql`.
+- Separate platform-wide campaign configuration is present in `src/app/creator/raye2/platform-sponsor-management.tsx` with admin-gated database policies.
+- Creative variants, creator breakpoint review, authenticated preview, watch-page timestamp inspection, eligibility resolution and fail-closed live policy modules are present. The preview explicitly remains `previewOnly` / `deliveryEnabled: false`; the resolver also returns delivery disabled. These are configuration and planning foundations, not playback ad delivery.
+- Separate sponsor delivery and revenue ledger schemas are present. The 70/30 rule applies only to external-network net receipts; no external provider, signed event ingestion, real impression collection, payout provider or payment flow is connected.
+- Creator analytics is an aggregate RPC and UI. It excludes platform-wide campaigns and viewer identity, and does not claim creator-contracted sponsor payouts.
+- The self-hosted media worker now validates media streams and image dimensions, creates thumbnails, uses storage reservations, applies bounded subprocess execution and retry/backoff, and cleans up uncommitted thumbnails after lease loss. Native publication is gated on worker-ready state; HLS/DASH transcoding is still absent.
+- Current HEAD is `fbb4d714`. GitHub Actions Free CI run [42415426700](https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/42415426700) completed successfully: repository integration tests, TypeScript type-check, lint and Next.js production build all passed.
+- The successful CI run does not execute the pending Supabase migration chain against PostgreSQL or run the media worker against a real Supabase Storage/FFmpeg environment. The live Supabase migration history was last confirmed to end at `20261102215604_nhen_scope_storage_quota_to_managed_buckets`; the newer Raye2 migrations remain unapplied there.
+
+### Corrected provisional implementation estimate
+
+| Wave | Scope | Current estimate | Why this is not higher |
+|---|---|---:|---|
+| 0 | Audit and implementation map | 60% | Major route/schema/test inventory is improving; full requirement matrix, provider/cost audit and migration validation remain. |
+| 1 | Brand and product-wide redesign | 31% | Core home/search/profile and some shared shell work exists; full surface redesign and final brand integration remain. |
+| 2 | Core architecture, accounts and permissions | 27% | Role/RLS foundations exist; unified identity, complete route authorization and broad negative tests remain. |
+| 3 | Video, feed and discovery | 24% | Native watch readiness and thumbnail presentation improved; adaptive delivery, complete player journey and discovery ranking remain. |
+| 4 | Creator Studio, media publishing, sponsorship and live | 25% | Creator Studio, processing lifecycle, publication gates and sponsor configuration/review foundations exist; upload-to-publish runtime acceptance, HLS/DASH, playback insertion, automatic media analysis and real live ingest remain. |
+| 5 | Social graph, communities and engagement | 16% | Group foundations exist; full social graph and connected engagement breadth remain. |
+| 6 | Messaging and chat | 85% | Broad feature implementation exists; applied schema/runtime delivery and end-to-end acceptance remain. |
+| 7 | Voice and Watch Together | 55% | WebRTC/LiveKit control paths and Watch Together foundations exist; provider deployment, multi-device acceptance and consented recording pipeline remain. |
+| 8 | Admin rules and governance | 38% | Platform sponsor manager and admin campaign isolation exist; unified rules engine, operational dashboards, moderation breadth and cleanup recovery remain. |
+| 9 | Security, reliability and release readiness | 19% | CI is green and source-level safety/ledger contracts exist; database execution, provider verification, runtime/load/accessibility and owner acceptance remain. |
+
+**Current overall implementation estimate: 40%** of the full ten-wave product. This is a weighted planning estimate based on the scope above, not a measured metric or a claim that 40% of the app is ready to use. It replaces the stale 37–39% figures for this source snapshot. Recalculate again after another substantial connected feature batch, not after isolated cosmetic changes.
+
+### Verification and friend-test status
+
+- **Automated repository checks:** latest Free CI is green on current HEAD.
+- **Database/migration verification:** not complete; do not apply to the live project. A free isolated PostgreSQL/Supabase migration run is still required.
+- **Worker/runtime verification:** not complete against real storage and FFmpeg/FFprobe.
+- **Preview/owner acceptance:** not confirmed for the current HEAD by this CI run.
+- **Friend-test readiness:** **blocked**. Sponsorship playback/delivery, real provider integrations, database migration validation, end-to-end media flow, remaining community/social features, voice/Watch Together runtime acceptance and full release/security review remain pre-beta work.
+- No changes to `main`, no production deployment, no paid infrastructure or spending.
