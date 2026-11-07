@@ -60,12 +60,12 @@ with check(
 
 create policy "Publishers update only owned playlist items"
 on public.video_playlist_items for update to authenticated
-using(exists(select 1 from public.video_playlists p where p.id=playlist_id and p.owner_id=(select auth.uid())))
+using(public.is_nhen_video_publisher() and exists(select 1 from public.video_playlists p where p.id=playlist_id and p.owner_id=(select auth.uid())))
 with check(
- exists(select 1 from public.video_playlists p where p.id=playlist_id and p.owner_id=(select auth.uid()))
+ public.is_nhen_video_publisher() and exists(select 1 from public.video_playlists p where p.id=playlist_id and p.owner_id=(select auth.uid()))
  and exists(select 1 from public.media_items m where m.id=media_id and m.owner_id=(select auth.uid()))
 );
 
 create policy "Publishers remove only owned playlist items"
 on public.video_playlist_items for delete to authenticated
-using(exists(select 1 from public.video_playlists p where p.id=playlist_id and p.owner_id=(select auth.uid())));
+using(public.is_nhen_video_publisher() and exists(select 1 from public.video_playlists p where p.id=playlist_id and p.owner_id=(select auth.uid())));
