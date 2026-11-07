@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
   const { data: video, error: videoError } = await supabase
     .from("video_catalog")
-    .select("duration_seconds,published_at")
+    .select("slug,duration_seconds,published_at")
     .eq("media_id", campaign.media_id)
     .maybeSingle();
   if (videoError || !video || !video.published_at || !Number.isSafeInteger(video.duration_seconds) || video.duration_seconds <= 0) {
@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
       maxPerViewer: campaign.max_per_viewer
     },
     durationSeconds: video.duration_seconds,
+    watchUrl: "/watch/" + video.slug,
     reviewedBreakpoints: reviewsResult.data ?? [],
     proposedBreakpoints: breakpoints,
     creativeVariants: variantsResult.data ?? [],
