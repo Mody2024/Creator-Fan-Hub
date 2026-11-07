@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies without paid services
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
       - name: Validate repository integration and automated tests
         run: npm run check && npm test
       - name: Type-check
