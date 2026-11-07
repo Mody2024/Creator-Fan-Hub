@@ -278,3 +278,7 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 
 
 - Build follow-up: inspected the failed preview for commit `d3c53d6`. Compilation succeeded; ESLint then failed on an unescaped apostrophe in the creator sponsorship consent label at `creator-video-sponsorship.tsx:93`. Corrected it to JSX-safe `&apos;` in commit `65bb73f`. The preview deployment for that fix is queued/pending at the time of this note; do not mark the build as passing until Vercel reports READY.
+
+
+- Preview usability follow-up: the creator preview now displays every saved review marker, distinguishing approved candidates from creator exclusions and showing notes, sponsor name, requested placement and campaign status. Added static UI contract assertions for both marker states.
+- The first preview build exposed a pre-existing JSX lint blocker in the sponsorship consent sentence; it has been escaped and the corrected commit is in the current development build queue. Earlier failed deployment is not treated as passing.
