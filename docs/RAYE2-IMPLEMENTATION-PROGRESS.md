@@ -231,3 +231,5 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - It returns an optional five-second context-replay start timestamp, but playback/provider integration must decide whether compliant replay is supported. It never inserts ads.
 - This is a tested-in-source algorithm foundation, **not** automatic audiovisual analysis: no model currently detects dialogue, scene transitions or climax from uploaded media, and no playback client consumes these selected breaks yet. Those remain open Wave 4 tasks.
 - The new unit tests are committed. CI/build status has not yet been confirmed; do not count the tests as passing until the workflow reports success.
+
+- Hardening follow-up: malformed confidence values and unknown candidate-source keys are rejected, invalid numeric settings fall back to safe defaults, and the test suite now covers malformed evidence. Latest Vercel development status is still pending; no passing build/test result is claimed.
