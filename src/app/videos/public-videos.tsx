@@ -58,7 +58,7 @@ export default async function PublicVideos() {
     } else {
       if (!media.storage_path?.startsWith("creator-media-public/")) return [];
       const parts = media.storage_path.split("/");
-      if (parts.length < 2 || !parts.slice(1).join("/")) return [];
+      if (parts.length < 2 || !parts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) return [];
       url = supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
     }
 
