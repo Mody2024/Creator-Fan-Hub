@@ -97,3 +97,17 @@ test("creator library handles public media previews and removes private thumbnai
  assert.ok(library.includes('userData.user.id+"/thumbnails/"'));
  assert.ok(library.includes("thumbnailCleanupError"));
 });
+
+test("worker rejects media with missing or invalid primary streams and bounds processing duration",()=>{
+ assert.ok(worker.includes("streams.find(stream => stream.codec_type === expectedType)"));
+ assert.ok(worker.includes("Uploaded ${expectedType} file contains no ${expectedType} stream."));
+ assert.ok(worker.includes("duration > 21600"));
+ assert.ok(worker.includes("width > 7680 || height > 4320"));
+ assert.ok(worker.includes("channels > 8"));
+});
+
+test("video thumbnails use a duration-aware frame instead of always sampling at one second",()=>{
+ assert.ok(worker.includes("durationSeconds = null"));
+ assert.ok(worker.includes("Math.min(30, Math.max(0.5, durationSeconds * 0.1))"));
+ assert.ok(worker.includes("sourcePath, workDir, extracted.durationSeconds"));
+});
