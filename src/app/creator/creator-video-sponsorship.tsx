@@ -2,6 +2,7 @@
 
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
+import SponsorBreakpointReview from "./sponsor-breakpoint-review";
 
 type SponsorAsset={media_id:string;title:string;media_type:string;is_published:boolean};
 type SponsorCampaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;starts_at:string|null;ends_at:string|null;max_per_viewer:number;status:string;sponsor_asset_media_id:string};
@@ -90,7 +91,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    {rows.map(row=><article className="nhen-playlist-row" key={row.id}>
     <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · max {row.max_per_viewer} planned exposures</small></span>
     <button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button>
-   </article>)}
+   <SponsorBreakpointReview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
   </div>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>
