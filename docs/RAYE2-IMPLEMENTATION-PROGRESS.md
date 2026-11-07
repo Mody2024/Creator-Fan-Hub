@@ -265,3 +265,13 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Follow-up in the same Wave 4 batch: added a fail-closed live sponsorship safety gate. It only considers streamer-declared breaks, intermissions, round breaks or loading transitions; rejects gameplay, conversation and key-event interruptions; requires provider mid-roll capability, an explicitly verified adapter, eligible creator campaign, frequency allowance and disclosure; and caps optional context replay at five seconds only when provider DVR is available.
 - This module is a policy gate only. It is not wired to a live provider, does not send insertion requests and always returns the action `no_insertion` in this implementation. Tests cover unsupported providers, missing adapters, unsafe break types and all mandatory eligibility checks.
 - Wave 4 remains approximately 12%; this additional safety foundation does not materially change the estimate until provider integration and operational end-to-end tests exist.
+
+
+### 2026-11-07 — Creator sponsorship preview integration batch
+
+- Added authenticated `POST /api/creator/sponsorship/preview`. It validates a bounded request and UUID, requires a signed-in session, scopes campaign lookup to the current creator, checks the native video's published state and duration, and loads only that creator's saved breakpoint decisions and active creative variants.
+- The server runs the existing deterministic breakpoint director over creator-approved timestamps. Explicit creator exclusions are passed as hard exclusions; lead/tail margins, spacing and a two-break preview cap are enforced.
+- Connected a creator-facing preview panel to every campaign in Creator Studio. It shows proposed timestamps, optional context-start positions, available creative-version count and explicit limitations.
+- The endpoint is private/no-store and explicitly returns `previewOnly: true` and `deliveryEnabled: false`. It does not fetch an ad, start playback, create an impression, select platform/external campaigns or infer scenes/dialogue. Automatic media analysis and real player insertion remain unimplemented.
+- Added static contract tests for authentication, ownership scoping, exclusion handling, no-store behavior, non-delivery guarantees and Creator Studio wiring. Tests/build still require execution in a working checkout and a passing preview check.
+- This connects campaign setup → creator breakpoint review → creative variants → deterministic preview as one workflow. Migrations are still unapplied; no production deployment, main-branch edit or paid service was used.
