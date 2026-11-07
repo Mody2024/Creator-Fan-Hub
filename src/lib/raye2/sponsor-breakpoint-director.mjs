@@ -19,20 +19,22 @@ export function selectSponsorBreakpoints(input) {
   const duration = Number(input?.durationSeconds);
   if (!Number.isFinite(duration) || duration <= 0 || !Array.isArray(input?.candidates)) return [];
 
-  const maxBreaks = Math.min(3, Math.max(0, Math.floor(input.maxBreaks ?? 2)));
-  const spacing = Math.max(30, Number(input.minSpacingSeconds ?? 300));
-  const lead = Math.max(0, Number(input.minLeadSeconds ?? 60));
-  const tail = Math.max(0, Number(input.minTailSeconds ?? 30));
-  const confidenceFloor = Math.min(1, Math.max(0, Number(input.minConfidence ?? 0.7)));
+  const finiteOr = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  const maxBreaks = Math.min(3, Math.max(0, Math.floor(finiteOr(input.maxBreaks, 2))));
+  const spacing = Math.max(30, finiteOr(input.minSpacingSeconds, 300));
+  const lead = Math.max(0, finiteOr(input.minLeadSeconds, 60));
+  const tail = Math.max(0, finiteOr(input.minTailSeconds, 30));
+  const confidenceFloor = Math.min(1, Math.max(0, finiteOr(input.minConfidence, 0.7)));
   if (maxBreaks === 0 || duration <= lead + tail) return [];
 
   const sourceWeight = { creator_mark: 1, dialogue_gap: 0.95, chapter: 0.9, scene_transition: 0.8 };
   const eligible = input.candidates.flatMap(candidate => {
     const at = Number(candidate?.atSeconds);
     const confidence = Number(candidate?.confidence);
-    if (!Number.isFinite(at) || !Number.isFinite(confidence)) return [];
+    if (!Number.isFinite(at) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) return [];
     if (at < lead || at > duration - tail || confidence < confidenceFloor) return [];
     if (candidate.dialogueActive || candidate.climax || candidate.keyAction || candidate.creatorExcluded) return [];
+    if (!Object.hasOwn(sourceWeight, candidate.source)) return [];
     const weight = sourceWeight[candidate.source];
     if (!weight) return [];
     return [{ atSeconds: at, source: candidate.source, score: Number((confidence * weight).toFixed(4)) }];
