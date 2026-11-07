@@ -51,6 +51,7 @@ begin
      and not exists (
       select 1 from public.media_items m
       where m.storage_path=o.bucket_id||'/'||o.name
+       or m.thumbnail_path=o.bucket_id||'/'||o.name
      ))
     or
     (o.bucket_id='nhen-community-shorts'
