@@ -20,11 +20,13 @@ const activeAt=(campaign,now)=>{
  return Number.isFinite(now)&&start<=now&&now<=end;
 };
 const allowedRegion=(campaign,region)=>{
- const raw=field(campaign,"allowedRegions","allowed_regions");\n const regions=Array.isArray(raw)?raw:[];
+ const raw=field(campaign,"allowedRegions","allowed_regions");
+ const regions=Array.isArray(raw)?raw:[];
  return regions.length===0 || (typeof region==="string"&&regions.includes(region.toUpperCase()));
 };
 const withinFrequency=(campaign,seen)=>{
- const count=Number(seen?.[campaign.id]??0);\n const cap=field(campaign,"maxPerViewer","max_per_viewer");\n return Number.isFinite(count)&&count<Math.max(1,Math.min(5,Number(cap)||1));
+ const count=Number(seen?.[campaign.id]??0);
+ const cap=field(campaign,"maxPerViewer","max_per_viewer");\n return Number.isFinite(count)&&count<Math.max(1,Math.min(5,Number(cap)||1));
 };
 
 /**
@@ -39,7 +41,7 @@ export function resolveRaye2SponsorEligibility(input={}) {
   activeAt(c,now)&&supportsInventory(c,inventory)&&allowedRegion(c,region)&&withinFrequency(c,seen)
  ).sort((a,b)=>(a.priority??100)-(b.priority??100));
  const platform=(input.platformCampaigns??[]).filter(c=>
-  activeAt(c,now)&&c.inventory===inventory&&allowedRegion(c,region)&&withinFrequency(c,seen)
+  activeAt(c,now)&&supportsInventory(c,inventory)&&allowedRegion(c,region)&&withinFrequency(c,seen)
  ).filter(c=>!creator.some(own=>
   (own.categoryExclusive??own.category_exclusive)&&(own.categoryKey??own.category_key)===(c.categoryKey??c.category_key)
  )).sort((a,b)=>((b.priority??50))-(a.priority??50));
