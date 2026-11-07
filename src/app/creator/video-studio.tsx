@@ -65,7 +65,7 @@ export default function VideoStudio(){
  }
  async function createPlaylist(){
   if(!supabase||busy||!playlistTitle.trim())return;setBusy(true);
-  try{const safe=slugify(playlistTitle);if(safe.length<3)throw new Error(t.playlistShort);const {error}=await supabase.from("video_playlists").insert({slug:safe,title:playlistTitle.trim().slice(0,100),description:playlistDescription.trim().slice(0,1000),is_published:false,position:playlists.length});if(error)throw error;setPlaylistTitle("");setPlaylistDescription("");setStatus(t.playlistSaved);await load()}catch(e){setStatus(e instanceof Error?e.message:"Could not create playlist.")}finally{setBusy(false)}
+  try{const {data:userData,error:userError}=await supabase.auth.getUser();if(userError||!userData.user)throw new Error("Sign in again to create a playlist.");const safe=slugify(playlistTitle);if(safe.length<3)throw new Error(t.playlistShort);const {error}=await supabase.from("video_playlists").insert({owner_id:userData.user.id,slug:safe,title:playlistTitle.trim().slice(0,100),description:playlistDescription.trim().slice(0,1000),is_published:false,position:playlists.length});if(error)throw error;setPlaylistTitle("");setPlaylistDescription("");setStatus(t.playlistSaved);await load()}catch(e){setStatus(e instanceof Error?e.message:"Could not create playlist.")}finally{setBusy(false)}
  }
  async function addToPlaylist(playlistId:string){
   if(!supabase||!selected||busy)return;setBusy(true);
