@@ -233,3 +233,13 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - The new unit tests are committed. CI/build status has not yet been confirmed; do not count the tests as passing until the workflow reports success.
 
 - Hardening follow-up: malformed confidence values and unknown candidate-source keys are rejected, invalid numeric settings fall back to safe defaults, and the test suite now covers malformed evidence. Latest Vercel development status is still pending; no passing build/test result is claimed.
+
+
+### 2026-11-07 — Sponsor workflow expansion batch
+
+- Added persistent creator review markers for sponsor breakpoints. Creators can approve candidate timestamps or exclude moments, with server-side checks that the campaign belongs to them and timestamps fall within the published video's duration.
+- Added reusable creative-variant management for both creator-owned and platform-owned campaigns: short 5s, standard 10s, extended and alternate versions. Database constraints and trigger validation require exactly one campaign parent and a published image/video owned by the same creator/admin.
+- Added creator contract category keys and category exclusivity settings. Added a provider-neutral eligibility resolver that reads both app-shaped and database snake_case campaign records, checks campaign status/schedule, inventory scope, region and per-viewer frequency caps, and suppresses eligible platform campaigns that conflict with an eligible creator exclusivity.
+- The resolver returns `deliveryEnabled: false` deliberately. It is not connected to a player and cannot insert ads. Creator breakpoint review is manual timestamp annotation, not AI media analysis. Creative variants are stored but not selected for playback. Live eligibility is configuration only, not live-stream ad insertion.
+- Added/expanded tests for resolver behavior, persisted campaign shapes, creative-variant ownership, and creator breakpoint review constraints. Tests remain unexecuted in this environment; the Vercel preview check must complete before claiming build success.
+- New migrations are committed on `development` only and have not been applied to Supabase. No paid services, paid branches, or production deployments were used.
