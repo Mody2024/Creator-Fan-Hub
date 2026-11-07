@@ -6,6 +6,8 @@ const queue=await readFile(new URL("../supabase/migrations/20261107210000_raye2_
 const reservation=await readFile(new URL("../supabase/migrations/20261107211000_raye2_worker_storage_reservation_binding.sql",import.meta.url),"utf8");
 const worker=await readFile(new URL("../scripts/raye2-media-worker.mjs",import.meta.url),"utf8");
 const packageJson=JSON.parse(await readFile(new URL("../package.json",import.meta.url),"utf8"));
+const lifecycle=await readFile(new URL("../supabase/migrations/20261107200000_raye2_media_processing_lifecycle.sql",import.meta.url),"utf8");
+const library=await readFile(new URL("../src/app/creator/media-library.tsx",import.meta.url),"utf8");
 
 test("only trusted service role can claim and complete processing jobs",()=>{
  assert.ok(queue.includes("auth.role() is distinct from 'service_role'"));
@@ -60,4 +62,14 @@ test("worker runs locally through the package script and does not require a host
  assert.ok(worker.includes("SUPABASE_SERVICE_ROLE_KEY"));
  assert.ok(worker.includes("RAYE2_WORKER_POLL_MS"));
  assert.ok(!worker.includes("paidTranscoder"));
+});
+
+test("processing status exposes thumbnail path and creator library renders it",()=>{
+ assert.ok(lifecycle.includes("checksum_sha256 text,thumbnail_path text"));
+ assert.ok(library.includes("thumbnail_path?:string|null"));
+ assert.ok(library.includes("const previewPath=item.thumbnail_path??item.storage_path"));
+});
+test("worker accepts both legacy JWT and current server-only Supabase secret keys",()=>{
+ assert.ok(worker.includes('SERVICE_ROLE_KEY.startsWith("sb_secret_")'));
+ assert.ok(worker.includes('SERVICE_ROLE_KEY.startsWith("sb_publishable_")'));
 });
