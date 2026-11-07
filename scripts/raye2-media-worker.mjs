@@ -25,19 +25,57 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
 });
 
-function run(command, args, timeoutMs = 120000) {
+const MAX_PROCESS_OUTPUT_BYTES = 2 * 1024 * 1024;
+const DEFAULT_JOB_TIMEOUT_MS = 120000;
+
+function run(command, args, timeoutMs = DEFAULT_JOB_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
     let stdout = "";
     let stderr = "";
-    const timer = setTimeout(() => child.kill("SIGKILL"), timeoutMs);
-    child.stdout.setEncoding("utf8").on("data", chunk => { stdout += chunk; });
-    child.stderr.setEncoding("utf8").on("data", chunk => { stderr += chunk; });
-    child.once("error", error => { clearTimeout(timer); reject(error); });
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
+    let timedOut = false;
+    let outputExceeded = false;
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGKILL");
+    }, timeoutMs);
+    timer.unref?.();
+
+    child.stdout.setEncoding("utf8").on("data", chunk => {
+      stdoutBytes += Buffer.byteLength(chunk);
+      if (stdoutBytes + stderrBytes > MAX_PROCESS_OUTPUT_BYTES) {
+        outputExceeded = true;
+        child.kill("SIGKILL");
+        return;
+      }
+      stdout += chunk;
+    });
+    child.stderr.setEncoding("utf8").on("data", chunk => {
+      stderrBytes += Buffer.byteLength(chunk);
+      if (stdoutBytes + stderrBytes > MAX_PROCESS_OUTPUT_BYTES) {
+        outputExceeded = true;
+        child.kill("SIGKILL");
+        return;
+      }
+      stderr += chunk;
+    });
+    child.once("error", error => {
+      clearTimeout(timer);
+      reject(error);
+    });
     child.once("close", code => {
       clearTimeout(timer);
-      if (code === 0) resolve({ stdout, stderr });
-      else reject(new Error(`${command} exited ${code}: ${stderr.slice(-1200)}`));
+      if (timedOut) {
+        reject(new Error(`${command} exceeded its ${timeoutMs} ms execution limit.`));
+      } else if (outputExceeded) {
+        reject(new Error(`${command} exceeded the ${MAX_PROCESS_OUTPUT_BYTES}-byte output limit.`));
+      } else if (code === 0) {
+        resolve({ stdout, stderr });
+      } else {
+        reject(new Error(`${command} exited ${code}: ${stderr.slice(-1200)}`));
+      }
     });
   });
 }
@@ -240,13 +278,48 @@ async function handleOne() {
   return true;
 }
 
-console.info("[raye2-worker] running. Requires ffprobe; ffmpeg is used for video thumbnails. No hosted paid worker is used.");
-while (true) {
+const shutdownController = new AbortController();
+let shuttingDown = false;
+let consecutiveQueueErrors = 0;
+
+function requestShutdown(signal) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.info(`[raye2-worker] received ${signal}; finishing the current job before exit.`);
+  shutdownController.abort();
+}
+
+process.once("SIGINT", () => requestShutdown("SIGINT"));
+process.once("SIGTERM", () => requestShutdown("SIGTERM"));
+
+async function waitForNextPoll(milliseconds) {
   try {
-    const processed = await handleOne();
-    if (!processed) await delay(POLL_MS);
+    await delay(milliseconds, undefined, { signal: shutdownController.signal });
   } catch (error) {
-    console.error("[raye2-worker] queue error", error instanceof Error ? error.message : error);
-    await delay(POLL_MS);
+    if (!shuttingDown) throw error;
   }
 }
+
+console.info("[raye2-worker] running. Requires ffprobe; ffmpeg is used for video thumbnails. No hosted paid worker is used.");
+while (!shuttingDown) {
+  try {
+    const processed = await handleOne();
+    consecutiveQueueErrors = 0;
+    if (!processed && !shuttingDown) {
+      const jitter = Math.floor(Math.random() * Math.min(1500, POLL_MS * 0.2));
+      await waitForNextPoll(POLL_MS + jitter);
+    }
+  } catch (error) {
+    if (shuttingDown) break;
+    consecutiveQueueErrors = Math.min(consecutiveQueueErrors + 1, 6);
+    const backoff = Math.min(POLL_MS * (2 ** consecutiveQueueErrors), 60000);
+    const jitter = Math.floor(Math.random() * Math.min(3000, backoff * 0.15));
+    console.error("[raye2-worker] queue error; retrying with backoff", {
+      attempt: consecutiveQueueErrors,
+      delayMs: backoff + jitter,
+      message: error instanceof Error ? error.message : String(error),
+    });
+    await waitForNextPoll(backoff + jitter);
+  }
+}
+console.info("[raye2-worker] stopped cleanly.");

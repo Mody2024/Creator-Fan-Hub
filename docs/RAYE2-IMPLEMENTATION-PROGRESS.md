@@ -451,3 +451,15 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - [ ] Add adaptive HLS renditions only after local FFmpeg, storage reservation, player compatibility and low-resource limits are validated together. No HLS capability is claimed yet.
 
 **Verification note:** These are repository changes on `development`; migrations are not claimed as applied to the live Supabase project, the local worker is not claimed to be running, and production remains untouched.
+
+## 2026-11-07 — Worker runtime resilience batch
+
+- [x] Bound FFmpeg/FFprobe subprocess output to 2 MiB to prevent unbounded diagnostic/stdout accumulation.
+- [x] Enforce per-process execution timeouts with forced termination and actionable timeout errors.
+- [x] Add graceful SIGINT/SIGTERM handling: stop claiming new jobs, allow the active job to finish, then exit.
+- [x] Add jittered idle polling and capped exponential backoff for repeated queue/database errors to avoid tight retry loops.
+- [x] Add regression checks for subprocess bounds, shutdown handling and retry backoff.
+- [ ] Verify this complete batch through CI, then run the full migration chain and media lifecycle against a disposable local Supabase instance.
+- [ ] Validate actual FFmpeg/FFprobe execution and object cleanup with representative test media before calling the worker production-ready.
+
+**Verification note:** Runtime hardening is committed to `development`; no live Supabase migration was applied and no production deployment was triggered.

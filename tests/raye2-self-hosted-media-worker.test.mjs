@@ -111,3 +111,19 @@ test("video thumbnails use a duration-aware frame instead of always sampling at 
  assert.ok(worker.includes("Math.min(30, Math.max(0.5, durationSeconds * 0.1))"));
  assert.ok(worker.includes("sourcePath, workDir, extracted.durationSeconds"));
 });
+
+test("worker subprocess execution has bounded output and an enforced timeout",()=>{
+ assert.ok(worker.includes("MAX_PROCESS_OUTPUT_BYTES = 2 * 1024 * 1024"));
+ assert.ok(worker.includes("child.kill(\"SIGKILL\")"));
+ assert.ok(worker.includes("exceeded its ${timeoutMs} ms execution limit"));
+ assert.ok(worker.includes("exceeded the ${MAX_PROCESS_OUTPUT_BYTES}-byte output limit"));
+});
+
+test("worker drains its current job on shutdown and backs off repeated queue failures",()=>{
+ assert.ok(worker.includes('process.once("SIGINT"'));
+ assert.ok(worker.includes('process.once("SIGTERM"'));
+ assert.ok(worker.includes("finishing the current job before exit"));
+ assert.ok(worker.includes("consecutiveQueueErrors"));
+ assert.ok(worker.includes("Math.min(POLL_MS * (2 ** consecutiveQueueErrors), 60000)"));
+ assert.ok(worker.includes("stopped cleanly"));
+});
