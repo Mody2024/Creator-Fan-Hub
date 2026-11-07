@@ -465,3 +465,5 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 **Verification note:** Runtime hardening is committed to `development`; no live Supabase migration was applied and no production deployment was triggered.
 
 - [x] Extended server-side validation to decoded image formats and dimensions, enforcing a 40-megapixel limit before thumbnail generation.
+
+- [x] Added lease-loss cleanup for generated thumbnails: uncommitted attempt objects are removed using a strict owner/media path check, while the previous thumbnail is retained until the database confirms the replacement.

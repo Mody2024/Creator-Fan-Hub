@@ -245,14 +245,29 @@ async function processJob(job) {
   }
 }
 
+async function removeWorkerThumbnail(ownerId, thumbnailPath, mediaId) {
+  if (!thumbnailPath) return;
+  const [bucket, ...parts] = thumbnailPath.split("/");
+  const objectPath = parts.join("/");
+  const expectedPrefix = `${ownerId}/thumbnails/${mediaId}-`;
+  if (![PRIVATE_BUCKET, PUBLIC_BUCKET].includes(bucket) || !objectPath.startsWith(expectedPrefix) || !objectPath.endsWith(".webp")) {
+    console.warn("[raye2-worker] skipped cleanup for an unexpected thumbnail path", thumbnailPath);
+    return;
+  }
+  const { error } = await supabase.storage.from(bucket).remove([objectPath]);
+  if (error) console.error("[raye2-worker] generated thumbnail needs orphan cleanup", error.message);
+}
+
 async function handleOne() {
   const { data: jobs, error } = await supabase.rpc("claim_raye2_media_processing_job");
   if (error) throw error;
   const job = jobs?.[0];
   if (!job) return false;
   console.info(`[raye2-worker] claimed ${job.media_id} (attempt ${job.processing_attempts})`);
+  let result = null;
+  let completedSuccessfully = false;
   try {
-    const result = await processJob(job);
+    result = await processJob(job);
     const { data: completed, error: completeError } = await supabase.rpc("complete_raye2_media_processing_job", {
       p_media_id: job.media_id,
       p_lease_token: job.lease_token,
@@ -263,16 +278,15 @@ async function handleOne() {
     });
     if (completeError) throw completeError;
     if (completed !== true) throw new Error("Processing lease expired before completion; a later worker may retry.");
+    completedSuccessfully = true;
     if (job.previous_thumbnail_path && job.previous_thumbnail_path !== result.thumbnailPath) {
-      const [oldBucket, ...oldParts] = job.previous_thumbnail_path.split("/");
-      const oldObject = oldParts.join("/");
-      if ([PRIVATE_BUCKET, PUBLIC_BUCKET].includes(oldBucket) && oldObject.startsWith(job.owner_id + "/thumbnails/")) {
-        const { error: oldDeleteError } = await supabase.storage.from(oldBucket).remove([oldObject]);
-        if (oldDeleteError) console.warn("[raye2-worker] previous thumbnail needs orphan cleanup", oldDeleteError.message);
-      }
+      await removeWorkerThumbnail(job.owner_id, job.previous_thumbnail_path, job.media_id);
     }
     console.info(`[raye2-worker] ready ${job.media_id}`);
   } catch (error) {
+    if (!completedSuccessfully && result?.thumbnailPath) {
+      await removeWorkerThumbnail(job.owner_id, result.thumbnailPath, job.media_id);
+    }
     const message = error instanceof Error ? error.message.slice(0, 1000) : "Unknown processing failure.";
     const { error: completeError } = await supabase.rpc("complete_raye2_media_processing_job", {
       p_media_id: job.media_id,

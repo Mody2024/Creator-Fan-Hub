@@ -58,3 +58,10 @@ Run under a process supervisor on a machine you control if you need continuous p
 3. Set the service-role key only in the worker's private environment.
 4. Run a small image, audio, and video test asset and verify status, metadata, thumbnail, quota accounting, and failure recovery.
 5. Only then consider enabling the worker for the development preview. Do not run it against production during development.
+
+## Completion and lease-loss cleanup
+
+- The worker validates the exact owner/media thumbnail path before cleanup.
+- If a worker stores a thumbnail but its completion RPC fails or the processing lease expires, it removes only the thumbnail created for that job attempt. This prevents uncommitted generated objects from accumulating in free storage.
+- Previous thumbnails are removed only after the database confirms that the replacement result was committed.
+- Cleanup failures are logged for manual orphan review; the worker never deletes arbitrary creator media paths.

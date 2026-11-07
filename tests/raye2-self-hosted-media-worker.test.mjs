@@ -134,3 +134,11 @@ test("worker validates decoded image formats and enforces image dimension and pi
  assert.ok(worker.includes("width * height > 40000000"));
  assert.ok(worker.includes('failOn: "error"'));
 });
+
+test("worker removes only its own newly uploaded thumbnail when completion is rejected",()=>{
+ assert.ok(worker.includes("async function removeWorkerThumbnail(ownerId, thumbnailPath, mediaId)"));
+ assert.ok(worker.includes("const expectedPrefix = `${ownerId}/thumbnails/${mediaId}-`"));
+ assert.ok(worker.includes("if (!completedSuccessfully && result?.thumbnailPath)"));
+ assert.ok(worker.includes("await removeWorkerThumbnail(job.owner_id, result.thumbnailPath, job.media_id)"));
+ assert.ok(worker.includes("await removeWorkerThumbnail(job.owner_id, job.previous_thumbnail_path, job.media_id)"));
+});
