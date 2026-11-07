@@ -34,7 +34,15 @@ begin
    new.processing_attempts:=0;
    new.processing_error:=null;
    new.processing_completed_at:=null;
-  elsif new.storage_path is distinct from old.storage_path then
+  elsif new.storage_path is distinct from old.storage_path
+   and not (
+    old.processing_status='ready'
+    and new.is_published is distinct from old.is_published
+    and new.media_type is not distinct from old.media_type
+    and new.metadata is not distinct from old.metadata
+   ) then
+   -- A private/public bucket move is a visibility change of the same
+   -- already-processed creator asset, not a new media upload.
    new.processing_status:='uploaded';
    new.processing_attempts:=0;
    new.processing_error:=null;
