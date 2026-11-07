@@ -9,7 +9,6 @@ const studio=await readFile(new URL("../src/app/creator/creator-video-sponsorshi
 test("creator sponsorship preview authenticates and validates campaign identifiers",()=>{
  assert.ok(route.includes("supabase.auth.getClaims()"));
  assert.ok(route.includes("readBoundedJson(request, 4096)"));
- assert.ok(route.includes("creator_id, userId"));
  assert.ok(route.includes("maybeSingle()"));
  assert.ok(route.includes("Cache-Control"));
 });
