@@ -16,6 +16,8 @@ test("playlist read and management policies are owner-scoped",()=>{
  assert.ok(migration.includes("public.is_nhen_video_publisher()"));
  assert.ok(migration.includes("Publishers manage only their playlists"));
  assert.ok(migration.includes("Owners read their playlists and public playlists"));
+ assert.ok(migration.includes("not is_published"));
+ assert.ok(migration.includes("v.published_at is null or not m.is_published"));
 });
 
 test("playlist items can only reference the creator's own video media",()=>{
