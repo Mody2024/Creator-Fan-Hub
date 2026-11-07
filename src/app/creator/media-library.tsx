@@ -105,6 +105,11 @@ export default function MediaLibrary() {
   },[]);
 
   useEffect(()=>{ void load(); },[load]);
+  useEffect(()=>{
+    if(!ready || !rows.some(item=>item.media_type!=="youtube" && ["uploaded","processing","failed"].includes(item.processing_status??""))) return;
+    const timer=window.setInterval(()=>{void load();},15000);
+    return ()=>window.clearInterval(timer);
+  },[load,ready,rows]);
 
   function selectFile(e: ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0] ?? null;
@@ -220,6 +225,10 @@ export default function MediaLibrary() {
   async function setPublished(item: MediaRow) {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || busy) return;
+    if (!item.is_published && item.media_type !== "youtube" && item.processing_status !== "ready") {
+      setStatus("This asset cannot be published until the trusted media worker finishes processing it.");
+      return;
+    }
     if(item.media_type === "youtube") {
       setBusy(true);
       try {
