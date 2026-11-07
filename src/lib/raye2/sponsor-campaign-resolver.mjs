@@ -48,9 +48,19 @@ export function resolveRaye2SponsorEligibility(input={}) {
  return {
   creatorCampaigns:creator,
   platformCampaigns:platform,
-  blockedPlatformCampaignIds:(input.platformCampaigns??[])
-   .filter(c=>creator.some(own=>(own.categoryExclusive??own.category_exclusive)&&(own.categoryKey??own.category_key)===(c.categoryKey??c.category_key)))
-   .map(c=>c.id),
+  blockedPlatformCampaignIds:blocked.map(c=>c.id),
   deliveryEnabled:false
  };
-}
+}  const creator=(input.creatorCampaigns??[]).filter(c=>
+    activeAt(c,now)&&supportsInventory(c,inventory)&&allowedRegion(c,region)&&withinFrequency(c,seen)
+  ).sort((a,b)=>(a.priority??100)-(b.priority??100));
+  const eligiblePlatform=(input.platformCampaigns??[]).filter(c=>
+    activeAt(c,now)&&supportsInventory(c,inventory)&&allowedRegion(c,region)&&withinFrequency(c,seen)
+  );
+  const conflicts=c=>creator.some(own=>
+    (own.categoryExclusive??own.category_exclusive)&&
+    (own.categoryKey??own.category_key)===(c.categoryKey??c.category_key)
+  );
+  const blocked=eligiblePlatform.filter(conflicts);
+  const platform=eligiblePlatform.filter(c=>!conflicts(c))
+    .sort((a,b)=>(b.priority??50)-(a.priority??50));
