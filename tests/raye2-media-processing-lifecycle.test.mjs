@@ -36,6 +36,6 @@ test("creator library displays real processing states and does not claim uploads
 test("TUS upload remains resumable and uses no paid media-processing provider",()=>{
  assert.ok(helper.includes("new Upload(file"));
  assert.ok(helper.includes("upload.findPreviousUploads()"));
- assert.ok(helper.includes("upload.resumeFromPreviousUpload(matchingUpload)"));
+ assert.ok(helper.includes("upload?.resumeFromPreviousUpload(matchingUpload)"));
  assert.ok(!helper.includes("paidTranscoder"));
 });
