@@ -29,3 +29,8 @@ test("public native watch pages reject malformed or traversal-like storage objec
 test("public video catalog rejects malformed or traversal-like storage object segments",()=>{
  assert.ok(catalog.includes('parts.length < 2 || !parts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))'));
 });
+
+test("native watch URLs are restricted to the configured HTTPS Supabase origin",()=>{
+ assert.ok(page.includes('parsedPublicUrl.protocol!=="https:"'));
+ assert.ok(page.includes('parsedPublicUrl.origin!==new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??"https://invalid.local").origin'));
+});
