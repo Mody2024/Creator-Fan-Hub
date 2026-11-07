@@ -53,7 +53,13 @@ export default function VideoStudio(){
    if(parsedDuration!==null&&(!Number.isSafeInteger(parsedDuration)||parsedDuration<1||parsedDuration>86400))throw new Error(t.durationError);
    const row={media_id:selected,slug:safeSlug,description:cleanDescription,category:cleanCategory,tags:cleanTags,duration_seconds:parsedDuration,featured,allow_comments:allowComments,published_at:publishedAt?(current?.published_at??new Date().toISOString()):null,updated_at:new Date().toISOString()};
    if(publishedAt&&!asset.is_published)throw new Error(t.privateError);
-   const {error}=await supabase.from("video_catalog").upsert(row,{onConflict:"media_id"});if(error)throw error;
+   const {data:saved,error}=await supabase.rpc("save_raye2_video_catalog",{
+    p_media_id:selected,p_slug:safeSlug,p_description:cleanDescription,p_category:cleanCategory,
+    p_tags:cleanTags,p_duration_seconds:parsedDuration,p_featured:featured,
+    p_allow_comments:allowComments,p_publish:publishedAt
+   });
+   if(error)throw error;
+   if(!Array.isArray(saved)||!saved[0]?.saved)throw new Error("This video could not be saved. Confirm it belongs to your creator account.");
    setStatus(publishedAt?t.savedPublic:t.savedDraft);await load();
   }catch(e){setStatus(e instanceof Error?e.message:"Could not save video details.")}finally{setBusy(false)}
  }
