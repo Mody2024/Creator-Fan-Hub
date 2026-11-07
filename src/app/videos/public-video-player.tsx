@@ -30,7 +30,7 @@ export default function PublicVideoPlayer({ src, title, description, youtubeEmbe
 
   return <div className={`nhen-player-shell ${loaded ? "is-loaded" : "is-loading"}`}>
     {!loaded && <div className="nhen-player-loading" role="status" aria-live="polite">
-      <span className="nhen-player-loading-mark" aria-hidden="true">N</span>
+      <span className="raye2-player-loading-mark" aria-hidden="true">R</span>
       <span>{locale==="ar"?"جارٍ تجهيز الفيديو":"Preparing your video"}</span>
       <i aria-hidden="true" />
     </div>}
