@@ -27,6 +27,7 @@ export default function MediaLibrary() {
   const [kind,setKind] = useState<MediaKind>("image");
   const [busy,setBusy] = useState(false);
   const [uploadProgress,setUploadProgress] = useState<number|null>(null);
+  const [uploadController,setUploadController] = useState<AbortController|null>(null);
   const [status,setStatus] = useState("Media uploads use the free Supabase Storage project.");
   const [ready,setReady] = useState(false);
   const [locale,setLocale]=useState<"en"|"ar">("en");
@@ -125,7 +126,9 @@ export default function MediaLibrary() {
         uploadSession.saveReservation(newReservationId);
       }
       const path = uploadSession.objectName;
-      await uploadToSupabaseStorage({client:supabase,bucketName:"creator-media-private",objectName:path,file,onProgress:setUploadProgress});
+      const controller=new AbortController();
+      setUploadController(controller);
+      await uploadToSupabaseStorage({client:supabase,bucketName:"creator-media-private",objectName:path,file,onProgress:setUploadProgress,signal:controller.signal});
       uploaded=true;
       const {data:saved,error:saveError} = await supabase.rpc("save_creator_media",{
         p_media_id:null,p_title:title.trim(),p_media_type:kind,p_source_url:null,
@@ -150,6 +153,7 @@ export default function MediaLibrary() {
         uploadSession.clear();
         if(reservationId) { try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:reservationId}); } catch { /* reservation expires automatically */ } }
       }
+      setUploadController(null);
       setUploadProgress(null);
       setBusy(false);
     }
@@ -382,7 +386,7 @@ export default function MediaLibrary() {
       <form className="poll-create-form" onSubmit={e=>{e.preventDefault();if(editingId) void saveMetadata(); else void upload();}}>
         {!editingId && <div className="media-upload-note"><strong>{t.external}</strong><label>{t.youtube}<input type="url" value={youtubeUrl} onChange={e=>setYoutubeUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" /></label><button className="button button-secondary" type="button" disabled={busy||!youtubeUrl.trim()||!title.trim()} onClick={()=>void addYoutubeSource()}>{t.addYoutube}</button><p>{t.youtubeNote}</p></div>}
         {!editingId && <label>{t.choose}<input id="creator-media-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm,audio/mpeg,audio/mp4,audio/wav,audio/ogg" onChange={selectFile} required /></label>}{editingId && <p className="media-upload-note">{t.editing}</p>}
-        {!editingId && file && <p className="media-selected-file">{file.name} · {(file.size/1024/1024).toFixed(1)} MB</p>}{uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>{t.uploading} · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label={t.uploading}/><small>{t.resume}</small></div>}
+        {!editingId && file && <p className="media-selected-file">{file.name} · {(file.size/1024/1024).toFixed(1)} MB</p>}{uploadProgress!==null&&<div className="media-upload-note" role="status"><strong>{t.uploading} · {uploadProgress}%</strong><progress max={100} value={uploadProgress} aria-label={t.uploading}/><small>{t.resume}</small><button type="button" className="button button-secondary" disabled={!uploadController} onClick={()=>uploadController?.abort()}>Pause upload</button></div>}
         <label>{t.name}<input value={title} maxLength={120} onChange={e=>setTitle(e.target.value)} required /></label>
         <label>{t.alt}<input value={alt} maxLength={500} onChange={e=>setAlt(e.target.value)} placeholder={t.altPlaceholder} /></label>
         {!editingId && <p className="media-upload-note">{t.limits}</p>}
