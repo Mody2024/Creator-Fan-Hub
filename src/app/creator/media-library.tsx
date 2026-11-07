@@ -70,7 +70,7 @@ export default function MediaLibrary() {
         if (!previewPath) return {...item,preview_url:null};
         const [bucket,...parts] = previewPath.split("/");
         const path = parts.join("/");
-        if (!path || !["creator-media-private","creator-media-public"].includes(bucket) || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(path)) return {...item,preview_url:null};
+        if (!path || !["creator-media-private","creator-media-public"].includes(bucket) || path.split("/").length<2 || !path.split("/").every(segment=>/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/.test(segment))) return {...item,preview_url:null};
         try {
           if (bucket === "creator-media-public" && item.is_published) {
             const {data:publicData} = supabase.storage.from(bucket).getPublicUrl(path);
