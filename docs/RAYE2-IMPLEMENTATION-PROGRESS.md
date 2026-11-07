@@ -411,3 +411,13 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 ### Progress estimate
 - Overall Raye2: approximately **39%**, provisional pending full executable validation.
 - Wave 4: approximately **22%**, provisional. The source now includes owner-scoped processing, thumbnail generation, publication gating, and direct watch-page readiness checks. Adaptive streaming/transcoding, player delivery improvements, real live ingest, sponsor workflows, applied migrations and end-to-end validation remain outstanding.
+
+
+### 2026-11-07 — Public watch and catalog path validation follow-through
+
+- GitHub Actions completed the complete Node test suite with **288/288 passing** on the preceding commit, then TypeScript correctly caught an implicit-any in the new public watch path validator. This was a genuine type-check failure, not a test failure.
+- Added an explicit `string` annotation to the watch route path segment validator.
+- Applied the same strict safe-segment validation to the homepage public video catalog. This closes the weaker path check that previously only verified a non-empty object path.
+- Added a regression test for the public catalog path validator.
+- New GitHub Actions run is in progress for the combined fixes. TypeScript, lint and Next.js build are not yet confirmed on this latest source.
+- No Vercel deployment, no paid service, no database migration applied, no production change, and no changes to `main`.
