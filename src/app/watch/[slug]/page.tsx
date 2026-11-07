@@ -11,11 +11,12 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  const supabase=await createSupabaseServerClient();
  if(!supabase)notFound();
  const {data,error}=await supabase.from("video_catalog")
-  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!inner(id,title,storage_path,source_url,alt_text,is_published,media_type)")
+  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!inner(id,title,storage_path,source_url,alt_text,is_published,media_type,processing_status)")
   .eq("slug",slug).not("published_at","is",null).maybeSingle();
  if(error||!data)notFound();
  const media=Array.isArray(data.media_items)?data.media_items[0]:data.media_items;
  if(!media?.is_published||!["video","youtube"].includes(media.media_type))notFound();
+ if(media.media_type==="video"&&media.processing_status!=="ready")notFound();
  let src="";
  let youtubeEmbedUrl:string|null=null;
  if(media.media_type==="video"){
