@@ -55,3 +55,18 @@ test("returns no breaks for invalid duration or no evidence", () => {
   assert.deepEqual(selectSponsorBreakpoints({ durationSeconds: 0, candidates: [] }), []);
   assert.deepEqual(selectSponsorBreakpoints({ durationSeconds: 900, candidates: [] }), []);
 });
+
+test("ignores malformed evidence and clamps unsafe configuration values", () => {
+  const result = selectSponsorBreakpoints({
+    durationSeconds: 1200,
+    maxBreaks: Number.NaN,
+    minSpacingSeconds: Number.NaN,
+    candidates: [
+      { atSeconds: 300, source: "toString", confidence: 1 },
+      { atSeconds: 400, source: "chapter", confidence: 2 },
+      { atSeconds: 500, source: "chapter", confidence: 0.9 },
+      { atSeconds: 510, source: "scene_transition", confidence: 0.99 }
+    ]
+  });
+  assert.deepEqual(result.map(x => x.atSeconds), [500]);
+});
