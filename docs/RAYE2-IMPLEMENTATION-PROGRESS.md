@@ -326,3 +326,20 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Overall implementation remains approximately **38%** of the full Raye2 platform; this batch improves correctness and authorization, not broad feature coverage.
 - Wave 4 (Creator Studio / publishing / live) is provisionally **14%**. The secure catalog and playlist paths are now better protected, but native media processing, reliable publish lifecycle, live ingest/delivery, provider integration, and runtime acceptance remain major gaps.
 - Automated static contract tests were added but have not been executed in a working checkout in this batch. Friend testing remains blocked.
+
+
+### 2026-11-07 — Resumable media upload reliability batch
+
+- Audited the current media library against its accepted MIME types and found the resumable helper rejected every non-MP4/WebM asset even though the UI explicitly accepts JPEG, PNG, WebP, GIF and several audio formats.
+- Expanded the resumable upload helper to support the ten MIME types advertised by the media library, with MIME-derived safe extensions, bucket allowlisting and object-path validation.
+- Added per-request session validation and refresh for long-running uploads so access-token expiry does not unnecessarily break a multi-chunk transfer.
+- Added an explicit Pause upload control. It pauses the TUS client without terminating the remote upload resource; selecting the same file again reuses the saved object path and TUS fingerprint to resume. The existing one-hour storage reservation can be renewed for the same user/bucket/byte count before finalization.
+- Kept the storage reservation trigger's one-time consume behavior and did not attach a reservation UUID to immutable TUS metadata; this preserves recovery after an earlier reservation expires and is renewed.
+- Added `tests/resumable-media-upload.test.mjs` to cover accepted MIME formats, bucket/path checks, token refresh, pause/resume identity and UI wiring. These are static contract tests and are not yet confirmed executed.
+- Previous owner-scoped publishing/playlist preview commit `5536a92` is now confirmed **READY**. Latest upload-reliability preview for `4e0343a` is **QUEUED/PENDING**; do not mark the new code build-passing until Vercel reports READY.
+- No database migration was applied, no production deployment, no main-branch changes, and no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **38%** of the complete platform pending a full source audit.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **15%**. Resumable uploads now cover the media types actually offered in the UI and can be paused/resumed; processing/transcoding, robust finalization states, provider/live integration, and end-to-end runtime tests remain incomplete.
+- Friend testing remains blocked pending migration-chain validation and full workflow acceptance.
