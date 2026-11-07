@@ -66,7 +66,7 @@ export default function MediaLibrary() {
           const id = item.source_url.match(/[?&]v=([A-Za-z0-9_-]{11})/)?.[1];
           return {...item,preview_url:id ? "https://img.youtube.com/vi/"+id+"/hqdefault.jpg" : null};
         }
-        const previewPath=item.thumbnail_path??item.storage_path;
+        const previewPath=item.is_published && item.thumbnail_path?.startsWith("creator-media-private/") ? item.storage_path : item.thumbnail_path??item.storage_path;
         if (!previewPath) return {...item,preview_url:null};
         const [bucket,...parts] = previewPath.split("/");
         const path = parts.join("/");
@@ -380,6 +380,14 @@ export default function MediaLibrary() {
       deletedStoragePath=null;
       const originalPath = typeof item.metadata?.originalStoragePath === "string" ? item.metadata.originalStoragePath : "";
       let backupNotice = "";
+      if(item.thumbnail_path) {
+        const [thumbnailBucket,...thumbnailParts]=item.thumbnail_path.split("/");
+        const thumbnailObject=thumbnailParts.join("/");
+        if(thumbnailBucket==="creator-media-private" && thumbnailObject.startsWith(userData.user.id+"/thumbnails/")) {
+          const {error:thumbnailCleanupError}=await supabase.storage.from(thumbnailBucket).remove([thumbnailObject]);
+          if(thumbnailCleanupError) backupNotice += " The generated thumbnail could not be removed and needs storage cleanup.";
+        }
+      }
       if (originalPath.startsWith("creator-media-private/")) {
         const [originalBucket,...originalParts] = originalPath.split("/");
         const originalObjectPath = originalParts.join("/");
