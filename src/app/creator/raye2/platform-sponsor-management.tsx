@@ -2,6 +2,7 @@
 
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
+import SponsorCreativeVariants from "../sponsor-creative-variants";
 
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean};
 type Campaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;category_key:string;category_exclusive:boolean;priority:number;max_per_viewer:number;starts_at:string|null;ends_at:string|null;status:string;allowed_regions:string[]};
@@ -99,7 +100,7 @@ export default function PlatformSponsorManagement(){
   <div className="nhen-playlist-list">{campaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
    <span><strong>{row.sponsor_name}</strong><small>{row.category_key} · priority {row.priority} · {row.placement} · {row.status}{row.category_exclusive?" · exclusive":""}</small></span>
    <button type="button" disabled={busy} onClick={()=>void setStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button>
-  </article>)}</div>
+  <SponsorCreativeVariants campaignId={row.id} campaignType="platform" assets={assets}/></article>)}</div>
   <p className="editor-status" role="status" aria-live="polite">{notice}</p>
  </section>
 }
