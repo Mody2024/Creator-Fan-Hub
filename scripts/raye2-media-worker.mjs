@@ -86,18 +86,18 @@ async function makeThumbnail(mediaType, mimeType, sourcePath, workDir) {
   return null;
 }
 
-async function storeThumbnail(ownerId, mediaId, leaseToken, thumbnailPath) {
+async function storeThumbnail(ownerId, mediaId, leaseToken, bucket, thumbnailPath) {
   const file = await readFile(thumbnailPath);
   if (!file.byteLength || file.byteLength > MAX_THUMBNAIL_BYTES) {
     throw new Error("Generated thumbnail exceeded the 5 MiB safety limit.");
   }
   const { data: reservationId, error: reserveError } = await supabase.rpc(
     "reserve_raye2_worker_thumbnail_capacity",
-    { p_owner_id: ownerId, p_bucket: PRIVATE_BUCKET, p_bytes: file.byteLength },
+    { p_owner_id: ownerId, p_bucket: bucket, p_bytes: file.byteLength },
   );
   if (reserveError) throw reserveError;
   const objectPath = `${ownerId}/thumbnails/${mediaId}-${leaseToken}.webp`;
-  const { error: uploadError } = await supabase.storage.from(PRIVATE_BUCKET).upload(objectPath, file, {
+  const { error: uploadError } = await supabase.storage.from(bucket).upload(objectPath, file, {
     contentType: "image/webp",
     cacheControl: "3600",
     upsert: false,
@@ -107,7 +107,7 @@ async function storeThumbnail(ownerId, mediaId, leaseToken, thumbnailPath) {
     await supabase.rpc("release_raye2_worker_thumbnail_capacity", { p_reservation_id: reservationId });
     throw uploadError;
   }
-  return { path: `${PRIVATE_BUCKET}/${objectPath}`, bytes: file.byteLength };
+  return { path: `${bucket}/${objectPath}`, bytes: file.byteLength };
 }
 
 async function processJob(job) {
@@ -154,7 +154,7 @@ async function processJob(job) {
     let thumbnailResult = null;
     if (thumbnail) {
       try {
-        thumbnailResult = await storeThumbnail(job.owner_id, job.media_id, job.lease_token, thumbnail.outputPath);
+        thumbnailResult = await storeThumbnail(job.owner_id, job.media_id, job.lease_token, bucket, thumbnail.outputPath);
         extracted.thumbnailKind = thumbnail.thumbnailKind;
         if (thumbnail.dimensions) extracted.imageDimensions = thumbnail.dimensions;
       } catch (error) {
@@ -201,8 +201,8 @@ async function handleOne() {
     if (job.previous_thumbnail_path && job.previous_thumbnail_path !== result.thumbnailPath) {
       const [oldBucket, ...oldParts] = job.previous_thumbnail_path.split("/");
       const oldObject = oldParts.join("/");
-      if (oldBucket === PRIVATE_BUCKET && oldObject.startsWith(job.owner_id + "/thumbnails/")) {
-        const { error: oldDeleteError } = await supabase.storage.from(PRIVATE_BUCKET).remove([oldObject]);
+      if ([PRIVATE_BUCKET, PUBLIC_BUCKET].includes(oldBucket) && oldObject.startsWith(job.owner_id + "/thumbnails/")) {
+        const { error: oldDeleteError } = await supabase.storage.from(oldBucket).remove([oldObject]);
         if (oldDeleteError) console.warn("[raye2-worker] previous thumbnail needs orphan cleanup", oldDeleteError.message);
       }
     }
