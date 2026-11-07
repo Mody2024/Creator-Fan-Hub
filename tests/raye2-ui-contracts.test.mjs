@@ -2,10 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
-const [page, client, styles, migration, plan] = await Promise.all([
+const [page, client, styles, migration, plan, masterPlan, backlog] = await Promise.all([
   read("../src/app/raye2/page.tsx"), read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/raye2.module.css"), read("../supabase/migrations/20261103180000_raye2_community_chat_foundations.sql"),
-  read("../docs/RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md")
+  read("../docs/RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md"), read("../docs/RAYE2-FULL-PLATFORM-PLAN.md"),
+  read("../docs/RAYE2-BETA-COMING-SOON-BACKLOG.md")
 ]);
 test("Raye2 workspace is a real authenticated app route", () => {
   assert.match(page, /Raye2Client/); assert.match(client, /getSupabaseBrowserClient/);
@@ -40,4 +41,12 @@ test("recording consent and production restrictions remain confirmed requirement
 test("workspace has responsive mobile and reduced-motion styling", () => {
   assert.match(styles, /@media\(max-width:680px\)/);
   assert.match(styles, /prefers-reduced-motion:reduce/);
+});
+
+test("initial Raye2 release uses one fixed dark blue/graphite theme", () => {
+  assert.doesNotMatch(client, /raye2-theme|themeToggle|setTheme|data-theme=/);
+  assert.doesNotMatch(styles, /data-theme="light"|themeToggle/);
+  assert.match(styles, /--r-accent:#6ea8ff/);
+  assert.match(masterPlan, /one fixed dark theme/i);
+  assert.match(backlog, /Admin-created themes/i);
 });

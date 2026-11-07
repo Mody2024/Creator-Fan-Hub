@@ -35,10 +35,10 @@ This is a major product-wide redesign, not a small styling pass.
 - Core palette: **black, white, grey and blue**.
 - Establish semantic tokens for backgrounds, surfaces, borders, text, muted text, primary blue, hover/focus, selected, success, warning and error states.
 - Use restrained, consistent contrast and blue accents. Avoid random gradients, excessive glow, neon overload, generic AI visual motifs and inconsistent one-off colors.
-- Support light and dark themes. Theme variants and allowed accent/surface choices should be configurable centrally by authorized Admins without breaking contrast or component consistency.
+- The initial release ships exactly one fixed dark theme using the black, white, grey and blue palette. Do not ship a user-facing theme switcher, alternate presets or custom theme editor in the initial release. Admin-created themes are deferred to a later post-release update.
 - Raye2's site identity is the **logo**, not a written “Raye2” wordmark repeated through the interface. Do not add the product name as visible header text where the logo is intended to represent the brand.
 - Preserve the supplied logo's recognizable hand-drawn style. Correct the Arabic typo in the artwork/asset where applicable; improve alignment, spacing, scaling, contrast and integration without turning it into an unrelated generic icon.
-- Logo assets are managed through the authorized branding controls in the Admin/Creator Panel. Provide preview, crop/fit, transparent-background handling where technically reliable, fallback assets and theme-aware variants. Never silently destroy the uploaded original.
+- Logo assets are managed through the authorized branding controls in the Admin/Creator Panel. Provide preview, crop/fit, transparent-background handling where technically reliable and fallback assets for the single initial theme. Preserve the original upload; theme-specific logo variants are deferred with the future theme manager.
 - Remove legacy NHEN/Nhen?/Creator Fan Hub labels, old watermarks and obsolete visual remnants from Raye2 product surfaces. Preserve required third-party marks, such as the YouTube player branding.
 
 ### 1.2 Design-system rebuild
@@ -69,7 +69,7 @@ Create a reusable design system rather than styling pages independently:
 - No old brand text, obsolete labels, mismatched colors or unrelated design fragments remain.
 - Arabic and English layouts are both checked, including mixed-direction titles and metadata.
 - All interactive controls have visible keyboard focus and accessible names.
-- Theme switching does not break media controls, overlays, menus or contrast.
+- The single initial theme remains visually consistent across media controls, overlays, menus and all responsive layouts.
 - Screens are reviewed at mobile, tablet and desktop widths.
 
 ## 2. Core platform structure and account system
@@ -80,7 +80,7 @@ Create a reusable design system rather than styling pages independently:
 - Profile identity: avatar, cover, display name, handle, bio, links, interests and privacy settings.
 - Follow/unfollow creators and users; follower/following lists with privacy controls.
 - Profile tabs/surfaces for videos, Mini's, Moments, community activity, playlists/collections and achievements where enabled.
-- User settings for privacy, notifications, accessibility, language, theme, sessions/devices and data export/deletion.
+- User settings for privacy, notifications, accessibility, language, sessions/devices and data export/deletion.
 - Clear account states: normal, verified/trusted if implemented, restricted, suspended and banned.
 - Do not expose private account details or private activity through public search, feeds or APIs.
 
@@ -218,7 +218,7 @@ Create a reusable design system rather than styling pages independently:
 - Content library with filters, drafts, scheduled items, published items, expired items and moderation/takedown state.
 - Basic analytics: views, watch time, completion/retention where measurable, engagement, followers and content performance.
 - No fabricated analytics. Label estimates and delayed metrics.
-- Branding controls for authorized users/Admin: logo upload, crop/fit, transparent background processing with preview, and theme-aware placement. Protect the original upload.
+- Branding controls for authorized users/Admin: logo upload, crop/fit, transparent background processing with preview, and consistent placement within the single initial theme. Protect the original upload.
 - Role restrictions and quotas must be validated server-side.
 
 ## 7. Communities, groups and events
@@ -275,7 +275,7 @@ Admin should be able to configure without code, within provider/system ceilings:
 - Group creation, member limits, invite rules, message rate limits, voice room capacity and concurrent sessions.
 - Recording availability, consent (mandatory), recording duration/size and retention.
 - Watch Together availability, sources, queue limits and participant caps.
-- Theme presets, logo/branding assets, language availability and feature flags.
+- Logo/branding assets, language availability and feature flags. Admin theme creation and theme presets are deferred until after the initial release.
 - Retention clocks, warning windows, archive/delete behavior and cleanup schedules.
 - Moderation thresholds, rate limits, restricted features and abuse controls.
 - Storage pressure thresholds, upload backpressure and operational alerts.
@@ -400,7 +400,7 @@ Waves are dependency-aware work packages. They may be split into several large c
 **Exit gate:** a verified implementation map exists; no feature is assumed complete from appearance alone.
 
 ### Wave 1 — Brand system and full product redesign
-- Implement the black/white/grey/blue token system and light/dark themes.
+- Implement the black/white/grey/blue token system and one fixed dark theme for the initial release.
 - Rebuild typography, spacing, components, navigation, responsive shell and page templates.
 - Integrate the hand-drawn logo correctly; remove obsolete branding and unapproved legacy watermarks.
 - Redesign Home, Explore, profiles, video surfaces, Creator Studio, communities, chat and Admin to one consistent standard.
@@ -452,7 +452,7 @@ Waves are dependency-aware work packages. They may be split into several large c
 **Exit gate:** supported voice/watch flows work on tested devices; consent and privacy tests pass.
 
 ### Wave 8 — Admin Rules Engine, operations and platform governance
-- Consolidate roles, quotas, cooldowns, feature flags, themes, retention and per-account overrides.
+- Consolidate roles, quotas, cooldowns, feature flags, retention and per-account overrides. Admin-created theme management is a separate post-release update, not a launch dependency.
 - Build moderation queues, audit logs, bulk cleanup previews and storage recovery tools.
 - Add health, media, realtime, cost and capacity dashboards with real metrics.
 - Add alerts, safe defaults and infrastructure ceiling warnings.
@@ -560,12 +560,12 @@ This register is part of the master specification. It expands the earlier summar
 - [ ] Use black, white, grey and blue as the complete core palette. Remove the old lime-green identity and audit every route, modal, hover state, chart, badge, skeleton and error state for stray old colors.
 - [ ] The supplied hand-drawn logo is the visual identity. Preserve its character; improve spacing, composition, resolution, sizing and responsive placement without replacing it with a generic mark.
 - [ ] Correct the Arabic typo in the supplied logo artwork when the source asset is available. Do not invent replacement Arabic lettering.
-- [ ] Creator/Admin branding controls must support logo upload, safe crop/fit, preview on light/dark surfaces, background-removal preview where reliable, original-file preservation, transparent PNG/WebP where supported, fallback and theme-aware variants.
+- [ ] Creator/Admin branding controls must support logo upload, safe crop/fit, preview on the single initial dark theme, background-removal preview where reliable, original-file preservation, transparent PNG/WebP where supported and fallback. Alternate theme variants are deferred.
 - [ ] The logo must integrate into navigation, loading, favicon/app icon and relevant media/creator surfaces without being repeated as a written “Raye2” wordmark throughout the UI.
 - [ ] Rebuild the home layout, menus, navigation hierarchy, content cards, player shell, profile headers, creator surfaces, feed, dialogs and mobile navigation as one coherent system.
 - [ ] Make the desktop experience the primary design target while delivering complete responsive tablet/mobile behavior, not a squeezed desktop layout.
 - [ ] Provide Arabic and English typography with correct RTL/LTR direction, mixed-language metadata and mirrored layout where appropriate.
-- [ ] Admin-managed themes may change supported theme tokens and logo variants but cannot break accessibility, contrast or brand consistency.
+- [ ] **Post-release only:** Admins may create and manage additional themes by changing approved tokens and logo variants. This is explicitly excluded from initial-release and friends-test scope; preserve accessibility, contrast and brand consistency when implemented.
 - [ ] Remove obsolete predecessor branding and legacy marks from Raye2 UI. Preserve third-party marks/player controls required by providers.
 - [ ] **Open branding decision:** the existing README says a permanent “MADE BY ALMUDDATHTHIR” credit remains in the shared public layout, while the Raye2 redesign direction says obsolete/unapproved predecessor watermarks are removed. Do not silently choose. Before changing that credit, record the owner's explicit decision: retain it as a deliberate creator credit, redesign/reposition it, or remove it. It must not be mistaken for a third-party legal mark.
 

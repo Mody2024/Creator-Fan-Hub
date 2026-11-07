@@ -30,6 +30,10 @@
 | Multi-camera live production and advanced replay tools | Coming soon | Dependent on a real provider pipeline and measured capacity. |
 | Installable PWA and offline saved metadata | Coming soon | Must not imply offline video playback unless the rights and storage flow support it. |
 
+## Post-release visual customization
+
+- **Admin-created themes:** after the initial release and the one-month friends-testing period, authorized Admins may create, preview, publish and manage additional themes from approved black/white/grey/blue-based tokens. This is deliberately deferred; the initial release has one fixed dark theme and no theme switcher or theme editor.
+
 ## New idea intake
 
 For each new idea, record:
