@@ -397,3 +397,17 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Overall Raye2 remains approximately **39%** of the full platform pending a broad repository audit and executable validation.
 - Wave 4 (Creator Studio / media publishing / live) is provisionally **22%**. The self-hosted metadata/thumbnail worker, leased processing queue, owner-bound storage reservations, creator preview integration, and server-authoritative publication gate are now present in source. Actual PostgreSQL migration execution, worker runtime, video transcoding/adaptive delivery, native player integration, live ingest, creator sponsor workflows, and end-to-end acceptance remain outstanding.
 - Friend testing remains blocked. These source-level changes are not a beta-ready claim.
+
+
+### 2026-11-07 — Public watch-page readiness and path hardening
+
+- Fixed a real public-route consistency gap: the video grid already filtered native uploads to `processing_status='ready'`, but direct `/watch/[slug]` routes previously checked only publication state. The watch route now fetches processing status and refuses native video playback unless the trusted worker has marked it ready. External YouTube embeds remain separate.
+- Hardened native public watch storage object paths: only safe path segments are accepted before constructing a public storage URL; malformed and traversal-like segments fail closed.
+- Added `tests/raye2-public-watch-page.test.mjs` covering processing readiness, public-bucket isolation, privacy-enhanced YouTube embeds, and safe object path validation.
+- CI diagnosis: the prior run reached 235 passing tests and one remaining assertion failure plus a test-file syntax error. The syntax error was fixed by replacing a literal escaped newline with a real line break. The thumbnail property assertion was corrected to match the exact source declaration spacing. The next CI runs are required to verify these corrections; no green result is claimed yet.
+- Latest GitHub Actions run at the time of this note is still queued/in progress; the Vercel preview limit remains unrelated to GitHub Actions. No paid services used.
+- No database migrations applied, no production deployment, and no changes to `main`.
+
+### Progress estimate
+- Overall Raye2: approximately **39%**, provisional pending full executable validation.
+- Wave 4: approximately **22%**, provisional. The source now includes owner-scoped processing, thumbnail generation, publication gating, and direct watch-page readiness checks. Adaptive streaming/transcoding, player delivery improvements, real live ingest, sponsor workflows, applied migrations and end-to-end validation remain outstanding.
