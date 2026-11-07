@@ -282,3 +282,13 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 
 - Preview usability follow-up: the creator preview now displays every saved review marker, distinguishing approved candidates from creator exclusions and showing notes, sponsor name, requested placement and campaign status. Added static UI contract assertions for both marker states.
 - The first preview build exposed a pre-existing JSX lint blocker in the sponsorship consent sentence; it has been escaped and the corrected commit is in the current development build queue. Earlier failed deployment is not treated as passing.
+
+
+### 2026-11-07 — Sponsorship review-to-video inspection batch
+
+- Extended the authenticated creator sponsorship preview to return the published video's canonical Raye2 Watch route alongside its duration.
+- Every proposed breakpoint now has an **Inspect this moment** link opening the native Watch page at the exact timestamp using the existing bounded `?t=` deep-link behavior. This lets the creator inspect actual video context rather than trusting a timestamp-only list.
+- The preview continues to use only saved creator review markers and hard exclusions; it does not claim AI scene detection or ad insertion. The native player remains unchanged and does not receive sponsor playback commands.
+- Added contract assertions for the Watch route, timestamp deep link and inspection link.
+- Previous corrected preview deployment for commit `c9c528d` is confirmed **READY**. Latest inspection-link batch commit `7152d25` has a new development preview queued/pending; its build result is not yet known.
+- No Supabase migration applied, no production deployment, no main-branch change, and no paid services.
