@@ -26,9 +26,9 @@ jobs:
         with:
           node-version: 22
       - name: Install dependencies without paid services
-        run: npm install --no-audit --no-fund
-      - name: Validate repository integration
-        run: npm run check
+        run: npm ci --no-audit --no-fund
+      - name: Validate repository integration and automated tests
+        run: npm run check && npm test
       - name: Type-check
         run: npx tsc --noEmit
       - name: Lint
