@@ -29,3 +29,11 @@ test("platform campaigns are ordered by priority without changing creator contra
  const result=resolve({now,region:"EG",platformCampaigns:[{...base,id:"low",priority:2},{...base,id:"high",priority:90}]});
  assert.deepEqual(result.platformCampaigns.map(x=>x.id),["high","low"]);
 });
+
+test("accepts persisted snake_case campaign rows and platform inventory scope",()=>{
+ const result=resolve({now,region:"EG",inventory:"live",
+  platformCampaigns:[{id:"db-live",status:"active",starts_at:"2026-11-01T00:00:00Z",ends_at:"2026-11-30T00:00:00Z",campaign_scope:{videos:false,live:true},allowed_regions:["EG"],max_per_viewer:2,category_key:"sports",priority:75}],
+  creatorCampaigns:[{id:"db-creator",status:"active",starts_at:"2026-11-01T00:00:00Z",ends_at:"2026-11-30T00:00:00Z",category_key:"sports",category_exclusive:true}]
+ });
+ assert.deepEqual(result.platformCampaigns.map(x=>x.id),["db-live"]);
+});
