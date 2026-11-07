@@ -86,7 +86,7 @@ async function makeThumbnail(mediaType, mimeType, sourcePath, workDir) {
   return null;
 }
 
-async function storeThumbnail(ownerId, mediaId, thumbnailPath) {
+async function storeThumbnail(ownerId, mediaId, leaseToken, thumbnailPath) {
   const file = await readFile(thumbnailPath);
   if (!file.byteLength || file.byteLength > MAX_THUMBNAIL_BYTES) {
     throw new Error("Generated thumbnail exceeded the 5 MiB safety limit.");
@@ -96,11 +96,11 @@ async function storeThumbnail(ownerId, mediaId, thumbnailPath) {
     { p_owner_id: ownerId, p_bucket: PRIVATE_BUCKET, p_bytes: file.byteLength },
   );
   if (reserveError) throw reserveError;
-  const objectPath = `${ownerId}/thumbnails/${mediaId}.webp`;
+  const objectPath = `${ownerId}/thumbnails/${mediaId}-${leaseToken}.webp`;
   const { error: uploadError } = await supabase.storage.from(PRIVATE_BUCKET).upload(objectPath, file, {
     contentType: "image/webp",
     cacheControl: "3600",
-    upsert: true,
+    upsert: false,
     metadata: { ownerId, purpose: "raye2-thumbnail", mediaId },
   });
   if (uploadError) {
@@ -154,7 +154,7 @@ async function processJob(job) {
     let thumbnailResult = null;
     if (thumbnail) {
       try {
-        thumbnailResult = await storeThumbnail(job.owner_id, job.media_id, thumbnail.outputPath);
+        thumbnailResult = await storeThumbnail(job.owner_id, job.media_id, job.lease_token, thumbnail.outputPath);
         extracted.thumbnailKind = thumbnail.thumbnailKind;
         if (thumbnail.dimensions) extracted.imageDimensions = thumbnail.dimensions;
       } catch (error) {
@@ -198,6 +198,14 @@ async function handleOne() {
     });
     if (completeError) throw completeError;
     if (completed !== true) throw new Error("Processing lease expired before completion; a later worker may retry.");
+    if (job.previous_thumbnail_path && job.previous_thumbnail_path !== result.thumbnailPath) {
+      const [oldBucket, ...oldParts] = job.previous_thumbnail_path.split("/");
+      const oldObject = oldParts.join("/");
+      if (oldBucket === PRIVATE_BUCKET && oldObject.startsWith(job.owner_id + "/thumbnails/")) {
+        const { error: oldDeleteError } = await supabase.storage.from(PRIVATE_BUCKET).remove([oldObject]);
+        if (oldDeleteError) console.warn("[raye2-worker] previous thumbnail needs orphan cleanup", oldDeleteError.message);
+      }
+    }
     console.info(`[raye2-worker] ready ${job.media_id}`);
   } catch (error) {
     const message = error instanceof Error ? error.message.slice(0, 1000) : "Unknown processing failure.";
