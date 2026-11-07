@@ -91,3 +91,9 @@ test("creator library accepts safe nested thumbnail object paths and refreshes a
  assert.ok(library.includes("path.split(\"/\").every(segment"));
  assert.ok(library.includes("window.setInterval"));
 });
+
+test("creator library handles public media previews and removes private thumbnails on asset deletion",()=>{
+ assert.ok(library.includes('item.is_published && item.thumbnail_path?.startsWith("creator-media-private/")'));
+ assert.ok(library.includes('userData.user.id+"/thumbnails/"'));
+ assert.ok(library.includes("thumbnailCleanupError"));
+});
