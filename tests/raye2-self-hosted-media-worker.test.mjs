@@ -44,7 +44,7 @@ test("storage trigger accepts worker writes only with owner-bound reservation me
 
 test("worker extracts image, video and audio metadata and creates WebP thumbnails",()=>{
  assert.ok(worker.includes("sharp(sourcePath"));
- assert.ok(worker.includes("probeMedia(sourcePath)"));
+ assert.ok(worker.includes("probeMedia(sourcePath, job.media_type)"));
  assert.ok(worker.includes('"ffprobe"'));
  assert.ok(worker.includes('"ffmpeg"'));
  assert.ok(worker.includes(".webp"));
