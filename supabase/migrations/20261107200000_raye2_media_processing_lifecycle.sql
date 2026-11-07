@@ -29,7 +29,12 @@ begin
   new.provider:=coalesce(new.provider,'supabase');
   new.playback_kind:=coalesce(new.playback_kind,'file');
   -- A newly attached or replaced storage object is uploaded, never assumed ready.
-  if tg_op='INSERT' or new.storage_path is distinct from old.storage_path then
+  if tg_op='INSERT' then
+   new.processing_status:='uploaded';
+   new.processing_attempts:=0;
+   new.processing_error:=null;
+   new.processing_completed_at:=null;
+  elsif new.storage_path is distinct from old.storage_path then
    new.processing_status:='uploaded';
    new.processing_attempts:=0;
    new.processing_error:=null;
