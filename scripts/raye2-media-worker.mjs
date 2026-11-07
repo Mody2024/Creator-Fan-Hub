@@ -42,7 +42,7 @@ function run(command, args, timeoutMs = 120000) {
   });
 }
 
-async function probeMedia(filePath) {
+async function probeMedia(filePath, expectedType) {
   const { stdout } = await run("ffprobe", [
     "-v", "error", "-show_entries",
     "format=duration,size,format_name:stream=codec_type,codec_name,width,height,channels,sample_rate",
@@ -50,10 +50,27 @@ async function probeMedia(filePath) {
   ], 30000);
   const parsed = JSON.parse(stdout);
   const duration = Number(parsed.format?.duration);
+  const streams = Array.isArray(parsed.streams) ? parsed.streams : [];
+  const expectedStream = streams.find(stream => stream.codec_type === expectedType);
+  if (!expectedStream) throw new Error(`Uploaded ${expectedType} file contains no ${expectedType} stream.`);
+  if (!Number.isFinite(duration) || duration <= 0 || duration > 21600) {
+    throw new Error("Media duration is missing, invalid, or exceeds the six-hour processing limit.");
+  }
+  if (expectedType === "video") {
+    const width = Number(expectedStream.width);
+    const height = Number(expectedStream.height);
+    if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1 || width > 7680 || height > 4320) {
+      throw new Error("Video dimensions are invalid or exceed the supported 8K processing ceiling.");
+    }
+  }
+  if (expectedType === "audio") {
+    const channels = Number(expectedStream.channels ?? 0);
+    if (channels < 1 || channels > 8) throw new Error("Audio channel layout is invalid or exceeds the eight-channel processing ceiling.");
+  }
   return {
     container: String(parsed.format?.format_name ?? "").slice(0, 120),
     durationSeconds: Number.isFinite(duration) ? Math.round(duration * 100) / 100 : null,
-    streams: (parsed.streams ?? []).slice(0, 12).map(stream => ({
+    streams: streams.slice(0, 12).map(stream => ({
       type: String(stream.codec_type ?? "").slice(0, 20),
       codec: String(stream.codec_name ?? "").slice(0, 40),
       ...(Number.isFinite(Number(stream.width)) ? { width: Number(stream.width) } : {}),
@@ -64,7 +81,7 @@ async function probeMedia(filePath) {
   };
 }
 
-async function makeThumbnail(mediaType, mimeType, sourcePath, workDir) {
+async function makeThumbnail(mediaType, mimeType, sourcePath, workDir, durationSeconds = null) {
   const outputPath = join(workDir, "thumbnail.webp");
   if (mediaType === "image" || mediaType === "sprite") {
     const imageMeta = await sharp(sourcePath, { limitInputPixels: 40000000 }).metadata();
@@ -77,7 +94,7 @@ async function makeThumbnail(mediaType, mimeType, sourcePath, workDir) {
   }
   if (mediaType === "video") {
     await run("ffmpeg", [
-      "-hide_banner", "-loglevel", "error", "-ss", "1",
+      "-hide_banner", "-loglevel", "error", "-ss", String(Number.isFinite(durationSeconds) ? Math.min(30, Math.max(0.5, durationSeconds * 0.1)) : 1),
       "-i", sourcePath, "-frames:v", "1", "-vf", "scale=640:360:force_original_aspect_ratio=decrease",
       "-c:v", "libwebp", "-quality", "78", "-y", outputPath,
     ], 90000);
@@ -137,9 +154,9 @@ async function processJob(job) {
         imageFormat: info.format ?? null,
         hasAlpha: info.hasAlpha ?? false,
       };
-      thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir);
+      thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir, extracted.durationSeconds);
     } else if (job.media_type === "video" || job.media_type === "audio") {
-      extracted = await probeMedia(sourcePath);
+      extracted = await probeMedia(sourcePath, job.media_type);
       if (job.media_type === "video") {
         try {
           thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir);
