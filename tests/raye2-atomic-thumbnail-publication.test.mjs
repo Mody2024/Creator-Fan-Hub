@@ -15,7 +15,7 @@ test("atomic publication wrapper rolls back invalid thumbnail pointer updates", 
   assert.match(migration, /public\.save_creator_media\(/);
   assert.match(migration, /if not coalesce\(v_result\.saved,false\) then/);
   assert.match(migration, /auth\.uid\(\)/);
-  assert.match(migration, /v_media\.owner_id=v_user/);
+  assert.match(migration, /where m\.id=v_result\.media_id and m\.owner_id=v_user/);
   assert.match(migration, /v_media\.is_published/);
   assert.match(migration, /storage\.objects/);
   assert.match(migration, /update public\.media_items set thumbnail_path=p_thumbnail_path/);
