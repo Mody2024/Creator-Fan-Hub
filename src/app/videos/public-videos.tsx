@@ -33,7 +33,7 @@ export default async function PublicVideos() {
   if (!supabase) return null;
 
   const { data, error } = await supabase.from("video_catalog")
-    .select("media_id,slug,description,category,tags,featured,published_at,media_items!inner(id,title,storage_path,source_url,alt_text,is_published,media_type,provider,playback_kind,processing_status)")
+    .select("media_id,slug,description,category,tags,featured,published_at,media_items!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,provider,playback_kind,processing_status)")
     .not("published_at", "is", null)
     .eq("media_items.is_published", true)
     .in("media_items.media_type", ["video", "youtube"])
@@ -51,6 +51,7 @@ export default async function PublicVideos() {
     const isYoutube = media.provider === "youtube" || media.media_type === "youtube" || media.playback_kind === "youtube_embed";
     let url = "";
     let embedUrl: string | null = null;
+    let poster: string | null = null;
 
     if (isYoutube) {
       embedUrl = youtubeEmbedUrl(media.source_url);
@@ -60,6 +61,17 @@ export default async function PublicVideos() {
       const parts = media.storage_path.split("/");
       if (parts.length < 2 || !parts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) return [];
       url = supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+      if (media.thumbnail_path?.startsWith("creator-media-public/")) {
+        const thumbnailParts = media.thumbnail_path.split("/");
+        if (thumbnailParts.length >= 2 && thumbnailParts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) {
+          const candidate = supabase.storage.from(thumbnailParts[0]).getPublicUrl(thumbnailParts.slice(1).join("/")).data.publicUrl;
+          try {
+            const parsedVideoUrl = new URL(url);
+            const parsedPosterUrl = new URL(candidate);
+            if (parsedVideoUrl.protocol === "https:" && parsedPosterUrl.protocol === "https:" && parsedPosterUrl.origin === parsedVideoUrl.origin) poster = parsedPosterUrl.toString();
+          } catch { /* unavailable thumbnail falls back to the browser's player poster */ }
+        }
+      }
     }
 
     return [{
@@ -71,6 +83,7 @@ export default async function PublicVideos() {
       featured: item.featured,
       url,
       embedUrl,
+      poster,
     }];
   });
 
@@ -83,7 +96,7 @@ export default async function PublicVideos() {
     </div>
     <div className="public-video-grid">{videos.map((video, index) => <article className="public-video-card" key={video.id}>
       <div className="public-video-frame">
-        <PublicVideoPlayer src={video.url} youtubeEmbedUrl={video.embedUrl} title={video.title} description={video.description} locale={isArabic?"ar":"en"} />
+        <PublicVideoPlayer src={video.url} poster={video.poster} youtubeEmbedUrl={video.embedUrl} title={video.title} description={video.description} locale={isArabic?"ar":"en"} />
         <span className="public-video-index">{video.featured ? copy.featured : String(index + 1).padStart(2, "0")}</span>
       </div>
       <div className="public-video-meta">
