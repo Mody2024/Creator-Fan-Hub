@@ -9,7 +9,7 @@ const packageJson=JSON.parse(await readFile(new URL("../package.json",import.met
 const lifecycle=await readFile(new URL("../supabase/migrations/20261107200000_raye2_media_processing_lifecycle.sql",import.meta.url),"utf8");
 const library=await readFile(new URL("../src/app/creator/media-library.tsx",import.meta.url),"utf8");
 const publishGate=await readFile(new URL("../supabase/migrations/20261107220000_raye2_processing_gated_media_publication.sql",import.meta.url),"utf8");
-const lifecycle=await readFile(new URL("../supabase/migrations/20261107200000_raye2_media_processing_lifecycle.sql",import.meta.url),"utf8");
+
 
 test("only trusted service role can claim and complete processing jobs",()=>{
  assert.ok(queue.includes("auth.role() is distinct from 'service_role'"));
