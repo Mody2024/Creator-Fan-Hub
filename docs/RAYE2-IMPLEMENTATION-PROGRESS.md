@@ -184,3 +184,27 @@ The proposed external-network split is 70% Raye2 / 30% eligible creator or strea
 
 **Implementation status on 2026-11-06:** specification captured; no monetization database schema, provider integration, campaign UI or revenue ledger is claimed implemented yet. The previous 2026-11-05 ~37% full-platform estimate remains a historical baseline and does not include this newly confirmed scope. Recalculate the overall estimate after the monetization work is decomposed into testable implementation tasks.
 
+
+
+## 2026-11-07 — Repository and Supabase environment re-audit
+
+- Confirmed active GitHub repository: `Mody2024/Creator-Fan-Hub`; linked GitHub permission is Admin/Push.
+- Confirmed Git branches `development` and `main`. All current work remains on `development`; no merge or production deployment was performed.
+- Re-read both complete Raye2 plans, the implementation progress file and beta backlog. The owner-agreed monetization ecosystem is now recorded as a mandatory pre-beta blocker in the master plan and backlog.
+- Rechecked the linked Supabase project `Creator-Fan-Hub` (`scxkgybuodhuohcxpfat`): project status is `ACTIVE_HEALTHY`; there are currently **no Supabase development branches**.
+- Queried the live Supabase migration history. It currently ends at `20261102215604_nhen_scope_storage_quota_to_managed_buckets`. The repository contains additional Raye2 migrations dated 2026-11-03 and 2026-11-04 (community/chat foundations, invites/memories, read receipts, notifications, safety, search/pins, voice sessions/preferences/group SFU/moderation and Watch Together) which are **not present in the live migration history** returned by Supabase.
+- Therefore the Raye2 chat/voice/watch database layer cannot be marked runtime-applied or operationally verified yet. Do not claim those repository migrations are live. Before applying them, review the full ordered migration chain and execute on an isolated Supabase development database; the connected project currently has no Supabase development branch.
+- GitHub compare reports `development` and `main` have diverged (development 1,015 commits ahead and 12 behind in the compare response). Do not merge or rebase as part of routine wave work; keep the production branch untouched and perform a dedicated history/release review before any eventual merge.
+- No live Supabase schema, data, secrets, project settings or production deployment were changed in this audit.
+
+### Next implementation order (updated)
+
+1. **Wave 4 — Creator Studio/media publishing:** complete the real server-authoritative upload → draft → processing → publish lifecycle, creator/streamer role and quota enforcement, creator-owned sponsor setup per video/stream, and actual live-provider integration. Do not expose sponsor controls until their persistence and permission checks exist.
+2. **Wave 1/3 — Finish the product-wide redesign and connected media journey:** extend the shared Raye2 design system beyond the existing home/search/profile/chat surfaces; finish the actual player, media details and responsive creator surfaces.
+3. **Wave 5 — Complete communities and social graph:** profiles/follows, community posts/polls/events/collections, custom reactions and cross-surface consistency.
+4. **Wave 6/7 — Operationalize chat/voice/watch:** apply and verify the pending migration chain on an isolated database, then finish attachments, delivery, provider deployment, reconnection, consent-gated recording pipeline and Watch Together acceptance.
+5. **Wave 8 — Complete Admin campaign and rules control:** platform-wide sponsor campaign manager, conflict/exclusivity rules, revenue ledgers, unified quotas/feature flags, operational dashboards and cleanup worker.
+6. **Wave 9 — Monetization and release hardening:** approved ad-provider integration, net-revenue accounting, fraud/eligibility controls, security/runtime/load/accessibility tests, friend-test preview acceptance.
+
+Progress percentages above remain the last recorded 2026-11-05 historical baseline until a fresh route/schema/test audit supports revised values. The newly confirmed monetization scope has not been credited as implemented.
+
