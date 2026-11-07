@@ -318,10 +318,10 @@ export default function MediaLibrary() {
         }
       }
 
-      const {data:saved,error:saveError}=await supabase.rpc("save_creator_media",{
+      const {data:saved,error:saveError}=await supabase.rpc("save_creator_media_with_thumbnail",{
         p_media_id:item.media_id,p_title:item.title,p_media_type:item.media_type,p_source_url:item.source_url,
         p_storage_path:nextBucket+"/"+nextPath,p_alt_text:item.alt_text,p_metadata:item.metadata ?? {},
-        p_is_published:!item.is_published
+        p_is_published:!item.is_published,p_thumbnail_path:nextThumbnailPath
       });
       if(saveError || !saved?.[0]?.saved) {
         const {error:cleanupError}=await supabase.storage.from(nextBucket).remove([nextPath]);
@@ -351,18 +351,10 @@ export default function MediaLibrary() {
         throw saveError ?? new Error("Publication status was not saved. The temporary copy was removed.");
       }
       let thumbnailNotice="";
-      if(nextThumbnailPath) {
-        const {data:thumbnailSaved,error:thumbnailSaveError}=await supabase.rpc("set_creator_media_thumbnail_path",{
-          p_media_id:item.media_id,p_thumbnail_path:nextThumbnailPath
-        });
-        if(thumbnailSaveError || thumbnailSaved!==true) {
-          await supabase.storage.from(nextBucket).remove([nextThumbnailPath.slice(nextBucket.length+1)]);
-          thumbnailNotice=" The media changed visibility, but its thumbnail pointer could not be updated; refresh and retry thumbnail repair.";
-        } else if(previousThumbnailPath) {
-          const [previousBucket,...previousParts]=previousThumbnailPath.split("/");
-          const {error:previousThumbnailCleanupError}=await supabase.storage.from(previousBucket).remove([previousParts.join("/")]);
-          if(previousThumbnailCleanupError) thumbnailNotice=" The old thumbnail copy needs storage cleanup.";
-        }
+      if(nextThumbnailPath && previousThumbnailPath) {
+        const [previousBucket,...previousParts]=previousThumbnailPath.split("/");
+        const {error:previousThumbnailCleanupError}=await supabase.storage.from(previousBucket).remove([previousParts.join("/")]);
+        if(previousThumbnailCleanupError) thumbnailNotice=" The old thumbnail copy needs storage cleanup.";
       }
       if (!item.is_published) {
         const {error:cleanupError}=await supabase.storage.from(bucket).remove([oldPath]);
