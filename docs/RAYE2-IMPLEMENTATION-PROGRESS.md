@@ -463,3 +463,5 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - [ ] Validate actual FFmpeg/FFprobe execution and object cleanup with representative test media before calling the worker production-ready.
 
 **Verification note:** Runtime hardening is committed to `development`; no live Supabase migration was applied and no production deployment was triggered.
+
+- [x] Extended server-side validation to decoded image formats and dimensions, enforcing a 40-megapixel limit before thumbnail generation.

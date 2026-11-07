@@ -185,12 +185,22 @@ async function processJob(job) {
     let thumbnailSkippedReason = null;
 
     if (job.media_type === "image" || job.media_type === "sprite") {
-      const info = await sharp(sourcePath, { limitInputPixels: 40000000 }).metadata();
+      const info = await sharp(sourcePath, { limitInputPixels: 40000000, failOn: "error" }).metadata();
+      const width = Number(info.width ?? 0);
+      const height = Number(info.height ?? 0);
+      const supportedFormats = new Set(["jpeg", "png", "webp", "gif", "avif", "tiff"]);
+      if (!supportedFormats.has(String(info.format ?? ""))) {
+        throw new Error("Image format is not supported by the secure media processor.");
+      }
+      if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width < 1 || height < 1 || width > 8192 || height > 8192 || width * height > 40000000) {
+        throw new Error("Image dimensions are invalid or exceed the 40-megapixel processing limit.");
+      }
       extracted = {
-        width: info.width ?? null,
-        height: info.height ?? null,
-        imageFormat: info.format ?? null,
+        width,
+        height,
+        imageFormat: info.format,
         hasAlpha: info.hasAlpha ?? false,
+        ...(info.pages && info.pages > 1 ? { animationFrames: Math.min(info.pages, 500) } : {}),
       };
       thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir, extracted.durationSeconds);
     } else if (job.media_type === "video" || job.media_type === "audio") {

@@ -127,3 +127,10 @@ test("worker drains its current job on shutdown and backs off repeated queue fai
  assert.ok(worker.includes("Math.min(POLL_MS * (2 ** consecutiveQueueErrors), 60000)"));
  assert.ok(worker.includes("stopped cleanly"));
 });
+
+test("worker validates decoded image formats and enforces image dimension and pixel ceilings",()=>{
+ assert.ok(worker.includes('new Set(["jpeg", "png", "webp", "gif", "avif", "tiff"])'));
+ assert.ok(worker.includes("width > 8192 || height > 8192"));
+ assert.ok(worker.includes("width * height > 40000000"));
+ assert.ok(worker.includes('failOn: "error"'));
+});
