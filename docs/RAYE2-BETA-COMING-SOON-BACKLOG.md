@@ -43,3 +43,18 @@ For each new idea, record:
 ## Release rule
 
 A roadmap card is not an implemented feature. Hide disabled features or label them clearly as **Coming soon**; never present placeholders as working controls. Keep the private beta focused on stable core journeys and test one experimental lane at a time.
+
+
+## Mandatory private-beta blocker — Smart Sponsorship & Monetization
+
+The following work is **required before the one-month friends test**, not a post-launch idea:
+- Creator/streamer-owned sponsor campaigns configured in each video upload and stream setup.
+- Separate Admin/Owner management of Raye2 platform-wide sponsor campaigns.
+- Smart Advertising Director for safe video breakpoints and live-stream natural breaks, with campaign conflict/exclusivity/frequency rules.
+- Optional five-second post-ad context replay, configurable and provider-capability-aware.
+- Separate accounting for creator-contracted sponsors, Raye2 platform sponsorships and external ad-network revenue.
+- Proposed 70/30 Raye2/eligible creator split on net recognized/received attributable external ad revenue, only where provider terms approve it.
+- Creator revenue reporting, estimates/finalization/adjustments, fraud controls, provider approval, age-appropriate eligibility and payout/legal safeguards.
+
+Internal test campaigns and simulated ad-provider responses must pass before friend testing. Do not show fake earnings or claim provider approval, guaranteed ad demand or guaranteed payouts.
+
