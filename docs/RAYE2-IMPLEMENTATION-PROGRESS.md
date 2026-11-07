@@ -292,3 +292,19 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Added contract assertions for the Watch route, timestamp deep link and inspection link.
 - Previous corrected preview deployment for commit `c9c528d` is confirmed **READY**. Latest inspection-link batch commit `7152d25` has a new development preview queued/pending; its build result is not yet known.
 - No Supabase migration applied, no production deployment, no main-branch change, and no paid services.
+
+
+### 2026-11-07 — Creator sponsorship analytics batch
+
+- Added migration `20261107170000_raye2_creator_sponsorship_analytics.sql` with a creator-scoped aggregate reporting RPC. It requires the authenticated assigned publisher role, optionally scopes to one creator-owned media item, and only aggregates that creator's campaign-linked events and external-network ledger rows.
+- The RPC explicitly excludes platform-wide campaigns and viewer identity data. Creator-contracted sponsor deals are reported as delivery activity only; they are not represented as creator payout attribution.
+- Added Creator Studio sponsorship analytics showing campaign totals, delivery-event counts, event types/providers, and external-network revenue grouped by currency/status/provider.
+- Received creator share is separated from estimated/provider-reported unconfirmed amounts. No earnings are invented; absent ledger rows are shown as no records. Delivery counts are events, not unique viewers.
+- Connected the panel to each creator video sponsorship workspace and added static contract tests for role/ownership scope, platform campaign exclusion, financial state separation and honest dashboard labels.
+- Migration remains unapplied; no provider integration or actual ad delivery exists. The new development preview for commit `99c6c63` is queued/pending and no GitHub workflow run is reported yet. Do not mark this batch build-passing until Vercel reports READY.
+- No production deployment, main-branch changes, paid services or spending.
+
+### Progress note
+- Overall implementation estimate remains **approximately 38%** pending a full source audit.
+- Wave 4 remains **approximately 12%**; this analytics layer is a new code foundation but does not complete upload/processing/publishing, provider delivery, live integration or operational verification.
+- Friend testing remains blocked. Sponsorship migrations and the wider pending migration chain must be validated in a free isolated database before any production application.
