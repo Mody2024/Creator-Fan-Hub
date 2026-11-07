@@ -53,7 +53,7 @@ test("worker extracts image, video and audio metadata and creates WebP thumbnail
 
 test("thumbnail writes are owner-scoped, quota-reserved, and replace only after a successful commit",()=>{
  assert.ok(worker.includes("reserve_raye2_worker_thumbnail_capacity"));
- assert.ok(worker.includes("metadata: { ownerId, purpose: 'raye2-thumbnail', mediaId }"));
+ assert.ok(worker.includes('metadata: { ownerId, purpose: "raye2-thumbnail", mediaId }'));
  assert.ok(worker.includes("upsert: false"));
  assert.ok(worker.includes("previous_thumbnail_path"));
  assert.ok(worker.includes("complete_raye2_media_processing_job"));
@@ -68,7 +68,7 @@ test("worker runs locally through the package script and does not require a host
 
 test("processing status exposes thumbnail path and creator library renders it",()=>{
  assert.ok(lifecycle.includes("checksum_sha256 text,thumbnail_path text"));
- assert.ok(library.includes("thumbnail_path?:string|null"));
+ assert.ok(library.includes("thumbnail_path?: string | null"));
  assert.ok(library.includes("const previewPath=item.is_published && item.thumbnail_path?.startsWith"));
 });
 test("worker accepts both legacy JWT and current server-only Supabase secret keys",()=>{
