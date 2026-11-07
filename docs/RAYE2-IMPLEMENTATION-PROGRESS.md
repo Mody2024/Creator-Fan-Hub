@@ -378,3 +378,22 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Overall Raye2 remains approximately **39%** of the full platform pending a comprehensive source audit and end-to-end test execution.
 - Wave 4 (Creator Studio / media publishing / live) is provisionally **19%**. A real self-hosted metadata/thumbnail worker and secure job queue now exist in code, but setup/run, migration validation, media finalization, actual transcoding/adaptive delivery, live ingest, and end-to-end acceptance remain outstanding.
 - Friend testing remains blocked.
+
+
+### 2026-11-07 — Publication readiness gate and media-library hardening
+
+- Added `20261107220000_raye2_processing_gated_media_publication.sql`: creator media saves are owner-scoped, native uploads must begin as private drafts, and native media cannot be published until the server-side processing state is `ready`. YouTube remains explicitly external and is not falsely treated as a native upload.
+- Tightened source URL and storage-path validation in the publishing RPC; the RPC now rejects missing YouTube URLs, mismatched native source URLs, paths owned by another creator, and bucket/publication mismatches.
+- Creator UI now blocks publication before processing completes and polls the owner-scoped processing status while jobs remain uploaded, processing, or failed.
+- Processing state is preserved when the same verified asset is moved between its private/public bucket as a visibility change, instead of needlessly re-queuing an identical file.
+- Fixed creator preview path validation so nested thumbnail paths such as `<owner>/thumbnails/<asset>-<lease>.webp` are accepted safely. Public assets fall back to their public source object if an older thumbnail is still private.
+- Added private thumbnail cleanup when a private media asset is deleted. Updated static contract tests for publication gating, visibility transitions, nested thumbnails, and cleanup. Removed a duplicate test fixture declaration and aligned the preview assertion with the actual fallback behavior.
+- Repaired the worker storage-reservation migration after detecting a malformed SQL block during direct source inspection. The current file was re-fetched and checked for a complete dollar-quoted function, valid owner-folder extraction, byte-exact unexpired reservation consumption, and grants. This remains source inspection, not PostgreSQL execution.
+- Final GitHub status for commit `8eceacb1` still reports Vercel build-rate-limit failure. No preview deployment was created for the latest commit. The free Vercel build limit must reset; no upgrade will be purchased.
+- No GitHub Actions workflow run was returned for this commit by the available commit-run lookup. Static tests have not been executed in a working checkout; no SQL migration was applied; worker has not run against Supabase.
+- No production deployment, no main-branch changes, and no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **39%** of the full platform pending a broad repository audit and executable validation.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **22%**. The self-hosted metadata/thumbnail worker, leased processing queue, owner-bound storage reservations, creator preview integration, and server-authoritative publication gate are now present in source. Actual PostgreSQL migration execution, worker runtime, video transcoding/adaptive delivery, native player integration, live ingest, creator sponsor workflows, and end-to-end acceptance remain outstanding.
+- Friend testing remains blocked. These source-level changes are not a beta-ready claim.
