@@ -90,7 +90,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    <label>Contract category key<input value={category} onChange={event=>setCategory(event.target.value)} maxLength={40} placeholder="e.g. games"/></label>
    <label className="nhen-video-check"><input type="checkbox" checked={exclusive} onChange={event=>setExclusive(event.target.checked)}/> This sponsor has category exclusivity for this video</label>
    <label>Maximum planned exposures per viewer<select value={frequency} onChange={event=>setFrequency(event.target.value)}>{[1,2,3,4,5].map(value=><option key={value} value={value}>{value}</option>)}</select></label>
-   <label className="nhen-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor's name, logo and video creative.</label>
+   <label className="nhen-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor&apos;s name, logo and video creative.</label>
    <button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":"Save sponsor campaign draft"}</button>
   </div>
   <div className="nhen-playlist-list">
