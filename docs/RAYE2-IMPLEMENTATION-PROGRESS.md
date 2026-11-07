@@ -421,3 +421,20 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Added a regression test for the public catalog path validator.
 - New GitHub Actions run is in progress for the combined fixes. TypeScript, lint and Next.js build are not yet confirmed on this latest source.
 - No Vercel deployment, no paid service, no database migration applied, no production change, and no changes to `main`.
+
+
+### 2026-11-07 — Native creator thumbnails connected to public playback
+
+- Connected the existing self-hosted media worker's generated WebP thumbnail output to the native public watch player and homepage video cards.
+- The watch route selects `thumbnail_path`, accepts only creator public-bucket thumbnail objects with safe path segments, and requires the thumbnail URL to be HTTPS and same-origin with the configured Supabase video URL.
+- The homepage catalog applies the same public-bucket, safe-segment, HTTPS and same-origin rules before passing a poster URL to the native player.
+- Extended the shared public video player with an optional poster attribute. YouTube embeds remain unchanged and are not treated as Raye2-hosted inventory.
+- Added regression coverage for watch-player poster wiring and homepage card poster validation.
+- Current GitHub Actions run is still installing dependencies; automated tests, TypeScript, lint and Next.js build have not yet run on the combined commit.
+- Prior CI baseline: 288/289 tests passed; the one failure was a stale assertion that did not include the explicit TypeScript annotation. That assertion has been updated, but this combined commit is not yet verified.
+- Adaptive HLS/DASH transcoding is **not implemented**. The current worker probes media and generates thumbnails; native playback still relies on source-file delivery. Do not represent this as adaptive streaming.
+- No paid services, no database migrations applied, no production deployment, and no changes to `main`.
+
+### Progress estimate
+- Overall Raye2 remains approximately **39%**, provisional.
+- Wave 4 remains approximately **22%**, provisional; thumbnail display closes a small end-to-end presentation gap but does not complete transcoding, live ingest, sponsor delivery, applied migrations or end-to-end acceptance.
