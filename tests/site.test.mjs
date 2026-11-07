@@ -322,7 +322,8 @@ test("security-definer migration functions pin search_path and explicitly manage
       functionCount += 1;
       assert.match(statement, /set\s+search_path\s*=\s*\x27\x27/i, name + ": " + functionName + " must pin empty search_path");
       assert.ok(lower.includes("revoke all on function " + functionName.toLowerCase()), name + ": " + functionName + " must revoke default grants");
-      const triggerOnly = lower.includes("execute function " + functionName.toLowerCase() + "(");\n      assert.ok(triggerOnly || lower.includes("grant execute on function " + functionName.toLowerCase()), name + ": " + functionName + " must grant execution explicitly unless it is trigger-only");
+      const triggerOnly = lower.includes("execute function " + functionName.toLowerCase() + "(");
+      assert.ok(triggerOnly || lower.includes("grant execute on function " + functionName.toLowerCase()), name + ": " + functionName + " must grant execution explicitly unless it is trigger-only");
       cursor += "security definer".length;
     }
   }
