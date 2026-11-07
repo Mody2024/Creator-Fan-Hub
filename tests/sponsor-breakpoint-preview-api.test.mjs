@@ -32,5 +32,8 @@ test("creator studio exposes the preview control for each owned campaign",()=>{
  assert.ok(ui.includes("/api/creator/sponsorship/preview"));
  assert.ok(ui.includes("Preview reviewed breakpoints"));
  assert.ok(ui.includes("No advertisement was loaded or played."));
+ assert.ok(ui.includes("Creator review markers"));
+ assert.ok(ui.includes("Excluded by creator"));
+ assert.ok(ui.includes("Approved candidate"));
  assert.ok(studio.includes("<SponsorBreakpointPreview campaignId={row.id}/>"));
 });
