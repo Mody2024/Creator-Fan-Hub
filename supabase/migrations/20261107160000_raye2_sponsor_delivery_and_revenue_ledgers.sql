@@ -36,6 +36,7 @@ create table if not exists public.raye2_sponsor_revenue_ledger (
   provider_deductions numeric(14,2) not null default 0 check (provider_deductions>=0),
   refunds numeric(14,2) not null default 0 check (refunds>=0),
   invalid_traffic_adjustments numeric(14,2) not null default 0 check (invalid_traffic_adjustments>=0),
+  other_adjustments numeric(14,2) not null default 0 check (other_adjustments>=0),
   net_received numeric(14,2) not null default 0 check (net_received>=0),
   platform_share numeric(14,2) not null default 0 check (platform_share>=0),
   creator_share numeric(14,2) not null default 0 check (creator_share>=0),
@@ -43,8 +44,8 @@ create table if not exists public.raye2_sponsor_revenue_ledger (
   received_at timestamptz,
   created_at timestamptz not null default now(),
   unique(provider_key,provider_transaction_id),
-  check (provider_deductions+refunds+invalid_traffic_adjustments<=gross_amount),
-  check (net_received<=gross_amount),
+  check (provider_deductions+refunds+invalid_traffic_adjustments+other_adjustments<=gross_amount),
+  check (net_received=gross_amount-provider_deductions-refunds-invalid_traffic_adjustments-other_adjustments),
   check (
     (source_type='external_network' and
       platform_share=round(net_received*0.70,2) and creator_share=round(net_received*0.30,2))
@@ -67,9 +68,9 @@ returns trigger language plpgsql set search_path=''
 as $$
 declare v_expected numeric(14,2);
 begin
- if new.net_received > new.gross_amount
-    or new.provider_deductions+new.refunds+new.invalid_traffic_adjustments>new.gross_amount then
-   raise exception 'revenue adjustments exceed gross amount' using errcode='22023';
+ if new.net_received<>new.gross_amount-new.provider_deductions-new.refunds-new.invalid_traffic_adjustments-new.other_adjustments
+    or new.provider_deductions+new.refunds+new.invalid_traffic_adjustments+new.other_adjustments>new.gross_amount then
+   raise exception 'net received must equal gross less all recorded adjustments' using errcode='22023';
  end if;
  v_expected:=round(new.net_received*0.70,2);
  if new.source_type='external_network' then
