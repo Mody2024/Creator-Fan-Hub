@@ -6,7 +6,7 @@ import SponsorBreakpointReview from "./sponsor-breakpoint-review";
 import SponsorCreativeVariants from "./sponsor-creative-variants";
 
 type SponsorAsset={media_id:string;title:string;media_type:string;is_published:boolean};
-type SponsorCampaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;starts_at:string|null;ends_at:string|null;max_per_viewer:number;status:string;sponsor_asset_media_id:string};
+type SponsorCampaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;starts_at:string|null;ends_at:string|null;max_per_viewer:number;status:string;sponsor_asset_media_id:string;category_key:string;category_exclusive:boolean};
 
 export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string;assets:SponsorAsset[]}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
@@ -18,6 +18,8 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  const [starts,setStarts]=useState("");
  const [ends,setEnds]=useState("");
  const [frequency,setFrequency]=useState("1");
+ const [category,setCategory]=useState("general");
+ const [exclusive,setExclusive]=useState(false);
  const [confirmed,setConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState("Creator-contracted sponsorship setup. Campaigns are saved as configuration; automatic ad delivery is not enabled yet.");
@@ -26,7 +28,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  const load=useCallback(async()=>{
   if(!supabase||!mediaId){setRows([]);return}
   const {data,error}=await supabase.from("raye2_creator_sponsor_campaigns")
-   .select("id,sponsor_name,disclosure_text,placement,starts_at,ends_at,max_per_viewer,status,sponsor_asset_media_id")
+   .select("id,sponsor_name,disclosure_text,placement,starts_at,ends_at,max_per_viewer,status,sponsor_asset_media_id,category_key,category_exclusive")
    .eq("media_id",mediaId).order("created_at",{ascending:false});
   if(error){setStatus("Sponsorship settings are not available yet. Apply the Raye2 creator sponsorship migration before using this section.");return}
   setRows((data??[]) as SponsorCampaign[]);
@@ -50,10 +52,10 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
     sponsor_name:sponsorName.trim(),disclosure_text:disclosure.trim(),placement,
     starts_at:starts?new Date(starts+"T00:00:00").toISOString():null,
     ends_at:ends?new Date(ends+"T23:59:59").toISOString():null,
-    max_per_viewer:Number(frequency),status:"draft",creator_confirmed_rights:true
+    max_per_viewer:Number(frequency),category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",category_exclusive:exclusive,status:"draft",creator_confirmed_rights:true
    });
    if(error)throw error;
-   setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setStarts("");setEnds("");setFrequency("1");setConfirmed(false);
+   setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setStarts("");setEnds("");setFrequency("1");setCategory("general");setExclusive(false);setConfirmed(false);
    setStatus("Sponsor campaign saved as a draft. It is not being inserted into playback yet.");
    await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Could not save sponsorship settings.")}
@@ -79,18 +81,20 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   <p className="nhen-muted">Add the sponsor you contracted with, choose its approved video creative and set placement preferences. Your sponsor settings stay separate from Raye2 platform campaigns.</p>
   <div className="poll-create-form">
    <label>Sponsor / brand name<input value={sponsorName} onChange={event=>setSponsorName(event.target.value)} maxLength={120} placeholder="Brand name"/></label>
-   <label>Published sponsor video<select value={creativeId} onChange={event=>setCreativeId(event.target.value)}><option value="">Choose a published sponsor creative…</option>{eligibleAssets.map(asset=><option key={asset.media_id} value={asset.media_id}>{asset.title}</option>)}</select></label>
+   <label>Published sponsor image or video<select value={creativeId} onChange={event=>setCreativeId(event.target.value)}><option value="">Choose a published sponsor image/video…</option>{eligibleAssets.map(asset=><option key={asset.media_id} value={asset.media_id}>{asset.title}</option>)}</select></label>
    <label>Disclosure shown to viewers<input value={disclosure} onChange={event=>setDisclosure(event.target.value)} maxLength={240} placeholder="Sponsored by …"/></label>
    <label>Preferred placement<select value={placement} onChange={event=>setPlacement(event.target.value)}><option value="intro">Before the video</option><option value="midroll">Natural mid-video break</option><option value="outro">After the video</option><option value="overlay">Overlay (where supported)</option></select></label>
    <label>Campaign starts<input type="date" value={starts} onChange={event=>setStarts(event.target.value)}/></label>
    <label>Campaign ends<input type="date" value={ends} onChange={event=>setEnds(event.target.value)}/></label>
+   <label>Contract category key<input value={category} onChange={event=>setCategory(event.target.value)} maxLength={40} placeholder="e.g. games"/></label>
+   <label className="nhen-video-check"><input type="checkbox" checked={exclusive} onChange={event=>setExclusive(event.target.checked)}/> This sponsor has category exclusivity for this video</label>
    <label>Maximum planned exposures per viewer<select value={frequency} onChange={event=>setFrequency(event.target.value)}>{[1,2,3,4,5].map(value=><option key={value} value={value}>{value}</option>)}</select></label>
    <label className="nhen-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor's name, logo and video creative.</label>
    <button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":"Save sponsor campaign draft"}</button>
   </div>
   <div className="nhen-playlist-list">
    {rows.map(row=><article className="nhen-playlist-row" key={row.id}>
-    <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · max {row.max_per_viewer} planned exposures</small></span>
+    <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small></span>
     <button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
