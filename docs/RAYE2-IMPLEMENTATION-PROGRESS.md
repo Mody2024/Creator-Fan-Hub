@@ -509,3 +509,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - **Preview/owner acceptance:** not confirmed for the current HEAD by this CI run.
 - **Friend-test readiness:** **blocked**. Sponsorship playback/delivery, real provider integrations, database migration validation, end-to-end media flow, remaining community/social features, voice/Watch Together runtime acceptance and full release/security review remain pre-beta work.
 - No changes to `main`, no production deployment, no paid infrastructure or spending.
+
+
+### 2026-11-07 — Creator media thumbnail visibility synchronization
+
+- Fixed a publication-flow gap: the media object moved between private/public buckets but its worker-generated thumbnail could remain in the old visibility bucket, causing missing posters or a stale public thumbnail.
+- The creator media library now validates the thumbnail's owner/media path, downloads it, reserves destination quota, copies it into the same visibility bucket as the media, and updates the database pointer through an owner-scoped RPC. The previous thumbnail is cleaned up after the pointer update; failed source publication cleans up the temporary thumbnail copy.
+- Added migration `20261107240000_raye2_creator_thumbnail_visibility_binding.sql`. It requires an active assigned publisher, verifies ownership, checks the bucket matches publication state, and confirms the exact object exists before changing the thumbnail pointer. The migration is committed to development only and remains unapplied to the live Supabase project.
+- Updated the native watch page/player loading mark to Raye2 branding; no change to playback provider behavior.
+- Added static regression contracts for ownership, visibility, quota reservation and cleanup. These are not substitutes for a live Storage/database exercise.
+- No main-branch change, production deployment, paid service or spend. Friend testing remains blocked pending isolated migration execution and full media runtime acceptance.
