@@ -64,7 +64,7 @@ execute function public.sync_nhen_creator_media_asset_metadata();
 create or replace function public.get_creator_media_processing_status(p_media_ids uuid[])
 returns table(media_id uuid,provider text,playback_kind text,processing_status text,
  processing_attempts integer,processing_error text,processing_updated_at timestamptz,
- processing_completed_at timestamptz,size_bytes bigint,mime_type text,checksum_sha256 text)
+ processing_completed_at timestamptz,size_bytes bigint,mime_type text,checksum_sha256 text,thumbnail_path text)
 language plpgsql stable security definer set search_path='' as $$
 begin
  if auth.uid() is null or not exists(
@@ -79,7 +79,7 @@ begin
  return query
  select m.id,m.provider,m.playback_kind,m.processing_status,m.processing_attempts,
   m.processing_error,m.processing_updated_at,m.processing_completed_at,
-  m.size_bytes,m.mime_type,m.checksum_sha256
+  m.size_bytes,m.mime_type,m.checksum_sha256,m.thumbnail_path
  from public.media_items m
  where m.owner_id=auth.uid() and m.id=any(coalesce(p_media_ids,'{}'::uuid[]))
  order by m.created_at desc;
