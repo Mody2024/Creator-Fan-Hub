@@ -343,3 +343,19 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Overall Raye2 remains approximately **38%** of the complete platform pending a full source audit.
 - Wave 4 (Creator Studio / media publishing / live) is provisionally **15%**. Resumable uploads now cover the media types actually offered in the UI and can be paused/resumed; processing/transcoding, robust finalization states, provider/live integration, and end-to-end runtime tests remain incomplete.
 - Friend testing remains blocked pending migration-chain validation and full workflow acceptance.
+
+
+### 2026-11-07 — Media processing lifecycle foundation
+
+- Added `20261107200000_raye2_media_processing_lifecycle.sql`: media processing attempt/error/timestamp fields, bounded retry counters and a creator-only processing-status RPC.
+- Replaced the prior metadata-sync trigger function so newly inserted or replaced native storage objects start at `uploaded`, not falsely at `ready`. YouTube embed sources remain explicitly `ready` because Raye2 does not process their video bytes.
+- The trigger has separate INSERT and UPDATE branches so INSERT never reads an unassigned OLD row. Existing rows retain their current state when only descriptive metadata changes.
+- Connected the Creator Media Library to the owner-scoped processing-status RPC and show the real status, MIME type, size and any recorded processing error. The library explicitly reports assets awaiting a worker instead of implying that uploaded files have completed processing.
+- Added `tests/raye2-media-processing-lifecycle.test.mjs` covering initial/replacement states, YouTube distinction, owner-scoped status access and UI labels. These static contract tests have not been executed in a working checkout in this batch.
+- Vercel development preview for commit `23a91b1` is now confirmed **READY**. This confirms the preview build, not runtime database acceptance or test execution.
+- No database migration was applied; no production deployment or main-branch change; no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **38%** pending a full source audit.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **16%**. Uploads now transition honestly into an explicit uploaded state, and the creator library can inspect server-recorded processing metadata. No FFmpeg/transcoding worker, thumbnail generation pipeline, media finalizer or live provider integration has been delivered yet.
+- Friend testing remains blocked pending free local migration-chain execution, runtime authorization/storage checks, and end-to-end processing/publishing acceptance.
