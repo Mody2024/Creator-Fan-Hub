@@ -208,3 +208,13 @@ The proposed external-network split is 70% Raye2 / 30% eligible creator or strea
 
 Progress percentages above remain the last recorded 2026-11-05 historical baseline until a fresh route/schema/test audit supports revised values. The newly confirmed monetization scope has not been credited as implemented.
 
+
+
+### 2026-11-07 — Wave 4 creator sponsorship foundation (development only)
+
+- Added `supabase/migrations/20261107120000_raye2_creator_video_sponsorships.sql`: creator-owned campaign records, strict authenticated creator RLS, owner-identity checks, published-video attachment validation, published creator-owned image/video creative validation, explicit rights confirmation, disclosure text, placement, scheduling fields, frequency cap and draft/active/paused/completed states.
+- Added `src/app/creator/creator-video-sponsorship.tsx` and connected it to the existing Video Studio for a selected published watch page. Creators can save their own sponsor setup and pause/activate campaign configuration. Multiple creatives can be represented as separate campaign entries.
+- Important limitation: this is **campaign configuration and persistence only**. It does not yet insert ads into playback, analyze scene breakpoints, serve live-stream ads, provide sponsor contracts, operate a platform-wide admin campaign director, or calculate/reconcile revenue. The UI explicitly states that playback delivery remains disabled. Do not count it as a completed advertising system or claim sponsor impressions/revenue.
+- Migration has been committed to `development` only. It has **not** been applied to Supabase; the live database and production environment were not changed. Until a free isolated database test and migration review are completed, the new UI will report that sponsorship settings are unavailable if the table is absent.
+- No paid services, paid branches, paid APIs, or deployment were used. No production/main changes.
+- Wave 4 remains in progress; no new overall or wave percentage is claimed from this narrow feature patch. The historical 2026-11-05 percentages remain historical, not a fresh audit.
