@@ -159,7 +159,7 @@ async function processJob(job) {
       extracted = await probeMedia(sourcePath, job.media_type);
       if (job.media_type === "video") {
         try {
-          thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir);
+          thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir, extracted.durationSeconds);
         } catch (error) {
           thumbnailSkippedReason = `Video thumbnail unavailable: ${error instanceof Error ? error.message.slice(0, 300) : "ffmpeg failed"}`;
         }
