@@ -21,3 +21,7 @@ test("external YouTube embeds remain isolated from native media storage and use 
  assert.ok(page.includes('media.media_type==="video"&&media.processing_status!=="ready"'));
  assert.ok(!page.includes('supabase.storage.from("youtube")'));
 });
+
+test("public native watch pages reject malformed or traversal-like storage object segments",()=>{
+ assert.ok(page.includes('parts.length<2||!parts.slice(1).every(part=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))'));
+});
