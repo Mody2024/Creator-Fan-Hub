@@ -11,6 +11,8 @@ test("creator sponsorship preview authenticates and validates campaign identifie
  assert.ok(route.includes("readBoundedJson(request, 4096)"));
  assert.ok(route.includes("maybeSingle()"));
  assert.ok(route.includes("Cache-Control"));
+ assert.ok(route.includes(".select(\"slug,duration_seconds,published_at\")"));
+ assert.ok(route.includes('watchUrl: "/watch/" + video.slug'));
 });
 
 test("preview loads only the creator's own campaign and approved media evidence",()=>{
@@ -35,5 +37,8 @@ test("creator studio exposes the preview control for each owned campaign",()=>{
  assert.ok(ui.includes("Creator review markers"));
  assert.ok(ui.includes("Excluded by creator"));
  assert.ok(ui.includes("Approved candidate"));
+ assert.ok(ui.includes("Inspect this moment"));
+ assert.ok(ui.includes('preview.watchUrl+"?t="+Math.floor(point.atSeconds)'));
+ assert.ok(ui.includes('target="_blank"'));
  assert.ok(studio.includes("<SponsorBreakpointPreview campaignId={row.id}/>"));
 });
