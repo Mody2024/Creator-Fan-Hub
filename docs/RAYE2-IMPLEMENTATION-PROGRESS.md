@@ -275,3 +275,6 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - The endpoint is private/no-store and explicitly returns `previewOnly: true` and `deliveryEnabled: false`. It does not fetch an ad, start playback, create an impression, select platform/external campaigns or infer scenes/dialogue. Automatic media analysis and real player insertion remain unimplemented.
 - Added static contract tests for authentication, ownership scoping, exclusion handling, no-store behavior, non-delivery guarantees and Creator Studio wiring. Tests/build still require execution in a working checkout and a passing preview check.
 - This connects campaign setup → creator breakpoint review → creative variants → deterministic preview as one workflow. Migrations are still unapplied; no production deployment, main-branch edit or paid service was used.
+
+
+- Build follow-up: inspected the failed preview for commit `d3c53d6`. Compilation succeeded; ESLint then failed on an unescaped apostrophe in the creator sponsorship consent label at `creator-video-sponsorship.tsx:93`. Corrected it to JSX-safe `&apos;` in commit `65bb73f`. The preview deployment for that fix is queued/pending at the time of this note; do not mark the build as passing until Vercel reports READY.
