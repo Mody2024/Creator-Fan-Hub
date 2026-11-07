@@ -169,3 +169,18 @@ Keep updating this file after each meaningful batch. Report implementation, auto
 - [x] Deduplicate tags and reject more than 12 tags or tags longer than 40 characters rather than silently truncating.
 - [x] Add regression coverage for client-side metadata validation.
 - [ ] Continue toward a server-authoritative unified upload/draft/processing/publish lifecycle; current browser-side validation is usability support, not a replacement for database constraints.
+
+
+## 2026-11-06 — Owner-confirmed monetization scope added as a pre-beta blocker
+
+The owner explicitly confirmed that the complete Smart Sponsorship, Advertising & Creator Monetization ecosystem must be implemented **before** the one-month friends-testing period. It is not a post-launch/Coming Soon feature.
+
+Required work is now specified in section 18 of the master plan and spans:
+- Wave 4: creator/streamer-owned sponsorship settings inside video upload and stream setup, placement review and creator reporting.
+- Wave 8: separate Admin/Owner management of Raye2 platform-wide campaigns, campaign conflict rules, audit and revenue reporting.
+- Wave 9: external ad-provider compliance, contextual placement, net-revenue attribution, fraud/invalid-traffic controls, age-appropriate eligibility and end-to-end release verification.
+
+The proposed external-network split is 70% Raye2 / 30% eligible creator or streamer from net revenue actually recognized and received by Raye2 for attributable inventory, subject to provider approval and contract terms. Creator-contracted sponsors, Raye2 platform sponsors and external network ads must remain separate in delivery and accounting. The optional five-second context replay is configurable and must fail safely when live-provider capabilities do not support it.
+
+**Implementation status on 2026-11-06:** specification captured; no monetization database schema, provider integration, campaign UI or revenue ledger is claimed implemented yet. The previous 2026-11-05 ~37% full-platform estimate remains a historical baseline and does not include this newly confirmed scope. Recalculate the overall estimate after the monetization work is decomposed into testable implementation tasks.
+
