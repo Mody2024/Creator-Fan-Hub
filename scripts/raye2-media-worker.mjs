@@ -17,7 +17,7 @@ const PUBLIC_BUCKET = "creator-media-public";
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   throw new Error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the worker environment.");
 }
-if (SERVICE_ROLE_KEY.startsWith("sb_publishable_") || SERVICE_ROLE_KEY.startsWith("eyJ") === false) {
+if (SERVICE_ROLE_KEY.startsWith("sb_publishable_") || (!SERVICE_ROLE_KEY.startsWith("eyJ") && !SERVICE_ROLE_KEY.startsWith("sb_secret_"))) {
   throw new Error("SUPABASE_SERVICE_ROLE_KEY must be the server-only service_role secret, never a publishable/anon key.");
 }
 
