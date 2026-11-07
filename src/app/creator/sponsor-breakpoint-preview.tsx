@@ -1,9 +1,10 @@
 "use client";
 
 import {useState} from "react";
+import Link from "next/link";
 
 type Preview={
- previewOnly:true;deliveryEnabled:false;durationSeconds:number;
+ previewOnly:true;deliveryEnabled:false;durationSeconds:number;watchUrl:string;
  campaign:{sponsorName:string;placement:string;status:string;categoryKey:string;categoryExclusive:boolean;maxPerViewer:number};
  reviewedBreakpoints:{at_seconds:number;decision:"approve"|"exclude";note:string}[];
  proposedBreakpoints:{atSeconds:number;resumeContextFromSeconds:number;source:string;score:number}[];
@@ -36,7 +37,7 @@ export default function SponsorBreakpointPreview({campaignId}:{campaignId:string
     <span><strong>{Math.floor(row.at_seconds/60)}:{String(row.at_seconds%60).padStart(2,"0")}</strong><small>{row.decision==="exclude"?"Excluded by creator":"Approved candidate"}{row.note?" · "+row.note:""}</small></span>
    </article>):<p className="nhen-muted">No timestamps have been reviewed yet.</p> }
    {preview.proposedBreakpoints.length?preview.proposedBreakpoints.map(point=><article className="nhen-playlist-row" key={point.atSeconds}>
-    <span><strong>{Math.floor(point.atSeconds/60)}:{String(point.atSeconds%60).padStart(2,"0")}</strong><small>Creator-approved candidate · score {point.score.toFixed(2)} · optional context starts at {Math.floor(point.resumeContextFromSeconds/60)}:{String(point.resumeContextFromSeconds%60).padStart(2,"0")}</small></span>
+    <span><strong>{Math.floor(point.atSeconds/60)}:{String(point.atSeconds%60).padStart(2,"0")}</strong><small>Creator-approved candidate · score {point.score.toFixed(2)} · optional context starts at {Math.floor(point.resumeContextFromSeconds/60)}:{String(point.resumeContextFromSeconds%60).padStart(2,"0")}</small><Link href={preview.watchUrl+"?t="+Math.floor(point.atSeconds)} target="_blank" rel="noopener noreferrer">Inspect this moment ↗</Link></span>
    </article>):<p className="nhen-muted">No suitable reviewed breakpoints yet. Add approved timestamps above, leaving dialogue and important moments uninterrupted.</p>}
    <p className="nhen-muted">Available creative versions: {preview.creativeVariants.length}. They are listed for review and are not selected for playback.</p>
    <ul>{preview.limitations.map(item=><li key={item}>{item}</li>)}</ul>
