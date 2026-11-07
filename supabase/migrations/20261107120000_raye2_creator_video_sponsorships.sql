@@ -151,3 +151,85 @@ drop trigger if exists raye2_validate_platform_sponsor_campaign on public.raye2_
 create trigger raye2_validate_platform_sponsor_campaign
   before insert or update on public.raye2_platform_sponsor_campaigns
   for each row execute function public.raye2_validate_platform_sponsor_campaign();
+
+
+-- Contract category rules and multiple approved creative variants.
+alter table public.raye2_creator_sponsor_campaigns
+  add column if not exists category_key text not null default 'general'
+    check (category_key ~ '^[a-z0-9_-]{1,40}$'),
+  add column if not exists category_exclusive boolean not null default false;
+
+create table if not exists public.raye2_sponsor_creative_variants (
+  id uuid primary key default gen_random_uuid(),
+  creator_campaign_id uuid references public.raye2_creator_sponsor_campaigns(id) on delete cascade,
+  platform_campaign_id uuid references public.raye2_platform_sponsor_campaigns(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  media_id uuid not null references public.media_items(id) on delete restrict,
+  variant_key text not null check (variant_key in ('short_5s','standard_10s','extended','alternate')),
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  check ((creator_campaign_id is not null)::integer + (platform_campaign_id is not null)::integer = 1),
+  unique(creator_campaign_id,variant_key),
+  unique(platform_campaign_id,variant_key)
+);
+create index if not exists raye2_sponsor_creative_variants_owner_idx
+  on public.raye2_sponsor_creative_variants(owner_id,active);
+alter table public.raye2_sponsor_creative_variants enable row level security;
+revoke all on public.raye2_sponsor_creative_variants from public,anon;
+grant select,insert,update,delete on public.raye2_sponsor_creative_variants to authenticated;
+
+drop policy if exists "Owners manage their sponsor creative variants" on public.raye2_sponsor_creative_variants;
+create policy "Owners manage their sponsor creative variants"
+  on public.raye2_sponsor_creative_variants for all to authenticated
+  using (owner_id=(select auth.uid()) and (
+    (creator_campaign_id is not null and exists(select 1 from public.raye2_creator_sponsor_campaigns c
+      where c.id=creator_campaign_id and c.creator_id=(select auth.uid()) and public.is_nhen_video_publisher()))
+    or
+    (platform_campaign_id is not null and public.raye2_is_platform_admin() and exists(
+      select 1 from public.raye2_platform_sponsor_campaigns p
+      where p.id=platform_campaign_id and p.created_by=(select auth.uid())))
+  ))
+  with check (owner_id=(select auth.uid()) and (
+    (creator_campaign_id is not null and exists(select 1 from public.raye2_creator_sponsor_campaigns c
+      where c.id=creator_campaign_id and c.creator_id=(select auth.uid()) and public.is_nhen_video_publisher()))
+    or
+    (platform_campaign_id is not null and public.raye2_is_platform_admin() and exists(
+      select 1 from public.raye2_platform_sponsor_campaigns p
+      where p.id=platform_campaign_id and p.created_by=(select auth.uid())))
+  ));
+
+create or replace function public.raye2_validate_sponsor_creative_variant()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare v_media_owner uuid;v_type text;v_published boolean;v_campaign_owner uuid;
+begin
+ if auth.uid() is null or new.owner_id<>(select auth.uid()) then
+   raise exception 'authenticated campaign owner required' using errcode='42501';
+ end if;
+ if new.creator_campaign_id is not null then
+   select creator_id into v_campaign_owner from public.raye2_creator_sponsor_campaigns
+    where id=new.creator_campaign_id;
+   if v_campaign_owner is distinct from new.owner_id or not public.is_nhen_video_publisher() then
+     raise exception 'creator campaign ownership required' using errcode='42501';
+   end if;
+ else
+   select created_by into v_campaign_owner from public.raye2_platform_sponsor_campaigns
+    where id=new.platform_campaign_id;
+   if v_campaign_owner is distinct from new.owner_id or not public.raye2_is_platform_admin() then
+     raise exception 'platform admin campaign ownership required' using errcode='42501';
+   end if;
+ end if;
+ select owner_id,media_type,is_published into v_media_owner,v_type,v_published
+  from public.media_items where id=new.media_id;
+ if v_media_owner is distinct from new.owner_id or v_type not in ('image','video')
+    or v_published is distinct from true then
+   raise exception 'creative variant must use a published image or video owned by the campaign owner' using errcode='42501';
+ end if;
+ return new;
+end;
+$$;
+revoke all on function public.raye2_validate_sponsor_creative_variant() from public,anon,authenticated;
+drop trigger if exists raye2_validate_sponsor_creative_variant on public.raye2_sponsor_creative_variants;
+create trigger raye2_validate_sponsor_creative_variant
+ before insert or update on public.raye2_sponsor_creative_variants
+ for each row execute function public.raye2_validate_sponsor_creative_variant();
