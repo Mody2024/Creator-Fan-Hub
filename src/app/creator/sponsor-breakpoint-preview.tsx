@@ -5,6 +5,7 @@ import {useState} from "react";
 type Preview={
  previewOnly:true;deliveryEnabled:false;durationSeconds:number;
  campaign:{sponsorName:string;placement:string;status:string;categoryKey:string;categoryExclusive:boolean;maxPerViewer:number};
+ reviewedBreakpoints:{at_seconds:number;decision:"approve"|"exclude";note:string}[];
  proposedBreakpoints:{atSeconds:number;resumeContextFromSeconds:number;source:string;score:number}[];
  creativeVariants:{id:string;media_id:string;variant_key:string;active:boolean}[];
  limitations:string[];
@@ -29,7 +30,11 @@ export default function SponsorBreakpointPreview({campaignId}:{campaignId:string
    <button className="button button-secondary" type="button" disabled={busy} onClick={()=>void generate()}>{busy?"Preparing…":"Preview reviewed breakpoints"}</button>
   </div>
   {preview&&<div className="nhen-playlist-list">
-   <p><strong>Private review preview</strong> · {Math.floor(preview.durationSeconds/60)}:{String(preview.durationSeconds%60).padStart(2,"0")} total video length</p>
+   <p><strong>Private review preview</strong> · {preview.campaign.sponsorName} · {preview.campaign.placement} · {preview.campaign.status} · {Math.floor(preview.durationSeconds/60)}:{String(preview.durationSeconds%60).padStart(2,"0")} total video length</p>
+   <p><strong>Creator review markers ({preview.reviewedBreakpoints.length})</strong></p>
+   {preview.reviewedBreakpoints.length?preview.reviewedBreakpoints.map(row=><article className="nhen-playlist-row" key={row.at_seconds}>
+    <span><strong>{Math.floor(row.at_seconds/60)}:{String(row.at_seconds%60).padStart(2,"0")}</strong><small>{row.decision==="exclude"?"Excluded by creator":"Approved candidate"}{row.note?" · "+row.note:""}</small></span>
+   </article>):<p className="nhen-muted">No timestamps have been reviewed yet.</p> }
    {preview.proposedBreakpoints.length?preview.proposedBreakpoints.map(point=><article className="nhen-playlist-row" key={point.atSeconds}>
     <span><strong>{Math.floor(point.atSeconds/60)}:{String(point.atSeconds%60).padStart(2,"0")}</strong><small>Creator-approved candidate · score {point.score.toFixed(2)} · optional context starts at {Math.floor(point.resumeContextFromSeconds/60)}:{String(point.resumeContextFromSeconds%60).padStart(2,"0")}</small></span>
    </article>):<p className="nhen-muted">No suitable reviewed breakpoints yet. Add approved timestamps above, leaving dialogue and important moments uninterrupted.</p>}
