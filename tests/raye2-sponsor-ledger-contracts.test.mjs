@@ -12,10 +12,11 @@ test("delivery telemetry separates all three sponsor sources and stays service-r
 });
 
 test("revenue ledger records net adjustments and keeps sponsor revenue sources separate",()=>{
- for(const field of ["gross_amount","provider_deductions","refunds","invalid_traffic_adjustments","net_received","platform_share","creator_share","status","received_at"])assert.ok(migration.includes(field));
+ for(const field of ["gross_amount","provider_deductions","refunds","invalid_traffic_adjustments","other_adjustments","net_received","platform_share","creator_share","status","received_at"])assert.ok(migration.includes(field));
  assert.ok(migration.includes("unique(provider_key,provider_transaction_id)"));
- assert.ok(migration.includes("provider_deductions+refunds+invalid_traffic_adjustments<=gross_amount"));
- assert.ok(migration.includes("net_received<=new.gross_amount")||migration.includes("new.net_received > new.gross_amount"));
+ assert.ok(migration.includes("provider_deductions+refunds+invalid_traffic_adjustments+other_adjustments<=gross_amount"));
+ assert.ok(migration.includes("net_received=gross_amount-provider_deductions-refunds-invalid_traffic_adjustments-other_adjustments"));
+ assert.ok(migration.includes("new.net_received<>new.gross_amount-new.provider_deductions-new.refunds-new.invalid_traffic_adjustments-new.other_adjustments"));
 });
 
 test("70/30 applies only to external network net receipts, never contracted or platform sponsorships",()=>{
