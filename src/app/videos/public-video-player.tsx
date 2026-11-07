@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Props = { src: string; title: string; description?: string | null; youtubeEmbedUrl?: string | null; startAt?: number; locale?: "en"|"ar" };
+type Props = { src: string; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar" };
 
-export default function PublicVideoPlayer({ src, title, description, youtubeEmbedUrl, startAt = 0, locale="en" }: Props) {
+export default function PublicVideoPlayer({ src, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en" }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -38,7 +38,7 @@ export default function PublicVideoPlayer({ src, title, description, youtubeEmbe
       onLoad={() => setLoaded(true)}
       referrerPolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline aria-label={description || title} onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} src={src}>
+      allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline poster={poster || undefined} aria-label={description || title} onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} src={src}>
       Your browser does not support video playback.
     </video>}
   </div>;
