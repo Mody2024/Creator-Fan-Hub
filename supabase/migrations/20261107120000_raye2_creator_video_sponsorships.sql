@@ -90,3 +90,64 @@ create trigger raye2_validate_creator_sponsor_campaign
 
 comment on table public.raye2_creator_sponsor_campaigns is
   'Creator-owned sponsorship setup attached to a published native video. Configuration only; delivery and accounting are separate systems.';
+
+
+-- Platform-wide campaigns are owned separately by Raye2 admins, never by creators.
+create table if not exists public.raye2_platform_sponsor_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  created_by uuid not null references auth.users(id) on delete restrict,
+  sponsor_asset_media_id uuid not null references public.media_items(id) on delete restrict,
+  sponsor_name text not null check (char_length(btrim(sponsor_name)) between 2 and 120),
+  disclosure_text text not null check (char_length(btrim(disclosure_text)) between 3 and 240),
+  placement text not null default 'intro' check (placement in ('intro','midroll','outro','overlay')),
+  campaign_scope jsonb not null default '{"videos":true,"live":true}'::jsonb
+    check (jsonb_typeof(campaign_scope)='object'),
+  allowed_regions text[] not null default '{}',
+  category_key text not null default 'general' check (category_key ~ '^[a-z0-9_-]{1,40}$'),
+  category_exclusive boolean not null default false,
+  priority smallint not null default 50 check (priority between 1 and 100),
+  max_per_viewer integer not null default 1 check (max_per_viewer between 1 and 5),
+  starts_at timestamptz,
+  ends_at timestamptz,
+  status text not null default 'draft' check (status in ('draft','active','paused','completed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (ends_at is null or starts_at is null or ends_at>starts_at)
+);
+create index if not exists raye2_platform_sponsor_campaigns_status_idx
+  on public.raye2_platform_sponsor_campaigns(status,priority desc,starts_at,ends_at);
+alter table public.raye2_platform_sponsor_campaigns enable row level security;
+revoke all on public.raye2_platform_sponsor_campaigns from public,anon;
+grant select,insert,update,delete on public.raye2_platform_sponsor_campaigns to authenticated;
+drop policy if exists "Raye2 admins manage platform sponsor campaigns" on public.raye2_platform_sponsor_campaigns;
+create policy "Raye2 admins manage platform sponsor campaigns"
+  on public.raye2_platform_sponsor_campaigns for all to authenticated
+  using (public.raye2_is_platform_admin())
+  with check (public.raye2_is_platform_admin());
+
+create or replace function public.raye2_validate_platform_sponsor_campaign()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare v_owner uuid;v_type text;v_published boolean;
+begin
+  if auth.uid() is null or not public.raye2_is_platform_admin()
+     or new.created_by<>(select auth.uid()) then
+    raise exception 'Raye2 admin access required' using errcode='42501';
+  end if;
+  select owner_id,media_type,is_published into v_owner,v_type,v_published
+    from public.media_items where id=new.sponsor_asset_media_id;
+  if v_owner is distinct from new.created_by
+     or v_type not in ('image','video') or v_published is distinct from true then
+    raise exception 'platform sponsor creative must be a published image or video owned by this admin' using errcode='42501';
+  end if;
+  new.sponsor_name:=btrim(new.sponsor_name);
+  new.disclosure_text:=btrim(new.disclosure_text);
+  new.updated_at:=now();
+  return new;
+end;
+$$;
+revoke all on function public.raye2_validate_platform_sponsor_campaign() from public,anon,authenticated;
+drop trigger if exists raye2_validate_platform_sponsor_campaign on public.raye2_platform_sponsor_campaigns;
+create trigger raye2_validate_platform_sponsor_campaign
+  before insert or update on public.raye2_platform_sponsor_campaigns
+  for each row execute function public.raye2_validate_platform_sponsor_campaign();
