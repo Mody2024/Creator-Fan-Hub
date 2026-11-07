@@ -222,3 +222,12 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Follow-up batch: added a separate Raye2 Admin tab and UI for platform-wide sponsor campaigns, with admin-only RLS, admin-owned published creative validation, video/live eligibility flags, category/exclusivity, priority, regions, scheduling and frequency-cap configuration. This is distinct from creator-contracted sponsorship records.
 - Added `tests/raye2-sponsorship-contracts.test.mjs` to cover creator ownership, published creative checks, disclosure/schedule/frequency fields, platform-admin isolation and the explicit no-delivery boundary. The tests are committed but have not yet been executed in this environment; the development preview check is pending.
 - Both campaign systems remain configuration-only. There is no ad director, playback insertion, scene analysis, live provider integration, actual delivery measurement, payout/revenue ledger or approved ad-network connection yet. These remain mandatory pre-friend-test work.
+
+
+### 2026-11-07 — Sponsor director selection foundation
+
+- Added a provider-neutral deterministic breakpoint selector at `src/lib/raye2/sponsor-breakpoint-director.mjs`, with TypeScript declarations and unit tests.
+- The selector ranks only supplied timestamp evidence (creator marks, dialogue gaps, chapters, scene transitions), enforces lead/tail margins, minimum spacing, confidence floor and a maximum of three breaks, and hard-rejects candidates marked as active dialogue, climax, key action or creator-excluded.
+- It returns an optional five-second context-replay start timestamp, but playback/provider integration must decide whether compliant replay is supported. It never inserts ads.
+- This is a tested-in-source algorithm foundation, **not** automatic audiovisual analysis: no model currently detects dialogue, scene transitions or climax from uploaded media, and no playback client consumes these selected breaks yet. Those remain open Wave 4 tasks.
+- The new unit tests are committed. CI/build status has not yet been confirmed; do not count the tests as passing until the workflow reports success.
