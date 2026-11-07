@@ -519,3 +519,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - Updated the native watch page/player loading mark to Raye2 branding; no change to playback provider behavior.
 - Added static regression contracts for ownership, visibility, quota reservation and cleanup. These are not substitutes for a live Storage/database exercise.
 - No main-branch change, production deployment, paid service or spend. Friend testing remains blocked pending isolated migration execution and full media runtime acceptance.
+
+
+### 2026-11-07 — Atomic media and thumbnail publication
+
+- Closed a race in the previous visibility-sync fix: media publication and thumbnail-pointer updates previously used two separate database RPC calls. If the second call failed, media visibility could change while the thumbnail pointer still referenced the old bucket.
+- Added `save_creator_media_with_thumbnail`, which calls the existing server-authoritative media save function and validates/updates the creator-owned thumbnail pointer in the same database transaction. Invalid thumbnail ownership, bucket visibility or missing Storage object now rolls back the database publication change.
+- The creator media library now uses this atomic RPC and only removes the old thumbnail after the combined database operation succeeds.
+- Added regression tests for the atomic call path and database ownership/visibility checks. These static tests do not execute PostgreSQL; migration-chain validation remains outstanding.
+- No changes to main, no production deployment, no paid infrastructure. Friend testing remains blocked.
