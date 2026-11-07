@@ -34,7 +34,7 @@ test("worker thumbnail capacity is reserved against the shared free storage ceil
 });
 
 test("storage trigger accepts worker writes only with owner-bound reservation metadata",()=>{
- assert.ok(reservation.includes("new.metadata->>'ownerId'"));
+ assert.ok(reservation.includes("split_part(new.name,'/',1)"));
  assert.ok(reservation.includes("candidate.bucket_id=new.bucket_id"));
  assert.ok(reservation.includes("candidate.expires_at>now()"));
  assert.ok(reservation.includes("grant execute on function public.enforce_nhen_storage_upload_reservation() to authenticated,service_role"));
