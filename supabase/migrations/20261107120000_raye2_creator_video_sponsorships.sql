@@ -168,7 +168,7 @@ create table if not exists public.raye2_sponsor_creative_variants (
   variant_key text not null check (variant_key in ('short_5s','standard_10s','extended','alternate')),
   active boolean not null default true,
   created_at timestamptz not null default now(),
-  check ((creator_campaign_id is not null)::integer + (platform_campaign_id is not null)::integer = 1),
+  check (num_nonnulls(creator_campaign_id,platform_campaign_id)=1),
   unique(creator_campaign_id,variant_key),
   unique(platform_campaign_id,variant_key)
 );
