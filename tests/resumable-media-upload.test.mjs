@@ -25,7 +25,7 @@ test("long uploads refresh an expiring session token before requests",()=>{
 test("paused uploads preserve the TUS resource and same-file fingerprint",()=>{
  assert.ok(helper.includes('upload.abort(false)'));
  assert.ok(helper.includes("upload.findPreviousUploads()"));
- assert.ok(helper.includes("upload.resumeFromPreviousUpload(matchingUpload)"));
+ assert.ok(helper.includes("upload?.resumeFromPreviousUpload(matchingUpload)"));
  assert.ok(helper.includes("sourceFile.lastModified, sourceFile.type"));
  assert.ok(helper.includes("removeFingerprintOnSuccess: true"));
 });
