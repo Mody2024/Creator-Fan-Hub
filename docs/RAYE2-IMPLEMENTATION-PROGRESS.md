@@ -308,3 +308,21 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - Overall implementation estimate remains **approximately 38%** pending a full source audit.
 - Wave 4 remains **approximately 12%**; this analytics layer is a new code foundation but does not complete upload/processing/publishing, provider delivery, live integration or operational verification.
 - Friend testing remains blocked. Sponsorship migrations and the wider pending migration chain must be validated in a free isolated database before any production application.
+
+
+### 2026-11-07 — Owner-scoped video publishing and playlist hardening
+
+- Added `save_raye2_video_catalog`, an authenticated publisher-only RPC. It validates slug/metadata/tag/duration bounds, verifies the selected media is an official video/YouTube source owned by the signed-in creator, and rejects publishing a watch page until its underlying media asset is public.
+- Replaced the Video Studio's direct `video_catalog.upsert` with the guarded RPC. The browser no longer gets to assert ownership merely by submitting a media ID.
+- Tightened video-catalog RLS to require both the official publisher role and ownership of the referenced media asset.
+- Added playlist ownership to `video_playlists`. Existing playlists are backfilled only when all linked media rows identify one unambiguous owner; ambiguous legacy playlists remain unassigned rather than being granted to the wrong creator.
+- Replaced broad playlist policies with creator-owned read/write rules. Playlist items can only reference media owned by the playlist owner, and only active publishers can change playlist contents.
+- Added a publication guard: a public playlist cannot contain an unpublished watch page or private underlying media asset.
+- Updated Video Studio to assign new playlists to the signed-in creator. Added static contract tests for owner checks, publication state, legacy backfill safety and playlist-item boundaries.
+- This is database/code hardening, not proof of runtime RLS acceptance. The migrations `20261107180000` and `20261107190000` are committed but not applied. Full migration-chain testing in free local Supabase is still required.
+- Latest development preview for commit `29ddc22` is queued/pending; no workflow run or successful build is yet confirmed. No production deployment, main-branch change, paid service or spending.
+
+### Updated provisional progress estimate
+- Overall implementation remains approximately **38%** of the full Raye2 platform; this batch improves correctness and authorization, not broad feature coverage.
+- Wave 4 (Creator Studio / publishing / live) is provisionally **14%**. The secure catalog and playlist paths are now better protected, but native media processing, reliable publish lifecycle, live ingest/delivery, provider integration, and runtime acceptance remain major gaps.
+- Automated static contract tests were added but have not been executed in a working checkout in this batch. Friend testing remains blocked.
