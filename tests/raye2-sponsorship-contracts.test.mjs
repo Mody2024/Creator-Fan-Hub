@@ -36,7 +36,7 @@ test("campaign configuration includes disclosure, dates, placement and frequency
 
 test("creator UI is attached to the selected published video and never claims playback delivery", () => {
   assert.ok(studio.includes("<CreatorVideoSponsorship mediaId={selected}"));
-  assert.ok(component.includes("playback delivery is not enabled"));
+  assert.ok(component.includes("automatic ad delivery is not enabled yet"));
   assert.ok(component.includes("delivery is still disabled"));
   assert.ok(!component.includes("ad insertion"));
 });
