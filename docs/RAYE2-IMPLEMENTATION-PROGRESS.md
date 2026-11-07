@@ -243,3 +243,20 @@ Progress percentages above remain the last recorded 2026-11-05 historical baseli
 - The resolver returns `deliveryEnabled: false` deliberately. It is not connected to a player and cannot insert ads. Creator breakpoint review is manual timestamp annotation, not AI media analysis. Creative variants are stored but not selected for playback. Live eligibility is configuration only, not live-stream ad insertion.
 - Added/expanded tests for resolver behavior, persisted campaign shapes, creative-variant ownership, and creator breakpoint review constraints. Tests remain unexecuted in this environment; the Vercel preview check must complete before claiming build success.
 - New migrations are committed on `development` only and have not been applied to Supabase. No paid services, paid branches, or production deployments were used.
+
+
+### 2026-11-07 — Large sponsorship telemetry and accounting batch
+
+- Added `20261107160000_raye2_sponsor_delivery_and_revenue_ledgers.sql` with separate creator-contract, platform-campaign and external-network delivery event sources, deduplication keys, bounded metadata, hashed viewer reference field, and service-role-only access.
+- Added a separate revenue ledger with gross, provider deductions, refunds, invalid-traffic adjustments, other adjustments, net received, platform/creator shares, provider transaction idempotency and explicit estimated/provider-reported/received/adjusted/reversed states.
+- Added exact reconciliation: net received must equal gross less every recorded adjustment. The 70/30 split is enforced only for external-network net receipts. Creator-contract and platform sponsorships cannot silently flow through that split.
+- A received status requires a received timestamp. The schema explicitly requires a future trusted provider adapter to verify provider signatures; no provider is connected, no payment/payout occurs, and no estimated amount is represented as money received.
+- Added `tests/raye2-sponsor-ledger-contracts.test.mjs` for source separation, service-role isolation, idempotency, reconciliation, 70/30 scope and receipt-state boundaries.
+- Verification: GitHub status/workflow lookup returned no workflow runs for the latest recorded commit, so tests/build remain **unverified**. Migrations remain unapplied. No production or main changes; no paid infrastructure.
+
+### Provisional progress snapshot — 2026-11-07
+
+- Overall Raye2 implementation: **approximately 38%** (previous documented baseline was approximately 37%; this is a small provisional adjustment, not a full repository-wide re-audit).
+- Wave 4 Creator Studio & Live: **approximately 12%** (previous baseline 9%). Sponsorship configuration, creator breakpoint review, creative variants, deterministic campaign eligibility and ledger schema are now represented in code; core publishing, processing, real playback insertion, automated media analysis, live-provider integration and payout/provider operations remain substantial unfinished work.
+- Test readiness: **not ready for friend testing**. The new migrations are not applied, migration chain is not yet validated in a free isolated database, test suite and build have not been executed successfully, and real delivery/provider integrations are absent.
+- Percentages are estimates of implementation coverage, not quality scores or proof of operational functionality. Other wave percentages remain at their previous historical values until a fresh audit.
