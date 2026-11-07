@@ -9,12 +9,28 @@ type ResumableUploadOptions = {
   objectName: string;
   file: File;
   onProgress?: (percentage: number) => void;
+  signal?: AbortSignal;
+};
+
+const ALLOWED_BUCKETS = new Set(["creator-media-private", "creator-media-public", "nhen-community-shorts"]);
+const MIME_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/webm": "webm",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "m4a",
+  "audio/wav": "wav",
+  "audio/ogg": "ogg",
 };
 
 /**
- * Uploads a file to Supabase Storage using TUS.
- * Upload URLs are fingerprinted by bucket + object path so a retry cannot
- * accidentally resume a different asset that happens to share a filename.
+ * Uploads to Supabase Storage with resumable TUS chunks.
+ * The bearer token is refreshed before each request so long uploads survive
+ * ordinary access-token expiry. Aborting pauses the local transfer without
+ * terminating the server resource, allowing the same file to resume later.
  */
 export async function uploadToSupabaseStorage({
   client,
@@ -22,11 +38,14 @@ export async function uploadToSupabaseStorage({
   objectName,
   file,
   onProgress,
+  signal,
 }: ResumableUploadOptions): Promise<void> {
-  const { data: { session }, error: sessionError } = await client.auth.getSession();
-  if (sessionError || !session?.access_token) {
-    throw sessionError ?? new Error("Your session expired. Sign in again before uploading.");
+  if (!ALLOWED_BUCKETS.has(bucketName)) throw new Error("Unsupported media storage bucket.");
+  if (!/^[A-Za-z0-9_-]+\/[A-Za-z0-9_-]+\.[A-Za-z0-9]+$/.test(objectName)) {
+    throw new Error("Invalid media object path.");
   }
+  if (!MIME_EXTENSIONS[file.type]) throw new Error("This file type is not supported for resumable upload.");
+  if (signal?.aborted) throw new DOMException("Upload paused.", "AbortError");
 
   const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -40,13 +59,44 @@ export async function uploadToSupabaseStorage({
 
   await new Promise<void>((resolve, reject) => {
     let settled = false;
-    const upload = new Upload(file, {
+    let upload: Upload | null = null;
+    const cleanup = () => signal?.removeEventListener("abort", pauseUpload);
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (error) reject(error);
+      else {
+        onProgress?.(100);
+        resolve();
+      }
+    };
+    const pauseUpload = () => {
+      if (!upload) {
+        finish(new DOMException("Upload paused. Select the same file to resume.", "AbortError"));
+        return;
+      }
+      void upload.abort(false).finally(() => {
+        finish(new DOMException("Upload paused. Select the same file to resume.", "AbortError"));
+      });
+    };
+
+    upload = new Upload(file, {
       endpoint,
       retryDelays: [0, 3000, 5000, 10000, 20000],
-      headers: {
-        authorization: `Bearer ${session.access_token}`,
-        apikey: publishableKey,
-        "x-upsert": "false",
+      headers: { apikey: publishableKey, "x-upsert": "false" },
+      onBeforeRequest: async request => {
+        const { data, error } = await client.auth.getSession();
+        if (error) throw error;
+        let session = data.session;
+        if (!session?.access_token || (session.expires_at && session.expires_at * 1000 < Date.now() + 60_000)) {
+          const refreshed = await client.auth.refreshSession();
+          if (refreshed.error || !refreshed.data.session?.access_token) {
+            throw refreshed.error ?? new Error("Your session expired. Sign in again to continue uploading.");
+          }
+          session = refreshed.data.session;
+        }
+        request.setHeader("authorization", `Bearer ${session.access_token}`);
       },
       uploadDataDuringCreation: true,
       removeFingerprintOnSuccess: true,
@@ -54,45 +104,30 @@ export async function uploadToSupabaseStorage({
       metadata: {
         bucketName,
         objectName,
-        contentType: file.type || "application/octet-stream",
+        contentType: file.type,
         cacheControl: "3600",
-        metadata: JSON.stringify({ originalName: file.name, size: file.size }),
+        metadata: JSON.stringify({ originalName: file.name, size: file.size, mimeType: file.type }),
       },
       fingerprint: (sourceFile, options) => Promise.resolve([
-        options.endpoint,
-        bucketName,
-        objectName,
-        sourceFile.name,
-        sourceFile.size,
-        sourceFile.lastModified,
+        options.endpoint, bucketName, objectName, sourceFile.name,
+        sourceFile.size, sourceFile.lastModified, sourceFile.type,
       ].join("::")),
-      onProgress: (uploaded, total) => {
-        if (total > 0) onProgress?.(Math.min(100, Math.round(uploaded / total * 100)));
+      onProgress: (uploadedBytes, totalBytes) => {
+        if (totalBytes > 0) onProgress?.(Math.min(100, Math.round(uploadedBytes / totalBytes * 100)));
       },
-      onError: error => {
-        if (settled) return;
-        settled = true;
-        reject(error);
-      },
-      onSuccess: () => {
-        if (settled) return;
-        settled = true;
-        onProgress?.(100);
-        resolve();
-      },
+      onError: error => finish(error),
+      onSuccess: () => finish(),
     });
 
+    signal?.addEventListener("abort", pauseUpload, { once: true });
     void upload.findPreviousUploads().then(previousUploads => {
+      if (settled) return;
       const matchingUpload = previousUploads
         .filter(previous => previous.metadata?.bucketName === bucketName && previous.metadata?.objectName === objectName)
         .sort((a, b) => Date.parse(b.creationTime) - Date.parse(a.creationTime))[0];
-      if (matchingUpload) upload.resumeFromPreviousUpload(matchingUpload);
-      upload.start();
-    }).catch(error => {
-      if (settled) return;
-      settled = true;
-      reject(error);
-    });
+      if (matchingUpload) upload?.resumeFromPreviousUpload(matchingUpload);
+      upload?.start();
+    }).catch(error => finish(error instanceof Error ? error : new Error("Could not resume the previous upload.")));
   });
 }
 
@@ -103,22 +138,22 @@ export type ResumableUploadSession = {
   clear: () => void;
 };
 
-/**
- * Reuses the same object path after a reload so tus-js-client can discover
- * and resume the previous upload for the same selected file.
- */
+/** Reuses the same object path after a reload so TUS can resume the same file. */
 export function getResumableUploadSession(
   userId: string,
   bucketName: string,
   file: File,
 ): ResumableUploadSession {
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(userId) || !ALLOWED_BUCKETS.has(bucketName)) {
+    throw new Error("Invalid upload owner or storage bucket.");
+  }
+  const extension = MIME_EXTENSIONS[file.type];
+  if (!extension) throw new Error("This file type is not supported for resumable upload.");
   const identity = [userId, bucketName, file.name, file.size, file.lastModified, file.type].join("|");
   const key = "nhen-tus-session:" + encodeURIComponent(identity);
-  const extension = file.type === "video/webm" ? "webm" : file.type === "video/mp4" ? "mp4" : "";
-  if (!extension) throw new Error("Only MP4 and WebM uploads are supported.");
   const createObjectName = () => {
     const originalBase = file.name.replace(/\.[^.]*$/, "");
-    const safeBase = originalBase.normalize("NFKD").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(-80) || "video";
+    const safeBase = originalBase.normalize("NFKD").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(-80) || "asset";
     return userId + "/" + crypto.randomUUID() + "-" + safeBase + "." + extension;
   };
   let saved: { objectName?: string; reservationId?: string } = {};
@@ -131,10 +166,8 @@ export function getResumableUploadSession(
   const savedLeaf = typeof saved.objectName === "string" && saved.objectName.startsWith(userId + "/")
     ? saved.objectName.slice(userId.length + 1)
     : "";
-  const validSavedObjectName = /^[A-Za-z0-9_-]+\.(mp4|webm)$/.test(savedLeaf) && savedLeaf.endsWith("." + extension);
-  const objectName = validSavedObjectName
-    ? saved.objectName as string
-    : createObjectName();
+  const validSavedObjectName = /^[A-Za-z0-9_-]+\.[A-Za-z0-9]+$/.test(savedLeaf) && savedLeaf.endsWith("." + extension);
+  const objectName = validSavedObjectName ? saved.objectName as string : createObjectName();
   const persist = (reservationId?: string) => {
     try {
       localStorage.setItem(key, JSON.stringify({ objectName, ...(reservationId ? { reservationId } : {}) }));
