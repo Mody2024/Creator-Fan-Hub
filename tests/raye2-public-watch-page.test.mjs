@@ -34,3 +34,22 @@ test("native watch URLs are restricted to the configured HTTPS Supabase origin",
  assert.ok(page.includes('parsedPublicUrl.protocol!=="https:"'));
  assert.ok(page.includes('parsedPublicUrl.origin!==new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??"https://invalid.local").origin'));
 });
+
+const player=await readFile(new URL("../src/app/videos/public-video-player.tsx",import.meta.url),"utf8");
+const watchClient=await readFile(new URL("../src/app/watch/[slug]/watch-detail-client.tsx",import.meta.url),"utf8");
+
+test("worker-generated public thumbnails reach the native watch player",()=>{
+ assert.ok(page.includes("thumbnail_path"));
+ assert.ok(page.includes('media.thumbnail_path?.startsWith("creator-media-public/")'));
+ assert.ok(page.includes('parsedPoster.origin===parsedPublicUrl.origin'));
+ assert.ok(page.includes("poster={poster}"));
+ assert.ok(watchClient.includes("poster={props.poster}"));
+ assert.ok(player.includes("poster={poster || undefined}"));
+});
+
+test("public video cards use only safe same-origin generated thumbnails",()=>{
+ assert.ok(catalog.includes("thumbnail_path"));
+ assert.ok(catalog.includes('media.thumbnail_path?.startsWith("creator-media-public/")'));
+ assert.ok(catalog.includes("parsedPosterUrl.origin === parsedVideoUrl.origin"));
+ assert.ok(catalog.includes("poster={video.poster}"));
+});
