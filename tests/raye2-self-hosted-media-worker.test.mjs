@@ -69,7 +69,7 @@ test("worker runs locally through the package script and does not require a host
 test("processing status exposes thumbnail path and creator library renders it",()=>{
  assert.ok(lifecycle.includes("checksum_sha256 text,thumbnail_path text"));
  assert.ok(library.includes("thumbnail_path?:string|null"));
- assert.ok(library.includes("const previewPath=item.thumbnail_path??item.storage_path"));
+ assert.ok(library.includes("const previewPath=item.is_published && item.thumbnail_path?.startsWith"));
 });
 test("worker accepts both legacy JWT and current server-only Supabase secret keys",()=>{
  assert.ok(worker.includes('SERVICE_ROLE_KEY.startsWith("sb_secret_")'));
