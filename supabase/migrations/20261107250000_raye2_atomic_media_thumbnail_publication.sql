@@ -34,7 +34,7 @@ begin
 
  if p_thumbnail_path is not null then
   if char_length(p_thumbnail_path)>500
-   or p_thumbnail_path !~ '^creator-media-(private|public)/[0-9a-fA-F-]{36}/thumbnails/[0-9a-fA-F-]{36}-[A-Za-z0-9_-]{8,80}\\.webp$' then
+   or p_thumbnail_path !~ '^creator-media-(private|public)/[0-9a-fA-F-]{36}/thumbnails/[0-9a-fA-F-]{36}-[A-Za-z0-9_-]{8,80}\.webp$' then
    raise exception 'invalid managed thumbnail path' using errcode='22023';
   end if;
 
