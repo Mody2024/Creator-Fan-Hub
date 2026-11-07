@@ -709,3 +709,90 @@ For each wave, report:
 
 A wave is **not complete** because a plan exists, a route renders, a placeholder is present, or a commit was pushed. Mark a requirement complete only when the corresponding behavior exists and its acceptance test passes. Never collapse planned, implemented, tested and owner-accepted into one percentage.
 
+
+
+---
+
+## 18. Smart Sponsorship, Advertising & Creator Monetization — PRE-BETA BLOCKER
+
+**Delivery status:** Required before the one-month friends test. This is not a post-launch idea and must not be moved to the Coming Soon backlog. Implementation spans Wave 4 (Creator Studio and streaming), Wave 8 (Admin campaign control and accounting), and Wave 9 (provider, privacy, security and release verification).
+
+### 18.1 Two distinct sponsorship ownership paths
+
+**A. Creator/streamer-contracted sponsorships**
+- Creators and streamers add and manage their own contracted sponsors from the video-upload flow or stream setup/settings. This is not an Admin-created item.
+- Each sponsorship record supports sponsor/brand identity, approved logo/artwork, one or more sponsor video assets/variants, campaign start/end, covered videos or streams, placement preferences, category/exclusivity restrictions, required wording/disclosure, allowed regions where applicable, frequency limits and contract notes.
+- Support multiple creative versions (for example short, medium and longer cuts) so the director can choose a permitted version for the available slot.
+- Creator/streamer controls whether a sponsorship is active for a given upload/stream, can review proposed placements and can pause/remove it subject to the recorded contract terms.
+- Sponsor media remains separate from the creator's main content and is served only in the placements permitted by the campaign.
+
+**B. Raye2 platform-wide sponsorships**
+- Admin/Owner manages platform-wide sponsor campaigns in the Admin Panel.
+- Admin campaign settings include creative assets/variants, dates, placement inventory, eligible content categories, region restrictions, campaign priority, frequency caps, exclusivity/conflict rules and reporting.
+- Active platform-wide campaigns can be automatically distributed across eligible Raye2 content and streams by the Smart Advertising Director.
+- Platform-wide campaigns must not silently override a creator's active contractual sponsor, exclusivity, category restriction or approved campaign terms. Conflicts are resolved by explicit campaign policy and safe fallback, never by an undocumented override.
+- Platform-wide sponsor revenue is accounted separately; do not automatically deduct a creator share unless that creator has explicitly joined/contracted for that campaign.
+
+### 18.2 Smart Advertising Director
+
+Build a shared decision engine that coordinates creator sponsors, Raye2 platform campaigns and approved external ad-provider inventory without conflating them.
+
+For eligible native video, the director should:
+- Analyze media structure and identify candidate breakpoints using scene transitions, chapter boundaries, natural pauses, dialogue boundaries and broad activity/intensity changes.
+- Prefer natural breakpoints and avoid cutting off important dialogue, the climax of a scene, a key action or an essential explanation.
+- Select from the campaign's permitted creative variants and placements, while enforcing campaign dates, content eligibility, category exclusions, exclusivity, frequency caps and sponsor conflicts.
+- Balance campaign delivery and revenue goals against viewer experience; never interpret "maximum ads" as unlimited or mechanically place ads at every detected moment.
+- Support creator review/approval of proposed placements, exclusions and a configurable ad-intensity policy.
+- Clearly distinguish sponsored content from platform/provider advertising and preserve required disclosures.
+
+For live streams:
+- Use supported live insertion/overlay capabilities and natural break signals where the provider permits them.
+- Prefer round breaks, intermissions, loading/transition screens and streamer-declared breaks; avoid interrupting active gameplay, live conversation or important events.
+- Respect provider latency, live-DVR and insertion limits. If safe insertion is unavailable, skip the slot rather than corrupting playback.
+
+### 18.3 Optional five-second context replay
+
+- After an inserted mid-roll, the player may replay a short context bridge (initial target: up to five seconds before the break) so the viewer can reorient.
+- This is a configurable product behavior, not a mandatory replay after every ad. Avoid confusing loops, repeated critical dialogue or replaying copyrighted third-party material outside its permitted player.
+- For live streams, only offer a replay bridge if the approved live provider exposes a compliant rolling buffer/DVR path. Otherwise resume at the live edge with a clear return state.
+
+### 18.4 External ad network and revenue share
+
+- Keep third-party network advertising technically and financially separate from creator-contracted sponsors and Raye2 platform-wide campaigns.
+- Provider integrations must use the provider's approved SDK/API and comply with its publisher, content, age, consent, geography and revenue-sharing policies.
+- The proposed commercial split is **70% Raye2 / 30% eligible creator or streamer** from the net ad revenue actually recognized and received by Raye2 for attributable eligible inventory, after provider deductions, invalid-traffic adjustments, refunds and other contractually required adjustments.
+- The split is not a share of gross advertiser spend and must not be presented as guaranteed income.
+- Do not assume Google Ad Manager, IMA or any other provider grants approval, demand, creator sub-publisher rights or a specific revenue split automatically. Provider approval and contractual eligibility are release dependencies.
+- Do not monetize third-party YouTube embeds as if Raye2 owns the ad inventory. Preserve the external provider's player, ads and required controls.
+
+### 18.5 Revenue attribution and creator reporting
+
+Maintain separate ledgers for:
+1. Creator/streamer-contracted sponsor campaigns and any direct sponsor compensation declared by the creator (Raye2 reports campaign delivery; it does not claim to custody or pay private contract funds unless a compliant payment product is later approved).
+2. Raye2 platform-wide sponsorship campaigns and their platform revenue.
+3. External ad-provider revenue and the eligible creator share.
+
+Creator/streamer dashboard should show eligible monetized content, campaign/sponsor identity, placements served, impressions or delivery metrics where actually measurable, estimated versus finalized amounts, adjustments, reporting period and payout status only when a compliant payout provider and eligibility are configured. Never fabricate earnings or impressions.
+
+### 18.6 Safety, legal and operational gates
+
+- Clearly label sponsored placements and keep ad creative subject to content, age-appropriateness, privacy, copyright and provider rules.
+- Do not infer sensitive traits to target ads. Use contextual placement and explicit campaign eligibility rules.
+- Cash compensation, account eligibility, tax and payment onboarding must follow applicable law and provider terms. Underage creators must not be promised direct payouts; require age-appropriate eligibility and guardian/legal handling where applicable.
+- Build fraud/invalid-traffic checks, duplicate-delivery protection, campaign budgets/caps, audit history, reconciliation and dispute states before enabling real monetization.
+- Test with internal non-billable sponsor creatives and simulated provider responses. Do not claim real ad demand or payouts until the provider integration is approved and live.
+
+### 18.7 Required acceptance before friends testing
+
+- Creator/streamer can create, edit, attach, pause and review their own sponsor campaign during video or stream setup.
+- Admin/Owner can separately create and manage Raye2-wide sponsor campaigns.
+- Director resolves conflicts using the campaign rules and never violates creator contract restrictions.
+- Video placement proposals are based on safe natural breakpoints and can be reviewed/excluded.
+- Live placements fail safely when the provider cannot support compliant insertion.
+- Optional context replay behaves correctly and can be disabled.
+- External network ads, creator sponsors and platform sponsors have distinct labels, delivery records and revenue ledgers.
+- Revenue split calculation uses net recognized/received attributable revenue and is covered by tests.
+- Creator dashboard distinguishes estimates, finalized revenue, adjustments and payout status; no fabricated figures.
+- Provider, age, privacy, copyright, moderation, fraud and payout eligibility gates are documented and tested.
+- The full feature is available in the development preview with internal test campaigns before the one-month friends test; production remains gated.
+
