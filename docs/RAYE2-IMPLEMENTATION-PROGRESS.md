@@ -659,3 +659,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add mobile layout and Arabic RTL layout direction.
 - [x] Preserve existing reaction, bookmark, comment moderation and view-recording behavior.
 - [ ] Verify actual video playback, keyboard interaction, visual breakpoints and CI on latest commit.
+
+
+## 2026-11-08 — Priority 4: creator/member profile redesign
+- [x] Align profile header, brand mark, search and navigation with the Raye2 shell.
+- [x] Improve cover, avatar overlap, creator identity hierarchy, stats and achievement cards.
+- [x] Add sticky profile content navigation for videos, Mini's and community posts.
+- [x] Add anchor targets, responsive mobile layout and RTL styling.
+- [x] Preserve existing follow, block, edit-profile and content interactions.
+- [ ] Verify profile ownership, public/private content policy, image loading and responsive behavior in preview.
