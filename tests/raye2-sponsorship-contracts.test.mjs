@@ -75,3 +75,24 @@ test("creators can edit only unused drafts and delete only unused drafts",()=>{
   assert.ok(component.includes("Campaigns with delivery history are preserved."));
   assert.ok(component.includes('onClick={()=>editDraft(row)}'));
 });
+
+ 
+test("creator sponsor draft validates name, creative, disclosure and rights",async()=>{
+ const component=await read("../src/app/creator/creator-video-sponsorship.tsx");
+ assert.ok(component.includes("validateCreatorSponsorDraft"));
+ assert.ok(component.includes("input.sponsorName.trim().length<2||input.sponsorName.trim().length>120"));
+ assert.ok(component.includes("input.disclosure.trim().length<3||input.disclosure.trim().length>240"));
+ assert.ok(component.includes("if(!input.confirmed)"));
+});
+test("creator sponsor draft validates frequency, category and calendar dates",async()=>{
+ const component=await read("../src/app/creator/creator-video-sponsorship.tsx");
+ assert.ok(component.includes("frequency<1||frequency>5"));
+ assert.ok(component.includes("input.category.trim().length>40"));
+ assert.ok(component.includes("/^\\\\d{4}-\\\\d{2}-\\\\d{2}$/"));
+ assert.ok(component.includes("input.ends<input.starts"));
+ assert.ok(!component.includes("new Date(ends)<=new Date(starts)"));
+});
+test("resetting creator sponsor editor restores the default placement",async()=>{
+ const component=await read("../src/app/creator/creator-video-sponsorship.tsx");
+ assert.ok(component.includes('setEditingCampaignId(null);setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setPlacement("intro");'));
+});

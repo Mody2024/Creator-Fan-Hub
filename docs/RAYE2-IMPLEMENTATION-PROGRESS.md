@@ -608,3 +608,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add regression coverage for owner-scoped draft editing and explicit delivery-disabled messaging.
 - [ ] Confirm CI, build, lint and preview on this commit.
 - [ ] Validate database RLS and admin/non-admin behavior in a real test environment.
+
+
+## 2026-11-08 — Creator video sponsorship validation
+- [x] Centralize creator sponsor draft validation before database writes.
+- [x] Enforce sponsor/disclosure lengths, creative selection, rights attestation, frequency range and category length.
+- [x] Validate date-only calendar inputs without incorrectly rejecting campaigns that start and end on the same calendar day.
+- [x] Reset placement to the default when the editor is cleared.
+- [x] Add regression contracts for validation and reset behavior.
+- [ ] Verify CI and Vercel preview for this commit.
+- [ ] Exercise Supabase RLS and database triggers with real creator/admin accounts before enabling delivery.

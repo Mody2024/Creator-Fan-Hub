@@ -9,6 +9,20 @@ import SponsorAnalytics from "./sponsor-analytics";
 
 type SponsorAsset={media_id:string;title:string;media_type:string;is_published:boolean};
 type SponsorCampaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;starts_at:string|null;ends_at:string|null;max_per_viewer:number;status:string;sponsor_asset_media_id:string;category_key:string;category_exclusive:boolean};
+type CreatorSponsorDraftInput={sponsorName:string;creativeId:string;disclosure:string;confirmed:boolean;starts:string;ends:string;frequency:string;category:string};
+export function validateCreatorSponsorDraft(input:CreatorSponsorDraftInput):string|null{
+ if(input.sponsorName.trim().length<2||input.sponsorName.trim().length>120)return "Sponsor name must contain 2–120 characters.";
+ if(!input.creativeId)return "Choose a published sponsor image or video from your media library.";
+ if(input.disclosure.trim().length<3||input.disclosure.trim().length>240)return "Disclosure must contain 3–240 characters.";
+ if(!input.confirmed)return "Confirm that you have permission to use the sponsor name and creative.";
+ const frequency=Number(input.frequency);
+ if(!Number.isInteger(frequency)||frequency<1||frequency>5)return "Planned exposures must be a whole number from 1 to 5.";
+ if(input.category.trim().length>40)return "Contract category must contain at most 40 characters.";
+ const validDate=(value:string)=>!value||(/^\\d{4}-\\d{2}-\\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+"T00:00:00Z")));
+ if(!validDate(input.starts)||!validDate(input.ends))return "Enter valid campaign dates.";
+ if(input.starts&&input.ends&&input.ends<input.starts)return "The campaign end date must not be before its start date.";
+ return null;
+}
 
 export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string;assets:SponsorAsset[]}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
@@ -40,7 +54,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  useEffect(()=>{void load()},[load]);
 
  function clearForm(){
-  setEditingCampaignId(null);setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setStarts("");setEnds("");setFrequency("1");setCategory("general");setExclusive(false);setConfirmed(false);
+  setEditingCampaignId(null);setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setPlacement("intro");setStarts("");setEnds("");setFrequency("1");setCategory("general");setExclusive(false);setConfirmed(false);
  }
 
  function editDraft(row:SponsorCampaign){
