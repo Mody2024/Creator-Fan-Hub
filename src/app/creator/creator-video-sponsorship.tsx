@@ -22,6 +22,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  const [frequency,setFrequency]=useState("1");
  const [category,setCategory]=useState("general");
  const [exclusive,setExclusive]=useState(false);
+ const [editingCampaignId,setEditingCampaignId]=useState<string|null>(null);
  const [confirmed,setConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState("Creator-contracted sponsorship setup. Playback delivery is still disabled; automatic ad delivery is not enabled yet.");
@@ -38,6 +39,38 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
 
  useEffect(()=>{void load()},[load]);
 
+ function clearForm(){
+  setEditingCampaignId(null);setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setStarts("");setEnds("");setFrequency("1");setCategory("general");setExclusive(false);setConfirmed(false);
+ }
+
+ function editDraft(row:SponsorCampaign){
+  if(row.status!=="draft")return;
+  setEditingCampaignId(row.id);setSponsorName(row.sponsor_name);setCreativeId(row.sponsor_asset_media_id);
+  setDisclosure(row.disclosure_text);setPlacement(row.placement);setStarts(row.starts_at?.slice(0,10)??"");
+  setEnds(row.ends_at?.slice(0,10)??"");setFrequency(String(row.max_per_viewer));setCategory(row.category_key);
+  setExclusive(row.category_exclusive);setConfirmed(true);
+  setStatus("Editing an unused draft. Saving changes will not enable playback.");
+ }
+
+ async function deleteDraft(row:SponsorCampaign){
+  if(!supabase||busy)return;
+  if(row.status!=="draft"){setStatus("Only unused draft campaigns can be deleted. Pause active campaigns first; delivery history is preserved.");return}
+  if(!window.confirm("Delete this unused sponsor draft? This cannot be undone."))return;
+  setBusy(true);
+  try{
+   const {data:userData,error:userError}=await supabase.auth.getUser();
+   if(userError||!userData.user)throw new Error("Sign in again to delete this draft.");
+   const {data,error}=await supabase.from("raye2_creator_sponsor_campaigns").delete()
+    .eq("id",row.id).eq("creator_id",userData.user.id).eq("status","draft").select("id").maybeSingle();
+   if(error)throw error;
+   if(!data)throw new Error("This draft is no longer available to delete.");
+   if(editingCampaignId===row.id)clearForm();
+   setStatus("Unused draft deleted. Campaigns with delivery history are preserved.");
+   await load();
+  }catch(error){setStatus(error instanceof Error?error.message:"Could not delete sponsor draft.")}
+  finally{setBusy(false)}
+ }
+
  async function createCampaign(){
   if(!supabase||!mediaId||busy)return;
   if(sponsorName.trim().length<2){setStatus("Enter the sponsor or brand name.");return}
@@ -49,16 +82,23 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   try{
    const {data:userData,error:userError}=await supabase.auth.getUser();
    if(userError||!userData.user)throw new Error("Sign in again to save sponsorship settings.");
-   const {error}=await supabase.from("raye2_creator_sponsor_campaigns").insert({
-    creator_id:userData.user.id,media_id:mediaId,sponsor_asset_media_id:creativeId,
-    sponsor_name:sponsorName.trim(),disclosure_text:disclosure.trim(),placement,
+   const payload={
+    sponsor_asset_media_id:creativeId,sponsor_name:sponsorName.trim(),disclosure_text:disclosure.trim(),placement,
     starts_at:starts?new Date(starts+"T00:00:00").toISOString():null,
     ends_at:ends?new Date(ends+"T23:59:59").toISOString():null,
-    max_per_viewer:Number(frequency),category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",category_exclusive:exclusive,status:"draft",creator_confirmed_rights:true
-   });
-   if(error)throw error;
-   setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setStarts("");setEnds("");setFrequency("1");setCategory("general");setExclusive(false);setConfirmed(false);
-   setStatus("Sponsor campaign saved as a draft. It is not being inserted into playback yet.");
+    max_per_viewer:Number(frequency),category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",category_exclusive:exclusive,creator_confirmed_rights:true
+   };
+   if(editingCampaignId){
+    const {data,error}=await supabase.from("raye2_creator_sponsor_campaigns").update(payload)
+     .eq("id",editingCampaignId).eq("creator_id",userData.user.id).eq("media_id",mediaId).eq("status","draft").select("id").maybeSingle();
+    if(error)throw error;
+    if(!data)throw new Error("This draft is no longer available to edit.");
+   }else{
+    const {error}=await supabase.from("raye2_creator_sponsor_campaigns").insert({...payload,creator_id:userData.user.id,media_id:mediaId,status:"draft"});
+    if(error)throw error;
+   }
+   clearForm();
+   setStatus(editingCampaignId?"Sponsor draft updated. Playback remains disabled.":"Sponsor campaign saved as a draft. It is not being inserted into playback yet.");
    await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Could not save sponsorship settings.")}
   finally{setBusy(false)}
@@ -95,12 +135,12 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    <label className="nhen-video-check"><input type="checkbox" checked={exclusive} onChange={event=>setExclusive(event.target.checked)}/> This sponsor has category exclusivity for this video</label>
    <label>Maximum planned exposures per viewer<select value={frequency} onChange={event=>setFrequency(event.target.value)}>{[1,2,3,4,5].map(value=><option key={value} value={value}>{value}</option>)}</select></label>
    <label className="nhen-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor&apos;s name, logo and video creative.</label>
-   <button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":"Save sponsor campaign draft"}</button>
+   <div className="nhen-inline-actions"><button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save sponsor campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
   </div>
   <div className="nhen-playlist-list">
    {rows.map(row=><article className="nhen-playlist-row" key={row.id}>
     <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small></span>
-    <button type="button" disabled={busy||row.status!=="active"} title={row.status==="active"?"Pause this campaign":"Activation is unavailable until verified ad delivery is implemented"} onClick={()=>void changeStatus(row)}>{row.status==="active"?"Pause":"Draft — activation locked"}</button>
+    <div className="nhen-inline-actions">{row.status==="active"?<button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>Pause</button>:<><button type="button" disabled={busy||row.status!=="draft"} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy||row.status!=="draft"} onClick={()=>void deleteDraft(row)}>Delete unused draft</button></>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
   </div>
