@@ -347,12 +347,12 @@ test("Nhen bilingual identity and logo studio are wired into public and creator 
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.match(page, /Nhen\?/);
-  assert.match(page, /نهين؟/);
+  assert.match(page, /Raye2/);
+  assert.match(page, /رايق/);
   assert.match(page, /portal-wordmark/);
-  assert.match(config, /siteName: "Nhen\?"/);
+  assert.match(config, /siteName: "Raye2"/);
   assert.match(settings, /LogoStudio/);
-  assert.match(settings, /Nhen\? \/ نهين؟/);
+  assert.match(settings, /Raye2 \/ رايق/);
   assert.match(studio, /backgroundRemoved/);
   assert.match(studio, /creator-media-private/);
   assert.match(studio, /removeBackground/);
@@ -361,11 +361,11 @@ test("Nhen bilingual identity and logo studio are wired into public and creator 
 });
 
 
-test("Nhen theme accent reaches the bilingual brand and creator defaults", async () => {
+test("Raye2 theme accent reaches the bilingual brand and creator defaults", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.match(settings, /accent: "#C8FF4D"/);
-  assert.match(design, /\.site, \.maintenance\s*\{\s*--nhen-accent: var\(--accent, #C8FF4D\)/);
+  assert.match(settings, /accent: "#79b1ff"/);
+  assert.match(design, /\.site, \.maintenance\s*\{\s*--nhen-accent: var\(--accent, #79b1ff\)/);
   assert.match(design, /site \.nhen-wordmark \.site-logo-image/);
   assert.match(design, /Noto Kufi Arabic/);
 });
@@ -386,8 +386,8 @@ test("uploaded logo preview shows both themes while bilingual identity remains v
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />'));
-  assert.ok(page.includes('<span className="portal-wordmark"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span>'));
-  assert.match(page, /<small lang="ar" dir="rtl">نهين؟<\/small>/);
+  assert.ok(page.includes('<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>'));
+  assert.match(page, /<small lang="ar" dir="rtl">رايق<\/small>/);
   assert.match(studio, /DARK THEME/);
   assert.match(studio, /LIGHT THEME/);
   assert.match(design, /nhen-logo-theme-previews/);
@@ -424,7 +424,7 @@ test("Raye2 creator workspace entry points use the Raye2 identity and shared nav
     const source = await readFile(new URL(path, import.meta.url), "utf8");
     assert.match(source, /Raye2/);
     assert.match(source, /raye2-creator-shell/);
-    assert.doesNotMatch(source, /Nhen\?/);
+    assert.doesNotMatch(source, /Raye2/);
   }
 });
 
@@ -498,16 +498,16 @@ test("trigger-only SECURITY DEFINER functions cannot be called as public RPCs", 
   }
 });
 
-test("the bilingual Nhen identity and uploaded logo remain theme-aware", async () => {
+test("the bilingual Raye2 identity and uploaded logo remain theme-aware", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
-  assert.ok(page.includes('<strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small>'));
+  assert.ok(page.includes('<strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small>'));
   assert.ok(page.includes('config.logoUrl && <img className="site-logo-image"'));
   assert.ok(styles.includes(".site .nhen-wordmark .site-logo-image"));
   assert.ok(styles.includes(".nhen-logo-theme-dark"));
   assert.ok(styles.includes(".nhen-logo-theme-light"));
-  assert.ok(settings.includes('siteName: "Nhen?"'));
+  assert.ok(settings.includes('siteName: "Raye2"'));
 });
 
 test("creator logo preparation can remove plain backgrounds and trim transparent margins", async () => {

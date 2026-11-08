@@ -19,12 +19,12 @@ export default async function HomePage() {
   const [config,supabase,cookieStore] = await Promise.all([getPublicSiteConfig(),createSupabaseServerClient(),cookies()]);
   const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
   const t = isArabic ? {
-    search:"ابحث عن الفيديوهات والمبدعين والمجتمع", join:"انضم إلى NHEN", home:"الرئيسية", watch:"شاهد", shorts:"قصاصات", community:"المجتمع", explore:"استكشف", profile:"ملفك الشخصي", saved:"المحفوظات", notifications:"الإشعارات", studio:"استوديو المبدعين", hero:"شاهد ما يهمك.", heroLine:"كن جزءًا منه.", heroBody:"فيديوهات المبدعين ومقاطع المجتمع والنقاشات — كلها في مكان واحد.", exploreVideos:"استكشف الفيديوهات ↗", joinCommunity:"انضم إلى المجتمع", forYou:"لك", videos:"الفيديوهات", nhenbits:"نهين بيتس", latest:"أحدث فيديوهات المبدعين", seeAll:"عرض الكل ↗", fromCommunity:"من المجتمع", openCommunity:"افتح المجتمع ↗", joinConversation:"شارك في النقاش ↗", discover:"اكتشف NHEN", everyFormat:"كل أنواع المحتوى. مجتمع واحد.", watchVideos:"شاهد الفيديوهات", findCreators:"ابحث عن المبدعين", creatorAccess:"دخول المبدعين", haveChannel:"لديك قناة؟", openStudio:"افتح استوديو المبدعين ↗", vote:"تصويت المجتمع", haveSay:"شارك برأيك"
+    search:"ابحث عن الفيديوهات والمبدعين والمجتمع", join:"انضم إلى Raye2", home:"الرئيسية", watch:"شاهد", shorts:"قصاصات", community:"المجتمع", explore:"استكشف", profile:"ملفك الشخصي", saved:"المحفوظات", notifications:"الإشعارات", studio:"استوديو المبدعين", hero:"شاهد ما يهمك.", heroLine:"كن جزءًا منه.", heroBody:"فيديوهات المبدعين ومقاطع المجتمع والنقاشات — كلها في مكان واحد.", exploreVideos:"استكشف الفيديوهات ↗", joinCommunity:"انضم إلى المجتمع", forYou:"لك", videos:"الفيديوهات", nhenbits:"مقاطع قصيرة", latest:"أحدث فيديوهات المبدعين", seeAll:"عرض الكل ↗", fromCommunity:"من المجتمع", openCommunity:"افتح المجتمع ↗", joinConversation:"شارك في النقاش ↗", discover:"اكتشف Raye2", everyFormat:"كل أنواع المحتوى. مجتمع واحد.", watchVideos:"شاهد الفيديوهات", findCreators:"ابحث عن المبدعين", creatorAccess:"دخول المبدعين", haveChannel:"لديك قناة؟", openStudio:"افتح استوديو المبدعين ↗", vote:"تصويت المجتمع", haveSay:"شارك برأيك"
   } : {
-    search:"Search videos, creators and community", join:"Join NHEN", home:"Home", watch:"Watch", shorts:"Shorts", community:"Community", explore:"Explore", profile:"Your profile", saved:"Saved", notifications:"Notifications", studio:"Creator Studio", hero:"Watch what matters.", heroLine:"Be part of it.", heroBody:"Official creator videos, community-made Nhenbits, and conversations — all connected in one place.", exploreVideos:"Explore videos ↗", joinCommunity:"Join the community", forYou:"For you", videos:"Videos", nhenbits:"Nhenbits", latest:"Latest from creators", seeAll:"See all ↗", fromCommunity:"From the community", openCommunity:"Open community ↗", joinConversation:"Join the conversation ↗", discover:"DISCOVER NHEN", everyFormat:"Every format. One community.", watchVideos:"Watch videos", findCreators:"Find creators", creatorAccess:"CREATOR ACCESS", haveChannel:"Have a channel?", openStudio:"Open Creator Studio ↗", vote:"COMMUNITY VOTE", haveSay:"HAVE YOUR SAY"
+    search:"Search videos, creators and community", join:"Join Raye2", home:"Home", watch:"Watch", shorts:"Shorts", community:"Community", explore:"Explore", profile:"Your profile", saved:"Saved", notifications:"Notifications", studio:"Creator Studio", hero:"Watch what matters.", heroLine:"Be part of it.", heroBody:"Official creator videos, community-made Mini’s, and conversations — all connected in one place.", exploreVideos:"Explore videos ↗", joinCommunity:"Join the community", forYou:"For you", videos:"Videos", nhenbits:"Mini’s", latest:"Latest from creators", seeAll:"See all ↗", fromCommunity:"From the community", openCommunity:"Open community ↗", joinConversation:"Join the conversation ↗", discover:"DISCOVER Raye2", everyFormat:"Every format. One community.", watchVideos:"Watch videos", findCreators:"Find creators", creatorAccess:"CREATOR ACCESS", haveChannel:"Have a channel?", openStudio:"Open Creator Studio ↗", vote:"COMMUNITY VOTE", haveSay:"HAVE YOUR SAY"
   };
   if (config.maintenance.enabled) {
-    return <main className={`maintenance theme-${config.theme}`}><span className="eyebrow">NHEN? / TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
+    return <main className={`maintenance theme-${config.theme}`}><span className="eyebrow">Raye2? / TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
   }
   let videos:VideoCard[]=[];
   let posts:PostCard[]=[];
@@ -60,12 +60,12 @@ export default async function HomePage() {
     const ids=[...new Set((postRows??[]).map(p=>p.author_id))];
     const {data:profiles}=ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",ids):{data:[]};
     const profileMap=new Map((profiles??[]).map(p=>[p.user_id,p]));
-    posts=(postRows??[]).map(p=>{const profile=profileMap.get(p.author_id);return{id:p.id,body:p.body,createdAt:p.created_at,handle:profile?.handle??"member",displayName:profile?.display_name??"NHEN member",avatarUrl:profile?.avatar_url??null}});
+    posts=(postRows??[]).map(p=>{const profile=profileMap.get(p.author_id);return{id:p.id,body:p.body,createdAt:p.created_at,handle:profile?.handle??"member",displayName:profile?.display_name??"Raye2 member",avatarUrl:profile?.avatar_url??null}});
   }
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-color-mode={config.colorMode} data-motion={config.motion}>
     <header className="nhen-app-header">
-      <Link className="nhen-brand" href="/" aria-label="Nhen? home">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span></Link>
-      <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder={t.search} aria-label="Search NHEN" maxLength={80}/></form>
+      <Link className="nhen-brand" href="/" aria-label="Raye2 home">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span></Link>
+      <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
       <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">{t.join}</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
     <div className="nhen-platform-grid">
@@ -74,7 +74,7 @@ export default async function HomePage() {
         {config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}
         <Link className="nhen-sidebar-link" href="/community"><span>◉</span> {t.community}</Link>
         <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> {t.explore}</Link>
-        <span className="nhen-section-label">{isArabic ? "مساحتك في NHEN" : "YOUR NHEN"}</span>
+        <span className="nhen-section-label">{isArabic ? "مساحتك في Raye2" : "YOUR Raye2"}</span>
         <Link className="nhen-sidebar-link" href="/community#join"><span>◎</span> {t.profile}</Link>
         <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> {t.saved}</Link>
         <Link className="nhen-sidebar-link" href="/notifications"><span>♧</span> {t.notifications}</Link>
@@ -105,7 +105,7 @@ export default async function HomePage() {
       </section>
       <aside className="nhen-discovery-column">
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.discover}</span><h2 className="nhen-card-title">{t.everyFormat}</h2><p className="nhen-muted">{isArabic ? "فيديوهات المبدعين، ومقاطع المجتمع، واللحظات المشتركة والنقاشات." : "Long-form creator uploads, short community videos, shared moments and conversations."}</p><div className="nhen-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ {t.nhenbits}</Link><Link href="/community">◉ {t.community}</Link><Link href="/search">{t.findCreators}</Link></div></section>
-        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو NHEN." : "Approved creators can publish official videos and manage their channel from NHEN Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
+        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو Raye2." : "Approved creators can publish official videos and manage their channel from Raye2 Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
       </aside>
     </div>
     <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>{t.home}</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}<Link href="/community">◉<span>{t.community}</span></Link><Link href="/community#join">◎<span>{t.profile}</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}

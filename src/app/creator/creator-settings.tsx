@@ -82,7 +82,7 @@ export default function CreatorSettings() {
       const normalizedDraft: SiteDraft = {
         ...fallback, ...loaded.draft,
         identity: { ...fallback.identity, ...loaded.draft.identity, siteName: "Raye2" },
-        appearance: { ...fallback.appearance, ...loaded.draft.appearance, accent: loaded.draft.appearance?.accent === "#79b1ff" ? "#79b1ff" : (loaded.draft.appearance?.accent || fallback.appearance.accent) },
+        appearance: { ...fallback.appearance, ...loaded.draft.appearance, accent: loaded.draft.appearance?.accent === "#C8FF4D" ? "#79b1ff" : (loaded.draft.appearance?.accent || fallback.appearance.accent) },
         hero: { ...fallback.hero, ...loaded.draft.hero },
         maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance },
         layout: { ...fallback.layout, ...loaded.draft.layout },

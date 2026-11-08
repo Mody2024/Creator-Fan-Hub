@@ -713,3 +713,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Normalize shared root blue token and public theme-custom defaults.
 - [ ] Verify the full CI suite and visual preview for the latest commit.
 - [ ] Continue route-by-route visual integration, including sponsorship, team, moderation and remaining public surfaces.
+
+
+## 2026-11-09 — Public brand and shared design-system correction
+- [x] Replace public-home visible NHEN/Nhen? wordmarks, discovery labels and creator fallback identity with Raye2 / رايق.
+- [x] Rename the visible short-video label from Nhenbits to Mini’s (Arabic: مقاطع قصيرة) while retaining internal keys/routes.
+- [x] Change the public site-config fallback siteName to Raye2.
+- [x] Remove later lime-accent overrides from the shared design system; normalize base, logo and player-loading accents to Raye2 blue.
+- [x] Replace old coral/purple and forest-green hero/community accents with the Raye2 dark-blue palette.
+- [x] Migrate existing saved Creator Settings drafts that still use #C8FF4D to the Raye2 blue default.
+- [x] Update legacy brand regression tests to assert Raye2 identity and blue accents.
+- [ ] Verify CI and inspect the deployed homepage, Creator Settings, logo studio and admin screens.

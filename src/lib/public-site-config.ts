@@ -26,7 +26,7 @@ export type PublicSiteConfig = {
 };
 
 const fallback: PublicSiteConfig = {
-  siteName: "Nhen?",
+  siteName: "Raye2",
   logoUrl: null,
   heroMediaUrl: null,
   heroMediaType: null,
@@ -87,7 +87,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     return supabase.storage.from(bucket).getPublicUrl(pathParts.join("/")).data.publicUrl;
   };
   return {
-    siteName: "Nhen?",
+    siteName: "Raye2",
     logoUrl: publicMediaUrl(logoItem, ["image"]),
     heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"]),
     heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
