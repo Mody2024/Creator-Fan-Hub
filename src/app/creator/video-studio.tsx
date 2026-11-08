@@ -34,7 +34,9 @@ export default function VideoStudio(){
   const rawAssets=((mediaResult.data??[]) as Omit<Asset,"processing_status"|"processing_error">[]).filter(x=>x.media_type==="video"||x.media_type==="youtube");
   const statusResult=await supabase.rpc("get_creator_media_processing_status",{p_media_ids:rawAssets.map(x=>x.media_id)});
   if(statusResult.error){setStatus(t.loadError);return}
-  const processingById=new Map((statusResult.data??[]).map((row:{media_id:string;processing_status:string;processing_error:string|null})=>[row.media_id,row]));
+  type ProcessingStatus={media_id:string;processing_status:string;processing_error:string|null};
+  const processingRows=(statusResult.data??[]) as ProcessingStatus[];
+  const processingById=new Map<string,ProcessingStatus>(processingRows.map(row=>[row.media_id,row]));
   // The status RPC is owner-scoped; only assets returned by it may enter this creator studio.
   setAssets(rawAssets.filter(asset=>processingById.has(asset.media_id)).map(asset=>({ ...asset, processing_status:asset.media_type==="youtube"?"ready":processingById.get(asset.media_id)?.processing_status??"uploaded", processing_error:processingById.get(asset.media_id)?.processing_error??null })));
   setVideos((videoResult.data??[]) as Video[]);setPlaylists((playlistResult.data??[]) as Playlist[]);
