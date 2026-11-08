@@ -156,3 +156,9 @@ test("worker fingerprints the exact downloaded source and persists SHA-256 throu
  assert.ok(worker.includes("sourceSha256,"));
  assert.ok(worker.includes("p_result_metadata: result.metadata"));
 });
+
+test("video validation and poster extraction ignore attached cover-art streams",()=>{
+ assert.ok(worker.includes("disposition=attached_pic"));
+ assert.ok(worker.includes('expectedType !== "video" || Number(stream.disposition?.attached_pic ?? 0) !== 1'));
+ assert.ok(worker.includes('"0:V:0"'));
+});

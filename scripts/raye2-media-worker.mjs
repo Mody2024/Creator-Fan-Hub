@@ -84,12 +84,12 @@ function run(command, args, timeoutMs = DEFAULT_JOB_TIMEOUT_MS) {
 async function probeMedia(filePath, expectedType) {
   const { stdout } = await run("ffprobe", [
     "-v", "error", "-show_entries",
-    "format=duration,size,format_name:stream=codec_type,codec_name,width,height,channels,sample_rate,duration",
+    "format=duration,size,format_name:stream=codec_type,codec_name,width,height,channels,sample_rate,duration,disposition=attached_pic",
     "-of", "json", filePath,
   ], 30000);
   const parsed = JSON.parse(stdout);
   const streams = Array.isArray(parsed.streams) ? parsed.streams : [];
-  const expectedStream = streams.find(stream => stream.codec_type === expectedType);
+  const expectedStream = streams.find(stream => stream.codec_type === expectedType && (expectedType !== "video" || Number(stream.disposition?.attached_pic ?? 0) !== 1));
   if (!expectedStream) throw new Error(`Uploaded ${expectedType} file contains no ${expectedType} stream.`);
   // Some containers omit a format-level duration while exposing a valid
   // duration on the primary audio/video stream. Prefer the format duration,
@@ -142,7 +142,7 @@ async function makeThumbnail(mediaType, mimeType, sourcePath, workDir, durationS
   if (mediaType === "video") {
     await run("ffmpeg", [
       "-hide_banner", "-loglevel", "error", "-ss", String(Number.isFinite(durationSeconds) ? Math.min(30, Math.max(0.5, durationSeconds * 0.1)) : 1),
-      "-i", sourcePath, "-frames:v", "1", "-vf", "scale=640:360:force_original_aspect_ratio=decrease",
+      "-i", sourcePath, "-map", "0:V:0", "-frames:v", "1", "-vf", "scale=640:360:force_original_aspect_ratio=decrease",
       "-c:v", "libwebp", "-quality", "78", "-y", outputPath,
     ], 90000);
     return { outputPath, dimensions: null, thumbnailKind: "video" };

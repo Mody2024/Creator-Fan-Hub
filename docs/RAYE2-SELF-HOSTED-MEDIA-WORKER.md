@@ -49,6 +49,7 @@ Run under a process supervisor on a machine you control if you need continuous p
 
 - Images/sprites: inspect dimensions and format; generate WebP thumbnails using the existing `sharp` dependency.
 - Video: inspect streams, duration and codecs with `ffprobe`; attempt a WebP poster with `ffmpeg`.
+- Video validation ignores attached cover-art streams, and poster extraction explicitly maps a real video track so cover images cannot be mistaken for playable footage.
 - Audio: inspect duration, streams and codec metadata with `ffprobe`.
 - **No video transcoding, adaptive HLS/DASH packaging, CDN, live ingest, or always-on hosting is included yet.** This batch makes upload processing real, but does not claim that an MP4 is converted into streaming renditions.
 - A free local worker means zero service fees, not zero electricity, bandwidth, or hardware cost. If no always-on machine is available, processing pauses until the worker is started again.
