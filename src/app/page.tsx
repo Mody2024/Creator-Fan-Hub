@@ -24,7 +24,7 @@ export default async function HomePage() {
     search:"Search videos, creators and community", join:"Join Raye2", home:"Home", watch:"Watch", shorts:"Shorts", community:"Community", explore:"Explore", profile:"Your profile", saved:"Saved", notifications:"Notifications", studio:"Creator Studio", hero:"Watch what matters.", heroLine:"Be part of it.", heroBody:"Official creator videos, community-made Mini’s, and conversations — all connected in one place.", exploreVideos:"Explore videos ↗", joinCommunity:"Join the community", forYou:"For you", videos:"Videos", nhenbits:"Mini’s", latest:"Latest from creators", seeAll:"See all ↗", fromCommunity:"From the community", openCommunity:"Open community ↗", joinConversation:"Join the conversation ↗", discover:"DISCOVER Raye2", everyFormat:"Every format. One community.", watchVideos:"Watch videos", findCreators:"Find creators", creatorAccess:"CREATOR ACCESS", haveChannel:"Have a channel?", openStudio:"Open Creator Studio ↗", vote:"COMMUNITY VOTE", haveSay:"HAVE YOUR SAY"
   };
   if (config.maintenance.enabled) {
-    return <main className={`maintenance theme-${config.theme}`}><span className="eyebrow">Raye2? / TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
+    return <main className={`maintenance theme-${config.theme}`}><span className="eyebrow">RAYE2 / TEMPORARILY OFFLINE</span><h1>{config.maintenance.message}</h1><p>Check back soon.</p></main>;
   }
   let videos:VideoCard[]=[];
   let posts:PostCard[]=[];
@@ -74,7 +74,7 @@ export default async function HomePage() {
         {config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}
         <Link className="nhen-sidebar-link" href="/community"><span>◉</span> {t.community}</Link>
         <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> {t.explore}</Link>
-        <span className="nhen-section-label">{isArabic ? "مساحتك في Raye2" : "YOUR Raye2"}</span>
+        <span className="nhen-section-label">{isArabic ? "مساحتك في Raye2" : "YOUR RAYE2"}</span>
         <Link className="nhen-sidebar-link" href="/community#join"><span>◎</span> {t.profile}</Link>
         <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> {t.saved}</Link>
         <Link className="nhen-sidebar-link" href="/notifications"><span>♧</span> {t.notifications}</Link>
