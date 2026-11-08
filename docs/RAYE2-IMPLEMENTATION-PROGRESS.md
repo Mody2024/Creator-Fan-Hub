@@ -597,3 +597,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add regression contracts for validation boundaries, region/date checks and draft-only edit guards.
 - [ ] Confirm CI, TypeScript, lint and preview against this exact commit.
 - [ ] Validate admin RLS and update behavior against an isolated Supabase database with the migration chain applied.
+
+
+## 2026-11-08 — Platform campaign editor repair and completion
+- [x] Restore the draft editor state and handlers that were referenced by the UI but absent from the component.
+- [x] Replace the literal "\\n" text accidentally inserted into the React state declaration with valid source lines.
+- [x] Enforce draft-only editing and scope the update query to the authenticated creator/admin identity.
+- [x] Reuse the same validated payload for create and update; keep campaign activation distinct from delivery.
+- [x] Correct date validation to use a real YYYY-MM-DD digit pattern.
+- [x] Add regression coverage for owner-scoped draft editing and explicit delivery-disabled messaging.
+- [ ] Confirm CI, build, lint and preview on this commit.
+- [ ] Validate database RLS and admin/non-admin behavior in a real test environment.

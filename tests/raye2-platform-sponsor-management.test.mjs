@@ -17,7 +17,7 @@ test("platform sponsor drafts validate inventory, regions, duplicates and dates"
 });
 test("admins can edit only their own unused platform campaign drafts",()=>{
  assert.ok(source.includes('if(row.status!=="draft")return;'));
- assert.ok(source.includes('.eq("created_by",user.user.id).eq("status","draft").select("id").maybeSingle()'));
+ assert.ok(source.includes('.eq("id",editingCampaignId).eq("created_by",user.user.id).eq("status","draft").select("id").maybeSingle()'));
  assert.ok(source.includes("This unused campaign draft is no longer available to edit."));
  assert.ok(source.includes("Edit draft"));
  assert.ok(source.includes("Cancel editing"));

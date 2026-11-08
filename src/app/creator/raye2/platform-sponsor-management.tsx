@@ -7,6 +7,7 @@ import SponsorCreativeVariants from "../sponsor-creative-variants";
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean};
 type Campaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;category_key:string;category_exclusive:boolean;priority:number;max_per_viewer:number;starts_at:string|null;ends_at:string|null;status:string;allowed_regions:string[]};
 type CampaignDraftInput={name:string;assetId:string;disclosure:string;videos:boolean;live:boolean;priority:string;frequency:string;regions:string;starts:string;ends:string};
+
 export function validatePlatformSponsorDraft(input:CampaignDraftInput):string|null{
  if(input.name.trim().length<2||input.name.trim().length>120)return "Sponsor name must contain 2–120 characters.";
  if(!input.assetId)return "Choose a published sponsor creative.";
@@ -18,7 +19,7 @@ export function validatePlatformSponsorDraft(input:CampaignDraftInput):string|nu
  const regions=input.regions.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
  if(regions.some(x=>!/^[A-Z]{2}$/.test(x)))return "Use two-letter country codes for allowed regions, separated by commas.";
  if(new Set(regions).size!==regions.length)return "Remove duplicate country codes from allowed regions.";
- const validDate=(value:string)=>!value||(/^\\d{4}-\\d{2}-\\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+"T00:00:00Z")));
+ const validDate=(value:string)=>!value||(/^\d{4}-\d{2}-\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+"T00:00:00Z")));
  if(!validDate(input.starts)||!validDate(input.ends))return "Enter valid campaign dates.";
  if(input.starts&&input.ends&&input.ends<input.starts)return "The end date must not be before the start date.";
  return null;
@@ -28,7 +29,8 @@ export default function PlatformSponsorManagement(){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
  const [assets,setAssets]=useState<Asset[]>([]);
  const [campaigns,setCampaigns]=useState<Campaign[]>([]);
- const [name,setName]=useState("");\n const [editingCampaignId,setEditingCampaignId]=useState<string|null>(null);
+ const [name,setName]=useState("");
+ const [editingCampaignId,setEditingCampaignId]=useState<string|null>(null);
  const [assetId,setAssetId]=useState("");
  const [disclosure,setDisclosure]=useState("Sponsored");
  const [placement,setPlacement]=useState("intro");
@@ -57,25 +59,50 @@ export default function PlatformSponsorManagement(){
 
  useEffect(()=>{void load()},[load]);
 
+ function clearForm(){
+  setEditingCampaignId(null);setName("");setAssetId("");setDisclosure("Sponsored");setPlacement("intro");
+  setCategory("general");setExclusive(false);setPriority("50");setFrequency("1");setRegions("");
+  setVideos(true);setLive(false);setStarts("");setEnds("");
+ }
+
+ function editDraft(row:Campaign){
+  if(row.status!=="draft")return;
+  setEditingCampaignId(row.id);setName(row.sponsor_name);setDisclosure(row.disclosure_text);
+  setPlacement(row.placement);setCategory(row.category_key);setExclusive(row.category_exclusive);
+  setPriority(String(row.priority));setFrequency(String(row.max_per_viewer));
+  setRegions((row.allowed_regions??[]).join(", "));setStarts(row.starts_at?.slice(0,10)??"");
+  setEnds(row.ends_at?.slice(0,10)??"");
+  setNotice("Editing an unused platform campaign draft. Saving will not enable delivery.");
+ }
+
  async function create(){
   if(!supabase||busy)return;
-  if(name.trim().length<2||!assetId||!videos&&!live){setNotice("Add a sponsor name, choose a published creative and select at least one eligible inventory type.");return}
-  if(!disclosure.trim()||disclosure.trim().length<3){setNotice("Add a clear sponsorship disclosure.");return}
-  if(starts&&ends&&new Date(ends)<=new Date(starts)){setNotice("The end date must be after the start date.");return}
+  const validation=validatePlatformSponsorDraft({name,assetId,disclosure,videos,live,priority,frequency,regions,starts,ends});
+  if(validation){setNotice(validation);return}
   setBusy(true);
   try{
    const {data:user,error:userError}=await supabase.auth.getUser();
    if(userError||!user.user)throw new Error("Sign in again as a Raye2 admin.");
-   const {error}=await supabase.from("raye2_platform_sponsor_campaigns").insert({
-    created_by:user.user.id,sponsor_asset_media_id:assetId,sponsor_name:name.trim(),disclosure_text:disclosure.trim(),
-    placement,campaign_scope:{videos,live},category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",
+   const payload={
+    sponsor_asset_media_id:assetId,sponsor_name:name.trim(),disclosure_text:disclosure.trim(),placement,
+    campaign_scope:{videos,live},category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",
     category_exclusive:exclusive,priority:Number(priority),max_per_viewer:Number(frequency),
     allowed_regions:regions.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean),
     starts_at:starts?new Date(starts+"T00:00:00").toISOString():null,
-    ends_at:ends?new Date(ends+"T23:59:59").toISOString():null,status:"draft"
-   });
-   if(error)throw error;
-   setName("");setAssetId("");setRegions("");setExclusive(false);setNotice("Platform campaign saved as a draft. It is not being delivered to videos or streams yet.");
+    ends_at:ends?new Date(ends+"T23:59:59").toISOString():null
+   };
+   if(editingCampaignId){
+    const {data,error}=await supabase.from("raye2_platform_sponsor_campaigns").update(payload)
+     .eq("id",editingCampaignId).eq("created_by",user.user.id).eq("status","draft").select("id").maybeSingle();
+    if(error)throw error;
+    if(!data)throw new Error("This unused campaign draft is no longer available to edit.");
+   }else{
+    const {error}=await supabase.from("raye2_platform_sponsor_campaigns").insert({...payload,created_by:user.user.id,status:"draft"});
+    if(error)throw error;
+   }
+   const wasEditing=Boolean(editingCampaignId);
+   clearForm();
+   setNotice(wasEditing?"Platform campaign draft updated. Delivery remains disabled.":"Platform campaign saved as a draft. Delivery remains disabled.");
    await load();
   }catch(error){setNotice(error instanceof Error?error.message:"Could not save the platform campaign.")}
   finally{setBusy(false)}
@@ -117,7 +144,8 @@ export default function PlatformSponsorManagement(){
   <div className="nhen-playlist-list">{campaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
    <span><strong>{row.sponsor_name}</strong><small>{row.category_key} · priority {row.priority} · {row.placement} · {row.status}{row.category_exclusive?" · exclusive":""}</small></span>
    <div className="nhen-inline-actions">{row.status==="draft"&&<button type="button" disabled={busy} onClick={()=>editDraft(row)}>Edit draft</button>}<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button></div>
-  <SponsorCreativeVariants campaignId={row.id} campaignType="platform" assets={assets}/></article>)}</div>
+   <SponsorCreativeVariants campaignId={row.id} campaignType="platform" assets={assets}/>
+  </article>)}</div>
   <p className="editor-status" role="status" aria-live="polite">{notice}</p>
  </section>
 }
