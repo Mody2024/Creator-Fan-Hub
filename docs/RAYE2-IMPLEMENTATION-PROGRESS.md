@@ -689,3 +689,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add regression checks for scoped selectors, mobile, RTL and motion preference.
 - [ ] Verify CI and inspect all embedded creator modules in the latest preview.
 - [ ] Continue upload/editor workflow improvements and isolated Supabase runtime verification.
+
+
+## 2026-11-09 — Priority 5 continued: Creator Media Library redesign
+- [x] Restyle upload and external-video source forms inside the Raye2 creator shell.
+- [x] Improve storage quota/health notes and upload progress presentation.
+- [x] Rebuild processing counters, filters and media rows with thumbnail/player previews.
+- [x] Differentiate ready, waiting, processing and failed states; preserve retry/publish safeguards.
+- [x] Add tablet/mobile layouts, RTL alignment and reduced-motion support.
+- [x] Add scoped styling regression contracts tied to existing upload/retry behavior.
+- [ ] Confirm CI and preview for the current commit.
+- [ ] Exercise resumable upload, retry, thumbnail publication and delete rollback against isolated Supabase/Storage before beta.
