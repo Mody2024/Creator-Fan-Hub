@@ -734,3 +734,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add responsive metrics and catalog-control styling.
 - [x] Add regression tests for readiness metrics, filtering behavior and responsive controls.
 - [ ] Run CI and inspect preview before marking the batch verified.
+
+
+## 2026-11-09 — Creator Studio / publication readiness batch
+- [x] Add a live publishing checklist for source selection, public visibility, processing completion, slug validity/uniqueness and description limits.
+- [x] Prevent enabling public publication while required checks fail.
+- [x] Check slug collisions before publishing and keep the guarded Supabase RPC as the authoritative write.
+- [x] Localize readiness and slug-conflict feedback in English and Arabic.
+- [x] Add responsive, accessible readiness presentation and regression tests.
+- [ ] Verify CI and preview before marking the workflow beta-ready.

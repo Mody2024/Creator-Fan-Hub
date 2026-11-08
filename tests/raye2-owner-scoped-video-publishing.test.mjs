@@ -55,3 +55,9 @@ test("video studio English and Arabic labels include processing and playlist act
  assert.ok(studio.includes('removed:"Video removed from playlist.",savedPublic:'));
  assert.ok(studio.includes('removed:"تمت إزالة الفيديو من القائمة.",savedPublic:'));
 });
+
+test("public watch-page UI checks slug conflicts before invoking the guarded publishing RPC",()=>{
+ assert.ok(studio.includes('eq("slug",safeSlug).neq("media_id",selected).maybeSingle()'));
+ assert.ok(studio.includes("if(slugOwner)throw new Error(t.slugConflict)"));
+ assert.ok(studio.includes('rpc("save_raye2_video_catalog"'));
+});
