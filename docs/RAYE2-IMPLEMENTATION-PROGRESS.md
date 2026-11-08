@@ -587,3 +587,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Correct malformed JavaScript template-literal syntax in the CSV serialization assertions.
 - [x] Assert the literal source contract for the whitespace guard, UTF-8 BOM and CRLF separators without using nested template literals.
 - [ ] Re-run full CI after this repair.
+
+
+## 2026-11-08 — Platform sponsor campaign editor reliability
+- [x] Add shared pre-submit validation for sponsor name/disclosure length, selected creative, eligible inventory, priority and frequency bounds.
+- [x] Validate two-letter region codes, duplicate region entries and campaign date ordering before database writes.
+- [x] Add owner-scoped editing for unused platform campaign drafts; updates require the current admin identity and draft status.
+- [x] Preserve the explicit no-delivery state in editor feedback; campaign configuration does not imply ad insertion or payment execution.
+- [x] Add regression contracts for validation boundaries, region/date checks and draft-only edit guards.
+- [ ] Confirm CI, TypeScript, lint and preview against this exact commit.
+- [ ] Validate admin RLS and update behavior against an isolated Supabase database with the migration chain applied.

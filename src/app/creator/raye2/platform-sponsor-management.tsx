@@ -6,12 +6,29 @@ import SponsorCreativeVariants from "../sponsor-creative-variants";
 
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean};
 type Campaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;category_key:string;category_exclusive:boolean;priority:number;max_per_viewer:number;starts_at:string|null;ends_at:string|null;status:string;allowed_regions:string[]};
+type CampaignDraftInput={name:string;assetId:string;disclosure:string;videos:boolean;live:boolean;priority:string;frequency:string;regions:string;starts:string;ends:string};
+export function validatePlatformSponsorDraft(input:CampaignDraftInput):string|null{
+ if(input.name.trim().length<2||input.name.trim().length>120)return "Sponsor name must contain 2–120 characters.";
+ if(!input.assetId)return "Choose a published sponsor creative.";
+ if(!input.videos&&!input.live)return "Select at least one eligible inventory type.";
+ if(input.disclosure.trim().length<3||input.disclosure.trim().length>240)return "Disclosure must contain 3–240 characters.";
+ const priority=Number(input.priority),frequency=Number(input.frequency);
+ if(!Number.isInteger(priority)||priority<1||priority>100)return "Priority must be a whole number from 1 to 100.";
+ if(!Number.isInteger(frequency)||frequency<1||frequency>5)return "Frequency cap must be a whole number from 1 to 5.";
+ const regions=input.regions.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean);
+ if(regions.some(x=>!/^[A-Z]{2}$/.test(x)))return "Use two-letter country codes for allowed regions, separated by commas.";
+ if(new Set(regions).size!==regions.length)return "Remove duplicate country codes from allowed regions.";
+ const validDate=(value:string)=>!value||(/^\\d{4}-\\d{2}-\\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+"T00:00:00Z")));
+ if(!validDate(input.starts)||!validDate(input.ends))return "Enter valid campaign dates.";
+ if(input.starts&&input.ends&&input.ends<input.starts)return "The end date must not be before the start date.";
+ return null;
+}
 
 export default function PlatformSponsorManagement(){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
  const [assets,setAssets]=useState<Asset[]>([]);
  const [campaigns,setCampaigns]=useState<Campaign[]>([]);
- const [name,setName]=useState("");
+ const [name,setName]=useState("");\n const [editingCampaignId,setEditingCampaignId]=useState<string|null>(null);
  const [assetId,setAssetId]=useState("");
  const [disclosure,setDisclosure]=useState("Sponsored");
  const [placement,setPlacement]=useState("intro");
@@ -95,11 +112,11 @@ export default function PlatformSponsorManagement(){
    <label className="nhen-video-check"><input type="checkbox" checked={videos} onChange={e=>setVideos(e.target.checked)}/> Eligible for video inventory</label>
    <label className="nhen-video-check"><input type="checkbox" checked={live} onChange={e=>setLive(e.target.checked)}/> Eligible for live inventory (provider support required)</label>
    <label className="nhen-video-check"><input type="checkbox" checked={exclusive} onChange={e=>setExclusive(e.target.checked)}/> Exclusive within this sponsor category</label>
-   <button className="button button-primary" type="button" disabled={busy||!assets.length} onClick={()=>void create()}>{busy?"Saving…":"Save platform campaign draft"}</button>
+   <div className="nhen-inline-actions"><button className="button button-primary" type="button" disabled={busy||!assets.length} onClick={()=>void create()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save platform campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
   </div>
   <div className="nhen-playlist-list">{campaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
    <span><strong>{row.sponsor_name}</strong><small>{row.category_key} · priority {row.priority} · {row.placement} · {row.status}{row.category_exclusive?" · exclusive":""}</small></span>
-   <button type="button" disabled={busy} onClick={()=>void setStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button>
+   <div className="nhen-inline-actions">{row.status==="draft"&&<button type="button" disabled={busy} onClick={()=>editDraft(row)}>Edit draft</button>}<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button></div>
   <SponsorCreativeVariants campaignId={row.id} campaignType="platform" assets={assets}/></article>)}</div>
   <p className="editor-status" role="status" aria-live="polite">{notice}</p>
  </section>
