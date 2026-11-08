@@ -31,9 +31,9 @@ test("admin UI displays sponsor delivery and finance without claiming payment ex
  assert.ok(component.includes("const revenueRows=rows.map"));
  assert.ok(component.includes("const deliveryRows=report.delivery_by_source_event.map"));
  assert.ok(component.includes("const campaignRows=["));
- assert.ok(component.includes("/^\\\\s*[=+@-]/.test(text)"));
- assert.ok(component.includes('const csv="\\\\uFEFF"'));
- assert.ok(component.includes('.join("\\\\r\\\\n")'));
+ assert.ok(component.includes("/^\\s*[=+@-]/.test(text)"));
+ assert.ok(component.includes('const csv="\\uFEFF"'));
+ assert.ok(component.includes('.join("\\r\\n")'));
  assert.ok(component.includes("/^\\\\s*[=+@-]/.test(text)"));
  assert.ok(component.includes('const csv="\\\\uFEFF"'));
  assert.ok(component.includes('.join("\\\\r\\\\n")'));
