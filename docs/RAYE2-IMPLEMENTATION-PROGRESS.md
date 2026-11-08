@@ -560,3 +560,16 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [ ] Verify the new flow against an isolated Supabase database with the migrations applied.
 
 - [x] Fix TypeScript locale syntax and complete Arabic processing/playlist labels after CI caught the missing comma.
+
+
+## 2026-11-08 — Platform finance export batch
+- [x] Add an admin-only CSV export action to the existing platform sponsorship finance dashboard.
+- [x] Export source/currency/status-separated revenue rows with gross, net, verified received, unconfirmed, platform share received and creator share received fields.
+- [x] Include aggregate delivery event rows and separate creator-contract/platform campaign counts in the same report.
+- [x] Escape CSV cells and neutralize spreadsheet formula-leading values before export.
+- [x] Keep currencies separated; do not produce misleading cross-currency totals.
+- [x] Add regression assertions for finance export structure, delivery coverage and formula safety.
+- [ ] Verify against live populated ledger data and real admin/non-admin accounts; CI contract tests do not replace Supabase runtime/RLS acceptance.
+- [ ] Integrate a verified provider settlement adapter and reconciliation process before claiming executable payouts. Payment execution remains disabled.
+
+**Progress accounting correction:** the detailed ten-wave roadmap in this file is the source of truth for whole-platform estimates. The previous conversational 46% estimate was not supported by the roadmap and is withdrawn. Current baseline remains approximately 38% pending a full evidence-based recalculation; this CSV/reporting batch is a narrow increment and does not justify a multi-point overall increase.
