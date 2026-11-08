@@ -4,11 +4,13 @@ import {useCallback,useEffect,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 
 type Summary={total_points:number;earned_awards:number;revoked_awards:number;available_rules:number};
+type Progression={points:number;level:number;level_name:string;next_level_name:string;level_floor:number;next_level_points:number;points_to_next:number;progress_percent:number};
 type Reward={id:string;reward_code:string;points:number;status:"awarded"|"revoked";source_ref:string|null;note:string;created_at:string;revoked_at:string|null};
 type Rule={code:string;title:string;description:string;points:number;enabled:boolean};
 
 export default function CreatorRewardsCenter(){
  const [summary,setSummary]=useState<Summary|null>(null);
+ const [progression,setProgression]=useState<Progression|null>(null);
  const [history,setHistory]=useState<Reward[]>([]);
  const [rules,setRules]=useState<Rule[]>([]);
  const [busy,setBusy]=useState(true);
@@ -24,6 +26,9 @@ export default function CreatorRewardsCenter(){
     supabase.from("raye2_creator_reward_rules").select("code,title,description,points,enabled").eq("enabled",true).order("points",{ascending:true})
    ]);
    if(summaryResult.error)throw summaryResult.error;
+   const progressionResult=await supabase.rpc("raye2_creator_progression_summary");
+   if(progressionResult.error)throw progressionResult.error;
+   setProgression(progressionResult.data as Progression);
    if(historyResult.error)throw historyResult.error;
    if(rulesResult.error)throw rulesResult.error;
    const raw=summaryResult.data;
@@ -43,6 +48,11 @@ export default function CreatorRewardsCenter(){
    <article><span>Available points</span><strong>{busy?"—":Number(summary?.total_points??0).toLocaleString()}</strong><small>Recognition credits, not cash</small></article>
    <article><span>Earned awards</span><strong>{busy?"—":Number(summary?.earned_awards??0).toLocaleString()}</strong><small>Recorded reward grants</small></article>
    <article><span>Available milestones</span><strong>{busy?"—":Number(summary?.available_rules??0).toLocaleString()}</strong><small>Enabled reward rules</small></article>
+  </div>
+  <div className="nhen-card" aria-label="Creator level progression">
+   <div className="nhen-card-heading"><div><span className="eyebrow">CREATOR LEVEL</span><h3>{progression ? "Level " + progression.level + " · " + progression.level_name : "Your creator level"}</h3><p>{progression && progression.points_to_next ? progression.points_to_next.toLocaleString() + " points to " + progression.next_level_name : "Your progression is up to date."}</p></div></div>
+   <div className="dashboard-stats"><article><span>Current level</span><strong>{progression?.level ?? "—"}</strong><small>{progression?.level_name ?? "Loading"}</small></article><article><span>Progress</span><strong>{progression ? progression.progress_percent + "%" : "—"}</strong><small>{progression ? progression.points.toLocaleString() + " / " + progression.next_level_points.toLocaleString() + " points" : "Recognition points"}</small></article></div>
+   <div role="progressbar" aria-label="Progress to next creator level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progression?.progress_percent ?? 0} style={{height:10,borderRadius:999,background:"var(--surface-muted, #e5e7eb)",overflow:"hidden"}}><div style={{height:"100%",width:(progression?.progress_percent ?? 0) + "%",background:"var(--accent, #16a36a)"}}/></div>
   </div>
   <div className="nhen-card">
    <div className="nhen-card-heading"><div><span className="eyebrow">REWARD CATALOGUE</span><h3>Available recognition</h3></div></div>
