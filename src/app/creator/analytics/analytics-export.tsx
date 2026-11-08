@@ -4,7 +4,7 @@ type Metric = { title: string; views: number; reactions: number; comments: numbe
 
 function safeCell(value: string | number) {
   let text = String(value ?? "");
-  if (/^[\\s]*[=+\\-@]/.test(text)) text = "'" + text;
+  if (/^\s*[=+@-]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
@@ -44,7 +44,7 @@ export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Met
       item.comments,
       interactionRate(item)
     ]);
-    const csv = "\uFEFF" + [header, summary, ...rows].map(row => row.map(safeCell).join(",")).join("\\r\\n");
+    const csv = "\uFEFF" + [header, summary, ...rows].map(row => row.map(safeCell).join(",")).join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");

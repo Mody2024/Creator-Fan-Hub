@@ -16,6 +16,6 @@ test("analytics CSV ranks videos and preserves bilingual export",()=>{
  assert.ok(source.includes("raye2-video-analytics.csv"));
 });
 test("analytics CSV neutralizes spreadsheet formula injection and quotes cells",()=>{
- assert.ok(source.includes("/^[\\s]*[=+\\-@]/.test(text)"));
+ assert.ok(source.includes("/^\\s*[=+@-]/.test(text)"));
  assert.ok(source.includes("text.replace(/\"/g, '\"\"')"));
 });
