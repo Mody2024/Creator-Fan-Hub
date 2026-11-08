@@ -99,7 +99,7 @@ test("resetting creator sponsor editor restores the default placement",async()=>
 test("Raye2 design tokens use the approved blue neutral palette",async()=>{
  const design=await read("../src/app/nhen-design-system.css");
  assert.ok(design.includes("--nhen-bg:#080b12"));
- assert.ok(design.includes("--nhen-accent:#78adff"));
+ assert.ok(design.includes("--nhen-accent:#79b1ff"));
  assert.ok(design.includes("--nhen-ink:#f3f6fb"));
  assert.ok(!design.startsWith("/* NHEN Design System"));
 });

@@ -424,7 +424,7 @@ test("Raye2 creator workspace entry points use the Raye2 identity and shared nav
     const source = await readFile(new URL(path, import.meta.url), "utf8");
     assert.match(source, /Raye2/);
     assert.match(source, /raye2-creator-shell/);
-    assert.doesNotMatch(source, /Raye2/);
+    assert.doesNotMatch(source, /Nhen\\?|نهين؟/);
   }
 });
 
