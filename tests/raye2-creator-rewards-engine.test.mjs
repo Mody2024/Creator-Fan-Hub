@@ -8,7 +8,7 @@ const [migration,component,dashboard]=await Promise.all([
  read("../src/app/creator/page.tsx")
 ]);
 test("creator rewards ledger records recognition credits with auditable status and duplicate protection",()=>{
- assert.ok(migration.includes("unique (creator_id,reward_code,source_ref)"));
+ assert.ok(migration.includes("unique nulls not distinct (creator_id,reward_code,source_ref)"));
  assert.ok(migration.includes("status text not null default 'awarded' check (status in ('awarded','revoked'))"));
  assert.ok(migration.includes("granted_by uuid"));
  assert.ok(migration.includes("revoked_by uuid"));
@@ -31,6 +31,7 @@ test("creator rewards UI clearly distinguishes points from cash and displays his
  assert.ok(component.includes("Reward history"));
  assert.ok(component.includes("raye2_creator_reward_summary"));
  assert.ok(component.includes("raye2_creator_reward_ledger"));
+ assert.ok(component.includes('.eq("creator_id",userData.user.id)'));
  assert.ok(component.includes("Revoked awards are excluded"));
 });
 test("creator dashboard mounts the rewards center",()=>{

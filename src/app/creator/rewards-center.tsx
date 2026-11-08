@@ -20,7 +20,7 @@ export default function CreatorRewardsCenter(){
   try{
    const [summaryResult,historyResult,rulesResult]=await Promise.all([
     supabase.rpc("raye2_creator_reward_summary"),
-    supabase.from("raye2_creator_reward_ledger").select("id,reward_code,points,status,source_ref,note,created_at,revoked_at").order("created_at",{ascending:false}).limit(50),
+    (async()=>{const {data:userData,error:userError}=await supabase.auth.getUser();if(userError||!userData.user)throw new Error("Sign in again to view your reward history.");return supabase.from("raye2_creator_reward_ledger").select("id,reward_code,points,status,source_ref,note,created_at,revoked_at").eq("creator_id",userData.user.id).order("created_at",{ascending:false}).limit(50)})(),
     supabase.from("raye2_creator_reward_rules").select("code,title,description,points,enabled").eq("enabled",true).order("points",{ascending:true})
    ]);
    if(summaryResult.error)throw summaryResult.error;

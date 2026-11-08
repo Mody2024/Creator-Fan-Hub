@@ -21,7 +21,7 @@ create table if not exists public.raye2_creator_reward_ledger (
   created_at timestamptz not null default now(),
   revoked_at timestamptz,
   revoked_by uuid references auth.users(id) on delete set null,
-  unique (creator_id,reward_code,source_ref)
+  unique nulls not distinct (creator_id,reward_code,source_ref)
 );
 
 create index if not exists raye2_creator_reward_ledger_creator_idx
