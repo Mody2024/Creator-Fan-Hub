@@ -24,7 +24,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  const [exclusive,setExclusive]=useState(false);
  const [confirmed,setConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
- const [status,setStatus]=useState("Creator-contracted sponsorship setup. Campaigns are saved as configuration; automatic ad delivery is not enabled yet.");
+ const [status,setStatus]=useState("Creator-contracted sponsorship setup. Playback delivery is still disabled; automatic ad delivery is not enabled yet.");
  const eligibleAssets=assets.filter(asset=>(asset.media_type==="video"||asset.media_type==="image")&&asset.is_published&&asset.media_id!==mediaId);
 
  const load=useCallback(async()=>{
