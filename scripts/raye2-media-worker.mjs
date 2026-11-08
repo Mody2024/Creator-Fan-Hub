@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { spawn } from "node:child_process";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -187,7 +188,9 @@ async function processJob(job) {
   const workDir = await mkdtemp(join(tmpdir(), "raye2-media-"));
   try {
     const sourcePath = join(workDir, "source");
-    await writeFile(sourcePath, Buffer.from(await blob.arrayBuffer()));
+    const sourceBytes = Buffer.from(await blob.arrayBuffer());
+    const sourceSha256 = createHash("sha256").update(sourceBytes).digest("hex");
+    await writeFile(sourcePath, sourceBytes);
     let extracted = {};
     let thumbnail = null;
     let thumbnailSkippedReason = null;
@@ -242,6 +245,7 @@ async function processJob(job) {
           worker: "raye2-self-hosted",
           completedAt: new Date().toISOString(),
           sourceBytes: blob.size,
+          sourceSha256,
           ...extracted,
           ...(thumbnailResult ? { thumbnailBytes: thumbnailResult.bytes } : {}),
         },

@@ -40,6 +40,7 @@ Run under a process supervisor on a machine you control if you need continuous p
 - Only the service role can claim or complete jobs.
 - Completion requires the matching lease token, preventing a stale worker from overwriting a newer result.
 - Source media is restricted to the owner's managed media folders and the existing 50 MiB per-file cap.
+- The worker calculates a SHA-256 fingerprint from the exact downloaded source bytes; the trusted completion RPC stores it in `media_items.checksum_sha256` only when the matching processing lease completes successfully.
 - Thumbnail writes require a separate, owner-bound reservation under the project's conservative 750 MiB total storage ceiling.
 - Thumbnail paths are versioned by lease token; the old thumbnail is removed only after the new job result commits.
 - Orphaned generated objects are not silently deleted by the worker.

@@ -149,3 +149,10 @@ test("ffprobe falls back to the primary stream duration when container duration 
  assert.ok(worker.includes("const streamDuration = Number(expectedStream.duration)"));
  assert.ok(worker.includes(": streamDuration;"));
 });
+
+test("worker fingerprints the exact downloaded source and persists SHA-256 through the lease completion RPC",()=>{
+ assert.ok(worker.includes('import { createHash } from "node:crypto"'));
+ assert.ok(worker.includes('createHash("sha256").update(sourceBytes).digest("hex")'));
+ assert.ok(worker.includes("sourceSha256,"));
+ assert.ok(worker.includes("p_result_metadata: result.metadata"));
+});
