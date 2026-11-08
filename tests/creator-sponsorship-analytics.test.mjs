@@ -41,7 +41,7 @@ test("creator sponsorship CSV export is aggregate-only and formula-injection saf
  assert.ok(component.includes("const exportReport=useCallback"));
  assert.ok(component.includes("raye2-sponsorship-analytics.csv"));
  assert.ok(component.includes("text.replace(/\"/g,'\"\"')"));
- assert.ok(component.includes("/^[\\\\s]*[=+\\\\-@]/"));
+ assert.ok(component.includes("/^[\\s]*[=+\\-@]/"));
  assert.ok(component.includes("No viewer identities were included."));
  assert.ok(component.includes("Creator share unconfirmed"));
  assert.ok(component.includes("disabled={!report}"));
