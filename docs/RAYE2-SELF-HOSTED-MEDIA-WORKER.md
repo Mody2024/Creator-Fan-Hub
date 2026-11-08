@@ -68,3 +68,10 @@ Run under a process supervisor on a machine you control if you need continuous p
 - If a worker stores a thumbnail but its completion RPC fails or the processing lease expires, it removes only the thumbnail created for that job attempt. This prevents uncommitted generated objects from accumulating in free storage.
 - Previous thumbnails are removed only after the database confirms that the replacement result was committed.
 - Cleanup failures are logged for manual orphan review; the worker never deletes arbitrary creator media paths.
+
+
+## Processing lease renewal
+
+- Each claimed job starts a five-minute heartbeat while processing. The trusted worker extends the matching active lease by another 20 minutes.
+- Renewal requires the service role, matching media ID and lease token, and a lease that has not already expired.
+- A worker that learns it lost the lease refuses to publish its output. If renewal calls fail transiently, the existing lease remains authoritative and completion still fails closed if it expires.

@@ -270,6 +270,38 @@ async function removeWorkerThumbnail(ownerId, thumbnailPath, mediaId) {
   if (error) console.error("[raye2-worker] generated thumbnail needs orphan cleanup", error.message);
 }
 
+const LEASE_HEARTBEAT_MS = 5 * 60 * 1000;
+
+function startLeaseHeartbeat(job) {
+  let leaseLost = false;
+  let renewalInFlight = Promise.resolve();
+  const timer = setInterval(() => {
+    if (leaseLost) return;
+    renewalInFlight = (async () => {
+      const { data, error } = await supabase.rpc("renew_raye2_media_processing_lease", {
+        p_media_id: job.media_id,
+        p_lease_token: job.lease_token,
+      });
+      if (error) {
+        console.error("[raye2-worker] lease renewal failed; the current lease may expire", error.message);
+        return;
+      }
+      if (data !== true) {
+        leaseLost = true;
+        console.error(`[raye2-worker] lease lost for ${job.media_id}; refusing to publish stale processing output`);
+      }
+    })();
+  }, LEASE_HEARTBEAT_MS);
+  timer.unref?.();
+  return {
+    hasLostLease: () => leaseLost,
+    stop: async () => {
+      clearInterval(timer);
+      await renewalInFlight;
+    },
+  };
+}
+
 async function handleOne() {
   const { data: jobs, error } = await supabase.rpc("claim_raye2_media_processing_job");
   if (error) throw error;
@@ -278,8 +310,11 @@ async function handleOne() {
   console.info(`[raye2-worker] claimed ${job.media_id} (attempt ${job.processing_attempts})`);
   let result = null;
   let completedSuccessfully = false;
+  const heartbeat = startLeaseHeartbeat(job);
   try {
     result = await processJob(job);
+    await heartbeat.stop();
+    if (heartbeat.hasLostLease()) throw new Error("Processing lease was lost; a later worker may retry.");
     const { data: completed, error: completeError } = await supabase.rpc("complete_raye2_media_processing_job", {
       p_media_id: job.media_id,
       p_lease_token: job.lease_token,
@@ -296,6 +331,7 @@ async function handleOne() {
     }
     console.info(`[raye2-worker] ready ${job.media_id}`);
   } catch (error) {
+    await heartbeat.stop();
     if (!completedSuccessfully && result?.thumbnailPath) {
       await removeWorkerThumbnail(job.owner_id, result.thumbnailPath, job.media_id);
     }

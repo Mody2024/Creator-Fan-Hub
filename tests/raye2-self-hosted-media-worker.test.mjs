@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 
 const queue=await readFile(new URL("../supabase/migrations/20261107210000_raye2_self_hosted_media_worker_queue.sql",import.meta.url),"utf8");
+const heartbeatMigration=await readFile(new URL("../supabase/migrations/20261107270000_raye2_media_processing_lease_heartbeat.sql",import.meta.url),"utf8");
 const reservation=await readFile(new URL("../supabase/migrations/20261107211000_raye2_worker_storage_reservation_binding.sql",import.meta.url),"utf8");
 const worker=await readFile(new URL("../scripts/raye2-media-worker.mjs",import.meta.url),"utf8");
 const packageJson=JSON.parse(await readFile(new URL("../package.json",import.meta.url),"utf8"));
@@ -161,4 +162,14 @@ test("video validation and poster extraction ignore attached cover-art streams",
  assert.ok(worker.includes("disposition=attached_pic"));
  assert.ok(worker.includes('expectedType !== "video" || Number(stream.disposition?.attached_pic ?? 0) !== 1'));
  assert.ok(worker.includes('"0:V:0"'));
+});
+
+test("long-running media jobs renew their active lease and refuse stale completion",()=>{
+ assert.ok(heartbeatMigration.includes("renew_raye2_media_processing_lease"));
+ assert.ok(heartbeatMigration.includes("processing_lease_until>now()"));
+ assert.ok(heartbeatMigration.includes("processing_lease_until=now()+interval '20 minutes'"));
+ assert.ok(heartbeatMigration.includes("grant execute on function public.renew_raye2_media_processing_lease(uuid,uuid) to service_role"));
+ assert.ok(worker.includes("const LEASE_HEARTBEAT_MS = 5 * 60 * 1000"));
+ assert.ok(worker.includes('rpc("renew_raye2_media_processing_lease"'));
+ assert.ok(worker.includes("if (heartbeat.hasLostLease())"));
 });
