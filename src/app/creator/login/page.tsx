@@ -45,9 +45,9 @@ export default function CreatorLoginPage() {
     }
   }
 
-  return <main className="admin-shell">
-    <Link className="admin-back" href="/">← Back to community</Link>
-    <section className="admin-card"><Link className="wordmark nhen-wordmark" href="/"><span className="nhen-wordmark-copy"><strong>Nhen?</strong><small lang="ar" dir="rtl">نهين؟</small></span></Link>
+  return <main className="admin-shell raye2-creator-login">
+    <Link className="admin-back" href="/raye2/home">← Back to Raye2</Link>
+    <section className="admin-card"><Link className="wordmark raye2-login-wordmark" href="/raye2/home" aria-label="Raye2 / رايق"><span className="raye2-login-glyph">R</span><span className="raye2-login-word-copy"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span></Link>
       <span className="eyebrow">PRIVATE WORKSPACE / 01</span>
       <h1>Creator <em>access.</em></h1>
       <p>Sign in to manage the community experience. Access is restricted to the configured creator account.</p>

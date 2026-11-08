@@ -700,3 +700,16 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add scoped styling regression contracts tied to existing upload/retry behavior.
 - [ ] Confirm CI and preview for the current commit.
 - [ ] Exercise resumable upload, retry, thumbnail publication and delete rollback against isolated Supabase/Storage before beta.
+
+
+## 2026-11-09 — Raye2 Creator Studio brand and palette unification
+- [x] Replace the locked legacy Nhen? identity in Creator Settings with Raye2 / رايق.
+- [x] Replace the lime default accent with Raye2 blue and migrate the old #C8FF4D default to the new blue when loading saved drafts.
+- [x] Relabel the legacy stored violet theme as Raye2 Blue and restyle its preview without changing stored theme identifiers.
+- [x] Update logo studio user-facing name and generated logo alt text to Raye2 / رايق.
+- [x] Update creator login identity and route its back link to Raye2.
+- [x] Replace green administration palette with the shared dark/neutral/blue system.
+- [x] Add scoped shared-token overrides for Creator Settings, Video Studio, Logo Studio, analytics, achievement/reward cards and form controls.
+- [x] Normalize shared root blue token and public theme-custom defaults.
+- [ ] Verify the full CI suite and visual preview for the latest commit.
+- [ ] Continue route-by-route visual integration, including sponsorship, team, moderation and remaining public surfaces.

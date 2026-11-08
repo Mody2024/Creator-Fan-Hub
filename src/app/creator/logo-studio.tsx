@@ -170,10 +170,10 @@ export default function LogoStudio({ onCreated }: Props) {
       const {error:outputError} = await supabase.storage.from("creator-media-private").upload(outputPath,prepared,{contentType:outputType,upsert:false});
       if (outputError) throw outputError;
       uploadedPaths.push(outputPath);
-      const title = (file.name.replace(/\.[^.]+$/,"").slice(0,105) || "Nhen logo") + (removeBackground ? " — transparent" : "");
+      const title = (file.name.replace(/\.[^.]+$/,"").slice(0,105) || "Raye2 logo") + (removeBackground ? " — transparent" : "");
       const {data:saved,error:saveError} = await supabase.rpc("save_creator_media",{
         p_media_id:null,p_title:title,p_media_type:"image",p_source_url:null,
-        p_storage_path:"creator-media-private/" + outputPath,p_alt_text:"Nhen? / نهين؟ brand logo",
+        p_storage_path:"creator-media-private/" + outputPath,p_alt_text:"Raye2 / رايق brand logo",
         p_metadata:{mimeType:outputType,size:prepared.size,originalName:file.name,originalStoragePath:"creator-media-private/" + originalPath,backgroundRemoved:removeBackground,backgroundRemovalMethod:removeBackground?"edge-colour-key-v1":"none",backgroundTolerance:tolerance,transparentMarginsTrimmed:trimTransparent},
         p_is_published:false
       });
@@ -191,7 +191,7 @@ export default function LogoStudio({ onCreated }: Props) {
     } finally { setBusy(false); }
   }
 
-  return <section className="nhen-logo-studio" aria-label="Nhen logo studio">
+  return <section className="nhen-logo-studio" aria-label="Raye2 logo studio">
     <div className="nhen-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep the original safe. Clean a plain background, trim empty space and preview the logo against both site themes before publishing.</p></div><span className="nhen-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
     <label className="nhen-logo-file"><span>Choose logo image</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void selectFile(e.target.files?.[0]??null)}/><small>PNG, JPG or WebP · up to 20 MB</small></label>
     {file && <div className="nhen-logo-controls">
