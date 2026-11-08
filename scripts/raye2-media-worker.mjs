@@ -274,30 +274,50 @@ const LEASE_HEARTBEAT_MS = 5 * 60 * 1000;
 
 function startLeaseHeartbeat(job) {
   let leaseLost = false;
-  let renewalInFlight = Promise.resolve();
-  const timer = setInterval(() => {
-    if (leaseLost) return;
-    renewalInFlight = (async () => {
-      const { data, error } = await supabase.rpc("renew_raye2_media_processing_lease", {
-        p_media_id: job.media_id,
-        p_lease_token: job.lease_token,
-      });
-      if (error) {
-        console.error("[raye2-worker] lease renewal failed; the current lease may expire", error.message);
-        return;
-      }
-      if (data !== true) {
-        leaseLost = true;
-        console.error(`[raye2-worker] lease lost for ${job.media_id}; refusing to publish stale processing output`);
-      }
-    })();
-  }, LEASE_HEARTBEAT_MS);
-  timer.unref?.();
+  let stopped = false;
+  let timer = null;
+  let renewalInFlight = null;
+  let stopPromise = null;
+
+  const scheduleRenewal = () => {
+    if (stopped || leaseLost) return;
+    timer = setTimeout(async () => {
+      timer = null;
+      if (stopped || leaseLost) return;
+      renewalInFlight = (async () => {
+        try {
+          const { data, error } = await supabase.rpc("renew_raye2_media_processing_lease", {
+            p_media_id: job.media_id,
+            p_lease_token: job.lease_token,
+          });
+          if (error) throw error;
+          if (data !== true) throw new Error("The database rejected this processing lease renewal.");
+        } catch (error) {
+          // Fail closed: if the worker cannot prove that it still owns the
+          // lease, it must not publish output under a possibly stale token.
+          leaseLost = true;
+          console.error(`[raye2-worker] lease renewal could not be confirmed for ${job.media_id}; refusing stale completion`, error instanceof Error ? error.message : String(error));
+        }
+      })();
+      await renewalInFlight;
+      renewalInFlight = null;
+      scheduleRenewal();
+    }, LEASE_HEARTBEAT_MS);
+    timer.unref?.();
+  };
+
+  scheduleRenewal();
   return {
     hasLostLease: () => leaseLost,
-    stop: async () => {
-      clearInterval(timer);
-      await renewalInFlight;
+    stop: () => {
+      if (stopPromise) return stopPromise;
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      timer = null;
+      stopPromise = (async () => {
+        if (renewalInFlight) await renewalInFlight;
+      })();
+      return stopPromise;
     },
   };
 }

@@ -5,31 +5,32 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `e29cce1fabe6919be3781dcff64e570534b81bb1` (2026-11-05).
+- Snapshot commit reviewed: `9231c5606da54074c16126dd70c57d15ce135e26` (2026-11-08).
 
-## Progress snapshot — 2026-11-05
+## Progress snapshot — 2026-11-08
 
 These are conservative repository-based estimates against the **entire ten-wave platform**, not the old chat/voice-only scope. A feature earns credit only for code that exists in this repository; a route, plan item, schema proposal, or legacy feature elsewhere in the product is not treated as an end-to-end Raye2 implementation.
 
 | Wave | Scope | Implementation estimate | Current evidence / remaining work |
 |---|---|---:|---|
 | 0 | Repository audit and implementation map | **55%** | Master plan and initial source/migration/test inventory exist. Complete route-by-route and requirement-by-requirement gap matrix, provider/config audit, and unresolved decision closure remain. |
-| 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, dark/light controls and bilingual responsive navigation; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
+| 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, one fixed dark theme (black/white/grey/blue) and bilingual responsive navigation; admin-created themes are deferred post-release; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
 | 2 | Core architecture, accounts and permissions | **27%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
 | 3 | Video, feed and discovery | **22%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards support native reactions, comments, bookmarks, follow/unfollow and share with batch-loaded state; published video thumbnail assets are surfaced where configured; `/search` has been redesigned as a bilingual Raye2 Explore experience across videos, people and community posts. Full player previews, search ranking, richer recommendations and complete media journey remain. |
-| 4 | Creator Studio, exclusives and live streaming | **9%** | Existing creator tools are being integrated into Raye2 with publisher-role-aware workspace entry, storage health visibility and stronger watch-page metadata validation. The full upload/draft/processing/publish lifecycle, role/quota workflow, exclusives and real live ingest/delivery are not complete. |
+| 4 | Creator Studio, exclusives and live streaming | **30%** | Creator Studio entry, upload/media lifecycle foundations, trusted worker queue, media validation, image/video/audio metadata inspection, WebP thumbnails, SHA-256 checksums, lease renewal, quota-bound thumbnail storage and processing-gated publication exist. Actual video transcoding/HLS/DASH, full creator upload/draft UX, end-to-end playback, exclusives and live ingest/delivery remain. |
 | 5 | Social graph, communities and engagement | **16%** | Raye2 public/private groups, membership and moderation foundations exist. Full profiles/follows, community publishing, polls/events/collections and connected engagement surfaces remain. |
 | 6 | Messaging and chat | **85%** | Strong implementation: DMs/groups, message actions, requests, search, pins, notifications, quiet hours, moderation, invites, Shared Memories and group controls. Remaining: runtime DB/RLS acceptance, delivery/push, attachment/media lifecycle, and end-to-end operational verification. |
 | 7 | Voice and Watch Together | **55%** | Private WebRTC call path, LiveKit group-room integration path/moderation, voice preferences, Watch Together sessions/queue/playback sync exist. Real provider deployment, multi-device/network acceptance, reconnection/telemetry, consented recording pipeline, external embeds/invites and remaining session features are outstanding. |
 | 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
-| 9 | Security, reliability and release readiness | **16%** | Contract tests and security-oriented migrations exist. Runtime RLS/RPC tests, applied migration verification, cleanup worker/object deletion, load/capacity/cost checks, full accessibility/device acceptance and owner approval remain. |
+| 9 | Security, reliability and release readiness | **21%** | Security-oriented migrations, bounded worker subprocesses, lease-token completion, source checksums, thumbnail cleanup and CI coverage exist. Isolated PostgreSQL migration/RLS execution, applied migration verification, full orphan cleanup, load/capacity/cost checks, accessibility/device acceptance and owner approval remain. |
 
-**Estimated full-platform implementation: ~37%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+**Estimated full-platform implementation: ~38%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
 
 ### Verification and release gates
-- **Automated verification:** `Validate site` passed on code HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The video-thumbnail and Explore batch on `5554261f` passed the full `Validate site` workflow, including 207 prototype/configuration tests, Next.js type-check + production build, and lint. The subsequent member-profile redesign is committed on `76752f79`; its full validation is still running, and the latest `e29cce1` Creator Studio batch passed `Validate site` and `Free CI`. The separate `Free CI` run passed on `e29cce1`.
+- **Latest snapshot:** commit `9231c5606da54074c16126dd70c57d15ce135e26` passed Free CI run `42490902615` (automated tests, type-check, lint and Next.js build). The preceding cover-art regression correction `526f7083` also passed run `42490777013`.
+- **Automated verification (historical):** `Validate site` passed on code HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The video-thumbnail and Explore batch on `5554261f` passed the full `Validate site` workflow, including 207 prototype/configuration tests, Next.js type-check + production build, and lint. The subsequent member-profile redesign is committed on `76752f79`; its full validation is still running, and the latest `e29cce1` Creator Studio batch passed `Validate site` and `Free CI`. The separate `Free CI` run passed on `e29cce1`.
 - **Database/runtime verification:** Raye2 migrations are committed in the repository; this snapshot does not prove they have been applied to the intended Supabase project or passed live RLS/RPC tests.
-- **Preview/owner acceptance:** Vercel development deployment completed successfully for `f42de989`. The `5554261f` and `9f8e7167` development preview deployments were pending at last check; the latest `e29cce1` development preview was building at the last check; do not treat it as ready until Vercel reports `READY`. Browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces remain outstanding. Browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces are still outstanding.
+- **Preview/owner acceptance:** Vercel automatically creates development previews, but the newest commit's deployment must be checked for `READY` before claiming it is usable. Browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces remain outstanding.
 - **Production:** no merge/deployment authorized.
 
 ## Verified implemented areas
@@ -528,3 +529,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - The creator media library now uses this atomic RPC and only removes the old thumbnail after the combined database operation succeeds.
 - Added regression tests for the atomic call path and database ownership/visibility checks. These static tests do not execute PostgreSQL; migration-chain validation remains outstanding.
 - No changes to main, no production deployment, no paid infrastructure. Friend testing remains blocked.
+
+
+## Recent media-worker reliability batch — 2026-11-08
+- [x] Ignore attached cover-art streams when selecting a playable video stream; map real video tracks for posters.
+- [x] Persist source SHA-256 fingerprints under the matching processing lease.
+- [x] Renew long-running processing leases every five minutes; each renewal extends the active lease by twenty minutes.
+- [x] Serialize heartbeat requests and fail closed when lease ownership cannot be confirmed.
+- [x] Regression coverage for lease renewal, stale completion prevention and stream selection.
+- [ ] Implement real video transcoding and HLS/DASH packaging.
+- [ ] Validate migration chain and worker behavior against isolated PostgreSQL/Supabase with actual media fixtures.

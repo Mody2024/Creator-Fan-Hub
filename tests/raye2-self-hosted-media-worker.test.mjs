@@ -173,3 +173,13 @@ test("long-running media jobs renew their active lease and refuse stale completi
  assert.ok(worker.includes('rpc("renew_raye2_media_processing_lease"'));
  assert.ok(worker.includes("if (heartbeat.hasLostLease())"));
 });
+
+test("lease heartbeat serializes renewals and fails closed when ownership cannot be confirmed",()=>{
+ assert.ok(worker.includes("let renewalInFlight = null"));
+ assert.ok(worker.includes("let stopPromise = null"));
+ assert.ok(worker.includes("setTimeout(async () =>"));
+ assert.ok(worker.includes("await renewalInFlight"));
+ assert.ok(worker.includes("if (stopPromise) return stopPromise"));
+ assert.ok(worker.includes("leaseLost = true"));
+ assert.ok(worker.includes("refusing stale completion"));
+});

@@ -73,5 +73,5 @@ Run under a process supervisor on a machine you control if you need continuous p
 ## Processing lease renewal
 
 - Each claimed job starts a five-minute heartbeat while processing. The trusted worker extends the matching active lease by another 20 minutes.
-- Renewal requires the service role, matching media ID and lease token, and a lease that has not already expired.
-- A worker that learns it lost the lease refuses to publish its output. If renewal calls fail transiently, the existing lease remains authoritative and completion still fails closed if it expires.
+- Renewal requires the service role, matching media ID and lease token, and a lease that has not already expired. Renewals are serialized; the next timer is scheduled only after the previous request finishes.
+- If renewal is rejected or cannot be confirmed, the worker fails closed and refuses to publish output under uncertain ownership. Shutdown/normal completion cancels the timer and waits for any in-flight renewal.
