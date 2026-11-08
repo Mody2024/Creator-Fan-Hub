@@ -36,3 +36,13 @@ test("creator dashboard labels delivery as events and does not invent earnings",
  assert.ok(component.includes("Raye2 platform-wide campaigns are excluded."));
  assert.ok(studio.includes("<SponsorAnalytics mediaId={mediaId}/>"));
 });
+
+test("creator sponsorship CSV export is aggregate-only and formula-injection safe",()=>{
+ assert.ok(component.includes("const exportReport=useCallback"));
+ assert.ok(component.includes("raye2-sponsorship-analytics.csv"));
+ assert.ok(component.includes("text.replace(/\"/g,'\"\"')"));
+ assert.ok(component.includes("/^[\\\\s]*[=+\\\\-@]/"));
+ assert.ok(component.includes("No viewer identities were included."));
+ assert.ok(component.includes("Creator share unconfirmed"));
+ assert.ok(component.includes("disabled={!report}"));
+});
