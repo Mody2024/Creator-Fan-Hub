@@ -66,12 +66,15 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
 
  async function changeStatus(row:SponsorCampaign){
   if(!supabase||busy)return;
-  const next=row.status==="active"?"paused":"active";
+  if(row.status!=="active"){
+   setStatus("Activation is locked until Raye2 has a verified ad-delivery and impression-measurement pipeline. This campaign remains a draft and will not be shown to viewers.");
+   return;
+  }
   setBusy(true);
   try{
-   const {error}=await supabase.from("raye2_creator_sponsor_campaigns").update({status:next}).eq("id",row.id);
+   const {error}=await supabase.from("raye2_creator_sponsor_campaigns").update({status:"paused"}).eq("id",row.id);
    if(error)throw error;
-   setStatus(next==="paused"?"Campaign paused.":"Campaign configuration marked active; playback delivery is still disabled until the ad director is implemented.");
+   setStatus("Campaign paused. It will not be eligible for delivery.");
    await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Could not update campaign.")}
   finally{setBusy(false)}
@@ -97,7 +100,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   <div className="nhen-playlist-list">
    {rows.map(row=><article className="nhen-playlist-row" key={row.id}>
     <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small></span>
-    <button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button>
+    <button type="button" disabled={busy||row.status!=="active"} title={row.status==="active"?"Pause this campaign":"Activation is unavailable until verified ad delivery is implemented"} onClick={()=>void changeStatus(row)}>{row.status==="active"?"Pause":"Draft — activation locked"}</button>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
   </div>
