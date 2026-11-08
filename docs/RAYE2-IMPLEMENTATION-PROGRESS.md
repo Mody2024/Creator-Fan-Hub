@@ -668,3 +668,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add anchor targets, responsive mobile layout and RTL styling.
 - [x] Preserve existing follow, block, edit-profile and content interactions.
 - [ ] Verify profile ownership, public/private content policy, image loading and responsive behavior in preview.
+
+
+## 2026-11-09 — Priority 5: Creator Studio workflow dashboard
+- [x] Add a clear asset-to-watch-page-to-analytics workflow with role-gated shortcuts to existing tools.
+- [x] Add a recent-media list using the existing server-authorized creator media RPC result; no new data access path.
+- [x] Display publication and processing states without implying failed or pending assets are ready.
+- [x] Add responsive layouts, mobile status treatment and reduced-motion support.
+- [x] Add static regression contracts for role-aware links, server-scoped media data and responsive behavior.
+- [ ] Confirm CI and preview build for this exact commit.
+- [ ] Continue the broader Creator Studio redesign and runtime verification; this dashboard batch does not complete upload-to-publish acceptance.

@@ -7,7 +7,7 @@ import styles from "./studio.module.css";
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Creator Studio — Raye2" };
 
-type MediaAsset = { media_id: string; title: string; media_type: string; is_published: boolean; created_at?: string };
+type MediaAsset = { media_id: string; title: string; media_type: string; is_published: boolean; created_at?: string; processing_status?: string | null };
 type VideoEntry = { media_id: string; slug: string; published_at: string | null };
 
 export default async function Raye2CreatorStudioPage() {
@@ -43,19 +43,20 @@ export default async function Raye2CreatorStudioPage() {
   const publishedMedia = media.filter(item => item.is_published).length;
   const draftMedia = media.length - publishedMedia;
   const publishedVideos = videos.filter(item => !!item.published_at).length;
+  const recentMedia = [...media].sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? "")).slice(0, 5);
   const mediaUnavailable = !!mediaError;
   const catalogUnavailable = !!videoError;
   const t = isArabic ? {
     eyebrow: "مساحة صُنّاع المحتوى", title: "استوديو ", accent: "Raye2.", intro: "مساحة موحّدة لإدارة مكتبة الوسائط وصفحات المشاهدة والنشر وأداء المحتوى.",
     home: "العودة إلى الرئيسية", role: "الصلاحية الحالية", assets: "ملفات الوسائط", publicAssets: "ملفات منشورة", drafts: "مسودات خاصة", videos: "صفحات المشاهدة", published: "منشور",
-    workspace: "مساحات العمل", manage: "إدارة المحتوى", manageDesc: "افتح أدوات رفع الملفات وتحرير البيانات الوصفية والنشر وقوائم التشغيل وسجل الإصدارات.", open: "فتح أدوات المحتوى",
+    workspace: "مساحات العمل", recent: "أحدث الملفات", recentDesc: "آخر الملفات التي أضفتها إلى مكتبتك.", emptyRecent: "لم تضف أي ملفات بعد.", uploadNow: "رفع وسائط", videoNow: "إعداد صفحة مشاهدة", viewAll: "عرض المكتبة", privateLabel: "مسودة خاصة", publicLabel: "منشور", readyLabel: "جاهز", waitingLabel: "قيد المعالجة", failedLabel: "فشل", manage: "إدارة المحتوى", manageDesc: "افتح أدوات رفع الملفات وتحرير البيانات الوصفية والنشر وقوائم التشغيل وسجل الإصدارات.", open: "فتح أدوات المحتوى",
     analytics: "تحليلات الأداء", analyticsDesc: "راجع إجماليات المشاهدات والتفاعلات والتعليقات دون كشف هويات المشاهدين.", moderation: "إدارة المجتمع", moderationDesc: "راجع المنشورات والتعليقات والبلاغات وفق صلاحياتك.",
     editorial: "مراجعة المحتوى", editorialDesc: "يمكن للمحررين مراجعة المحتوى وإعداد الملاحظات، لكن صلاحيات الرفع والنشر الرسمي محفوظة للمالك والمديرين والمبدعين المعتمدين.", editorialComing: "مساحة التحرير قيد التجهيز", beta: "مختبر بيتا", betaDesc: "ميزات قيد التجهيز ستظهر هنا عند تفعيلها. لن تظهر كميزات جاهزة قبل اكتمال تنفيذها واختبارها.",
     noAccess: "تعذر تحميل بعض بيانات المكتبة. يمكنك إعادة المحاولة من أدوات المحتوى.", coming: "قريبًا / تجريبي", note: "الأرقام تعكس البيانات التي تسمح بها صلاحيات حسابك فقط."
   } : {
     eyebrow: "CREATOR WORKSPACE", title: "Raye2 ", accent: "Studio.", intro: "One workspace for your media library, watch pages, publishing workflow and content performance.",
     home: "Back to home", role: "CURRENT ACCESS", assets: "MEDIA ASSETS", publicAssets: "Published assets", drafts: "Private drafts", videos: "WATCH PAGES", published: "Published",
-    workspace: "WORKSPACES", manage: "Content management", manageDesc: "Open the existing upload, asset metadata, publishing, playlist and version-history tools.", open: "Open content tools",
+    workspace: "WORKSPACES", recent: "RECENT MEDIA", recentDesc: "The latest assets added to your library.", emptyRecent: "You have not added any media yet.", uploadNow: "Upload media", videoNow: "Build a watch page", viewAll: "Open media library", privateLabel: "PRIVATE DRAFT", publicLabel: "PUBLISHED", readyLabel: "READY", waitingLabel: "PROCESSING", failedLabel: "FAILED", manage: "Content management", manageDesc: "Open the existing upload, asset metadata, publishing, playlist and version-history tools.", open: "Open content tools",
     analytics: "Performance analytics", analyticsDesc: "Review aggregate views, reactions and comments without exposing viewer identities.", moderation: "Community moderation", moderationDesc: "Review posts, comments and reports within your assigned permissions.",
     editorial: "Editorial review", editorialDesc: "Editors can prepare reviews and feedback, while official uploads and publishing remain restricted to owners, admins and assigned creators.", editorialComing: "Editorial workspace is being prepared", beta: "Beta lab", betaDesc: "Upcoming experiments will appear here when enabled. Nothing is labelled ready until it is implemented and tested.",
     noAccess: "Some library data could not be loaded. You can retry from the content tools.", coming: "COMING SOON / EXPERIMENTAL", note: "Counts reflect only the data your account is allowed to access."
@@ -77,6 +78,25 @@ export default async function Raye2CreatorStudioPage() {
       <article className={styles.metric}><span>{t.videos}</span><strong>{catalogUnavailable ? "—" : publishedVideos.toLocaleString(locale)}</strong><small>{t.published}</small></article>
     </section>
     {(mediaUnavailable || catalogUnavailable) && <p className={styles.notice} role="status">{t.noAccess}</p>}
+    <section className={styles.workflow}>
+      <div className={styles.workflowIntro}><span className={styles.eyebrow}>{isArabic ? "مسار النشر" : "PUBLISHING WORKFLOW"}</span><h2>{isArabic ? "من الملف إلى صفحة المشاهدة." : "From asset to watch page."}</h2><p>{isArabic ? "ارفع الوسائط أولًا، ثم جهّز صفحة المشاهدة، وبعدها تابع الأداء." : "Upload an asset, prepare its watch page, then follow its performance."}</p></div>
+      <div className={styles.workflowActions}>
+        {canPublish && <Link href="/creator#creator-media" className={styles.primaryAction}><span>01</span><strong>{t.uploadNow}</strong><i>↗</i></Link>}
+        {canPublish && <Link href="/creator#creator-video-studio" className={styles.primaryAction}><span>02</span><strong>{t.videoNow}</strong><i>↗</i></Link>}
+        {canAnalyze && <Link href="/creator/analytics" className={styles.primaryAction}><span>03</span><strong>{isArabic ? "مراجعة الأداء" : "Review performance"}</strong><i>↗</i></Link>}
+      </div>
+    </section>
+    <section className={styles.section}>
+      <div className={styles.sectionHead}><div><span className={styles.eyebrow}>{t.recent}</span><h2>{t.recentDesc}</h2></div>{canPublish && <Link className={styles.viewAll} href="/creator#creator-media">{t.viewAll} ↗</Link>}</div>
+      <div className={styles.recentList}>
+        {recentMedia.map((item) => {
+          const status = item.processing_status === "failed" ? t.failedLabel : ["waiting","queued","processing"].includes(item.processing_status ?? "") ? t.waitingLabel : item.is_published ? t.publicLabel : t.privateLabel;
+          const statusClass = item.processing_status === "failed" ? styles.statusFailed : ["waiting","queued","processing"].includes(item.processing_status ?? "") ? styles.statusWaiting : item.is_published ? styles.statusPublished : styles.statusDraft;
+          return <article className={styles.recentItem} key={item.media_id}><span className={styles.assetIcon} aria-hidden="true">{item.media_type === "video" || item.media_type === "youtube" ? "▶" : item.media_type === "audio" ? "♫" : item.media_type === "image" ? "▧" : "◇"}</span><div className={styles.assetDetails}><strong>{item.title}</strong><small>{item.media_type.toUpperCase()} {item.created_at ? "· " + new Date(item.created_at).toLocaleDateString(locale) : ""}</small></div><span className={statusClass}>{status}</span></article>;
+        })}
+        {!recentMedia.length && <p className={styles.emptyRecent}>{t.emptyRecent}</p>}
+      </div>
+    </section>
     <section className={styles.section}>
       <div className={styles.sectionHead}><span className={styles.eyebrow}>{t.workspace}</span><h2>{t.manage}</h2></div>
       <div className={styles.grid}>
