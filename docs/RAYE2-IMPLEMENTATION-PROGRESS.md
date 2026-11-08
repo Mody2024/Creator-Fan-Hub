@@ -629,3 +629,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [ ] Rebuild shared navigation, feed, watch, profile, Studio, community, messaging and admin surfaces.
 - [ ] Complete desktop/tablet/mobile and Arabic RTL visual acceptance.
 - [ ] Re-run CI and preview verification for this commit.
+
+
+## 2026-11-08 — Priority redesign batch: home discovery shell
+- [x] Add a consistent sticky Raye2 home header with brand mark treatment, search entry and profile/notification shortcuts.
+- [x] Add dedicated mobile bottom navigation so primary destinations remain reachable on small screens.
+- [x] Refine desktop three-column proportions, left navigation hierarchy and discovery sidebar.
+- [x] Refresh home hero, video cards, feed tabs, post surfaces and interaction states using the approved neutral-blue palette.
+- [x] Localize primary navigation and hero actions for Arabic; preserve RTL direction support.
+- [x] Respect reduced-motion preferences and safe-area padding on mobile.
+- [ ] Verify visual output at mobile/tablet/desktop breakpoints and Arabic RTL in preview.
+- [ ] Extend shared shell components to Watch, Explore, profile and Creator Studio before calling redesign wave complete.

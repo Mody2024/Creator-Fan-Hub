@@ -73,20 +73,26 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
     });
   }
   return <main className={styles.shell} dir={isArabic?"rtl":"ltr"} lang={locale}>
+    <header className={styles.topbar}>
+      <Link className={styles.brandMark} href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}><span className={styles.brandGlyph}>R</span><span className={styles.brandPulse}/></Link>
+      <div className={styles.topbarContext}><span className={styles.topbarEyebrow}>{isArabic?"مساحتك":"YOUR SPACE"}</span><strong>{isArabic?"اكتشف وتواصل":"Discover & connect"}</strong></div>
+      <form className={styles.topbarSearch} action="/search"><span aria-hidden="true">⌕</span><input name="q" placeholder={isArabic?"ابحث عن فيديوهات وصُنّاع محتوى":"Search videos, creators and communities"} aria-label={isArabic?"بحث":"Search"}/><kbd>↵</kbd></form>
+      <div className={styles.topbarActions}><Link href="/notifications" aria-label={isArabic?"الإشعارات":"Notifications"} className={styles.topbarIcon}>♧</Link><Link href="/profile" className={styles.profileShortcut}>{isArabic?"ملفي الشخصي":"My profile"} <span>↗</span></Link></div>
+    </header>
     <div className={styles.layout}>
-      <aside className={`${styles.rail} ${styles.leftRail}`}><span className={styles.railTitle}>RAYE2 / YOUR SPACE</span>
-        <Link className={`${styles.railLink} ${styles.railActive}`} href="/raye2/home"><span className={styles.railIcon}>⌂</span>Home</Link>
-        <Link className={styles.railLink} href="/watch"><span className={styles.railIcon}>▶</span>Watch</Link>
-        <Link className={styles.railLink} href="/shorts"><span className={styles.railIcon}>▤</span>Mini&apos;s</Link>
-        <Link className={styles.railLink} href="/search"><span className={styles.railIcon}>⌕</span>Explore</Link>
-        <Link className={styles.railLink} href="/series"><span className={styles.railIcon}>▥</span>Series</Link>
-        <Link className={styles.railLink} href="/community"><span className={styles.railIcon}>◉</span>Communities</Link>
-        <Link className={styles.railLink} href="/raye2"><span className={styles.railIcon}>✉</span>Messages</Link>
-        <Link className={styles.railLink} href="/profile"><span className={styles.railIcon}>◎</span>My profile</Link>
+      <aside className={`${styles.rail} ${styles.leftRail}`}><span className={styles.railTitle}>{isArabic?"مساحتك / RAYE2":"YOUR SPACE / RAYE2"}</span>
+        <Link className={`${styles.railLink} ${styles.railActive}`} href="/raye2/home"><span className={styles.railIcon}>⌂</span>{isArabic?"الرئيسية":"Home"}</Link>
+        <Link className={styles.railLink} href="/watch"><span className={styles.railIcon}>▶</span>{isArabic?"مشاهدة":"Watch"}</Link>
+        <Link className={styles.railLink} href="/shorts"><span className={styles.railIcon}>▤</span>{isArabic?"مقاطع قصيرة":"Mini’s"}</Link>
+        <Link className={styles.railLink} href="/search"><span className={styles.railIcon}>⌕</span>{isArabic?"استكشف":"Explore"}</Link>
+        <Link className={styles.railLink} href="/series"><span className={styles.railIcon}>▥</span>{isArabic?"السلاسل":"Series"}</Link>
+        <Link className={styles.railLink} href="/community"><span className={styles.railIcon}>◉</span>{isArabic?"المجتمعات":"Communities"}</Link>
+        <Link className={styles.railLink} href="/raye2"><span className={styles.railIcon}>✉</span>{isArabic?"الرسائل":"Messages"}</Link>
+        <Link className={styles.railLink} href="/profile"><span className={styles.railIcon}>◎</span>{isArabic?"ملفي الشخصي":"My profile"}</Link>
       </aside>
       <section className={styles.main}>
-        <section className={styles.welcome}><span className={styles.eyebrow}>THE RAYE2 COMMUNITY / HOME</span><h1>{isArabic?"عالمك.":"Your world."}<br/><em>{isArabic?"مجتمعك.":"Your people."}</em></h1><p>{isArabic?"مساحة تجمع تحديثات صُنّاع المحتوى ونقاشات المجتمع والفيديوهات المميزة. اكتشف شيئًا جديدًا وشارك في الحوار.":"A connected place for creator updates, community conversations and videos worth your time. Find something new, then join the conversation."}</p>
-          <div className={styles.welcomeActions}><Link className={`${styles.button} ${styles.buttonPrimary}`} href="/watch">Explore videos ↗</Link><Link className={styles.button} href="/community">Open communities</Link></div>
+        <section className={styles.welcome}><div className={styles.welcomeTopline}><span className={styles.eyebrow}>{isArabic?"مجتمع RAYE2 / الرئيسية":"RAYE2 COMMUNITY / HOME"}</span><span className={styles.liveDot}>{isArabic?"مساحتك":"YOUR SPACE"}</span></div><h1>{isArabic?"عالمك.":"Your world."}<br/><em>{isArabic?"مجتمعك.":"Your people."}</em></h1><p>{isArabic?"مساحة تجمع تحديثات صُنّاع المحتوى ونقاشات المجتمع والفيديوهات المميزة. اكتشف شيئًا جديدًا وشارك في الحوار.":"A connected place for creator updates, community conversations and videos worth your time. Find something new, then join the conversation."}</p>
+          <div className={styles.welcomeActions}><Link className={`${styles.button} ${styles.buttonPrimary}`} href="/watch">{isArabic?"استكشف الفيديوهات ↗":"Explore videos ↗"}</Link><Link className={styles.button} href="/community">{isArabic?"افتح المجتمعات":"Open communities"}</Link></div>
         </section>
         <div className={styles.sectionHead}><h2>{isArabic?"نُشر حديثًا":"Recently published"}</h2><Link className={styles.count} href="/watch">View all videos ↗</Link></div>
         {videos.length?<div className={styles.videoGrid}>{videos.map(video=><article className={styles.videoCard} key={video.id}><Link href={`/watch/${video.slug}`}><div className={styles.videoFrame}>{video.thumbnail_url?<Image className={styles.videoThumbnail} src={video.thumbnail_url} alt={video.thumbnail_alt} fill sizes="(max-width: 720px) 100vw, 360px" unoptimized/>:<span aria-hidden="true">▶</span>}<span className={styles.videoPlay} aria-hidden="true">▶</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{video.category.toUpperCase()}</span><h3>{video.title}</h3><p>{video.description}</p></div></Link></article>)}</div>:<div className={styles.empty}>{isArabic?"ستظهر فيديوهات المبدعين هنا عند نشرها.":"New creator videos will appear here when published."}</div>}
@@ -95,5 +101,12 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
       </section>
       <aside className={`${styles.rail} ${styles.rightRail}`}><section className={styles.sideCard}><h2>Find your next thing</h2><form className={styles.search} action="/search"><input name="q" placeholder={isArabic?"ابحث عن صُنّاع المحتوى والفيديوهات":"Search creators and videos"}/><button type="submit">↗</button></form></section><section className={styles.sideCard}><h2>Explore Raye2</h2><Link className={styles.sideLink} href="/watch">{isArabic?"شاهد أحدث الفيديوهات":"Watch the latest videos"}</Link><Link className={styles.sideLink} href="/shorts">Discover Mini&apos;s</Link><Link className={styles.sideLink} href="/series">{isArabic?"تصفح السلاسل":"Browse series"}</Link><Link className={styles.sideLink} href="/community">{isArabic?"انضم إلى مساحات المجتمع":"Join community spaces"}</Link></section><section className={styles.sideCard}><h2>Be part of it</h2><p style={{fontSize:11,lineHeight:1.7,color:"var(--r-muted)"}}>{isArabic?"تابع صُنّاع المحتوى وشارك منشورات مفيدة واكتشف أصحاب الأعمال.":"Follow creators, share thoughtful posts and discover the people behind the work."}</p><Link className={styles.sideLink} href="/profile">{isArabic?"أكمل ملفك الشخصي ↗":"Set up your profile ↗"}</Link></section></aside>
     </div>
+    <nav className={styles.mobileNav} aria-label={isArabic?"التنقل الرئيسي":"Main navigation"}>
+      <Link className={styles.mobileNavActive} href="/raye2/home"><span>⌂</span>{isArabic?"الرئيسية":"Home"}</Link>
+      <Link href="/watch"><span>▶</span>{isArabic?"مشاهدة":"Watch"}</Link>
+      <Link href="/shorts"><span>▤</span>{isArabic?"مقاطع":"Mini’s"}</Link>
+      <Link href="/community"><span>◉</span>{isArabic?"مجتمع":"Community"}</Link>
+      <Link href="/profile"><span>◎</span>{isArabic?"ملفي":"Profile"}</Link>
+    </nav>
   </main>;
 }
