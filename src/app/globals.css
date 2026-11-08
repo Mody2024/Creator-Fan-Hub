@@ -603,3 +603,53 @@ button:disabled { opacity: .52; }
 .raye2-creator-shell .media-health-note{border-color:rgba(121,177,255,.25);background:rgba(121,177,255,.045);border-radius:12px}
 .raye2-creator-shell .media-health-note strong{color:var(--accent)}
 .raye2-creator-shell .media-health-note p{font-variant-numeric:tabular-nums}
+
+/* Raye2 Watch — priority redesign */
+.raye2-watch-library{min-height:100vh;padding:0 28px 72px;background:radial-gradient(ellipse at 50% -20%,rgba(69,119,190,.13),transparent 44%),#080b12;color:#f3f6fb}
+.raye2-watch-header{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:22px;width:min(1500px,100%);height:74px;margin:0 auto;border-bottom:1px solid rgba(220,232,248,.1);background:rgba(8,11,18,.92);backdrop-filter:blur(18px)}
+.raye2-watch-brand{display:flex;align-items:center;gap:10px;color:#f3f6fb;text-decoration:none;font-size:17px;font-weight:850;letter-spacing:-.06em}
+.raye2-watch-brand>span{display:grid;place-items:center;width:37px;height:37px;border:1px solid rgba(120,173,255,.35);border-radius:11px;background:linear-gradient(145deg,#1b304b,#101a29);color:#dcecff;font-size:19px}
+.raye2-watch-search{display:flex;align-items:center;gap:10px;width:min(470px,44vw);height:40px;margin:auto;padding:0 12px;border:1px solid rgba(220,232,248,.11);border-radius:11px;background:#101722;color:#a2afc1}
+.raye2-watch-search input{width:100%;border:0;outline:0;background:transparent;color:#f3f6fb;font:500 11px var(--font,Arial)}
+.raye2-watch-search kbd{padding:3px 6px;border:1px solid rgba(220,232,248,.12);border-radius:5px;font:10px var(--mono,monospace)}
+.raye2-watch-header nav{display:flex;align-items:center;gap:18px}
+.raye2-watch-header nav a{color:#a2afc1;text-decoration:none;font-size:10px;font-weight:700}
+.raye2-watch-layout{display:grid;grid-template-columns:190px minmax(0,850px) 245px;gap:26px;width:min(1500px,100%);margin:0 auto;padding-top:30px}
+.raye2-watch-rail{position:sticky;top:100px;align-self:start;display:grid;gap:7px}
+.raye2-watch-label{display:block;color:#8797ad;font:750 8px var(--mono,monospace);letter-spacing:.15em}
+.raye2-watch-rail>.raye2-watch-label{padding:0 11px 8px}
+.raye2-watch-rail>a{display:flex;align-items:center;gap:11px;min-height:42px;padding:0 12px;border:1px solid transparent;border-radius:10px;color:#a2afc1;text-decoration:none;font-size:11px;font-weight:700}
+.raye2-watch-rail>a.active,.raye2-watch-rail>a:hover{border-color:rgba(120,173,255,.16);background:rgba(120,173,255,.09);color:#dcecff}
+.raye2-watch-hero{position:relative;overflow:hidden;padding:32px;border:1px solid rgba(220,232,248,.08);border-radius:18px;background:linear-gradient(112deg,#17273c,#101a29 67%,#142239)}
+.raye2-watch-hero:after{content:"";position:absolute;right:-100px;bottom:-200px;width:360px;height:360px;border:1px solid rgba(120,173,255,.12);border-radius:50%;box-shadow:0 0 0 35px rgba(120,173,255,.025),0 0 0 75px rgba(120,173,255,.018)}
+.raye2-watch-hero h1{position:relative;z-index:1;margin:20px 0 12px;font-size:clamp(38px,5vw,58px);line-height:.97;letter-spacing:-.075em}
+.raye2-watch-hero h1 em{color:#9fc4ff;font-style:normal}
+.raye2-watch-hero p{position:relative;z-index:1;max-width:470px;color:#aab8ca;font-size:12px;line-height:1.8}
+.raye2-watch-hero-meta{position:relative;z-index:1;display:flex;gap:18px;margin-top:26px;color:#aabbd0;font:750 8px var(--mono,monospace);letter-spacing:.12em}
+.raye2-watch-hero-meta span{display:flex;align-items:center;gap:7px}
+.raye2-watch-hero-meta i{width:6px;height:6px;border-radius:50%;background:#78adff;box-shadow:0 0 10px #78adff}
+.raye2-watch-section-head{display:flex;align-items:end;justify-content:space-between;margin:29px 2px 15px}
+.raye2-watch-section-head h2{margin:7px 0 0;font-size:19px;letter-spacing:-.045em}
+.raye2-watch-section-head>span{color:#8797ad;font-size:9px}
+.raye2-watch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.raye2-watch-card{overflow:hidden;border:1px solid rgba(220,232,248,.1);border-radius:13px;background:linear-gradient(145deg,#111b29,#0e1520);transition:transform .18s,border-color .18s,box-shadow .18s}
+.raye2-watch-card:hover{transform:translateY(-2px);border-color:rgba(120,173,255,.32);box-shadow:0 16px 36px rgba(0,0,0,.2)}
+.raye2-watch-card-media{position:relative;display:block;overflow:hidden;aspect-ratio:16/9;background:#080d16}
+.raye2-watch-card-media .nhen-player-shell,.raye2-watch-card-media video,.raye2-watch-card-media iframe{width:100%;height:100%;aspect-ratio:16/9;object-fit:cover}
+.raye2-watch-play{position:absolute;right:13px;bottom:13px;display:grid;place-items:center;width:34px;height:34px;border:1px solid rgba(255,255,255,.2);border-radius:50%;background:rgba(8,11,18,.78);color:#fff;font-size:11px;pointer-events:none}
+.raye2-watch-card-copy{padding:14px 15px 16px}
+.raye2-watch-card-copy h3{margin:9px 0 6px;font-size:14px;line-height:1.35;letter-spacing:-.025em}
+.raye2-watch-card-copy h3 a{color:#f3f6fb;text-decoration:none}
+.raye2-watch-card-copy p{display:-webkit-box;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;margin:0;color:#a2afc1;font-size:10px;line-height:1.65}
+.raye2-watch-card-copy time{display:block;margin-top:11px;color:#8190a4;font-size:9px}
+.raye2-watch-aside{position:sticky;top:100px;align-self:start}
+.raye2-watch-aside section{padding:17px;border:1px solid rgba(220,232,248,.09);border-radius:13px;background:linear-gradient(155deg,#121d2b,#0e1520)}
+.raye2-watch-aside h2{margin:12px 0 8px;font-size:16px;letter-spacing:-.04em}
+.raye2-watch-aside p{color:#a2afc1;font-size:10px;line-height:1.7}
+.raye2-watch-aside a{display:block;margin-top:13px;color:#a9cbfa;text-decoration:none;font-size:10px;font-weight:750}
+.raye2-watch-empty{padding:45px 22px;border:1px dashed rgba(220,232,248,.17);border-radius:14px;text-align:center;background:rgba(16,23,34,.45)}
+.raye2-watch-empty>span{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 15px;border:1px solid rgba(120,173,255,.24);border-radius:50%;color:#9fc4ff}
+.raye2-watch-empty h2{font-size:16px}
+.raye2-watch-empty p{color:#a2afc1;font-size:11px}
+@media(max-width:1100px){.raye2-watch-layout{grid-template-columns:170px minmax(0,1fr);gap:20px}.raye2-watch-aside{display:none}}
+@media(max-width:700px){.raye2-watch-library{padding:0 14px 90px}.raye2-watch-header{height:62px;gap:10px;margin:0 -14px;padding:0 14px}.raye2-watch-brand{font-size:14px}.raye2-watch-brand>span{width:34px;height:34px}.raye2-watch-header nav{display:none}.raye2-watch-search{width:auto;flex:1;height:36px;margin:0}.raye2-watch-search input{font-size:10px}.raye2-watch-search input::placeholder{font-size:0}.raye2-watch-search kbd{display:none}.raye2-watch-layout{display:block;padding-top:17px}.raye2-watch-rail{display:none}.raye2-watch-hero{padding:23px 19px;border-radius:15px}.raye2-watch-hero h1{font-size:43px}.raye2-watch-hero p{font-size:11px}.raye2-watch-grid{grid-template-columns:1fr;gap:12px}.raye2-watch-card-copy{padding:12px}.raye2-watch-card-copy h3{font-size:13px}}

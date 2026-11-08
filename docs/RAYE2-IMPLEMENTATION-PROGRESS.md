@@ -640,3 +640,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Respect reduced-motion preferences and safe-area padding on mobile.
 - [ ] Verify visual output at mobile/tablet/desktop breakpoints and Arabic RTL in preview.
 - [ ] Extend shared shell components to Watch, Explore, profile and Creator Studio before calling redesign wave complete.
+
+
+## 2026-11-08 — Priority 3: Watch library redesign and publication safety
+- [x] Replace legacy NHEN watch library shell with Raye2 header, navigation, discovery hero, responsive cards and discovery sidebar.
+- [x] Use the shared black/white/grey/blue visual direction.
+- [x] Hide native videos until processing status is ready.
+- [x] Validate native public storage object segments and require same-origin HTTPS URLs.
+- [x] Reuse safe generated thumbnails when available.
+- [x] Add regression tests for new shell and media publication gates.
+- [ ] Redesign individual watch detail page and player action surfaces.
+- [ ] Verify mobile, desktop, Arabic RTL and actual media playback in preview.

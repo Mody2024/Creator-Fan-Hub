@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
+import {readFileSync} from "node:fs";
 
 const page=await readFile(new URL("../src/app/watch/[slug]/page.tsx",import.meta.url),"utf8");
 const catalog=await readFile(new URL("../src/app/videos/public-videos.tsx",import.meta.url),"utf8");
@@ -52,4 +53,20 @@ test("public video cards use only safe same-origin generated thumbnails",()=>{
  assert.ok(catalog.includes('media.thumbnail_path?.startsWith("creator-media-public/")'));
  assert.ok(catalog.includes("parsedPosterUrl.origin === parsedVideoUrl.origin"));
  assert.ok(catalog.includes("poster={video.poster}"));
+});
+
+test("Raye2 watch library uses the new brand shell and responsive discovery cards",()=>{
+ const page=readFileSync(new URL("../src/app/watch/page.tsx",import.meta.url),"utf8");
+ assert.ok(page.includes("raye2-watch-header"));
+ assert.ok(page.includes("raye2-watch-hero"));
+ assert.ok(page.includes("raye2-watch-grid"));
+ assert.ok(page.includes("Raye2"));
+ assert.ok(!page.includes("Nhen?"));
+});
+test("watch library only lists processed native videos and validates public storage URLs",()=>{
+ const page=readFileSync(new URL("../src/app/watch/page.tsx",import.meta.url),"utf8");
+ assert.ok(page.includes("processing_status"));
+ assert.ok(page.includes('media.processing_status!=="ready"'));
+ assert.ok(page.includes("parts.slice(1).every"));
+ assert.ok(page.includes('parsed.protocol!=="https:"'));
 });
