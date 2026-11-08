@@ -43,3 +43,15 @@ test("video studio supports removing the selected video from an owned playlist",
  assert.ok(studio.includes('.from("video_playlist_items").delete().eq("playlist_id",playlistId).eq("media_id",selected)'));
  assert.ok(studio.includes("{t.remove}"));
 });
+
+
+test("video studio only offers assets returned by the owner-scoped processing status RPC",()=>{
+ assert.ok(studio.includes("rawAssets.filter(asset=>processingById.has(asset.media_id))"));
+ assert.ok(studio.includes('rpc("get_creator_media_processing_status"'));
+});
+
+test("video studio English and Arabic labels include processing and playlist actions",()=>{
+ for(const label of ["processingError","processingReady","processingWaiting","processingRunning","processingFailed","remove","removed"]) assert.ok(studio.includes(label));
+ assert.ok(studio.includes('removed:"Video removed from playlist.",savedPublic:'));
+ assert.ok(studio.includes('removed:"تمت إزالة الفيديو من القائمة.",savedPublic:'));
+});

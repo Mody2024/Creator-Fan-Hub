@@ -5,7 +5,7 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `183de2e7622b8bea5c9a4f98572fc118e7213d48` (2026-11-08; previous validator failure identified and corrected in the next batch).
+- Snapshot commit reviewed: `67e9e926b56e6eefd2e810af06574fb6c3a4301d` (2026-11-08; test suite passed but TypeScript caught a missing locale separator, corrected in this batch).
 
 ## Progress snapshot — 2026-11-08
 
@@ -551,10 +551,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 
 ## Video Studio workflow batch — 2026-11-08
 - [x] Fix both stale static-validator assertions after the media library gained a third filter.
-- [x] Load owner-authorized processing status before rendering native video publication controls.
+- [x] Load owner-authorized processing status before rendering native video publication controls; restrict studio source choices to media IDs returned by that owner-scoped RPC.
 - [x] Show waiting/processing/ready/failed state in the source selector in English and Arabic.
 - [x] Disable native watch-page publication until processing is ready; retain the YouTube external-source path.
 - [x] Show the worker's processing error for failed selected assets.
 - [x] Allow creators to remove the selected owned video from their own playlists under existing RLS.
 - [x] Add regression coverage for processing-aware publication and playlist removal.
 - [ ] Verify the new flow against an isolated Supabase database with the migrations applied.
+
+- [x] Fix TypeScript locale syntax and complete Arabic processing/playlist labels after CI caught the missing comma.
