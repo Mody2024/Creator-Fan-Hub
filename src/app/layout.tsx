@@ -6,19 +6,19 @@ import LanguageSwitch from "./language-switch";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
-  const description = config.tagline || "Nhen? (نهين؟) — join the community, share ideas and shape what comes next."; 
+  const description = config.tagline || "Raye2 — videos, creators and communities, connected."; 
   return {
-    applicationName: config.siteName,
-    title: { default: config.siteName, template: "%s | " + config.siteName },
+    applicationName: "Raye2",
+    title: { default: "Raye2", template: "%s | Raye2" },
     description,
-    openGraph: { type: "website", siteName: "Nhen? / نهين؟", title: "Nhen? — نهين؟", description, locale: "en_US", alternateLocale: ["ar_EG"] },
-    twitter: { card: "summary", title: "Nhen? — نهين؟", description },
+    openGraph: { type: "website", siteName: "Raye2", title: "Raye2", description, locale: "en_US", alternateLocale: ["ar_EG"] },
+    twitter: { card: "summary", title: "Raye2", description },
     robots: { index: true, follow: true },
   };
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0b0b10",
+  themeColor: "#080b12",
   colorScheme: "dark",
 };
 

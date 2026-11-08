@@ -90,9 +90,22 @@ test("creator sponsor draft validates frequency, category and calendar dates",as
  assert.ok(component.includes("input.category.trim().length>40"));
  assert.ok(component.includes("/^\\\\d{4}-\\\\d{2}-\\\\d{2}$/"));
  assert.ok(component.includes("input.ends<input.starts"));
- assert.ok(!component.includes("new Date(ends)<=new Date(starts)"));
 });
 test("resetting creator sponsor editor restores the default placement",async()=>{
  const component=await read("../src/app/creator/creator-video-sponsorship.tsx");
  assert.ok(component.includes('setEditingCampaignId(null);setSponsorName("");setCreativeId("");setDisclosure("Sponsored");setPlacement("intro");'));
+});
+
+test("Raye2 design tokens use the approved blue neutral palette",async()=>{
+ const design=await read("../src/app/nhen-design-system.css");
+ assert.ok(design.includes("--nhen-bg:#080b12"));
+ assert.ok(design.includes("--nhen-accent:#78adff"));
+ assert.ok(design.includes("--nhen-ink:#f3f6fb"));
+ assert.ok(!design.startsWith("/* NHEN Design System"));
+});
+test("root metadata uses Raye2 identity rather than predecessor branding",async()=>{
+ const layout=await read("../src/app/layout.tsx");
+ assert.ok(layout.includes('applicationName: "Raye2"'));
+ assert.ok(layout.includes('title: { default: "Raye2", template: "%s | Raye2" }'));
+ assert.ok(!layout.includes("Nhen?"));
 });

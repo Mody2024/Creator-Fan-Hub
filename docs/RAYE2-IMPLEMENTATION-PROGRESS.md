@@ -618,3 +618,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add regression contracts for validation and reset behavior.
 - [ ] Verify CI and Vercel preview for this commit.
 - [ ] Exercise Supabase RLS and database triggers with real creator/admin accounts before enabling delivery.
+
+
+## 2026-11-08 — Redesign wave foundation: palette and brand metadata
+- [x] Replace legacy pink/purple design-system root tokens with the approved black/white/grey/blue palette.
+- [x] Align global base tokens and light/dark theme surfaces with the Raye2 neutral-blue direction.
+- [x] Replace predecessor Nhen? metadata with Raye2 identity in application, page title and social metadata.
+- [x] Add regression contracts for palette and brand metadata.
+- [ ] Migrate every route from legacy selector names and page-specific color variables to shared Raye2 tokens.
+- [ ] Rebuild shared navigation, feed, watch, profile, Studio, community, messaging and admin surfaces.
+- [ ] Complete desktop/tablet/mobile and Arabic RTL visual acceptance.
+- [ ] Re-run CI and preview verification for this commit.
