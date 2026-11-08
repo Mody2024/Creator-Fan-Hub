@@ -23,7 +23,7 @@ export default function SponsorAnalytics({mediaId}:{mediaId:string}){
  },[supabase,mediaId]);
  const exportReport=useCallback(()=>{
   if(!report)return;
-  const safeCell=(value:string|number)=>{let text=String(value??"");if(/^[\\s]*[=+\\-@]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};
+  const safeCell=(value:string|number)=>{let text=String(value??"");if(/^[\s]*[=+\-@]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};
   const rows:string[][]=[
    ["Section","Metric","Category","Provider","Currency","Status","Value","Records"],
    ["Campaigns","Total","","","","",""+report.campaigns.total,""],
@@ -37,7 +37,7 @@ export default function SponsorAnalytics({mediaId}:{mediaId:string}){
     ["External revenue","Creator share unconfirmed","",item.provider_key,item.currency,item.status,""+Number(item.creator_share_unconfirmed)," "+item.records]
    ])
   ];
-  const csv="\\uFEFF"+rows.map(row=>row.map(safeCell).join(",")).join("\\r\\n");
+  const csv="\uFEFF"+rows.map(row=>row.map(safeCell).join(",")).join("\r\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob);
   const anchor=document.createElement("a");
