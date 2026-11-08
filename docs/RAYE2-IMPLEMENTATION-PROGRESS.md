@@ -5,7 +5,7 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Snapshot commit reviewed: `920478d5a0a3290188002838f3448b3080b3aaf0` (2026-11-08; next batch pending CI).
+- Snapshot commit reviewed: `183de2e7622b8bea5c9a4f98572fc118e7213d48` (2026-11-08; previous validator failure identified and corrected in the next batch).
 
 ## Progress snapshot — 2026-11-08
 
@@ -17,7 +17,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, one fixed dark theme (black/white/grey/blue) and bilingual responsive navigation; admin-created themes are deferred post-release; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
 | 2 | Core architecture, accounts and permissions | **27%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
 | 3 | Video, feed and discovery | **22%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards support native reactions, comments, bookmarks, follow/unfollow and share with batch-loaded state; published video thumbnail assets are surfaced where configured; `/search` has been redesigned as a bilingual Raye2 Explore experience across videos, people and community posts. Full player previews, search ranking, richer recommendations and complete media journey remain. |
-| 4 | Creator Studio, exclusives and live streaming | **32%** | Creator Studio entry, upload/media lifecycle foundations, trusted worker queue, media validation, image/video/audio metadata inspection, WebP thumbnails, SHA-256 checksums, lease renewal, quota-bound thumbnail storage, processing-gated publication, processing-state dashboard/filtering and bounded creator-requested retries exist. Actual video transcoding/HLS/DASH, full creator upload/draft UX, end-to-end playback, exclusives and live ingest/delivery remain. |
+| 4 | Creator Studio, exclusives and live streaming | **34%** | Creator Studio entry, upload/media lifecycle foundations, trusted worker queue, media validation, image/video/audio metadata inspection, WebP thumbnails, SHA-256 checksums, lease renewal, quota-bound thumbnail storage, processing-gated publication, processing-state dashboard/filtering, bounded creator-requested retries, authoritative processing-state display in Video Studio, publish controls disabled until native media is ready, and playlist item removal exist. Actual video transcoding/HLS/DASH, full creator upload/draft UX, end-to-end playback, exclusives and live ingest/delivery remain. |
 | 5 | Social graph, communities and engagement | **16%** | Raye2 public/private groups, membership and moderation foundations exist. Full profiles/follows, community publishing, polls/events/collections and connected engagement surfaces remain. |
 | 6 | Messaging and chat | **85%** | Strong implementation: DMs/groups, message actions, requests, search, pins, notifications, quiet hours, moderation, invites, Shared Memories and group controls. Remaining: runtime DB/RLS acceptance, delivery/push, attachment/media lifecycle, and end-to-end operational verification. |
 | 7 | Voice and Watch Together | **55%** | Private WebRTC call path, LiveKit group-room integration path/moderation, voice preferences, Watch Together sessions/queue/playback sync exist. Real provider deployment, multi-device/network acceptance, reconnection/telemetry, consented recording pipeline, external embeds/invites and remaining session features are outstanding. |
@@ -547,3 +547,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Keep processing authority exclusively with the trusted worker; creator retry only requeues.
 - [x] Add English/Arabic labels, safe status messages, regression tests and documentation.
 - [ ] Validate the migration against isolated PostgreSQL/Supabase before applying it to any live project.
+
+
+## Video Studio workflow batch — 2026-11-08
+- [x] Fix both stale static-validator assertions after the media library gained a third filter.
+- [x] Load owner-authorized processing status before rendering native video publication controls.
+- [x] Show waiting/processing/ready/failed state in the source selector in English and Arabic.
+- [x] Disable native watch-page publication until processing is ready; retain the YouTube external-source path.
+- [x] Show the worker's processing error for failed selected assets.
+- [x] Allow creators to remove the selected owned video from their own playlists under existing RLS.
+- [x] Add regression coverage for processing-aware publication and playlist removal.
+- [ ] Verify the new flow against an isolated Supabase database with the migrations applied.

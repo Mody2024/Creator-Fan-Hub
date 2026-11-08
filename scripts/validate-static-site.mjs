@@ -96,7 +96,7 @@ check("media rows collapse safely on very narrow phones", (await read("../src/ap
 check("mobile creator form fields avoid narrow-screen text zoom", (await read("../src/app/globals.css")).includes(".poll-create-form input:not([type=\"checkbox\"]):not([type=\"color\"])") && (await read("../src/app/globals.css")).includes("font-size: 16px;"));
 
 check("event and social managers show helpful empty states", (await read("../src/app/creator/event-social-management.tsx")).includes("No events yet.") && (await read("../src/app/creator/event-social-management.tsx")).includes("No social links yet."));
-check("media search and visibility filters show a recoverable no-results state", (await read("../src/app/creator/media-library.tsx")).includes("No matching assets.") && (await read("../src/app/creator/media-library.tsx")).includes('onClick={()=>{setSearch("");setFilter("all");}}'));
+check("media search and visibility filters show a recoverable no-results state", (await read("../src/app/creator/media-library.tsx")).includes("No matching assets.") && (await read("../src/app/creator/media-library.tsx")).includes('onClick={()=>{setSearch("");setFilter("all");setProcessingFilter("all");}}'));
 check("creator settings and moderation queue loading states are announced politely", (await read("../src/app/creator/creator-settings.tsx")).includes('role="status" aria-live="polite">{status}</p>') && (await read("../src/app/creator/idea-moderation-queue.tsx")).includes('role="status" aria-live="polite">{status}</p>'));
 
 check("interactive controls have a global keyboard-focus indicator", (await read("../src/app/globals.css")).includes(":where(button, input, select, textarea, summary, [role=\"button\"], [role=\"tab\"], [role=\"switch\"]):focus-visible"));
