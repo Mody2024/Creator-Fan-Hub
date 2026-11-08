@@ -10,6 +10,7 @@ import MediaLibrary from "./media-library";
 import PublishingHistory from "./publishing-history";
 import VideoStudio from "./video-studio";
 import AchievementInsights from "./achievement-insights";
+import CreatorRewardsCenter from "./rewards-center";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export const dynamic = "force-dynamic";
@@ -70,6 +71,7 @@ export default async function CreatorDashboardPage() {
       <MediaLibrary />
       <VideoStudio />
       <AchievementInsights />
+      <CreatorRewardsCenter />
       <PublishingHistory />
       <p className="dashboard-disclaimer">{t.disclaimer}</p>
     </div>

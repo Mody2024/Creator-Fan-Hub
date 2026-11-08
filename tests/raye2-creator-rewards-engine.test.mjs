@@ -1,0 +1,39 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFile} from "node:fs/promises";
+const read=path=>readFile(new URL(path,import.meta.url),"utf8");
+const [migration,component,dashboard]=await Promise.all([
+ read("../supabase/migrations/20261107190000_raye2_creator_rewards_engine.sql"),
+ read("../src/app/creator/rewards-center.tsx"),
+ read("../src/app/creator/page.tsx")
+]);
+test("creator rewards ledger records recognition credits with auditable status and duplicate protection",()=>{
+ assert.ok(migration.includes("unique (creator_id,reward_code,source_ref)"));
+ assert.ok(migration.includes("status text not null default 'awarded' check (status in ('awarded','revoked'))"));
+ assert.ok(migration.includes("granted_by uuid"));
+ assert.ok(migration.includes("revoked_by uuid"));
+ assert.ok(migration.includes("points integer not null check (points between 1 and 1000000)"));
+});
+test("only owner/admin may configure, grant, or revoke rewards",()=>{
+ for(const fn of ["raye2_admin_upsert_creator_reward_rule","raye2_admin_grant_creator_reward","raye2_admin_revoke_creator_reward"]){
+  assert.ok(migration.includes("function public."+fn));
+ }
+ assert.equal((migration.match(/ca.role in \('owner','admin'\)/g)||[]).length,3);
+ assert.ok(migration.includes("target must be an active creator or editor"));
+});
+test("creator reward summary and history are scoped to the signed-in creator",()=>{
+ assert.ok(migration.includes("l.creator_id=(select auth.uid())"));
+ assert.ok(migration.includes("creator_id=(select auth.uid())"));
+ assert.ok(migration.includes("revoke all on public.raye2_creator_reward_rules,public.raye2_creator_reward_ledger from public,anon,authenticated"));
+});
+test("creator rewards UI clearly distinguishes points from cash and displays history",()=>{
+ assert.ok(component.includes("recognition credits, not cash"));
+ assert.ok(component.includes("Reward history"));
+ assert.ok(component.includes("raye2_creator_reward_summary"));
+ assert.ok(component.includes("raye2_creator_reward_ledger"));
+ assert.ok(component.includes("Revoked awards are excluded"));
+});
+test("creator dashboard mounts the rewards center",()=>{
+ assert.ok(dashboard.includes("CreatorRewardsCenter"));
+ assert.ok(dashboard.includes("<CreatorRewardsCenter />"));
+});
