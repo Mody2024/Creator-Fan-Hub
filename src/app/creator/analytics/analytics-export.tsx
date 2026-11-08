@@ -4,26 +4,52 @@ type Metric = { title: string; views: number; reactions: number; comments: numbe
 
 function safeCell(value: string | number) {
   let text = String(value ?? "");
-  if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+  if (/^[\\s]*[=+\\-@]/.test(text)) text = "'" + text;
   return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function interactionRate(item: Pick<Metric, "views" | "reactions" | "comments">) {
+  return item.views > 0 ? Number((((item.reactions + item.comments) / item.views) * 100).toFixed(2)) : 0;
 }
 
 export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Metric[]; locale?: "en"|"ar" }) {
   function download() {
-    const header = locale==="ar" ? ["الفيديو", "تاريخ النشر", "المشاهدات", "التفاعلات", "التعليقات المعتمدة"] : ["Video", "Published", "Views", "Reactions", "Approved comments"];
-    const rows = metrics.map(item => [
+    const isArabic = locale === "ar";
+    const header = isArabic
+      ? ["نوع الصف", "الترتيب", "الفيديو", "تاريخ النشر", "المشاهدات", "التفاعلات", "التعليقات المعتمدة", "التفاعلات لكل 100 مشاهدة"]
+      : ["Row type", "Views rank", "Video", "Published", "Views", "Reactions", "Approved comments", "Interactions per 100 views"];
+    const totals = metrics.reduce((sum, item) => ({
+      views: sum.views + Number(item.views || 0),
+      reactions: sum.reactions + Number(item.reactions || 0),
+      comments: sum.comments + Number(item.comments || 0)
+    }), { views: 0, reactions: 0, comments: 0 });
+    const summary = [
+      isArabic ? "الإجمالي" : "TOTAL",
+      "",
+      isArabic ? "كل الفيديوهات" : "All videos",
+      "",
+      totals.views,
+      totals.reactions,
+      totals.comments,
+      interactionRate(totals)
+    ];
+    const ranked = [...metrics].sort((a, b) => Number(b.views) - Number(a.views));
+    const rows = ranked.map((item, index) => [
+      isArabic ? "فيديو" : "VIDEO",
+      index + 1,
       item.title,
-      item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : (locale==="ar" ? "مسودة" : "Draft"),
+      item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : (isArabic ? "مسودة" : "Draft"),
       item.views,
       item.reactions,
-      item.comments
+      item.comments,
+      interactionRate(item)
     ]);
-    const csv = "\uFEFF" + [header, ...rows].map(row => row.map(safeCell).join(",")).join("\r\n");
+    const csv = "\uFEFF" + [header, summary, ...rows].map(row => row.map(safeCell).join(",")).join("\\r\\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = locale==="ar" ? "raye2-video-analytics-ar.csv" : "raye2-video-analytics.csv";
+    anchor.download = isArabic ? "raye2-video-analytics-ar.csv" : "raye2-video-analytics.csv";
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();
