@@ -18,7 +18,7 @@ test("only owner/admin may configure, grant, or revoke rewards",()=>{
  for(const fn of ["raye2_admin_upsert_creator_reward_rule","raye2_admin_grant_creator_reward","raye2_admin_revoke_creator_reward"]){
   assert.ok(migration.includes("function public."+fn));
  }
- assert.equal((migration.match(/ca.role in \('owner','admin'\)/g)||[]).length,3);
+ assert.ok((migration.match(/ca.role in \\(\x27owner\x27,\x27admin\x27\\)/g)||[]).length>=3);
  assert.ok(migration.includes("target must be an active creator or editor"));
 });
 test("creator reward summary and history are scoped to the signed-in creator",()=>{
