@@ -159,7 +159,7 @@ check("creator can edit existing events", contentManager.includes("p_event_id:ed
 check("event edits preserve the existing publication status", contentManager.includes("Event updated; its publication status was preserved."));
 check("creator can edit existing social links", contentManager.includes("setEditingLinkId(l.link_id)") && contentManager.includes("p_link_id:editingLinkId||null") && contentManager.includes("Update link ↗"));
 check("media library supports editing asset metadata without replacing files", media.includes("async function saveMetadata") && media.includes("p_storage_path:item.storage_path") && media.includes("Publication status and file URL were preserved."));
-check("media library supports searching and filtering assets", media.includes("setSearch") && media.includes("setFilter") && media.includes("rows.filter(item=>"));
+check("media library supports searching, visibility and processing filters", media.includes("setSearch") && media.includes("setFilter") && media.includes("processingFilter") && media.includes("visibleRows = useMemo"));
 check("media library reports refresh progress and catches auth/storage failures", media.includes("setReady(false)") && media.includes("finally {\n      setReady(true);") && media.includes("Could not load the media library. Check your connection and try again."));
 check("media previews are limited to expected storage buckets and visibility", media.includes('["creator-media-private","creator-media-public"].includes(bucket)') && media.includes('bucket === "creator-media-public" && item.is_published') && media.includes('bucket === "creator-media-private" && !item.is_published'));
 check("media library reports unavailable previews rather than silently implying success", media.includes("some previews are unavailable. Check storage permissions and file paths."));
@@ -211,7 +211,7 @@ check("media metadata RPCs require creator-owned storage paths and grant only au
 
 
 check("event and social managers show helpful empty states", eventSocial.includes("No events yet.") && eventSocial.includes("No social links yet."));
-check("media filters provide a clearable no-results state", media.includes("No matching assets.") && media.includes('onClick={()=>{setSearch("");setFilter("all");}}'));
+check("media filters provide a clearable no-results state", media.includes("No matching assets.") && media.includes('onClick={()=>{setSearch("");setFilter("all");setProcessingFilter("all");}'));
 check("poll and idea empty states are announced to assistive technology", pollManagement.includes('className="moderation-empty" role="status">{t.empty}</p>') && ideasModeration.includes('className="moderation-empty" role="status"><h3>{t.empty}</h3>'));
 check("publishing history explains the first-version empty state", historyComponent.includes('className="moderation-empty" role="status"><h3>No published versions yet.'));
 check("creator loading states are announced politely", eventSocial.includes('role="status" aria-live="polite">{status}</p>') && pollManagement.includes('role="status" aria-live="polite">{status}</p>') && media.includes('role="status" aria-live="polite">{t.loading}</p>'));

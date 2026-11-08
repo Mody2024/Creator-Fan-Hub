@@ -207,3 +207,10 @@ test("creator media library exposes processing summaries, filters, and a manual 
  assert.ok(library.includes('item.processing_status==="failed"'));
  assert.ok(library.includes("This asset has reached its manual retry limit."));
 });
+
+
+test("creator cannot publish native media until the processing worker marks it ready",()=>{
+ assert.ok(library.includes("publishNeedsReady"));
+ assert.ok(library.includes('disabled={busy||(!item.is_published&&item.media_type!=="youtube"&&item.processing_status!=="ready")}'));
+ assert.ok(library.includes('item.media_type!=="youtube"&&item.processing_status!=="ready"?t.publishNeedsReady:undefined'));
+});
