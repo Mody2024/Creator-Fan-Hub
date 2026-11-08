@@ -99,7 +99,7 @@ test("creator library handles public media previews and removes private thumbnai
 });
 
 test("worker rejects media with missing or invalid primary streams and bounds processing duration",()=>{
- assert.ok(worker.includes("streams.find(stream => stream.codec_type === expectedType)"));
+ assert.ok(worker.includes("streams.find(stream => stream.codec_type === expectedType && (expectedType !== \"video\" || Number(stream.disposition?.attached_pic ?? 0) !== 1))"));
  assert.ok(worker.includes("Uploaded ${expectedType} file contains no ${expectedType} stream."));
  assert.ok(worker.includes("duration > 21600"));
  assert.ok(worker.includes("width > 7680 || height > 4320"));
