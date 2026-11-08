@@ -17,5 +17,5 @@ test("content highlights rank videos by actual views and interactions per view",
 test("analytics insights remain aggregate and avoid quality or reach guarantees",()=>{
  assert.ok(page.includes("Aggregate only"));
  assert.ok(page.includes("not a quality score or a promise of reach"));
- assert.ok(page.includes("viewer identities are not exposed"));
+ assert.ok(page.includes("Viewer identities are not exposed."));
 });
