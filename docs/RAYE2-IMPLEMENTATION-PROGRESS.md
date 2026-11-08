@@ -651,3 +651,11 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add regression tests for new shell and media publication gates.
 - [ ] Redesign individual watch detail page and player action surfaces.
 - [ ] Verify mobile, desktop, Arabic RTL and actual media playback in preview.
+
+
+## 2026-11-08 — Priority 3 continued: watch detail and discussion surfaces
+- [x] Rebuild individual watch detail shell with a player-first layout and Raye2 header.
+- [x] Restyle reaction picker, save/share controls, description, tags and comments.
+- [x] Add mobile layout and Arabic RTL layout direction.
+- [x] Preserve existing reaction, bookmark, comment moderation and view-recording behavior.
+- [ ] Verify actual video playback, keyboard interaction, visual breakpoints and CI on latest commit.

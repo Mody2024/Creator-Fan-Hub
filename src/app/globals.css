@@ -653,3 +653,50 @@ button:disabled { opacity: .52; }
 .raye2-watch-empty p{color:#a2afc1;font-size:11px}
 @media(max-width:1100px){.raye2-watch-layout{grid-template-columns:170px minmax(0,1fr);gap:20px}.raye2-watch-aside{display:none}}
 @media(max-width:700px){.raye2-watch-library{padding:0 14px 90px}.raye2-watch-header{height:62px;gap:10px;margin:0 -14px;padding:0 14px}.raye2-watch-brand{font-size:14px}.raye2-watch-brand>span{width:34px;height:34px}.raye2-watch-header nav{display:none}.raye2-watch-search{width:auto;flex:1;height:36px;margin:0}.raye2-watch-search input{font-size:10px}.raye2-watch-search input::placeholder{font-size:0}.raye2-watch-search kbd{display:none}.raye2-watch-layout{display:block;padding-top:17px}.raye2-watch-rail{display:none}.raye2-watch-hero{padding:23px 19px;border-radius:15px}.raye2-watch-hero h1{font-size:43px}.raye2-watch-hero p{font-size:11px}.raye2-watch-grid{grid-template-columns:1fr;gap:12px}.raye2-watch-card-copy{padding:12px}.raye2-watch-card-copy h3{font-size:13px}}
+
+/* Raye2 Watch detail — player-first viewing layout */
+.raye2-detail-page{min-height:100vh;padding:0 28px 70px;background:radial-gradient(ellipse at 50% -18%,rgba(69,119,190,.12),transparent 44%),#080b12;color:#f3f6fb}
+.raye2-detail-header{position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:22px;width:min(1420px,100%);height:72px;margin:0 auto;border-bottom:1px solid rgba(220,232,248,.1);background:rgba(8,11,18,.92);backdrop-filter:blur(18px)}
+.raye2-detail-brand{display:flex;align-items:center;gap:9px;color:#f3f6fb;text-decoration:none;font-size:17px;font-weight:850;letter-spacing:-.06em}
+.raye2-detail-brand-mark{color:#78adff}
+.raye2-detail-header nav{display:flex;align-items:center;gap:clamp(10px,2vw,25px)}
+.raye2-detail-header nav a{color:#a2afc1;text-decoration:none;font-size:10px;font-weight:700}
+.raye2-detail-layout{display:grid;grid-template-columns:minmax(0,900px) minmax(220px,290px);gap:24px;width:min(1420px,100%);margin:0 auto;padding-top:30px}
+.raye2-detail-main{min-width:0}
+.raye2-detail-player{overflow:hidden;border:1px solid rgba(220,232,248,.12);border-radius:16px;background:#03060a;box-shadow:0 22px 55px rgba(0,0,0,.26)}
+.raye2-detail-player .nhen-player-shell{width:100%;aspect-ratio:16/9}
+.raye2-detail-player video,.raye2-detail-player iframe{display:block;width:100%;height:100%;aspect-ratio:16/9;object-fit:contain}
+.raye2-detail-title{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:22px 2px 15px}
+.raye2-detail-title h1{margin:9px 0 7px;font-size:clamp(22px,3vw,32px);line-height:1.12;letter-spacing:-.055em;overflow-wrap:anywhere}
+.raye2-detail-title p{margin:0;color:#91a0b4;font-size:10px}
+.raye2-detail-title>.nhen-pill{flex:0 0 auto;margin-top:17px;border:1px solid rgba(120,173,255,.22);background:rgba(120,173,255,.09);color:#b9d5fb}
+.raye2-detail-actions{position:relative;display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:0 0 19px;border-bottom:1px solid rgba(220,232,248,.1)}
+.raye2-detail-actions>button,.raye2-detail-reaction>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:0 13px;border:1px solid rgba(220,232,248,.12);border-radius:10px;background:#111b29;color:#c7d3e2;font-size:10px;font-weight:750;cursor:pointer}
+.raye2-detail-actions button:hover{border-color:rgba(120,173,255,.36);background:#17263a}
+.raye2-detail-actions button.active,.raye2-detail-reaction>button.active{border-color:rgba(120,173,255,.38);background:rgba(120,173,255,.13);color:#dcecff}
+.raye2-detail-actions button:disabled{opacity:.55;cursor:wait}
+.raye2-detail-reaction{position:relative}
+.raye2-detail-picker{position:absolute;z-index:25;top:calc(100% + 8px);left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:260px;padding:9px;border:1px solid rgba(220,232,248,.15);border-radius:13px;background:#111b29;box-shadow:0 18px 44px rgba(0,0,0,.42)}
+.raye2-detail-picker button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:64px;border:1px solid transparent;border-radius:9px;background:transparent;color:#c7d3e2;font-size:9px;cursor:pointer}
+.raye2-detail-picker button:hover,.raye2-detail-picker button.active{border-color:rgba(120,173,255,.25);background:rgba(120,173,255,.1)}
+.raye2-detail-description,.raye2-detail-comments{margin-top:16px;padding:19px;border:1px solid rgba(220,232,248,.1);border-radius:13px;background:linear-gradient(145deg,#111b29,#0e1520)}
+.raye2-detail-description h2,.raye2-detail-comments h2{margin:0 0 10px;font-size:14px;letter-spacing:-.03em}
+.raye2-detail-description>p,.raye2-detail-comments>p{color:#aab7c8;font-size:11px;line-height:1.8;white-space:pre-wrap}
+.raye2-detail-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.raye2-detail-tags span{padding:6px 9px;border:1px solid rgba(120,173,255,.17);border-radius:999px;background:rgba(120,173,255,.07);color:#a9cbfa;font-size:9px}
+.raye2-detail-comments .nhen-card-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.raye2-detail-comments .nhen-card-heading h2{margin:0}
+.raye2-detail-compose{display:grid;justify-items:end;gap:9px;margin:16px 0}
+.raye2-detail-compose textarea{width:100%;min-height:86px;padding:12px;border:1px solid rgba(220,232,248,.13);border-radius:10px;outline:0;resize:vertical;background:#0b121d;color:#f3f6fb;font:11px/1.7 var(--font,Arial)}
+.raye2-detail-compose textarea:focus{border-color:rgba(120,173,255,.55)}
+.raye2-detail-compose button{min-height:36px;padding:0 14px;border:0;border-radius:9px;background:#78adff;color:#071321;font-size:10px;font-weight:800}
+.raye2-detail-comment{padding:13px 0;border-top:1px solid rgba(220,232,248,.08)}
+.raye2-detail-comment p{margin:0 0 7px;color:#d9e1ed;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.raye2-detail-comment time{color:#8797ad;font-size:9px}
+.raye2-detail-page .nhen-mod-notice{margin-top:14px;padding:11px 13px;border:1px solid rgba(120,173,255,.2);border-radius:10px;background:rgba(120,173,255,.08);color:#c6dcfa;font-size:10px}
+.raye2-detail-layout:after{content:"RAYE2 WATCH  /  MADE FOR DISCOVERY";align-self:start;grid-column:2;grid-row:1;margin-top:8px;padding:17px;border:1px solid rgba(220,232,248,.1);border-radius:12px;background:linear-gradient(145deg,#111b29,#0e1520);color:#8ea1bb;font:750 8px var(--mono,monospace);letter-spacing:.14em;line-height:1.8}
+.raye2-detail-page[dir="rtl"] .raye2-detail-title{flex-direction:row-reverse}
+.raye2-detail-page[dir="rtl"] .raye2-detail-picker{left:auto;right:0}
+.raye2-detail-page[dir="rtl"] .raye2-detail-actions{flex-direction:row-reverse}
+@media(max-width:900px){.raye2-detail-layout{grid-template-columns:minmax(0,1fr)}.raye2-detail-layout:after{display:none}}
+@media(max-width:650px){.raye2-detail-page{padding:0 12px 45px}.raye2-detail-header{height:60px;margin:0 -12px;padding:0 13px}.raye2-detail-header nav{gap:10px}.raye2-detail-header nav a{font-size:9px}.raye2-detail-header nav a:nth-child(n+3){display:none}.raye2-detail-layout{padding-top:13px}.raye2-detail-player{margin:0 -12px;border-radius:0;border-inline:0}.raye2-detail-title{gap:8px;padding-top:17px}.raye2-detail-title h1{font-size:22px}.raye2-detail-title>.nhen-pill{font-size:8px;padding:5px 7px}.raye2-detail-actions{gap:6px}.raye2-detail-actions>button,.raye2-detail-reaction>button{min-height:36px;padding:0 10px;font-size:9px}.raye2-detail-description,.raye2-detail-comments{padding:15px}.raye2-detail-picker{width:min(260px,calc(100vw - 32px))}}

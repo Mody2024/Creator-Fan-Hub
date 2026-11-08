@@ -70,3 +70,12 @@ test("watch library only lists processed native videos and validates public stor
  assert.ok(page.includes("parts.slice(1).every"));
  assert.ok(page.includes('parsed.protocol!=="https:"'));
 });
+
+test("Raye2 watch detail uses the player-first branded responsive layout",()=>{
+ const client=readFileSync(new URL("../src/app/watch/[slug]/watch-detail-client.tsx",import.meta.url),"utf8");
+ assert.ok(client.includes("raye2-detail-page"));
+ assert.ok(client.includes("raye2-detail-player"));
+ assert.ok(client.includes("raye2-detail-comments"));
+ assert.ok(client.includes("raye2-detail-actions"));
+ assert.ok(client.includes('dir={isArabic?"rtl":"ltr"}'));
+});
