@@ -724,3 +724,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Migrate existing saved Creator Settings drafts that still use #C8FF4D to the Raye2 blue default.
 - [x] Update legacy brand regression tests to assert Raye2 identity and blue accents.
 - [ ] Verify CI and inspect the deployed homepage, Creator Settings, logo studio and admin screens.
+
+
+## 2026-11-09 — Creator Studio / Video publishing batch
+- [x] Add at-a-glance counts for owned eligible video sources, ready sources, processing sources and private watch-page drafts.
+- [x] Add catalog search across video title, slug, description, category and tags.
+- [x] Add All / Published / Draft filters with accessible pressed-state controls.
+- [x] Highlight the currently selected video without changing publishing or ownership rules.
+- [x] Add responsive metrics and catalog-control styling.
+- [x] Add regression tests for readiness metrics, filtering behavior and responsive controls.
+- [ ] Run CI and inspect preview before marking the batch verified.
