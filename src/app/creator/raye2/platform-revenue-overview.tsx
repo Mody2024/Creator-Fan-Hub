@@ -6,7 +6,7 @@ type Delivery={source_type:string;inventory:string;event_type:string;event_count
 type Counts={total:number;active:number;paused:number;draft:number};
 type Report={scope:string;revenue_by_source_currency_status:Revenue[];delivery_by_source_event:Delivery[];campaign_counts:{creator_contract:Counts;platform:Counts};payment_execution_enabled:boolean;viewer_identity_data_exposed:boolean};
 const money=(amount:number|string,currency:string)=>new Intl.NumberFormat(undefined,{style:"currency",currency,maximumFractionDigits:2}).format(Number(amount)||0);
-const csvCell=(value:string|number)=>{let text=String(value??"");if(/^\\s*[=+@-]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};
+const csvCell=(value:string|number)=>{let text=String(value??"");if(/^\s*[=+@-]/.test(text))text="'"+text;return '"'+text.replace(/"/g,'""')+'"';};
 export default function PlatformRevenueOverview(){
  const [report,setReport]=useState<Report|null>(null),[busy,setBusy]=useState(false);
  const [notice,setNotice]=useState("Load aggregate sponsorship finance and delivery reporting.");
@@ -29,7 +29,7 @@ export default function PlatformRevenueOverview(){
    ["Campaigns","creator_contract","","","","total="+report.campaign_counts.creator_contract.total,"","","","","","","","active="+report.campaign_counts.creator_contract.active,"paused="+report.campaign_counts.creator_contract.paused+"; draft="+report.campaign_counts.creator_contract.draft],
    ["Campaigns","platform","","","","total="+report.campaign_counts.platform.total,"","","","","","","","active="+report.campaign_counts.platform.active,"paused="+report.campaign_counts.platform.paused+"; draft="+report.campaign_counts.platform.draft]
   ];
-  const csv="\\uFEFF"+[header,...revenueRows,...deliveryRows,...campaignRows].map(row=>row.map(csvCell).join(",")).join("\\r\\n");
+  const csv="\uFEFF"+[header,...revenueRows,...deliveryRows,...campaignRows].map(row=>row.map(csvCell).join(",")).join("\r\n");
   const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
   const url=URL.createObjectURL(blob);const anchor=document.createElement("a");
   anchor.href=url;anchor.download="raye2-platform-finance-and-delivery.csv";

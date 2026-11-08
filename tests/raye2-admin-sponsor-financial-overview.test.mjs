@@ -31,7 +31,9 @@ test("admin UI displays sponsor delivery and finance without claiming payment ex
  assert.ok(component.includes("const revenueRows=rows.map"));
  assert.ok(component.includes("const deliveryRows=report.delivery_by_source_event.map"));
  assert.ok(component.includes("const campaignRows=["));
- assert.ok(component.includes("/^\\\\s*[=+@-]/.test(text)"));
+ assert.ok(component.includes(String.raw\`/^\s*[=+@-]/.test(text)\`));
+ assert.ok(component.includes(String.raw\`const csv="\uFEFF"\`));
+ assert.ok(component.includes(String.raw\`.join("\r\n")\`));
  assert.ok(component.includes("Amounts are grouped by currency and must not be added across currencies."));
 });
 test("Raye2 admin page exposes a dedicated revenue tab",()=>{

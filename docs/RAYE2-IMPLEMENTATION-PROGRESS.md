@@ -573,3 +573,11 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [ ] Integrate a verified provider settlement adapter and reconciliation process before claiming executable payouts. Payment execution remains disabled.
 
 **Progress accounting correction:** the detailed ten-wave roadmap in this file is the source of truth for whole-platform estimates. The previous conversational 46% estimate was not supported by the roadmap and is withdrawn. Current baseline remains approximately 38% pending a full evidence-based recalculation; this CSV/reporting batch is a narrow increment and does not justify a multi-point overall increase.
+
+
+## 2026-11-08 — Finance CSV serialization hardening
+- [x] Correct the formula-leading cell guard to use an actual whitespace regex (rather than matching a literal backslash sequence).
+- [x] Correct UTF-8 BOM and CRLF serialization so spreadsheet imports receive actual control characters.
+- [x] Strengthen regression assertions to lock the exact regex and serialization contract.
+- [ ] Re-run CI and verify the latest development preview before calling the export batch release-ready.
+- [ ] Live admin/non-admin RLS and populated-ledger acceptance remains required.
