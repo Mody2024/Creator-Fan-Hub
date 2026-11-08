@@ -581,3 +581,9 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Strengthen regression assertions to lock the exact regex and serialization contract.
 - [ ] Re-run CI and verify the latest development preview before calling the export batch release-ready.
 - [ ] Live admin/non-admin RLS and populated-ledger acceptance remains required.
+
+
+## 2026-11-08 — Finance export regression test repair
+- [x] Correct malformed JavaScript template-literal syntax in the CSV serialization assertions.
+- [x] Assert the literal source contract for the whitespace guard, UTF-8 BOM and CRLF separators without using nested template literals.
+- [ ] Re-run full CI after this repair.
