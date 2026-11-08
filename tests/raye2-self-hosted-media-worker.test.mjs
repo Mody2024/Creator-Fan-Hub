@@ -183,3 +183,27 @@ test("lease heartbeat serializes renewals and fails closed when ownership cannot
  assert.ok(worker.includes("leaseLost = true"));
  assert.ok(worker.includes("refusing stale completion"));
 });
+
+
+test("manual media retry is owner-scoped, private-only, bounded, and never marks media ready",async()=>{
+ const migration=await readFile(new URL("../supabase/migrations/20261107280000_raye2_creator_media_processing_retry.sql",import.meta.url),"utf8");
+ assert.ok(migration.includes("manual_processing_retries between 0 and 2"));
+ assert.ok(migration.includes("m.id=p_media_id and m.owner_id=v_user"));
+ assert.ok(migration.includes("v_media.media_type not in ('video','image','sprite','audio')"));
+ assert.ok(migration.includes("or v_media.is_published"));
+ assert.ok(migration.includes("v_media.processing_status<>'failed'"));
+ assert.ok(migration.includes("v_media.manual_processing_retries>=2"));
+ assert.ok(migration.includes("processing_status='uploaded'"));
+ assert.ok(migration.includes("processing_attempts=0"));
+ assert.ok(migration.includes("grant execute on function public.retry_raye2_media_processing(uuid) to authenticated"));
+ assert.ok(!migration.includes("processing_status='ready'"));
+});
+
+test("creator media library exposes processing summaries, filters, and a manual retry action",()=>{
+ assert.ok(library.includes("type ProcessingFilter ="));
+ assert.ok(library.includes("const processingCounts = useMemo"));
+ assert.ok(library.includes('value={processingFilter}'));
+ assert.ok(library.includes('supabase.rpc("retry_raye2_media_processing"'));
+ assert.ok(library.includes('item.processing_status==="failed"'));
+ assert.ok(library.includes("This asset has reached its manual retry limit."));
+});

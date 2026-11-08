@@ -75,3 +75,10 @@ Run under a process supervisor on a machine you control if you need continuous p
 - Each claimed job starts a five-minute heartbeat while processing. The trusted worker extends the matching active lease by another 20 minutes.
 - Renewal requires the service role, matching media ID and lease token, and a lease that has not already expired. Renewals are serialized; the next timer is scheduled only after the previous request finishes.
 - If renewal is rejected or cannot be confirmed, the worker fails closed and refuses to publish output under uncertain ownership. Shutdown/normal completion cancels the timer and waits for any in-flight renewal.
+
+
+## Creator recovery controls
+
+- The Creator Media Library shows counts for waiting, processing, ready and failed assets, and can filter by processing state.
+- Owners, admins and assigned creators can request a retry for their own failed private assets. The request is audited, limited to two manual retries per asset, and only requeues the item; it never marks a file ready.
+- The trusted worker remains the only component allowed to process media and complete a processing lease.
