@@ -37,3 +37,10 @@ test("media library exposes pause control and keeps interrupted upload session",
  assert.ok(library.includes("Upload interrupted. Your resumable session is retained"));
  assert.ok(library.includes("reuse_nhen_media_upload_reservation"));
 });
+
+test("creator media upload UI distinguishes preparation, transfer, metadata save and resumable pause",()=>{
+ assert.match(mediaLibrary,/uploadStage==="preparing"\?t\.uploadPreparing/);
+ assert.match(mediaLibrary,/uploadStage==="saving"\?t\.uploadSaving/);
+ assert.match(mediaLibrary,/uploadStage==="uploading"/);
+ assert.match(mediaLibrary,/Upload paused\. Your resumable session is retained/);
+});

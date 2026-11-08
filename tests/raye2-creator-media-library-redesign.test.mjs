@@ -14,3 +14,14 @@ test("Raye2 media library stays responsive and scoped to the creator shell",()=>
  assert.ok(css.includes("@media(max-width:620px){.raye2-creator-shell .media-library"));
  assert.ok(css.includes(".raye2-creator-shell .media-library[dir=rtl]"));
 });
+
+test("media library exposes truthful resumable upload stages and pause messaging",()=>{
+ assert.ok(source.includes('useState<"idle"|"preparing"|"uploading"|"saving">("idle")'));
+ assert.ok(source.includes('setUploadStage("preparing")'));
+ assert.ok(source.includes('setUploadStage("uploading")'));
+ assert.ok(source.includes('setUploadStage("saving")'));
+ assert.ok(source.includes('interrupted?"Upload paused.'));
+ assert.ok(source.includes("media-upload-progress"));
+ assert.ok(source.includes("t.stopUpload"));
+ assert.ok(source.includes("setUploadStage(\"idle\")"));
+});

@@ -743,3 +743,13 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Localize readiness and slug-conflict feedback in English and Arabic.
 - [x] Add responsive, accessible readiness presentation and regression tests.
 - [ ] Verify CI and preview before marking the workflow beta-ready.
+
+
+## 2026-11-09 — Creator Studio / upload operations UX batch
+- [x] Distinguish secure storage preparation, active transfer and metadata-save stages.
+- [x] Show transfer progress only during the actual transfer stage.
+- [x] Replace the misleading "Pause upload" label with an explicit pause-and-resume-later action.
+- [x] Detect user-triggered aborts and report a paused state without implying the upload failed.
+- [x] Preserve resumable session state so selecting the same file can continue the upload.
+- [x] Add English/Arabic stage labels and regression assertions.
+- [ ] Verify CI and preview before counting the upload UX batch as validated.
