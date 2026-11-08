@@ -11,6 +11,7 @@ import PublishingHistory from "./publishing-history";
 import VideoStudio from "./video-studio";
 import AchievementInsights from "./achievement-insights";
 import CreatorRewardsCenter from "./rewards-center";
+import CreatorRewardsAdmin from "./rewards-admin";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 
 export const dynamic = "force-dynamic";
@@ -72,6 +73,7 @@ export default async function CreatorDashboardPage() {
       <VideoStudio />
       <AchievementInsights />
       <CreatorRewardsCenter />
+      {["owner","admin"].includes(admin.role) && <CreatorRewardsAdmin />}
       <PublishingHistory />
       <p className="dashboard-disclaimer">{t.disclaimer}</p>
     </div>
