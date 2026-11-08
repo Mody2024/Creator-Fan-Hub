@@ -678,3 +678,14 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add static regression contracts for role-aware links, server-scoped media data and responsive behavior.
 - [ ] Confirm CI and preview build for this exact commit.
 - [ ] Continue the broader Creator Studio redesign and runtime verification; this dashboard batch does not complete upload-to-publish acceptance.
+
+
+## 2026-11-09 — Priority 5 continued: Creator Control Room redesign
+- [x] Restyle the legacy creator dashboard under a strictly scoped Raye2 shell without changing shared/other route styles.
+- [x] Redesign workspace header, brand mark, role/session indicator and sign-out controls.
+- [x] Rebuild welcome hierarchy, draft indicator and three operational status panels.
+- [x] Redesign role-aware module navigation cards with clearer hierarchy and hover/focus affordance.
+- [x] Add compact mobile layout, RTL arrow placement and reduced-motion support.
+- [x] Add regression checks for scoped selectors, mobile, RTL and motion preference.
+- [ ] Verify CI and inspect all embedded creator modules in the latest preview.
+- [ ] Continue upload/editor workflow improvements and isolated Supabase runtime verification.

@@ -700,3 +700,48 @@ button:disabled { opacity: .52; }
 .raye2-detail-page[dir="rtl"] .raye2-detail-actions{flex-direction:row-reverse}
 @media(max-width:900px){.raye2-detail-layout{grid-template-columns:minmax(0,1fr)}.raye2-detail-layout:after{display:none}}
 @media(max-width:650px){.raye2-detail-page{padding:0 12px 45px}.raye2-detail-header{height:60px;margin:0 -12px;padding:0 13px}.raye2-detail-header nav{gap:10px}.raye2-detail-header nav a{font-size:9px}.raye2-detail-header nav a:nth-child(n+3){display:none}.raye2-detail-layout{padding-top:13px}.raye2-detail-player{margin:0 -12px;border-radius:0;border-inline:0}.raye2-detail-title{gap:8px;padding-top:17px}.raye2-detail-title h1{font-size:22px}.raye2-detail-title>.nhen-pill{font-size:8px;padding:5px 7px}.raye2-detail-actions{gap:6px}.raye2-detail-actions>button,.raye2-detail-reaction>button{min-height:36px;padding:0 10px;font-size:9px}.raye2-detail-description,.raye2-detail-comments{padding:15px}.raye2-detail-picker{width:min(260px,calc(100vw - 32px))}}
+
+
+/* Raye2 Creator Control Room — shared dashboard redesign */
+.raye2-creator-shell{--raye2-panel:#111a28;--raye2-raised:#172437;--raye2-line:rgba(220,232,248,.11);--raye2-ink:#f2f6fc;--raye2-muted:#9eacbf;--raye2-blue:#79b1ff;min-height:100vh;padding-bottom:72px;background:radial-gradient(ellipse at 78% -8%,rgba(65,133,220,.14),transparent 38%),#080c14;color:var(--raye2-ink)}
+.raye2-creator-shell .dashboard-topbar{position:sticky;top:0;z-index:35;min-height:72px;padding:0 max(24px,calc((100vw - 1240px)/2));border-bottom:1px solid var(--raye2-line);background:rgba(8,12,20,.91);backdrop-filter:blur(18px)}
+.raye2-creator-shell .raye2-workspace-mark{display:flex;align-items:center;gap:11px;text-decoration:none}
+.raye2-creator-shell .raye2-workspace-mark:before{content:"R";display:grid;place-items:center;width:37px;height:37px;border:1px solid rgba(121,177,255,.34);border-radius:11px;background:linear-gradient(145deg,#1b304b,#101a29);color:#dcecff;font-size:19px;font-weight:900}
+.raye2-creator-shell .raye2-workspace-mark>span{display:grid;gap:3px}
+.raye2-creator-shell .raye2-workspace-mark strong{color:#f2f6fc;font-size:16px;font-weight:850;letter-spacing:-.06em}
+.raye2-creator-shell .raye2-workspace-mark small{color:#8ea1bb;font:8px ui-monospace,monospace;letter-spacing:.15em}
+.raye2-creator-shell .admin-session{color:var(--raye2-muted);font-size:10px}
+.raye2-creator-shell .admin-session i{background:#79b1ff;box-shadow:0 0 12px rgba(121,177,255,.6)}
+.raye2-creator-shell .raye2-creator-actions{display:flex;align-items:center;gap:8px}
+.raye2-creator-shell .logout-button{min-height:36px;padding:0 12px;border:1px solid var(--raye2-line);border-radius:9px;background:rgba(17,26,40,.8);color:#c4d0df;font-size:10px;font-weight:750;text-decoration:none;cursor:pointer}
+.raye2-creator-shell .logout-button:hover{border-color:rgba(121,177,255,.38);background:rgba(121,177,255,.08);color:#e6f1ff}
+.raye2-creator-shell .dashboard-content{width:min(1240px,calc(100% - 48px));padding-top:44px}
+.raye2-creator-shell .dashboard-welcome{align-items:flex-end;gap:24px;margin-bottom:27px}
+.raye2-creator-shell .dashboard-welcome .eyebrow{color:var(--raye2-blue);font:800 9px ui-monospace,monospace;letter-spacing:.16em}
+.raye2-creator-shell .dashboard-welcome h1{margin:13px 0 9px;color:var(--raye2-ink);font-size:clamp(36px,5vw,58px);line-height:.98;letter-spacing:-.075em}
+.raye2-creator-shell .dashboard-welcome h1 em{color:var(--raye2-blue);font-style:normal}
+.raye2-creator-shell .dashboard-welcome p{max-width:610px;color:var(--raye2-muted);font-size:12px;line-height:1.8}
+.raye2-creator-shell .draft-badge{padding:8px 11px;border:1px solid rgba(121,177,255,.22);border-radius:999px;background:rgba(121,177,255,.07);color:#a9cbfa;font:8px ui-monospace,monospace;letter-spacing:.1em}
+.raye2-creator-shell .dashboard-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:43px}
+.raye2-creator-shell .dashboard-stats article{min-width:0;padding:18px 19px;border:1px solid var(--raye2-line);border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.025),transparent 65%),var(--raye2-panel)}
+.raye2-creator-shell .dashboard-stats article>span{color:var(--raye2-muted);font:800 8px ui-monospace,monospace;letter-spacing:.13em}
+.raye2-creator-shell .dashboard-stats article strong{display:block;margin:11px 0 6px;color:var(--raye2-ink);font-size:15px;letter-spacing:-.025em}
+.raye2-creator-shell .dashboard-stats article small{color:var(--raye2-muted);font-size:9px;line-height:1.6}
+.raye2-creator-shell .module-heading{align-items:end;margin-bottom:15px}
+.raye2-creator-shell .module-heading .eyebrow{color:var(--raye2-blue);font:800 8px ui-monospace,monospace;letter-spacing:.16em}
+.raye2-creator-shell .module-heading h2{margin:8px 0 6px;color:var(--raye2-ink);font-size:23px;letter-spacing:-.05em}
+.raye2-creator-shell .module-heading p{color:var(--raye2-muted);font-size:10px}
+.raye2-creator-shell .module-count{color:#8ea1bb;font:8px ui-monospace,monospace;letter-spacing:.12em}
+.raye2-creator-shell .creator-quick-nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:28px}
+.raye2-creator-shell .creator-quick-nav .module-card{position:relative;min-height:174px;padding:17px 18px;border:1px solid var(--raye2-line);border-radius:14px;background:linear-gradient(145deg,rgba(255,255,255,.025),transparent 65%),var(--raye2-panel);text-decoration:none;transition:transform .18s,border-color .18s,background .18s}
+.raye2-creator-shell .creator-quick-nav .module-card:hover{transform:translateY(-2px);border-color:rgba(121,177,255,.3);background:linear-gradient(145deg,rgba(121,177,255,.07),transparent 65%),var(--raye2-panel)}
+.raye2-creator-shell .module-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--raye2-blue);font:8px ui-monospace,monospace;letter-spacing:.1em}
+.raye2-creator-shell .module-state{padding:5px 7px;border:1px solid var(--raye2-line);border-radius:999px;color:#aab9cc;letter-spacing:0}
+.raye2-creator-shell .creator-quick-nav .module-card h3{margin:24px 0 7px;color:var(--raye2-ink);font-size:14px;letter-spacing:-.025em}
+.raye2-creator-shell .creator-quick-nav .module-card p{max-width:340px;margin:0;color:var(--raye2-muted);font-size:10px;line-height:1.7}
+.raye2-creator-shell .module-arrow{position:absolute;right:17px;bottom:14px;color:var(--raye2-blue);font-size:13px}
+.raye2-creator-shell[dir=rtl] .module-arrow{right:auto;left:17px}
+.raye2-creator-shell .dashboard-disclaimer{margin-top:32px;padding:14px 16px;border:1px solid var(--raye2-line);border-radius:11px;background:rgba(17,26,40,.55);color:var(--raye2-muted);font-size:9px;line-height:1.8}
+@media(max-width:900px){.raye2-creator-shell .creator-quick-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.raye2-creator-shell .dashboard-stats{gap:8px}.raye2-creator-shell .dashboard-stats article{padding:15px}}
+@media(max-width:620px){.raye2-creator-shell .dashboard-topbar{min-height:62px;padding:0 13px}.raye2-creator-shell .admin-session{display:none}.raye2-creator-shell .raye2-workspace-mark:before{width:33px;height:33px}.raye2-creator-shell .raye2-creator-actions{gap:5px}.raye2-creator-shell .logout-button{min-height:33px;padding:0 8px;font-size:9px}.raye2-creator-shell .dashboard-content{width:calc(100% - 26px);padding-top:30px}.raye2-creator-shell .dashboard-welcome{align-items:flex-start;flex-direction:column;gap:12px}.raye2-creator-shell .dashboard-welcome h1{font-size:39px}.raye2-creator-shell .dashboard-stats{grid-template-columns:1fr;gap:8px;margin-bottom:30px}.raye2-creator-shell .dashboard-stats article{padding:13px 15px}.raye2-creator-shell .dashboard-stats article strong{margin:7px 0 3px}.raye2-creator-shell .module-heading{align-items:flex-start;flex-direction:column;gap:8px}.raye2-creator-shell .creator-quick-nav{grid-template-columns:1fr;gap:8px}.raye2-creator-shell .creator-quick-nav .module-card{min-height:145px;padding:15px}.raye2-creator-shell .creator-quick-nav .module-card h3{margin-top:17px}}
+@media(prefers-reduced-motion:reduce){.raye2-creator-shell .creator-quick-nav .module-card{transition:none}}
