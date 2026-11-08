@@ -64,3 +64,14 @@ test("creator breakpoint review is owner-scoped and constrained to video duratio
   assert.ok(breakpointMigration.includes("v_duration is null or new.at_seconds>=v_duration"));
   assert.ok(breakpointMigration.includes("decision in ('approve','exclude')"));
 });
+
+test("creators can edit only unused drafts and delete only unused drafts",()=>{
+  assert.ok(component.includes("function editDraft(row:SponsorCampaign)"));
+  assert.ok(component.includes('if(row.status!=="draft")return;'));
+  assert.ok(component.includes('.eq("status","draft").select("id").maybeSingle()'));
+  assert.ok(component.includes("This draft is no longer available to edit."));
+  assert.ok(component.includes("This draft is no longer available to delete."));
+  assert.ok(component.includes("Delete unused draft"));
+  assert.ok(component.includes("Campaigns with delivery history are preserved."));
+  assert.ok(component.includes('onClick={()=>editDraft(row)}'));
+});
