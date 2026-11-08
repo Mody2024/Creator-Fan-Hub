@@ -34,12 +34,6 @@ test("admin UI displays sponsor delivery and finance without claiming payment ex
  assert.ok(component.includes("/^\\s*[=+@-]/.test(text)"));
  assert.ok(component.includes('const csv="\\uFEFF"'));
  assert.ok(component.includes('.join("\\r\\n")'));
- assert.ok(component.includes("/^\\\\s*[=+@-]/.test(text)"));
- assert.ok(component.includes('const csv="\\\\uFEFF"'));
- assert.ok(component.includes('.join("\\\\r\\\\n")'));
- assert.ok(component.includes("/^\\\\s*[=+@-]/.test(text)"));
- assert.ok(component.includes('const csv="\\\\uFEFF"'));
- assert.ok(component.includes('.join("\\\\r\\\\n")'));
  assert.ok(component.includes("Amounts are grouped by currency and must not be added across currencies."));
 });
 test("Raye2 admin page exposes a dedicated revenue tab",()=>{
