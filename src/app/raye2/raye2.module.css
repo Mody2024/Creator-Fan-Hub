@@ -149,6 +149,37 @@
 .page .privacyNote,.page .composerFoot{letter-spacing:.035em}
 .page ::selection{background:rgba(120,173,255,.3);color:#fff}
 
+/* Explicit light theme hook; the app can opt in with data-theme="light". */
+.page[data-theme="light"]{
+  --r-bg:#f3f6fb;
+  --r-panel:#ffffff;
+  --r-raised:#edf2f8;
+  --r-card:#f7f9fc;
+  --r-line:rgba(22,43,70,.13);
+  --r-text:#142033;
+  --r-muted:#607087;
+  --r-accent:#246bc5;
+  --r-accent-strong:#1559ae;
+  --r-focus:rgba(36,107,197,.35);
+  color-scheme:light;
+  background:radial-gradient(ellipse at 80% 0%,rgba(83,151,231,.14),transparent 38%),var(--r-bg);
+}
+.page[data-theme="light"] .header{background:rgba(255,255,255,.88)}
+.page[data-theme="light"] .sidebar,.page[data-theme="light"] .conversation,
+.page[data-theme="light"] .modal,.page[data-theme="light"] .watchPanel{
+  background:var(--r-panel);
+  box-shadow:0 14px 40px rgba(30,55,85,.07);
+}
+.page[data-theme="light"] .searchBox,.page[data-theme="light"] .searchRow,
+.page[data-theme="light"] .composer,.page[data-theme="light"] .messageSearchPanel input,
+.page[data-theme="light"] .modal input,.page[data-theme="light"] .modal textarea,
+.page[data-theme="light"] .manageRow select{background:#f7f9fc;color:var(--r-text)}
+.page[data-theme="light"] .bubble{background:#edf2f8;color:var(--r-text)}
+.page[data-theme="light"] .ownMessage .bubble{background:#e4efff;color:#142033}
+.page[data-theme="light"] .avatar,.page[data-theme="light"] .messageAvatar{background:#e2edfc;color:#245a9b}
+.page[data-theme="light"] .status{background:#fff;color:var(--r-text)}
+.page[data-theme="light"] .watchPanel button,.page[data-theme="light"] .watchPanel select{background:#f0f4fa;color:var(--r-text)}
+.page[data-theme="light"] .primaryButton,.page[data-theme="light"] .composer button{color:#fff}
 @media(max-width:680px){
   .page .intro{gap:14px}
   .page .introMark{flex:0 0 auto}
@@ -159,6 +190,27 @@
 }
 
 
+.page .themeToggle{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border:1px solid var(--r-line);
+  border-radius:10px;
+  background:var(--r-raised);
+  color:var(--r-text);
+  font-size:10px;
+  font-weight:700;
+  cursor:pointer;
+}
+.page .themeToggle span{font-size:15px;color:var(--r-accent)}
+.page .themeToggle:hover{border-color:var(--r-accent);color:var(--r-accent)}
+@media(max-width:680px){
+  .page .themeToggle{padding:7px 9px}
+  .page .headerActions{gap:8px}
+}
+
+
 .platformNav{display:flex;align-items:center;justify-content:center;gap:clamp(7px,1vw,15px);min-width:0;margin:0 18px;flex:1}
 .platformNav a{display:inline-flex;align-items:center;gap:6px;padding:9px 8px;border:1px solid transparent;border-radius:10px;color:var(--r-muted);font-size:10px;font-weight:700;white-space:nowrap;transition:background .18s ease,color .18s ease,border-color .18s ease}
 .platformNav a:hover,.platformNav .platformNavActive{color:var(--r-accent);background:rgba(120,173,255,.09);border-color:rgba(120,173,255,.15)}
@@ -166,6 +218,7 @@
 .headerMember{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--r-muted);font-size:10px}
 .utilityToggle{min-width:38px;padding:8px 9px!important;border:1px solid var(--r-line)!important;border-radius:9px!important;background:var(--r-raised)!important;color:var(--r-text)!important;font-weight:800!important}
 .mobilePlatformNav{display:none}
+.page[data-theme="light"] .platformNav a:hover,.page[data-theme="light"] .platformNav .platformNavActive{background:#e8f1ff;border-color:#d5e5fb}
 @media(max-width:1180px){
  .platformNav{gap:3px;margin:0 8px}
  .platformNav a{gap:4px;padding:8px 6px;font-size:9px}
@@ -192,5 +245,7 @@
 }
 @media(max-width:380px){
  .page .headerActions{gap:5px}
+ .page .themeToggle{font-size:0}
+ .page .themeToggle span{font-size:15px}
  .page .utilityToggle{padding:7px!important}
 }

@@ -83,14 +83,21 @@ function run(command, args, timeoutMs = DEFAULT_JOB_TIMEOUT_MS) {
 async function probeMedia(filePath, expectedType) {
   const { stdout } = await run("ffprobe", [
     "-v", "error", "-show_entries",
-    "format=duration,size,format_name:stream=codec_type,codec_name,width,height,channels,sample_rate",
+    "format=duration,size,format_name:stream=codec_type,codec_name,width,height,channels,sample_rate,duration",
     "-of", "json", filePath,
   ], 30000);
   const parsed = JSON.parse(stdout);
-  const duration = Number(parsed.format?.duration);
   const streams = Array.isArray(parsed.streams) ? parsed.streams : [];
   const expectedStream = streams.find(stream => stream.codec_type === expectedType);
   if (!expectedStream) throw new Error(`Uploaded ${expectedType} file contains no ${expectedType} stream.`);
+  // Some containers omit a format-level duration while exposing a valid
+  // duration on the primary audio/video stream. Prefer the format duration,
+  // then fall back to that stream instead of rejecting a playable source.
+  const formatDuration = Number(parsed.format?.duration);
+  const streamDuration = Number(expectedStream.duration);
+  const duration = Number.isFinite(formatDuration) && formatDuration > 0
+    ? formatDuration
+    : streamDuration;
   if (!Number.isFinite(duration) || duration <= 0 || duration > 21600) {
     throw new Error("Media duration is missing, invalid, or exceeds the six-hour processing limit.");
   }
@@ -114,6 +121,7 @@ async function probeMedia(filePath, expectedType) {
       ...(Number.isFinite(Number(stream.width)) ? { width: Number(stream.width) } : {}),
       ...(Number.isFinite(Number(stream.height)) ? { height: Number(stream.height) } : {}),
       ...(Number.isFinite(Number(stream.channels)) ? { channels: Number(stream.channels) } : {}),
+      ...(Number.isFinite(Number(stream.duration)) && Number(stream.duration) > 0 ? { durationSeconds: Math.round(Number(stream.duration) * 100) / 100 } : {}),
       ...(stream.sample_rate ? { sampleRate: String(stream.sample_rate).slice(0, 20) } : {}),
     })),
   };

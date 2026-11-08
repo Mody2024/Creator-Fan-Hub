@@ -11,6 +11,7 @@ The worker is **not hosted by Vercel**. Run it on an always-on computer/server y
 - Node.js 22 (same major version as the application).
 - Project dependencies installed with the repository lockfile.
 - `ffprobe` for video/audio metadata extraction.
+- Duration validation prefers the container duration and falls back to the primary media stream duration when the container does not report one.
 - `ffmpeg` for video thumbnail extraction. If it is unavailable or cannot decode a source, the worker records a thumbnail skip reason where possible; it does not claim a transcode occurred.
 - A reachable Supabase project with the Raye2 migrations applied.
 - A server-only `service_role` key.

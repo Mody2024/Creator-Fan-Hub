@@ -142,3 +142,10 @@ test("worker removes only its own newly uploaded thumbnail when completion is re
  assert.ok(worker.includes("await removeWorkerThumbnail(job.owner_id, result.thumbnailPath, job.media_id)"));
  assert.ok(worker.includes("await removeWorkerThumbnail(job.owner_id, job.previous_thumbnail_path, job.media_id)"));
 });
+
+test("ffprobe falls back to the primary stream duration when container duration is absent",()=>{
+ assert.ok(worker.includes("sample_rate,duration"));
+ assert.ok(worker.includes("const formatDuration = Number(parsed.format?.duration)"));
+ assert.ok(worker.includes("const streamDuration = Number(expectedStream.duration)"));
+ assert.ok(worker.includes(": streamDuration;"));
+});

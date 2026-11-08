@@ -5,8 +5,6 @@
 - Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
 - Active implementation branch: `development`
 - Production/main: unchanged; no merge or production deployment authorized.
-- Owner-confirmed launch theme decision (2026-11-07): one fixed dark theme only, using black/white/grey/blue. User theme switching and alternate presets are out of scope; Admin-created themes are deferred to post-release updates.
-- Latest repository verification: commit `50cd5039afae7b6abda13afb6b7fbb9f72d1dff6` passed Free CI run `42417317185` (tests, type-check, lint and Next.js build).
 - Snapshot commit reviewed: `e29cce1fabe6919be3781dcff64e570534b81bb1` (2026-11-05).
 
 ## Progress snapshot — 2026-11-05
@@ -16,7 +14,7 @@ These are conservative repository-based estimates against the **entire ten-wave 
 | Wave | Scope | Implementation estimate | Current evidence / remaining work |
 |---|---|---:|---|
 | 0 | Repository audit and implementation map | **55%** | Master plan and initial source/migration/test inventory exist. Complete route-by-route and requirement-by-requirement gap matrix, provider/config audit, and unresolved decision closure remain. |
-| 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, one fixed dark theme and bilingual responsive navigation; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
+| 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, dark/light controls and bilingual responsive navigation; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
 | 2 | Core architecture, accounts and permissions | **27%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
 | 3 | Video, feed and discovery | **22%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards support native reactions, comments, bookmarks, follow/unfollow and share with batch-loaded state; published video thumbnail assets are surfaced where configured; `/search` has been redesigned as a bilingual Raye2 Explore experience across videos, people and community posts. Full player previews, search ranking, richer recommendations and complete media journey remain. |
 | 4 | Creator Studio, exclusives and live streaming | **9%** | Existing creator tools are being integrated into Raye2 with publisher-role-aware workspace entry, storage health visibility and stronger watch-page metadata validation. The full upload/draft/processing/publish lifecycle, role/quota workflow, exclusives and real live ingest/delivery are not complete. |
