@@ -1134,3 +1134,18 @@ Progress estimates:
 - Wave 4 — Creator Studio: **45%** (creator sponsor pause now has explicit owner/video/state scoping; full campaign lifecycle and real playback delivery remain).
 - Wave 9 — release readiness: **25%** (additional sponsorship authorization regression coverage authored; exact-HEAD CI pending).
 - Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
+
+
+## 2026-11-09 — Creator analytics CSV export hardening
+- [x] Normalize exported view, reaction and comment counts to finite non-negative values, including totals, ranking and per-video rows.
+- [x] Guard interaction-rate calculations against malformed and zero view counts.
+- [x] Validate publication dates before ISO formatting; invalid/missing dates export as Draft instead of breaking the download.
+- [x] Add regression coverage for malformed dates, negative counts and non-finite metrics.
+- [ ] Run the full regression suite, TypeScript, lint, production build and media-worker Docker build on the exact final HEAD.
+- [ ] Browser-test English/Arabic CSV downloads in Chrome and verify exported files open correctly in spreadsheet software.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%** (analytics export now handles malformed metrics/dates safely; sponsorship lifecycle, end-to-end media processing and dashboard visual redesign remain).
+- Wave 9 — release readiness: **25%** (new export edge-case tests authored; exact-HEAD CI pending).
+- Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
