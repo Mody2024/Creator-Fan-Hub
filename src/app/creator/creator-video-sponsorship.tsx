@@ -41,6 +41,17 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState("Creator-contracted sponsorship setup. Playback delivery is still disabled; automatic ad delivery is not enabled yet.");
  const eligibleAssets=assets.filter(asset=>(asset.media_type==="video"||asset.media_type==="image")&&asset.is_published&&asset.media_id!==mediaId);
+ const campaignCounts=useMemo(()=>({
+  draft:rows.filter(row=>row.status==="draft").length,
+  active:rows.filter(row=>row.status==="active").length,
+  paused:rows.filter(row=>row.status==="paused").length,
+  other:rows.filter(row=>!["draft","active","paused"].includes(row.status)).length
+ }),[rows]);
+ const campaignWindow=(row:SponsorCampaign)=>{
+  const start=row.starts_at?new Date(row.starts_at).toLocaleDateString():"No start date";
+  const end=row.ends_at?new Date(row.ends_at).toLocaleDateString():"No end date";
+  return start+" – "+end;
+ };
 
  const load=useCallback(async()=>{
   if(!supabase||!mediaId){setRows([]);return}
@@ -154,9 +165,14 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    <label className="nhen-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor&apos;s name, logo and video creative.</label>
    <div className="nhen-inline-actions"><button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save sponsor campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
   </div>
+  <div className="dashboard-stats raye2-sponsor-status-summary" aria-label="Sponsorship campaign status summary">
+   <article><span>Draft campaigns</span><strong>{campaignCounts.draft}</strong><small>Saved privately; not delivered</small></article>
+   <article><span>Active campaigns</span><strong>{campaignCounts.active}</strong><small>Requires verified activation</small></article>
+   <article><span>Paused / other</span><strong>{campaignCounts.paused+campaignCounts.other}</strong><small>Not currently eligible for delivery</small></article>
+  </div>
   <div className="nhen-playlist-list">
    {rows.map(row=><article className="nhen-playlist-row" key={row.id}>
-    <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small></span>
+    <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small><small>{campaignWindow(row)}</small><small>Disclosure: {row.disclosure_text}</small></span>
     <div className="nhen-inline-actions">{row.status==="active"?<button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>Pause</button>:<><button type="button" disabled={busy||row.status!=="draft"} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy||row.status!=="draft"} onClick={()=>void deleteDraft(row)}>Delete unused draft</button></>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
