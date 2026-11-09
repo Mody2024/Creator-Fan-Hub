@@ -124,8 +124,13 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   }
   setBusy(true);
   try{
-   const {error}=await supabase.from("raye2_creator_sponsor_campaigns").update({status:"paused"}).eq("id",row.id);
+   const {data:userData,error:userError}=await supabase.auth.getUser();
+   if(userError||!userData.user)throw new Error("Sign in again to pause this campaign.");
+   const {data,error}=await supabase.from("raye2_creator_sponsor_campaigns").update({status:"paused"})
+    .eq("id",row.id).eq("creator_id",userData.user.id).eq("media_id",mediaId).eq("status","active")
+    .select("id").maybeSingle();
    if(error)throw error;
+   if(!data)throw new Error("This active campaign is no longer available to pause.");
    setStatus("Campaign paused. It will not be eligible for delivery.");
    await load();
   }catch(error){setStatus(error instanceof Error?error.message:"Could not update campaign.")}
