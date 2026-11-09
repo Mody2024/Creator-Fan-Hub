@@ -126,6 +126,7 @@ test("creator notification inbox supports scoped bulk read and all/unread filter
 test("creator video studio can safely unpublish a watch page without changing its source asset",()=>{
  assert.ok(videoStudio.includes("async function unpublish()"));
  assert.ok(videoStudio.includes("if(!window.confirm(t.unpublishConfirm))return"));
+ assert.ok(videoStudio.includes("current?.published_at&&!shouldPublish&&!window.confirm(t.unpublishConfirm)"));
  assert.ok(videoStudio.includes("p_publish:false"));
  assert.ok(videoStudio.includes("setPublishedAt(false)"));
  assert.ok(videoStudio.includes("setStatus(t.unpublished)"));
