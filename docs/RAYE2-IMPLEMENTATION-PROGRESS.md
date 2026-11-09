@@ -846,3 +846,20 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [ ] Extend the same shared visual language to Watch, Mini's, Explore, profiles, community and the remaining Creator Studio inner tools.
 
 Progress accounting: this is a focused Wave 1 design integration, not completion of the platform redesign. Overall Raye2 remains provisionally **38%** pending a fresh whole-repository audit; Wave 1 remains **31%** until the remaining primary routes are redesigned and verified. No production deployment or main-branch change.
+
+
+## 2026-11-09 — Watch + Mini's redesign batch
+- [x] Add a scoped Raye2 Watch-library design system with consistent black/graphite/white/blue surfaces, responsive layout, media cards, navigation, empty states and accessible focus behavior.
+- [x] Remove the visible legacy NHEN wordmark from the Watch-library header and connect it to the Raye2 home route.
+- [x] Preserve the existing published-media query, processing-ready gate, secure storage URL validation, YouTube privacy-enhanced embed handling and canonical video detail links.
+- [x] Add a scoped Raye2 Mini's presentation with responsive short-form cards and a Raye2 brand mark.
+- [x] Replace visible predecessor-brand copy on the Mini's surface and route its Watch navigation into the Raye2 Watch library.
+- [x] Preserve the existing official video query and community-shared Mini's client component; no fake upload, playback or engagement behavior added.
+- [ ] Run the latest full CI (tests, TypeScript, lint, production build) and verify Vercel preview is READY.
+- [ ] Browser-check Watch and Mini's at desktop/mobile widths and inspect Arabic RTL rendering.
+- [ ] Continue the remaining redesign surfaces: Series, Community, Messages, notifications and the full global shell.
+
+### Progress adjustment
+- Wave 1 (brand system and full product redesign): **34%** provisional, up from 31% after scoped Creator Studio, Watch and Mini's design integrations. This is not full redesign completion; profile, community, global shell, theme/brand assets and remaining routes still need work.
+- Wave 3 (video/feed/discovery): unchanged at **22%**; these changes are visual/navigation work and do not claim a complete native media journey.
+- Overall Raye2: **~39%** provisional. No production deployment or main-branch change. Latest batch is committed to development; verification is pending.
