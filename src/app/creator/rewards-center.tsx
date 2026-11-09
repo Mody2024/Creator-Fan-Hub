@@ -8,6 +8,34 @@ type Progression={points:number;level:number;level_name:string;next_level_name:s
 type Reward={id:string;reward_code:string;points:number;status:"awarded"|"revoked";source_ref:string|null;note:string;created_at:string;revoked_at:string|null};
 
 type Rule={code:string;title:string;description:string;points:number;enabled:boolean};
+type Achievement={code:string;title:string;description:string;icon:string;earned_at:string};
+export function normalizeCreatorAchievements(earned:unknown,catalog:unknown):Achievement[]{
+ if(!Array.isArray(earned)||!Array.isArray(catalog))return [];
+ const byCode=new Map<string,Record<string,unknown>>();
+ for(const item of catalog){
+  if(!item||typeof item!=="object")continue;
+  const row=item as Record<string,unknown>;
+  if(typeof row.code==="string"&&typeof row.title==="string")byCode.set(row.code,row);
+ }
+ return earned.flatMap((item:unknown)=>{
+  if(!item||typeof item!=="object")return [];
+  const row=item as Record<string,unknown>;
+  if(typeof row.achievement_code!=="string"||typeof row.earned_at!=="string")return [];
+  const detail=byCode.get(row.achievement_code);
+  if(!detail)return [];
+  return [{code:row.achievement_code,title:String(detail.title),description:typeof detail.description==="string"?detail.description:"",icon:typeof detail.icon==="string"?detail.icon:"✦",earned_at:row.earned_at}];
+ }).sort((a,b)=>Date.parse(b.earned_at)-Date.parse(a.earned_at));
+}
+export function normalizeCreatorProgression(value:unknown):Progression|null{
+ const row=Array.isArray(value)?value[0]:value;
+ if(!row||typeof row!=="object")return null;
+ const item=row as Record<string,unknown>;
+ const points=safeRewardCount(item.points),level=safeRewardCount(item.level);
+ const floor=safeRewardCount(item.level_floor),next=safeRewardCount(item.next_level_points);
+ const percent=Number(item.progress_percent);
+ if(level<1||typeof item.level_name!=="string"||typeof item.next_level_name!=="string"||!Number.isFinite(percent))return null;
+ return {points,level,level_name:item.level_name,next_level_name:item.next_level_name,level_floor:floor,next_level_points:next,points_to_next:Math.max(0,next-points),progress_percent:Math.max(0,Math.min(100,Math.trunc(percent)))};
+}
 export function safeRewardCount(value:unknown):number{
  const parsed=typeof value==="number"||typeof value==="string"?Number(value):Number.NaN;
  return Number.isFinite(parsed)?Math.max(0,Math.trunc(parsed)):0;
@@ -50,7 +78,7 @@ export default function CreatorRewardsCenter(){
  const [summary,setSummary]=useState<Summary|null>(null);
  const [progression,setProgression]=useState<Progression|null>(null);
  const [history,setHistory]=useState<Reward[]>([]);
- const [rules,setRules]=useState<Rule[]>([]);
+ const [rules,setRules]=useState<Rule[]>([]);\n const [achievements,setAchievements]=useState<Achievement[]>([]);
  const [busy,setBusy]=useState(true);
  const [status,setStatus]=useState("Loading creator rewards…");
  const load=useCallback(async()=>{
@@ -58,39 +86,29 @@ export default function CreatorRewardsCenter(){
   if(!supabase){setStatus("Supabase is not configured.");setBusy(false);return}
   setBusy(true);
   try{
-   const [summaryResult,historyResult,rulesResult]=await Promise.all([
+   const userResult=await supabase.auth.getUser();
+   if(userResult.error||!userResult.data.user)throw new Error("Sign in again to view your reward history.");
+   const creatorId=userResult.data.user.id;
+   const [summaryResult,historyResult,rulesResult,earnedResult,catalogResult]=await Promise.all([
     supabase.rpc("raye2_creator_reward_summary"),
-    (async()=>{const {data:userData,error:userError}=await supabase.auth.getUser();if(userError||!userData.user)throw new Error("Sign in again to view your reward history.");return supabase.from("raye2_creator_reward_ledger").select("id,reward_code,points,status,source_ref,note,created_at,revoked_at").eq("creator_id",userData.user.id).order("created_at",{ascending:false}).limit(50)})(),
-    supabase.from("raye2_creator_reward_rules").select("code,title,description,points,enabled").eq("enabled",true).order("points",{ascending:true})
+    supabase.from("raye2_creator_reward_ledger").select("id,reward_code,points,status,source_ref,note,created_at,revoked_at").eq("creator_id",creatorId).order("created_at",{ascending:false}).limit(50),
+    supabase.from("raye2_creator_reward_rules").select("code,title,description,points,enabled").eq("enabled",true).order("points",{ascending:true}),
+    supabase.from("member_achievements").select("achievement_code,earned_at").eq("user_id",creatorId).order("earned_at",{ascending:false}).limit(100),
+    supabase.from("achievement_catalog").select("code,title,description,icon").order("position",{ascending:true})
    ]);
    if(summaryResult.error)throw summaryResult.error;
    const progressionResult=await supabase.rpc("raye2_creator_progression_summary");
    if(progressionResult.error)throw progressionResult.error;
-   const progressionRaw=progressionResult.data;
-   const progressionRow=Array.isArray(progressionRaw)?progressionRaw[0]:progressionRaw;
-   if(progressionRow && typeof progressionRow==="object"){
-    const row=progressionRow as Progression;
-    const points=Number(row.points);
-    const level=Number(row.level);
-    const nextLevelPoints=Number(row.next_level_points);
-    const rawPercent=Number(row.progress_percent);
-    if([points,level,nextLevelPoints,rawPercent].every(Number.isFinite)){
-     setProgression({...row,points,level,next_level_points:nextLevelPoints,progress_percent:Math.max(0,Math.min(100,rawPercent)),points_to_next:Math.max(0,Number(row.points_to_next)||0)});
-    }else{
-     setProgression(null);
-     throw new Error("Creator progression returned an invalid summary. Refresh or contact an administrator.");
-    }
-   }else{
-    setProgression(null);
-    throw new Error("Creator progression is not available for this account yet.");
-   }
+   const normalizedProgression=normalizeCreatorProgression(progressionResult.data);
+   if(!normalizedProgression)throw new Error("Creator progression returned an invalid summary. Refresh or contact an administrator.");
+   setProgression(normalizedProgression);
    if(historyResult.error)throw historyResult.error;
-   if(rulesResult.error)throw rulesResult.error;
+   if(rulesResult.error)throw rulesResult.error;\n   if(earnedResult.error)throw earnedResult.error;\n   if(catalogResult.error)throw catalogResult.error;
    const normalizedSummary=normalizeCreatorRewardSummary(summaryResult.data);
    if(!normalizedSummary)throw new Error("Creator reward summary is missing or malformed. Refresh or contact an administrator.");
    setSummary(normalizedSummary);
    setHistory(normalizeCreatorRewardHistory(historyResult.data));
-   setRules(normalizeCreatorRewardRules(rulesResult.data));
+   setRules(normalizeCreatorRewardRules(rulesResult.data));\n   setAchievements(normalizeCreatorAchievements(earnedResult.data,catalogResult.data));
    setStatus("Reward points are recognition credits, not cash. Revoked awards are excluded from the available balance.");
   }catch(error){
    setStatus(error instanceof Error?error.message:"Creator rewards could not be loaded. Apply the creator rewards migration and retry.");
@@ -109,6 +127,10 @@ export default function CreatorRewardsCenter(){
    <div className="nhen-card-heading"><div><span className="eyebrow">CREATOR LEVEL</span><h3>{progression ? "Level " + progression.level + " · " + progression.level_name : "Your creator level"}</h3><p>{progression && progression.points_to_next ? progression.points_to_next.toLocaleString() + " points to " + progression.next_level_name : "Your progression is up to date."}</p></div></div>
    <div className="dashboard-stats"><article><span>Current level</span><strong>{progression?.level ?? "—"}</strong><small>{progression?.level_name ?? "Loading"}</small></article><article><span>Progress</span><strong>{progression ? progression.progress_percent + "%" : "—"}</strong><small>{progression ? progression.points.toLocaleString() + " / " + progression.next_level_points.toLocaleString() + " points" : "Recognition points"}</small></article></div>
    <div role="progressbar" aria-label="Progress to next creator level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progression?.progress_percent ?? 0} style={{height:10,borderRadius:999,background:"var(--surface-muted, #e5e7eb)",overflow:"hidden"}}><div style={{height:"100%",width:(progression?.progress_percent ?? 0) + "%",background:"var(--accent, #16a36a)"}}/></div>
+  </div>
+  <div className="nhen-card">
+   <div className="nhen-card-heading"><div><span className="eyebrow">VERIFIED ACHIEVEMENTS</span><h3>Your earned milestones</h3><p>Only achievements recorded by Raye2 are shown here.</p></div><strong>{achievements.length}</strong></div>
+   {achievements.length?<div className="creator-achievement-list">{achievements.map(item=><article className="creator-achievement-row" key={item.code}><span aria-hidden="true">{item.icon}</span><div><strong>{item.title}</strong><p>{item.description} · {Number.isFinite(new Date(item.earned_at).getTime())?new Date(item.earned_at).toLocaleDateString():"Date unavailable"}</p></div><span className="module-state">Earned</span></article>)}</div>:<p className="editor-status">Your verified milestones will appear here when earned.</p>}
   </div>
   <div className="nhen-card">
    <div className="nhen-card-heading"><div><span className="eyebrow">REWARD CATALOGUE</span><h3>Available recognition</h3></div></div>
