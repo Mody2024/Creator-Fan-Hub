@@ -9,6 +9,7 @@ const creator=await readFile(new URL("../src/app/creator/creator-video-sponsorsh
 const admin=await readFile(new URL("../src/app/creator/sponsor-reviews/sponsor-review-admin.tsx",import.meta.url),"utf8");
 const route=await readFile(new URL("../src/app/creator/sponsor-reviews/page.tsx",import.meta.url),"utf8");
 const dashboard=await readFile(new URL("../src/app/creator/page.tsx",import.meta.url),"utf8");
+const videoStudio=await readFile(new URL("../src/app/creator/video-studio.tsx",import.meta.url),"utf8");
 
 test("creator sponsorship review is an explicit, authenticated workflow",()=>{
  assert.ok(migration.includes("approval_status text not null default 'not_submitted'"));
@@ -120,4 +121,15 @@ test("creator notification inbox supports scoped bulk read and all/unread filter
  assert.ok(notificationComponent.includes('filter==="unread"'));
  assert.ok(notificationComponent.includes("Mark all as read"));
  assert.ok(notificationComponent.includes("visibleItems.map"));
+});
+
+test("creator video studio can safely unpublish a watch page without changing its source asset",()=>{
+ assert.ok(videoStudio.includes("async function unpublish()"));
+ assert.ok(videoStudio.includes("if(!window.confirm(t.unpublishConfirm))return"));
+ assert.ok(videoStudio.includes("p_publish:false"));
+ assert.ok(videoStudio.includes("setPublishedAt(false)"));
+ assert.ok(videoStudio.includes("setStatus(t.unpublished)"));
+ assert.ok(videoStudio.includes("publishedAt&&<button"));
+ assert.ok(videoStudio.includes("source file remains unchanged"));
+ assert.ok(videoStudio.includes("سيظل ملف الفيديو الأصلي كما هو"));
 });
