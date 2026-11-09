@@ -129,3 +129,22 @@ test("creator sponsor campaign lifecycle is enforced by the database, not only t
  assert.ok(guard.includes("to_jsonb(new)-'status'-'updated_at'"));
  assert.ok(guard.includes("to_jsonb(old)-'status'-'updated_at'"));
 });
+
+test("platform sponsor drafts are owner-bound and lifecycle transitions are database-enforced",async()=>{
+ const guard=await read("../supabase/migrations/20261109400000_raye2_platform_sponsor_lifecycle_guard.sql");
+ assert.ok(guard.includes("before insert or update or delete on public.raye2_platform_sponsor_campaigns"));
+ assert.ok(guard.includes("platform sponsor campaigns must begin as owner-bound drafts"));
+ assert.ok(guard.includes("only your unused platform sponsor drafts can be deleted"));
+ assert.ok(guard.includes("platform campaign ownership is immutable"));
+ assert.ok(guard.includes("old.status='active' and new.status in ('paused','completed')"));
+ assert.ok(guard.includes("old.status='paused' and new.status in ('active','completed')"));
+ assert.ok(guard.includes("invalid platform sponsor campaign lifecycle transition"));
+});
+test("platform sponsor management edits the selected creative and uses owner-scoped status changes",()=>{
+ assert.ok(adminComponent.includes("setAssetId(row.sponsor_asset_media_id)"));
+ assert.ok(adminComponent.includes("async function deleteDraft(row:Campaign)"));
+ assert.ok(adminComponent.includes('.eq("id",row.id).eq("created_by",user.user.id).eq("status","draft")'));
+ assert.ok(adminComponent.includes('.eq("id",row.id).eq("created_by",user.user.id).eq("status",row.status).select("id").maybeSingle()'));
+ assert.ok(adminComponent.includes("Delete draft"));
+ assert.ok(adminComponent.includes("automated delivery remains disabled"));
+});
