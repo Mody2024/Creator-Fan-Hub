@@ -1803,3 +1803,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - Video Studio implementation: `2b287ae8177b5d1bf533aed3feaaa2e2d819deab`.
 - Regression test: `350d163a32296d9bd18cba371cf065f2149d9f25`.
 - **Progress:** Wave 4 remains **36% provisional** and overall remains **38%**; this lifecycle improvement is included in the implementation ledger but does not yet justify a weighted percentage increase. Verification remains pending.
+
+
+### Unpublish safety follow-up — 2026-11-10
+- [x] Closed the alternate path where a creator could uncheck the published toggle and save a draft without seeing the confirmation. Every transition from an already-published watch page to draft now requires confirmation, regardless of which UI action initiates it.
+- [x] Added a regression assertion for the shared save-path guard.
+- [ ] This guard is committed but unexecuted; runtime verification remains pending.
+- Fix: `1622fdddfb866477cdf623270a777accb6987fb3`.
+- Test: `f695a5c887e05dbc43d03f3738a3544ca525a67b`.
