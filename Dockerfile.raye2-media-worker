@@ -15,10 +15,10 @@ RUN npm install --omit=dev --no-audit --no-fund --no-package-lock \
     && npm cache clean --force
 
 COPY scripts/raye2-media-worker.mjs ./scripts/raye2-media-worker.mjs
-COPY scripts/test-raye2-hls-smoke.mjs ./scripts/test-raye2-hls-smoke.mjs
+COPY scripts/raye2-hls-smoke-check.mjs ./scripts/raye2-hls-smoke-check.mjs
 
 # Verify real HLS playlist/segment output during image build, not only source contracts.
-RUN node scripts/test-raye2-hls-smoke.mjs
+RUN node scripts/raye2-hls-smoke-check.mjs
 
 USER node
 
