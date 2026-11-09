@@ -128,3 +128,14 @@ test("video publishing studio validates metadata before writing to the catalog",
   assert.ok(video.includes("durationError:"));
   assert.ok(video.includes("tagsError:"));
 });
+
+test("analytics page retains the legacy creator workspace shell class for existing integrations",async()=>{
+ const analytics=await readFile(new URL("../src/app/creator/analytics/page.tsx",import.meta.url),"utf8");
+ assert.ok(analytics.includes('className="dashboard-shell raye2-creator-shell raye2-analytics-page"'));
+});
+test("media dropzone is keyboard accessible and has active drag feedback",async()=>{
+ const css=await readFile(new URL("../src/app/globals.css",import.meta.url),"utf8");
+ assert.ok(css.includes(".media-library .media-dropzone.is-active"));
+ assert.ok(css.includes(".media-dropzone-picker:focus-within"));
+ assert.ok(css.includes("@media(prefers-reduced-motion:reduce){.media-library .media-dropzone"));
+});
