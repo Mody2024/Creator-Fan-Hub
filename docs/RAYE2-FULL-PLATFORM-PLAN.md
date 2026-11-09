@@ -840,3 +840,13 @@ This section is mandatory for every future Raye2 development session. The reposi
 - Do not reset, force-push, overwrite, or discard user work. Fetch fresh file/blob SHAs before sequential GitHub content updates.
 - At the end of each session, append a handoff entry to the progress log containing: date, branch, exact HEAD, verified CI result, files/features changed, tests run versus merely authored, environment checks still pending, updated percentages, and the next batch in execution order.
 - A future assistant should continue from the repository's latest handoff and verify it against the live branch before acting; this instruction persists even if chat history is unavailable.
+
+
+### 19.5 Adaptive-media publication transaction safeguards (2026-11-09)
+- Publication/visibility changes must stage the destination source file, thumbnail and complete HLS package before updating the media record.
+- Every staged destination object must reserve storage capacity before upload. If any pre-commit step fails, clean up staged source, thumbnail and HLS objects, while preserving the original source and its visibility.
+- The database save is the commit boundary. After it succeeds, later UI refresh/cleanup errors must never run pre-commit rollback against objects now referenced by the committed media record.
+- When unpublishing, remove the public source before changing the database publication state. If the database save fails, restore the original public source using a fresh quota reservation; surface a clear error if restoration fails.
+- After a successful database save, remove old source/thumbnail/HLS copies. Cleanup failures must be logged or surfaced as orphan candidates and must never roll back the committed record.
+- The database HLS pointer validator must reject malformed paths, cross-owner paths, cross-media paths, mismatched private/public buckets, and master playlists missing from Storage.
+- CI regression tests must cover both pre-commit cleanup and the invariant that post-commit errors do not delete committed media. Do not claim deployed database/storage acceptance until these migrations are applied and exercised in an isolated Supabase environment.
