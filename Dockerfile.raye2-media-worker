@@ -1,0 +1,25 @@
+FROM node:22-bookworm-slim
+
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY package.json ./
+RUN npm install --omit=dev --no-audit --no-fund --no-package-lock \
+    && npm cache clean --force
+
+COPY scripts/raye2-media-worker.mjs ./scripts/raye2-media-worker.mjs
+
+USER node
+
+# The worker is a queue consumer, not an HTTP server. This checks that its
+# process remains alive; queue/database health is visible in worker logs.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "try { process.kill(1, 0) } catch { process.exit(1) }"
+
+CMD ["node", "scripts/raye2-media-worker.mjs"]
