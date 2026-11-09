@@ -1322,3 +1322,28 @@ Session handoff:
 - Current batch CI: not yet verified. The previous run is not evidence for these new commits.
 - No database migration execution or browser acceptance is claimed.
 - Next: add admin-side reward rule/grant/revoke management with role-scoped RPCs and tests, then implement bounded HLS transcoding and playback.
+
+
+## 2026-11-09 — Handoff correction: platform sponsor creative binding and type safety
+- [x] Exact-HEAD CI on the first platform lifecycle batch completed tests successfully but TypeScript caught a missing `sponsor_asset_media_id` field in the Campaign type.
+- [x] Corrected the Campaign type and included `sponsor_asset_media_id` in the platform campaign query, so draft editing restores the actual selected creative.
+- [x] Updated the full platform plan with the completed sponsor lifecycle work and the next implementation sequence for future sessions.
+- [ ] Verify the full CI workflow on the final documentation HEAD. The earlier CI failure is not treated as a pass; the code-level TypeScript defect is fixed, but the rerun must confirm it.
+- [ ] Apply `20261109400000_raye2_platform_sponsor_lifecycle_guard.sql` in an isolated database and test owner/admin lifecycle permissions. This remains a later acceptance task, not a user testing request now.
+- [ ] Keep automatic sponsor delivery disabled until impression tracking, policy checks, consent, frequency enforcement and revenue accounting are implemented and verified.
+
+### Current dual progress
+- **Overall implementation: 44%.**
+- **Test/release readiness: 39%.**
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 35%.**
+- **Release readiness: 25%.**
+- **Active platform sponsor lifecycle batch: 90% implementation** (UI, DB lifecycle guard and regression contracts are committed; exact-HEAD CI rerun and isolated DB execution remain).
+
+### Exact handoff
+- Branch: `development`; `main` and production remain untouched.
+- Latest code fix: `59cf8cc51d50f8f2fd8e04c03457c0c32f9021cf`.
+- Full plan handoff update: `eb8a597c6d48bf12e12dc9a255ce9ece9b0479e2`.
+- Current next step: complete exact-HEAD CI, then proceed to native adaptive video processing/HLS and watch-player integration. Existing reward admin controls are already present; only extend them where the acceptance gaps show a real need.
+- User's first manual testing stage remains targeted at approximately **50% overall implementation**. Do not ask for manual tests before then.
