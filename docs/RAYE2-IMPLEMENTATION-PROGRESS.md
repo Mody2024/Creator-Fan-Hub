@@ -1443,3 +1443,33 @@ Session handoff:
 - Follow-up documentation commit updating the full plan: `7e0115c586063abbf27ce99da817b6a9508f5bcf`.
 - Next engineering batch: harden HLS package retention/orphan cleanup, add a repeatable worker-level FFmpeg integration test, and add a browser acceptance checklist/automated player test. Then proceed to the remaining major redesign and connected home/feed/watch/profile work.
 - User's first manual testing stage remains targeted at approximately **50% overall implementation**. Current overall implementation is 47%; do not ask the user to test early.
+
+
+## 2026-11-09 — Real adaptive HLS media-output smoke validation
+- [x] Added `scripts/raye2-hls-smoke-check.mjs`, a reproducible FFmpeg/FFprobe test using a generated 12-second 1280x720 source with AAC audio.
+- [x] Smoke test transcodes both 360p and 720p renditions using the worker's production encoding arguments, checks VOD playlist completion, verifies two six-second segments per rendition, probes every segment for video and audio streams, and enforces maximum rendition dimensions.
+- [x] Added the smoke check to the isolated media-worker Docker image build, so it runs in an environment that contains FFmpeg/FFprobe.
+- [x] Kept the smoke script outside Node's automatic test discovery because the general verification runner intentionally does not install FFmpeg.
+- [x] Exact-HEAD CI run `42694550539` passed: automated repository tests, TypeScript, ESLint, Next.js production build, and media-worker Docker image build including the real FFmpeg smoke check.
+- [ ] Apply `20261109460000_raye2_preserve_ready_hls_on_visibility_move.sql` and `20261109470000_raye2_validate_managed_hls_pointer.sql` in an isolated Supabase database; test storage triggers, quota reservation, RLS and visibility moves.
+- [ ] Run the deployed worker with a test upload and verify source, thumbnail, HLS objects, lease completion, retries and cleanup.
+- [ ] Verify actual browser playback: adaptive rendition switching, seeking, fatal-error fallback and publication access in real browsers. CI's FFmpeg smoke test validates media output, not the browser player or deployed storage.
+- [ ] Keep user/friend manual testing deferred until approximately 50% overall implementation progress.
+
+### Updated progress
+- **Overall implementation: 48%** (up from 47%; real media-output validation is now automated in the worker image build and the cross-browser HLS path is integrated).
+- **Test/release readiness: 43%** (up from 42%; exact-HEAD CI and generated FFmpeg playlist/segment checks pass; isolated database, deployed-worker and real-browser acceptance remain).
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 51%.**
+- **Native video pipeline: 55%** (HLS generation, owner/visibility binding, package movement, hls.js/native/MP4 fallback and real FFmpeg output smoke test are implemented).
+- **Release readiness: 26%.**
+- **Adaptive video implementation batch: 100% code + CI implementation**; **environment acceptance remains open** (database, deployed worker, real-browser playback).
+
+### Exact next-session handoff
+- Branch: `development`; do not merge to `main` or deploy production.
+- Latest application implementation code before documentation-only commits: `f65fb54a76a8cec07ded1d2a33c070e9f27a660d`.
+- Exact-HEAD successful CI for that code: run `42694550539` (all verification stages successful, including Next.js build and Docker image build with FFmpeg smoke test).
+- Documentation follow-up commit updating the master plan: `3d23dfcae62d5616b9d542aa9eaa6b7ae2b03e54`.
+- Continue next with isolated database migration/Storage acceptance and deployed-worker verification; then real-browser HLS playback acceptance. Once those are complete, shift the main implementation focus back to the incomplete redesign and connected home/feed/watch/profile surfaces.
+- Report implementation and test/release readiness separately in every session. The user's first major manual testing stage remains targeted at approximately **50% overall implementation**; current implementation is 48%, so continue building without asking for manual testing yet.
+- Future sessions must read this master plan and progress log, verify the live `development` HEAD and latest CI, preserve the no-production-deploy boundary, and continue from this exact handoff rather than restarting or reverting to old percentages.
