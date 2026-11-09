@@ -834,3 +834,15 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Preserve successful media-library loading even if catalog or playlist reads fail.
 - [x] Add regression coverage for partial-load failure states.
 - [ ] Verify CI and development preview.
+
+
+## 2026-11-09 — Creator Studio visual-system integration batch
+- [x] Add a route-scoped Raye2 Creator Studio visual layer using the shared black/white/graphite/blue direction; avoid touching unrelated legacy public surfaces.
+- [x] Replace the isolated header action with a role-aware workspace navigation linking Home, Studio, Content Tools, Analytics and Moderation only where the current role permits access.
+- [x] Apply consistent hierarchy, surface contrast, metric cards, workflow actions, recent-media rows and workspace cards.
+- [x] Add responsive navigation for narrow screens, visible keyboard focus, RTL-aware navigation and reduced-motion handling.
+- [x] Keep existing server-side role checks and data queries unchanged; no publishing or permission behavior was weakened.
+- [ ] Verify full CI, TypeScript, lint, Next.js build and the exact development preview.
+- [ ] Extend the same shared visual language to Watch, Mini's, Explore, profiles, community and the remaining Creator Studio inner tools.
+
+Progress accounting: this is a focused Wave 1 design integration, not completion of the platform redesign. Overall Raye2 remains provisionally **38%** pending a fresh whole-repository audit; Wave 1 remains **31%** until the remaining primary routes are redesigned and verified. No production deployment or main-branch change.
