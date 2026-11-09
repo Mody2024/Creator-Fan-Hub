@@ -11,7 +11,7 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  const supabase=await createSupabaseServerClient();
  if(!supabase)notFound();
  const {data,error}=await supabase.from("video_catalog")
-  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status)")
+  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status,metadata)")
   .eq("slug",slug).not("published_at","is",null).maybeSingle();
  if(error||!data)notFound();
  const media=Array.isArray(data.media_items)?data.media_items[0]:data.media_items;
@@ -19,7 +19,7 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  if(media.media_type==="video"&&media.processing_status!=="ready")notFound();
  let src="";
  let poster:string|null=null;
- let youtubeEmbedUrl:string|null=null;
+ let youtubeEmbedUrl:string|null=null;\n let hlsSrc:string|null=null;
  if(media.media_type==="video"){
   if(!media.storage_path?.startsWith("creator-media-public/"))notFound();
   const parts=media.storage_path.split("/");
@@ -28,7 +28,7 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
   let parsedPublicUrl: URL;
   try { parsedPublicUrl=new URL(publicUrl); } catch { notFound(); }
   if(parsedPublicUrl.protocol!=="https:"||parsedPublicUrl.origin!==new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??"https://invalid.local").origin)notFound();
-  src=parsedPublicUrl.toString();
+  src=parsedPublicUrl.toString();\n  const hlsPath=media.metadata?.processing?.hls?.masterPath;\n  if(typeof hlsPath==="string"&&hlsPath.startsWith("creator-media-public/")){\n   const hlsParts=hlsPath.split("/");\n   if(hlsParts.length>=5&&hlsParts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))&&hlsParts.at(-1)==="master.m3u8"){\n    const candidate=supabase.storage.from(hlsParts[0]).getPublicUrl(hlsParts.slice(1).join("/")).data.publicUrl;\n    try{const parsedHls=new URL(candidate);if(parsedHls.protocol==="https:"&&parsedHls.origin===parsedPublicUrl.origin)hlsSrc=parsedHls.toString();}catch{}\n   }\n  }
   if(media.thumbnail_path?.startsWith("creator-media-public/")){
    const thumbnailParts=media.thumbnail_path.split("/");
    if(thumbnailParts.length>=2&&thumbnailParts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))){
@@ -46,5 +46,5 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
    youtubeEmbedUrl="https://www.youtube-nocookie.com/embed/"+id+"?rel=0";
   }catch{notFound();}
  }
- return <WatchDetailClient startAt={startAt} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]}/>;
+ return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]}/>;
 }
