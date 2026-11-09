@@ -21,8 +21,9 @@ test("creator dashboard quick navigation points to all eleven management areas",
   for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
     assert.ok(source.includes(`id="${id}"`), `management panel target missing: ${id}`);
   }
-  assert.ok(page.includes('11 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
+  assert.ok(page.includes('8 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
   assert.ok(page.includes('href="/creator/raye2"'));
+  assert.ok(page.includes('href="#creator-rewards"'));
   assert.ok(!page.includes("More control, coming next."));
 });
 

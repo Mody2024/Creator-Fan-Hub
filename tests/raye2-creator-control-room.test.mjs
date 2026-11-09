@@ -12,3 +12,10 @@ test("Raye2 creator control room supports mobile, RTL and reduced motion",()=>{
  assert.ok(css.includes(".raye2-creator-shell[dir=rtl]"));
  assert.ok(css.includes("@media(prefers-reduced-motion:reduce){.raye2-creator-shell"));
 });
+
+test("creator control room includes rewards destination and accessible responsive cards",()=>{
+ assert.ok(page.includes('href="#creator-rewards"'));
+ assert.ok(css.includes(".raye2-creator-shell .creator-quick-nav .module-card:focus-visible"));
+ assert.ok(css.includes("@media(max-width:430px)"));
+ assert.ok(css.includes("prefers-reduced-motion:reduce"));
+});

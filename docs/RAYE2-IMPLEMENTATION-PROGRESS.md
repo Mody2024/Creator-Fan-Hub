@@ -762,3 +762,11 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add live watch URL preview, description length counter and tag-count feedback.
 - [x] Add responsive styling and regression coverage for the preview/editor additions.
 - [ ] Run full CI, TypeScript, lint and Next.js build before calling this wave verified.
+
+
+## 2026-11-09 — Creator control-room navigation wave
+- [x] Add direct dashboard navigation to the existing creator rewards and progression workspace.
+- [x] Correct role-aware active-area totals to include rewards and conditional owner/admin modules (creator/editor 8, admin 11, owner 12).
+- [x] Refresh workspace cards with consistent hierarchy, hover/focus states, mobile layouts and reduced-motion support.
+- [x] Extend dashboard resilience and accessibility regression tests.
+- [ ] Verify CI and preview for the latest commit.
