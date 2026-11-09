@@ -1728,3 +1728,9 @@ One regression-test file was briefly created on the default `main` branch becaus
 - The old chat-only ~65% and conversational 50%/53%/55% claims are historical inaccuracies for the full ten-wave product. Do not carry them forward.
 - Implemented-but-untested work is credited in the implementation column. Testing/preview/owner acceptance are separate and do not erase implementation credit.
 - Manual testing remains deferred until the full-platform implementation reaches the agreed ~50% milestone and the owner chooses to begin.
+
+
+### Dashboard import/navigation regression guard — 2026-11-10
+- [x] Added a regression assertion that the Creator Dashboard begins with the valid Next.js navigation import and that the sponsor-review link appears inside the JSX navigation rather than the import section.
+- [x] Test source is committed; it is **not executed**.
+- Commit: `320870d65ab505e6592cf0e898e390bbb787536a`.
