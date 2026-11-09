@@ -76,3 +76,14 @@ test("video studio distinguishes catalog and playlist query failures from empty 
  assert.ok(source.includes("t.playlistLoadError"));
  assert.ok(source.includes('role={catalogLoadFailed?"alert":"status"}'));
 });
+
+test("Raye2 video publishing studio loads its dedicated responsive design",async()=>{
+ const page=await readFile(new URL("../src/app/creator/page.tsx",import.meta.url),"utf8");
+ const studioCss=await readFile(new URL("../src/app/raye2/studio/video-publishing-studio.css",import.meta.url),"utf8");
+ assert.ok(page.includes('import "../raye2/studio/video-publishing-studio.css";'));
+ assert.ok(studioCss.includes(".raye2-video-studio .nhen-video-studio-grid"));
+ assert.ok(studioCss.includes(".raye2-video-studio .raye2-publish-readiness"));
+ assert.ok(studioCss.includes(".raye2-video-studio .raye2-watch-preview"));
+ assert.ok(studioCss.includes("@media(max-width:650px)"));
+ assert.ok(studioCss.includes("@media(prefers-reduced-motion:reduce)"));
+});
