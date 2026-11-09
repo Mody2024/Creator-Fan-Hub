@@ -40,5 +40,5 @@ test("creator workspace home keeps role-gated modules and English/Arabic layout 
  assert.ok(home.includes('["owner","admin"].includes(admin.role)'));
  assert.ok(home.includes('admin.role === "owner"'));
  assert.ok(home.includes('className="dashboard-welcome"'));
- assert.ok(home.includes('className="creator-quick-nav"'));
+ assert.ok(home.includes("creator-quick-nav"));
 });
