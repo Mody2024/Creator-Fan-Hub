@@ -1549,3 +1549,22 @@ Progress estimates (full master plan; conservative):
 - Wave 9 — release readiness: **25%** (regression coverage authored, exact-HEAD CI still pending).
 - Whole Raye2 platform: **~39% provisional**, unchanged. This is not a test/build/runtime metric. No production deployment and no changes to `main`.
 - Branch: `development`; keep manual user/friends testing deferred until approximately 50% implementation progress.
+
+
+## 2026-11-09 — Session handoff: creator rewards navigation + reaction picker
+- Branch: `development`; latest implementation commit before this handoff: `e0d1666cea8f1df80984fe939e1658b163300416`.
+- [x] Role-gate a Creator Rewards Administration shortcut to owner/admin roles, localize it in English/Arabic, and correct the workspace active-area count.
+- [x] Make Community reactions open through explicit click/tap state; keep `aria-expanded` aligned with actual menu visibility; close on Escape, focus exit or selection.
+- [x] Add regression tests in `tests/raye2-community-reaction-picker.test.mjs` and extend `tests/raye2-creator-studio-dashboard.test.mjs`.
+- [ ] Tests were authored but not executed in this batch. Full CI, TypeScript, lint, Next.js build, media-worker Docker smoke test, browser and Arabic RTL checks remain pending on the exact resulting HEAD.
+- [ ] Isolated Supabase verification of creator/platform sponsor lifecycle guards remains pending. Do not grant recognition points for sponsor drafts or paused campaigns; only connect sponsor rewards after a trustworthy approved delivery event exists.
+- Next priority: continue Creator Studio end-to-end workflow integration and reward/achievement event design, then complete environment acceptance for adaptive HLS. Manual user/friends testing remains deferred until approximately 50% implementation.
+
+Progress snapshot (full ten-wave scope):
+- Overall implementation: **~39% provisional** (unchanged; this batch is a focused integration/accessibility improvement, not a major platform milestone).
+- Test/release readiness: **25% provisional** (no new tests executed or environment checks completed).
+- Wave 1 redesign: **44%**.
+- Wave 4 Creator Studio: **46%**.
+- Wave 5 social/community: **22%**.
+- This batch implementation: **100% of the scoped changes committed**; acceptance verification is still pending.
+- Production and `main` remain untouched.
