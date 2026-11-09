@@ -42,3 +42,11 @@ test("creator workspace home keeps role-gated modules and English/Arabic layout 
  assert.ok(home.includes('className="dashboard-welcome"'));
  assert.ok(home.includes("creator-quick-nav"));
 });
+
+test("creator reward administration is directly discoverable only to owner and admin roles",()=>{
+ assert.ok(home.includes('href="#creator-rewards-admin"'));
+ assert.ok(home.includes('{["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin">'));
+ assert.ok(home.includes('rewardsAdmin:"Creator reward administration"'));
+ assert.ok(home.includes('rewardsAdmin:"إدارة مكافآت المبدعين"'));
+ assert.ok(home.includes('? 4 : 0)'));
+});
