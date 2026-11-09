@@ -34,3 +34,14 @@ test("creator publication moves the complete HLS package with its source and upd
  assert.ok(media.includes("oldHlsCleanupError"));
  assert.ok(media.includes("Adaptive video destination cleanup failed."));
 });
+
+test("publication rollback never deletes committed media, and cleans staged source, thumbnail and HLS objects",()=>{
+ const catchBlock=media.slice(media.indexOf("} catch(e) {",media.indexOf("async function setPublished")),media.indexOf("finally {",media.indexOf("async function setPublished")));
+ assert.match(media,/let databaseSaved = false/);
+ assert.match(media,/databaseSaved = true/);
+ assert.match(catchBlock,/if\(!databaseSaved\)/);
+ assert.match(catchBlock,/remove\(\[nextPath\]\)/);
+ assert.match(catchBlock,/remove\(\[previousParts\.join\("\/"\)\]\)/);
+ assert.match(catchBlock,/remove\(nextHlsPackage\.copiedPaths\)/);
+ assert.ok(catchBlock.indexOf("if(!databaseSaved)")<catchBlock.indexOf("remove([nextPath])"));
+});
