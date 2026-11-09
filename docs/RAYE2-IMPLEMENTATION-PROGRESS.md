@@ -1012,3 +1012,21 @@ Progress estimates against the full ten-wave plan:
 - Wave 4 — Creator ecosystem: **40%** (worker now has a deployable container definition and isolated runtime manifest; no container build, deployment, database acceptance, transcoding or end-to-end playback has been verified).
 - Wave 9 — release readiness: **22%** (container contract test added but not yet executed).
 - Whole Raye2 platform: **~39% provisional**, unchanged. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Media worker build verification in CI
+- [x] Add a separate GitHub Actions job that builds `Dockerfile.raye2-media-worker` with Buildx on CI.
+- [x] Keep the image build verification-only: `push: false`, no registry login, no deployment and no production secrets.
+- [x] Cache Docker build layers with the GitHub Actions cache backend.
+- [x] Add a regression test protecting the CI job's Dockerfile path and no-push contract.
+- [ ] Observe the new workflow on this exact commit; the previous CI run had completed tests, type-check and lint successfully and was still building Next.js at last inspection.
+- [ ] Fix any Docker build issue surfaced by the new job; no image build success is claimed yet.
+- [ ] Add adaptive HLS renditions only after deciding and verifying a storage layout, playlist authorization model and cleanup lifecycle. Do not serve a generated playlist while its segments are inaccessible.
+- [ ] Verify the latest Vercel preview and browser workflows; no production deploy.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **41%** (worker image is now included in CI verification, but not built successfully yet; adaptive streaming, worker deployment and end-to-end playback remain).
+- Wave 9 — release readiness: **23%** (a dedicated image-build CI job and regression guard have been added; run still pending).
+- Whole Raye2 platform: **~39% provisional**, unchanged.
+- Branch: `development`; production and `main` remain untouched.
