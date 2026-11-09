@@ -25,3 +25,12 @@ test("media library exposes truthful resumable upload stages and pause messaging
  assert.ok(media.includes("t.stopUpload"));
  assert.ok(media.includes("setUploadStage(\"idle\")"));
 });
+
+test("creator publication moves the complete HLS package with its source and updates only the managed master path",()=>{
+ assert.ok(media.includes("async function copyHlsPackage"));
+ assert.ok(media.includes("reserve_nhen_media_upload"));
+ assert.ok(media.includes("master/master.m3u8"));
+ assert.ok(media.includes("nextHlsPackage.masterPath"));
+ assert.ok(media.includes("oldHlsCleanupError"));
+ assert.ok(media.includes("Adaptive video destination cleanup failed."));
+});
