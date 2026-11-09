@@ -1585,3 +1585,26 @@ Authoritative baseline carried forward from the prior session:
 This session's scoped additions (role-gated Creator Rewards shortcut, bilingual labels, explicit touch/keyboard Community reaction menu and regression tests) are implementation additions on top of that 50% baseline. They do **not** justify resetting the total to 39%. They have not yet been run through CI, so the prior green CI result must not be represented as validating these newer commits. The latest changes still need exact-HEAD CI and browser/RTL acceptance.
 
 Next-session rule: always start from the newest authoritative tracker and verified code HEAD, preserve the 50% baseline, and only change percentages using the same full-plan denominator and explicit completed deliverables. Never recalculate from an older partial wave snapshot. Continue implementation; the user has already asked to defer manual testing until later.
+
+
+## 2026-11-09 — Full progress audit and revoked-award accounting correction
+- Audited the live `development` branch, full master plan, companion chat/voice scope, progress log history, and commit comparison against the last recorded green CI code HEAD.
+- Confirmed the last documented exact-HEAD full CI success was run `42700591061` on application HEAD `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`. That run covered repository tests, TypeScript, ESLint, Next.js production build and media-worker Docker/FFmpeg smoke. It does **not** cover the subsequent commits.
+- Confirmed `development` is 11 commits ahead of that verified code HEAD; those later changes touch the community reaction picker, creator dashboard navigation, tests and documentation. The 50% implementation milestone is therefore retained as the last documented overall baseline, not falsely presented as exact-HEAD CI validation of all newer changes.
+- Corrected prior continuation reporting: 39% was an obsolete/inconsistent estimate and is not the current baseline. Keep the documented **50% overall implementation** and last recorded wave estimates: redesign **47%**, Creator Studio **53%**, native video pipeline **58%**. Readiness **46%** and release readiness **27%** are historical estimates from the last verified checkpoint; mark current exact-HEAD CI as **pending**, not green.
+- Audit finding: the existing reward summary and progression SQL subtracted revoked award points from creator totals. This contradicts the UI contract that revoked awards are excluded from the available balance. Added migration `20261109480000_raye2_exclude_revoked_awards_from_progression.sql` so only `status='awarded'` contributes to balances/levels while revoked awards remain separately counted in audit history. Added `tests/raye2-revoked-reward-balance.test.mjs`.
+- [ ] Run full CI on the resulting exact HEAD, including the new SQL contract test, all repository tests, TypeScript, lint, Next.js build and Docker/FFmpeg smoke.
+- [ ] Apply the rewards/sponsor/HLS migrations only in an approved isolated Supabase database. The active Supabase project currently has no development database branch; do not apply migrations to production and do not create a potentially billable branch without explicit approval.
+- [ ] Browser-check reaction picker touch/keyboard behavior, role-gated Creator Workspace navigation, reward administration, and Arabic RTL.
+- [ ] Continue implementation from Creator Studio lifecycle and sponsorship/reward acceptance; then finish adaptive media environment acceptance and broader home/feed/watch/profile redesign.
+- Branch remains `development`; `main` and production deployment are not targeted by this work.
+
+Audited progress (scope estimates, not telemetry):
+- **Overall implementation: 50%** — retained prior documented milestone; this audit does not invent extra progress from documentation or test authoring.
+- **Test/release readiness: 46% last recorded; current exact-HEAD verification pending.** Do not describe the new commits as CI-passed.
+- **Wave 1 redesign: 47%** (last recorded; public home/feed and member profile redesign remain).
+- **Wave 4 Creator Studio: 53%** (last recorded; sponsor delivery/acceptance, full workflows and isolated DB checks remain).
+- **Native video pipeline: 58%** (last recorded; worker/HLS code and CI smoke exist, but isolated DB, deployed-worker and real-browser playback acceptance remain).
+- **Release readiness: 27%** (last recorded; database, deployed service and browser acceptance remain).
+- Latest verified CI code HEAD: `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`; CI run: `42700591061`.
+- Current code changes after that checkpoint include the community picker, creator rewards admin navigation, and revoked-award accounting fix; they are not yet validated by that older CI run.
