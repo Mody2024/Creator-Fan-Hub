@@ -67,6 +67,26 @@ test("campaign creators can see their own immutable sponsorship review timeline"
  assert.ok(creator.includes("event.event_type.replaceAll"));
  assert.ok(creator.includes("event.note"));
 });
+const notificationMigration=await readFile(new URL("../supabase/migrations/20261110130000_raye2_creator_sponsor_review_notifications.sql",import.meta.url),"utf8");
+const notificationComponent=await readFile(new URL("../src/app/creator/creator-notifications.tsx",import.meta.url),"utf8");
+
+test("sponsor review outcomes create private creator notifications atomically",()=>{
+ assert.ok(notificationMigration.includes("review_event_id uuid not null unique"));
+ assert.ok(notificationMigration.includes("insert into public.raye2_creator_notifications"));
+ assert.ok(notificationMigration.includes("v_event_id"));
+ assert.ok(notificationMigration.includes("delivery does not activate ad delivery")||notificationMigration.includes("does not activate ad delivery"));
+ assert.ok(notificationMigration.includes("grant execute on function public.raye2_mark_creator_notification_read(uuid) to authenticated"));
+ assert.ok(notificationMigration.includes("creator_id=(select auth.uid()) and public.is_nhen_video_publisher()"));
+});
+
+test("creator dashboard exposes a private notification inbox with read actions",()=>{
+ assert.ok(notificationComponent.includes('from("raye2_creator_notifications")'));
+ assert.ok(notificationComponent.includes('rpc("raye2_mark_creator_notification_read"'));
+ assert.ok(notificationComponent.includes("Mark as read"));
+ assert.ok(dashboard.includes('import CreatorNotifications from "./creator-notifications";'));
+ assert.ok(dashboard.includes('<CreatorNotifications locale={isArabic?"ar":"en"} />'));
+});
+
 test("creator can request review only for editable draft campaigns and sees review outcome",()=>{
  assert.ok(creator.includes('row.status!=="draft"'));
  assert.ok(creator.includes('["not_submitted","rejected"].includes(row.approval_status)'));
