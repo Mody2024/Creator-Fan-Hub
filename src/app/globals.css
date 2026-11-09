@@ -887,3 +887,20 @@ button:disabled { opacity: .52; }
 .raye2-creator-shell .raye2-publish-readiness li[data-ready="true"]{color:#b8d9cb}
 .raye2-creator-shell .raye2-publish-readiness li span{display:grid;place-items:center;width:17px;height:17px;flex:0 0 17px;border:1px solid currentColor;border-radius:50%;font-size:9px;font-weight:850}
 .raye2-creator-shell .raye2-publish-readiness p{margin:0;color:#d6b987;font-size:9px;line-height:1.6}
+
+
+/* Creator video metadata editor — live watch-page preview and source thumbnails */
+.raye2-creator-shell .raye2-field-hint{display:block;margin-top:5px;color:#8292a7;font-size:9px;line-height:1.5;font-weight:500}
+.raye2-creator-shell .raye2-watch-preview{display:grid;gap:10px;margin-bottom:14px;border-color:rgba(220,232,248,.11);background:linear-gradient(145deg,#142033,#0d1521)}
+.raye2-creator-shell .raye2-watch-preview h3{margin:0;font-size:15px;line-height:1.4}
+.raye2-creator-shell .raye2-watch-preview-media{display:grid;place-items:center;overflow:hidden;min-height:145px;max-height:230px;border:1px solid rgba(220,232,248,.1);border-radius:10px;background:#070b12;color:#8b9bb0}
+.raye2-creator-shell .raye2-watch-preview-media img,.raye2-creator-shell .raye2-watch-preview-media video{display:block;width:100%;max-height:230px;object-fit:contain}
+.raye2-creator-shell .raye2-watch-preview-media>span{padding:30px;font-size:10px;text-align:center}
+.raye2-creator-shell .raye2-watch-preview-meta{display:grid;gap:5px}
+.raye2-creator-shell .raye2-watch-preview-meta strong{color:#dcecff;font-size:10px;overflow-wrap:anywhere}
+.raye2-creator-shell .raye2-watch-preview-meta span{color:#8ea0b7;font-size:9px}
+.raye2-creator-shell .raye2-watch-preview-meta p{margin:0;color:#a5b3c6;font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+.raye2-creator-shell .raye2-video-admin-row{display:flex;align-items:center;gap:10px}
+.raye2-creator-shell .raye2-video-row-thumb{width:64px;height:42px;flex:0 0 64px;object-fit:cover;border:1px solid rgba(220,232,248,.1);border-radius:6px;background:#070b12}
+.raye2-creator-shell .raye2-video-row-fallback{display:grid;place-items:center;color:#91a7c5;font-size:12px}
+@media(max-width:620px){.raye2-creator-shell .raye2-video-row-thumb{width:56px;height:38px;flex-basis:56px}.raye2-creator-shell .raye2-watch-preview-media{min-height:120px}}

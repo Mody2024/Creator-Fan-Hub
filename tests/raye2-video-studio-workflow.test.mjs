@@ -30,3 +30,17 @@ test("publishing readiness makes source visibility, processing and slug uniquene
  assert.ok(source.includes('disabled={!canPublish&&!publishedAt}'));
  assert.ok(css.includes(".raye2-publish-readiness li[data-ready=\"true\"]"));
 });
+
+test("video studio resolves owner-safe source and managed thumbnail previews",()=>{
+ assert.ok(source.includes("createSignedUrl(objectPath,300)"));
+ assert.ok(source.includes("getPublicUrl(objectPath)"));
+ assert.ok(source.includes("thumbnail_url"));
+ assert.ok(source.includes("raye2-watch-preview"));
+ assert.ok(source.includes("raye2-video-row-thumb"));
+});
+test("video metadata editor exposes live watch URL and bounded character counters",()=>{
+ assert.ok(source.includes("description.length.toLocaleString(locale)"));
+ assert.ok(source.includes(" / 5,000 "));
+ assert.ok(source.includes("tags.split(",").map(x=>x.trim()).filter(Boolean).length"));
+ assert.ok(source.includes("/watch/{normalizedSlug||"));
+});

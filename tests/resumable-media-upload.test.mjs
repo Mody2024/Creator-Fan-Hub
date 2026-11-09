@@ -33,14 +33,14 @@ test("paused uploads preserve the TUS resource and same-file fingerprint",()=>{
 test("media library exposes pause control and keeps interrupted upload session",()=>{
  assert.ok(library.includes("new AbortController()"));
  assert.ok(library.includes("signal:controller.signal"));
- assert.ok(library.includes("Pause upload"));
+ assert.ok(library.includes("t.stopUpload"));
  assert.ok(library.includes("Upload interrupted. Your resumable session is retained"));
  assert.ok(library.includes("reuse_nhen_media_upload_reservation"));
 });
 
 test("creator media upload UI distinguishes preparation, transfer, metadata save and resumable pause",()=>{
- assert.match(mediaLibrary,/uploadStage==="preparing"\?t\.uploadPreparing/);
- assert.match(mediaLibrary,/uploadStage==="saving"\?t\.uploadSaving/);
- assert.match(mediaLibrary,/uploadStage==="uploading"/);
- assert.match(mediaLibrary,/Upload paused\. Your resumable session is retained/);
+ assert.match(library,/uploadStage==="preparing"\?t\.uploadPreparing/);
+ assert.match(library,/uploadStage==="saving"\?t\.uploadSaving/);
+ assert.match(library,/uploadStage==="uploading"/);
+ assert.match(library,/Upload paused\. Your resumable session is retained/);
 });

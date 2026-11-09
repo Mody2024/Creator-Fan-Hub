@@ -753,3 +753,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Preserve resumable session state so selecting the same file can continue the upload.
 - [x] Add English/Arabic stage labels and regression assertions.
 - [ ] Verify CI and preview before counting the upload UX batch as validated.
+
+
+## 2026-11-09 — Creator Studio multi-patch wave
+- [x] Repair four CI regressions: stale test variable names, obsolete pause-label assertion, and old publish-checkbox contract assertion.
+- [x] Add owner-scoped source preview resolution: temporary signed URLs for private media and public URLs only for published assets.
+- [x] Surface generated thumbnails in the video catalog and selected-source preview; YouTube sources use their public preview image.
+- [x] Add live watch URL preview, description length counter and tag-count feedback.
+- [x] Add responsive styling and regression coverage for the preview/editor additions.
+- [ ] Run full CI, TypeScript, lint and Next.js build before calling this wave verified.

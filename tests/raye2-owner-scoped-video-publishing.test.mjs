@@ -34,7 +34,7 @@ test("creator studio saves through the guarded RPC, not direct table upsert",()=
 test("video studio loads authoritative processing state before enabling publication",()=>{
  assert.ok(studio.includes('rpc("get_creator_media_processing_status"'));
  assert.ok(studio.includes('asset.processing_status!=="ready"'));
- assert.ok(studio.includes('disabled={!!selected&&assets.some(a=>a.media_id===selected&&a.media_type!=="youtube"&&a.processing_status!=="ready")}'));
+ assert.ok(studio.includes('disabled={!canPublish&&!publishedAt}'));
  assert.ok(studio.includes("processing_error"));
 });
 

@@ -16,12 +16,12 @@ test("Raye2 media library stays responsive and scoped to the creator shell",()=>
 });
 
 test("media library exposes truthful resumable upload stages and pause messaging",()=>{
- assert.ok(source.includes('useState<"idle"|"preparing"|"uploading"|"saving">("idle")'));
- assert.ok(source.includes('setUploadStage("preparing")'));
- assert.ok(source.includes('setUploadStage("uploading")'));
- assert.ok(source.includes('setUploadStage("saving")'));
- assert.ok(source.includes('interrupted?"Upload paused.'));
- assert.ok(source.includes("media-upload-progress"));
- assert.ok(source.includes("t.stopUpload"));
- assert.ok(source.includes("setUploadStage(\"idle\")"));
+ assert.ok(media.includes('useState<"idle"|"preparing"|"uploading"|"saving">("idle")'));
+ assert.ok(media.includes('setUploadStage("preparing")'));
+ assert.ok(media.includes('setUploadStage("uploading")'));
+ assert.ok(media.includes('setUploadStage("saving")'));
+ assert.ok(media.includes('interrupted?"Upload paused.'));
+ assert.ok(media.includes("media-upload-progress"));
+ assert.ok(media.includes("t.stopUpload"));
+ assert.ok(media.includes("setUploadStage(\"idle\")"));
 });
