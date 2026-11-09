@@ -1083,3 +1083,19 @@ Progress estimates:
 - Wave 4 — Creator ecosystem: **43%** (analytics data normalization hardened; live RPC/database acceptance and the broader video pipeline remain unverified).
 - Wave 9 — release readiness: **24%** (new analytics regression tests authored; exact-HEAD CI still pending).
 - Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator sponsorship workspace discoverability
+- [x] Add a dedicated Creator Studio quick-navigation card for sponsorship management, linked to the existing per-video sponsorship section.
+- [x] Add English and Arabic labels/descriptions for the sponsorship destination.
+- [x] Update role-aware active-area counts for the additional creator destination.
+- [x] Add dashboard regression coverage for the bilingual navigation and existing sponsorship component connection.
+- [ ] Execute the updated dashboard tests and full CI against exact HEAD.
+- [ ] Browser-verify owner/admin/editor/creator/analyst navigation and campaign workflows with real isolated accounts.
+- [ ] Sponsorship campaign configuration is not the same as an active ad-delivery system; automated delivery remains disabled.
+
+Progress estimates against the complete ten-wave plan:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **44%** (sponsorship controls are now easier to discover from the creator workspace; actual HLS/transcoding, live delivery and end-to-end acceptance remain).
+- Wave 9 — release readiness: **24%** (navigation regression coverage authored; exact-HEAD CI pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
