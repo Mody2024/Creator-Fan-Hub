@@ -2,15 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type Props = { src: string; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar" };
+type Props = { src: string; hlsSrc?: string | null; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar" };
 
-export default function PublicVideoPlayer({ src, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en" }: Props) {
+export default function PublicVideoPlayer({ src, hlsSrc, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en" }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => { setLoaded(false); setFailed(false); }, [src, youtubeEmbedUrl, attempt]);
+  useEffect(() => { setLoaded(false); setFailed(false); }, [src, hlsSrc, youtubeEmbedUrl, attempt]);
 
   useEffect(() => {
     const player = video.current;
@@ -38,8 +38,8 @@ export default function PublicVideoPlayer({ src, title, description, youtubeEmbe
       onLoad={() => setLoaded(true)}
       referrerPolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-      allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline poster={poster || undefined} aria-label={description || title} onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} src={src}>
-      Your browser does not support video playback.
+      allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline poster={poster || undefined} aria-label={description || title} onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)}>
+      {hlsSrc ? <source src={hlsSrc} type="application/vnd.apple.mpegurl" /> : null}\n      <source src={src} type="video/mp4" />\n      Your browser does not support video playback.
     </video>}
   </div>;
 }
