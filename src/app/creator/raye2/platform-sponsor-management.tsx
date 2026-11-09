@@ -67,7 +67,7 @@ export default function PlatformSponsorManagement(){
 
  function editDraft(row:Campaign){
   if(row.status!=="draft")return;
-  setEditingCampaignId(row.id);setName(row.sponsor_name);setDisclosure(row.disclosure_text);
+  setEditingCampaignId(row.id);setName(row.sponsor_name);setAssetId(row.sponsor_asset_media_id);setDisclosure(row.disclosure_text);
   setPlacement(row.placement);setCategory(row.category_key);setExclusive(row.category_exclusive);
   setPriority(String(row.priority));setFrequency(String(row.max_per_viewer));
   setRegions((row.allowed_regions??[]).join(", "));setStarts(row.starts_at?.slice(0,10)??"");
@@ -108,14 +108,38 @@ export default function PlatformSponsorManagement(){
   finally{setBusy(false)}
  }
 
+ async function deleteDraft(row:Campaign){
+  if(!supabase||busy)return;
+  if(row.status!=="draft"){setNotice("Only unused draft platform campaigns can be deleted.");return}
+  if(!window.confirm("Delete this unused platform campaign draft? This cannot be undone."))return;
+  setBusy(true);
+  try{
+   const {data:user,error:userError}=await supabase.auth.getUser();
+   if(userError||!user.user)throw new Error("Sign in again as a Raye2 admin.");
+   const {data,error}=await supabase.from("raye2_platform_sponsor_campaigns").delete()
+    .eq("id",row.id).eq("created_by",user.user.id).eq("status","draft").select("id").maybeSingle();
+   if(error)throw error;
+   if(!data)throw new Error("This unused platform campaign draft is no longer available.");
+   if(editingCampaignId===row.id)clearForm();
+   setNotice("Unused platform campaign draft deleted.");
+   await load();
+  }catch(error){setNotice(error instanceof Error?error.message:"Could not delete platform campaign draft.")}
+  finally{setBusy(false)}
+ }
+
  async function setStatus(row:Campaign){
   if(!supabase||busy)return;
+  if(row.status==="completed"){setNotice("Completed campaigns cannot be reactivated.");return}
   const next=row.status==="active"?"paused":"active";
   setBusy(true);
   try{
-   const {error}=await supabase.from("raye2_platform_sponsor_campaigns").update({status:next}).eq("id",row.id);
+   const {data:user,error:userError}=await supabase.auth.getUser();
+   if(userError||!user.user)throw new Error("Sign in again as a Raye2 admin.");
+   const {data,error}=await supabase.from("raye2_platform_sponsor_campaigns").update({status:next})
+    .eq("id",row.id).eq("created_by",user.user.id).eq("status",row.status).select("id").maybeSingle();
    if(error)throw error;
-   setNotice(next==="active"?"Campaign configuration marked active; automated delivery remains disabled.":"Platform campaign paused.");
+   if(!data)throw new Error("Campaign status changed or this campaign is no longer available. Refresh and retry.");
+   setNotice(next==="active"?"Campaign configuration marked active; automated delivery remains disabled.":"Platform campaign paused. Automated delivery remains disabled.");
    await load();
   }catch(error){setNotice(error instanceof Error?error.message:"Could not update campaign.")}
   finally{setBusy(false)}
@@ -143,7 +167,7 @@ export default function PlatformSponsorManagement(){
   </div>
   <div className="nhen-playlist-list">{campaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
    <span><strong>{row.sponsor_name}</strong><small>{row.category_key} · priority {row.priority} · {row.placement} · {row.status}{row.category_exclusive?" · exclusive":""}</small></span>
-   <div className="nhen-inline-actions">{row.status==="draft"&&<button type="button" disabled={busy} onClick={()=>editDraft(row)}>Edit draft</button>}<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>{row.status==="active"?"Pause":"Activate configuration"}</button></div>
+   <div className="nhen-inline-actions">{row.status==="draft"&&<><button type="button" disabled={busy} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy} onClick={()=>void deleteDraft(row)}>Delete draft</button></>}{(row.status==="draft"||row.status==="paused")&&<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>Activate configuration</button>}{row.status==="active"&&<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>Pause</button>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="platform" assets={assets}/>
   </article>)}</div>
   <p className="editor-status" role="status" aria-live="polite">{notice}</p>
