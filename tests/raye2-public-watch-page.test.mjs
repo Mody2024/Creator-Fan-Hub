@@ -79,3 +79,14 @@ test("Raye2 watch detail uses the player-first branded responsive layout",()=>{
  assert.ok(client.includes("raye2-detail-actions"));
  assert.ok(client.includes('dir={isArabic?"rtl":"ltr"}'));
 });
+
+const watchStyles=await readFile(new URL("../src/app/globals.css",import.meta.url),"utf8");
+test("watch detail markup uses the actual responsive CSS selectors for header, title, reaction picker and comment composer",()=>{
+ for(const selector of ["raye2-detail-header","raye2-detail-brand-mark","raye2-detail-title","raye2-detail-reaction","raye2-detail-compose"]) {
+  assert.ok(watchClient.includes(`className="${selector}"`),`watch detail markup should use ${selector}`);
+  assert.ok(watchStyles.includes(`.${selector}`),`watch styles should define ${selector}`);
+ }
+ assert.ok(!watchClient.includes('className="raye2-detail-top"'));
+ assert.ok(!watchClient.includes('className="raye2-detail-title-row"'));
+ assert.ok(!watchClient.includes('className="raye2-detail-comment-compose"'));
+});
