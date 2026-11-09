@@ -1568,3 +1568,20 @@ Progress snapshot (full ten-wave scope):
 - Wave 5 social/community: **22%**.
 - This batch implementation: **100% of the scoped changes committed**; acceptance verification is still pending.
 - Production and `main` remain untouched.
+
+
+## 2026-11-09 — Progress correction (supersedes the mistaken 39% snapshot above)
+The immediately preceding verified project tracker was already at **50% overall implementation**. The 39% figure entered in the later continuation notes was an incorrect regression caused by reusing an older/incomplete progress snapshot and must not be used as the current baseline. Progress does not go backwards because a small batch did not add enough scope to move the overall estimate.
+
+Authoritative baseline carried forward from the prior session:
+- **Overall implementation: 50%**.
+- **Test/release readiness: 46%**.
+- **Wave 1 — visual redesign: 47%**.
+- **Wave 4 — Creator Studio: 53%**.
+- **Native video pipeline: 58%**.
+- **Release readiness: 27%**.
+- Exact-HEAD CI at the prior verified code HEAD `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`, run `42700591061`, passed automated repository tests, TypeScript, ESLint, Next.js production build and media-worker Docker/FFmpeg smoke test.
+
+This session's scoped additions (role-gated Creator Rewards shortcut, bilingual labels, explicit touch/keyboard Community reaction menu and regression tests) are implementation additions on top of that 50% baseline. They do **not** justify resetting the total to 39%. They have not yet been run through CI, so the prior green CI result must not be represented as validating these newer commits. The latest changes still need exact-HEAD CI and browser/RTL acceptance.
+
+Next-session rule: always start from the newest authoritative tracker and verified code HEAD, preserve the 50% baseline, and only change percentages using the same full-plan denominator and explicit completed deliverables. Never recalculate from an older partial wave snapshot. Continue implementation; the user has already asked to defer manual testing until later.
