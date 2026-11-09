@@ -1266,3 +1266,29 @@ The previous single percentage mixed two different questions and made implementa
 
 ### Next implementation batch
 Continue implementation rather than request manual testing: complete the Creator Studio sponsor/reward workflows and connect creator achievement status; then implement the actual adaptive video pipeline (bounded HLS renditions, owner-bound storage reservations, manifest publication and native player integration). Keep HLS marked incomplete until CI and the later manual test stage verify it.
+
+
+## 2026-11-09 — Creator rewards now connects verified member achievements
+- [x] Connected the Creator Rewards center to the real `member_achievements` records for the authenticated creator account.
+- [x] Loaded achievement definitions from the existing catalog and displayed only earned records, with title, description, icon and earned date.
+- [x] Added normalization that excludes malformed and unknown achievement records; no milestone is fabricated from reward rules or aggregate counts.
+- [x] Extracted progression normalization and bounded progress values to the valid 0–100 range.
+- [x] Added regression contracts for creator-scoped achievement reads, catalog mapping, malformed record filtering and progression bounds.
+- [x] Updated the old reward test contract to match the actual authenticated creator ID flow.
+- [ ] Await CI on the resulting implementation HEAD; source-level tests are authored but must execute.
+- [ ] Manual database/browser acceptance is intentionally deferred until the overall implementation reaches approximately 50%, per user instruction.
+- [ ] Next implementation batch: continue Creator Studio end-to-end workflows (sponsor campaign review/status visibility and achievement/reward admin lifecycle), then proceed to real adaptive video processing and player support.
+
+### Updated dual progress
+- **Overall implementation: 43%** (up from 42%; verified achievement records are now connected to the creator-facing rewards workspace).
+- **Test/release readiness: 39%** (unchanged; automated CI is running and database/browser acceptance is deferred).
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 49%** (up from 48%; creator-facing earned-achievement integration delivered).
+- **Native video pipeline implementation: 35%** (source processing, queue and thumbnails exist; adaptive renditions/HLS are not implemented).
+- **Release readiness: 25%.**
+
+Session handoff:
+- Branch: `development`; `main` and production untouched.
+- Current implementation batch: creator rewards now displays actual earned achievements and normalizes progression.
+- Pre-batch exact HEAD: `720359e555808832a4fa4787a5745015e03b79a1`; the preceding documentation change triggered CI run `42685821537` which was queued at the time of handoff. Verify current exact HEAD and CI before the next change.
+- Next: complete the remaining Creator Studio campaign/reward admin lifecycle, then tackle actual adaptive video output and watch-player integration. Do not pause for user manual testing before 50% implementation.
