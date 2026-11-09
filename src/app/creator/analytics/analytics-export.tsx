@@ -8,8 +8,21 @@ function safeCell(value: string | number) {
   return '"' + text.replace(/"/g, '""') + '"';
 }
 
+function safeCount(value: unknown) {
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?Math.max(0,parsed):0;
+}
+
+function safeDate(value: string | null) {
+  if(!value) return null;
+  const timestamp=Date.parse(value);
+  return Number.isFinite(timestamp)?new Date(timestamp).toISOString().slice(0,10):null;
+}
+
 function interactionRate(item: Pick<Metric, "views" | "reactions" | "comments">) {
-  return item.views > 0 ? Number((((item.reactions + item.comments) / item.views) * 100).toFixed(2)) : 0;
+  const views=safeCount(item.views);
+  const interactions=safeCount(item.reactions)+safeCount(item.comments);
+  return views > 0 ? Number(((interactions / views) * 100).toFixed(2)) : 0;
 }
 
 export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Metric[]; locale?: "en"|"ar" }) {
@@ -19,9 +32,9 @@ export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Met
       ? ["نوع الصف", "الترتيب", "الفيديو", "تاريخ النشر", "المشاهدات", "التفاعلات", "التعليقات المعتمدة", "التفاعلات لكل 100 مشاهدة"]
       : ["Row type", "Views rank", "Video", "Published", "Views", "Reactions", "Approved comments", "Interactions per 100 views"];
     const totals = metrics.reduce((sum, item) => ({
-      views: sum.views + Number(item.views || 0),
-      reactions: sum.reactions + Number(item.reactions || 0),
-      comments: sum.comments + Number(item.comments || 0)
+      views: sum.views + safeCount(item.views),
+      reactions: sum.reactions + safeCount(item.reactions),
+      comments: sum.comments + safeCount(item.comments)
     }), { views: 0, reactions: 0, comments: 0 });
     const summary = [
       isArabic ? "الإجمالي" : "TOTAL",
@@ -33,15 +46,15 @@ export default function AnalyticsExport({ metrics, locale="en" }: { metrics: Met
       totals.comments,
       interactionRate(totals)
     ];
-    const ranked = [...metrics].sort((a, b) => Number(b.views) - Number(a.views));
+    const ranked = [...metrics].sort((a, b) => safeCount(b.views) - safeCount(a.views));
     const rows = ranked.map((item, index) => [
       isArabic ? "فيديو" : "VIDEO",
       index + 1,
       item.title,
-      item.publishedAt ? new Date(item.publishedAt).toISOString().slice(0, 10) : (isArabic ? "مسودة" : "Draft"),
-      item.views,
-      item.reactions,
-      item.comments,
+      safeDate(item.publishedAt) ?? (isArabic ? "مسودة" : "Draft"),
+      safeCount(item.views),
+      safeCount(item.reactions),
+      safeCount(item.comments),
       interactionRate(item)
     ]);
     const csv = "\uFEFF" + [header, summary, ...rows].map(row => row.map(safeCell).join(",")).join("\r\n");
