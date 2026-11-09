@@ -87,7 +87,7 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   const page = await read("../src/app/creator/page.tsx");
   assert.ok(page.includes('{admin.role === "owner" && ('));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
-  assert.ok(page.includes('11 - (admin.role === "owner" ? 0 : 1) - (["owner","admin"].includes(admin.role) ? 0 : 2)'));
+  assert.ok(page.includes('8 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
 });
 
 test("community interactions restore optimistic state and recover from failed requests", async () => {

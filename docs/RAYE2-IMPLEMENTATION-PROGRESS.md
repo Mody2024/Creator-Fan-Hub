@@ -770,3 +770,11 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Refresh workspace cards with consistent hierarchy, hover/focus states, mobile layouts and reduced-motion support.
 - [x] Extend dashboard resilience and accessibility regression tests.
 - [ ] Verify CI and preview for the latest commit.
+
+
+## 2026-11-09 — Creator workspace reliability follow-up
+- [x] Correct stale dashboard role-count assertion to match creator/admin/owner navigation counts.
+- [x] Distinguish analytics RPC failures from a genuinely empty creator account in highlights and video table.
+- [x] Preserve bilingual error states and avoid incorrectly instructing creators to publish when analytics service failed.
+- [x] Add regression coverage for error-versus-empty behavior.
+- [ ] Re-run full CI and verify the latest preview.

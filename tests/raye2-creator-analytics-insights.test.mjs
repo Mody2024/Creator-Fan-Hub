@@ -19,3 +19,5 @@ test("analytics insights remain aggregate and avoid quality or reach guarantees"
  assert.ok(page.includes("not a quality score or a promise of reach"));
  assert.ok(page.includes("Viewer identities are not exposed."));
 });
+
+test("analytics distinguishes unavailable data from a genuinely empty account",()=>{assert.ok(page.includes("Analytics could not be loaded."));assert.ok(page.includes("Performance highlights could not load."));assert.ok(page.includes("Publish your first video to start building performance insights."));});
