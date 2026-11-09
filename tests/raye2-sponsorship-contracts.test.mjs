@@ -109,3 +109,10 @@ test("root metadata uses Raye2 identity rather than predecessor branding",async(
  assert.ok(layout.includes('title: { default: "Raye2", template: "%s | Raye2" }'));
  assert.ok(!layout.includes("Nhen?"));
 });
+
+test("pausing a creator sponsorship is scoped to the signed-in owner, video and active state",()=>{
+ assert.ok(component.includes('supabase.auth.getUser()'));
+ assert.ok(component.includes('.eq("id",row.id).eq("creator_id",userData.user.id).eq("media_id",mediaId).eq("status","active")'));
+ assert.ok(component.includes('.select("id").maybeSingle()'));
+ assert.ok(component.includes("This active campaign is no longer available to pause."));
+});
