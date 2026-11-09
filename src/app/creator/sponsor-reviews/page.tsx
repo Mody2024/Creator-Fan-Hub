@@ -14,6 +14,6 @@ export default async function SponsorReviewPage(){
  const {data:admin,error}=await supabase.from("creator_admins").select("role").eq("user_id",userId).eq("active",true).maybeSingle();
  if(error||!admin||!["owner","admin"].includes(admin.role))redirect("/creator/login?access=restricted");
  return <main className="dashboard-shell raye2-creator-shell" dir={locale==="ar"?"rtl":"ltr"} lang={locale}>
-  <div className="dashboard-content"><a className="logout-button" href="/creator">← Creator workspace</a><SponsorReviewAdmin locale={locale}/></div>
+  <div className="dashboard-content"><a className="logout-button" href="/creator">{locale==="ar"?"← مساحة المبدعين":"← Creator workspace"}</a><SponsorReviewAdmin locale={locale}/></div>
  </main>;
 }
