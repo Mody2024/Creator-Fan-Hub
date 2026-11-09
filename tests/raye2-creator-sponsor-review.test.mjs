@@ -92,6 +92,8 @@ test("creator dashboard exposes a private notification inbox with read actions",
  assert.ok(notificationComponent.includes("Mark as read"));
  assert.ok(dashboard.includes('import CreatorNotifications from "./creator-notifications";'));
  assert.ok(dashboard.includes('<CreatorNotifications locale={isArabic?"ar":"en"} />'));
+ assert.ok(dashboard.includes('href="#creator-notifications"'));
+ assert.ok(dashboard.includes('id="creator-notifications"'));
 });
 
 test("creator can request review only for editable draft campaigns and sees review outcome",()=>{
