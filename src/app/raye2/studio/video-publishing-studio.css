@@ -14,7 +14,7 @@
 .raye2-video-studio .poll-create-form,.raye2-video-studio .nhen-card{min-width:0;padding:clamp(16px,2vw,23px);border:1px solid var(--vs-line);border-radius:16px;background:linear-gradient(150deg,rgba(255,255,255,.025),transparent 48%),var(--vs-panel)}
 .raye2-video-studio .poll-create-form{display:grid;gap:13px}
 .raye2-video-studio .poll-create-form>label,.raye2-video-studio .nhen-card>label{display:grid;gap:7px;color:#c4d0df;font-size:10px;font-weight:750;line-height:1.5}
-.raye2-video-studio input:not([type=checkbox]),.raye2-video-studio select,.raye2-video-studio textarea{width:100%;min-width:0;min-height:42px;padding:10px 12px;border:1px solid rgba(218,231,248,.14);border-radius:9px;background:#0a121d;color:var(--vs-text);font:11px/1.5 inherit;outline:none}
+.raye2-video-studio input:not([type=checkbox]),.raye2-video-studio select,.raye2-video-studio textarea{width:100%;min-width:0;min-height:42px;padding:10px 12px;border:1px solid rgba(218,231,248,.14);border-radius:9px;background:#0a121d;color:var(--vs-text);font:inherit;font-size:11px;line-height:1.5;outline:none}
 .raye2-video-studio textarea{min-height:92px;resize:vertical}
 .raye2-video-studio input:focus,.raye2-video-studio select:focus,.raye2-video-studio textarea:focus{border-color:rgba(128,180,255,.6);box-shadow:0 0 0 3px rgba(128,180,255,.09)}
 .raye2-video-studio input::placeholder,.raye2-video-studio textarea::placeholder{color:#718198}
