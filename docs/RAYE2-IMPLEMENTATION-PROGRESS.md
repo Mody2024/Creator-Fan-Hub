@@ -1764,3 +1764,15 @@ One regression-test file was briefly created on the default `main` branch becaus
 - Dashboard integration commit: `608333f68e0e2c28fb5d7bc81236a4268d7c19c0`.
 - Regression test commit: `f4069d92680b95836ec1d803ed25fa3c539c7abe`.
 - **Progress:** Wave 4 Creator Studio moves from 35% to **36% provisional** for the added creator notification capability. Full ten-wave implementation remains **38%** at current whole-number rounding. Implementation and verification remain separate.
+
+
+## 2026-11-10 — Arabic sponsor-review administration polish
+- [x] Localized the owner/admin review queue labels, counters, delivery-disabled wording, review note, approval/rejection confirmations, empty states and decision-history timestamps into Arabic.
+- [x] Localized the route back to the Creator Workspace.
+- [x] Added regression assertions for Arabic review queue, actions, history and navigation strings.
+- [ ] Arabic layout and copy still require actual RTL browser review; source localization is implemented but not visually accepted.
+- [ ] Tests, lint, type-check, build and database integration remain unexecuted.
+- Admin UI commit: `3f14cd96a9324b10108a30a561017d74c146549e`.
+- Route commit: `5e4fbb7ec45fb7e2c4128646b4d2b847209930d2`.
+- Regression test commit: `9e77752d91a9bd681d4ad88f83e6e042d56ab6a6`.
+- Wave 4 remains **36% provisional**; full platform remains **38%**. This is included in implementation tracking; no verification credit is claimed.
