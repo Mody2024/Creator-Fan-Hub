@@ -24,7 +24,7 @@
 .raye2-community-page .nhen-post-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:12px 17px;border-top:1px solid var(--c-line)}
 .raye2-community-page .nhen-action:hover,.raye2-community-page .nhen-action[aria-pressed=true]{border-color:rgba(128,180,255,.3)!important;background:rgba(128,180,255,.09)!important;color:var(--c-blue)!important}
 .raye2-community-page .nhen-reaction-picker{position:relative}.raye2-community-page .nhen-reaction-menu{position:absolute;z-index:20;left:0;bottom:calc(100% + 8px);display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;width:230px;padding:9px;border:1px solid var(--c-line);border-radius:12px;background:var(--c-panel);box-shadow:0 18px 45px #0008}
-.raye2-community-page .nhen-reaction-picker:focus-within .nhen-reaction-menu,.raye2-community-page .nhen-reaction-picker:hover .nhen-reaction-menu{display:grid}
+.raye2-community-page .nhen-reaction-picker.is-open .nhen-reaction-menu,.raye2-community-page .nhen-reaction-picker:focus-within .nhen-reaction-menu{display:grid}
 .raye2-community-page .nhen-discovery-column{position:sticky;top:96px;display:grid;gap:12px}.raye2-community-page .nhen-discovery-column .nhen-card{padding:18px!important}
 .raye2-community-page .nhen-pill-official{color:var(--c-blue)!important;border-color:rgba(128,180,255,.25)!important}
 .raye2-community-page textarea,.raye2-community-page input,.raye2-community-page select{color:var(--c-text)!important;background:var(--c-raised)!important;border-color:var(--c-line)!important}
