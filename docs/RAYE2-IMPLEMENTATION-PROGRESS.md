@@ -1382,3 +1382,35 @@ Session handoff:
 - Latest known CI run before this final doc update was `42689968240` for SHA `d450db66c8fe26881f61a8de4e7384146f4dd7e6`, still in progress. Verify the newest run against the exact branch HEAD before reporting results.
 - Next batch: finish CI and static corrections; add actual ffmpeg sample generation/inspection and integration validation; harden storage rollback; then verify browser playback. Continue with redesign after the video pipeline acceptance path is stable.
 - User's first major manual testing stage remains approximately **50% overall implementation**. Do not request manual tests before that threshold.
+
+
+## 2026-11-09 — Adaptive HLS verification correction and exact-HEAD CI result
+- [x] Fixed a test contract mismatch for the actual FFmpeg CLI argument representation.
+- [x] Corrected the watch page's HLS source insertion so the TypeScript source contains real line breaks (not escaped literal characters).
+- [x] Fixed the HLS output path regular expression so the worker file parses correctly under ESLint.
+- [x] Fixed the six-second segment behavior by forcing keyframes at six-second intervals; a generated 12-second source produced two six-second segments per rendition and AAC audio in the sample segment.
+- [x] Bound public HLS lookup to the exact owner folder and media UUID.
+- [x] Added a database trigger that validates HLS pointer format, owner, media identity, publication bucket and existence of the master playlist object.
+- [x] Exact-HEAD GitHub Actions run `42691479759` passed all steps on code SHA `01d1d45a5ce08fe8c4cbb36a226a4b7bf965798f`: automated tests, TypeScript, ESLint, Next.js build and isolated media-worker Docker image build.
+- [x] Local FFmpeg sample command validation completed with 360p/720p outputs, six-second segments and AAC audio.
+- [ ] Apply the new migrations in an isolated Supabase database and test actual Storage reservation triggers and RLS.
+- [ ] Run the worker with real Supabase credentials and a test media upload; verify metadata, package objects and cleanup behavior.
+- [ ] Verify HLS playback in a native-HLS browser and MP4 fallback in a non-native-HLS browser. This is not yet browser-accepted streaming.
+- [ ] Chrome/Firefox adaptive playback via hls.js is still a future improvement; these currently use the MP4 fallback when native HLS is unavailable.
+
+### Current progress
+- **Overall implementation: 46%.**
+- **Test/release readiness: 41%** (automated CI and sample FFmpeg output verified; database and browser acceptance remain).
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 45%.**
+- **Release readiness: 25%.**
+- **Adaptive video batch: 90% implementation** (source code, authorization/ownership guards, storage moves, regression contracts and CI are in place; isolated database and browser/runtime acceptance remain).
+
+### Exact next-session handoff
+- Branch: `development`; production deployment is not authorized.
+- Last fully verified code SHA: `01d1d45a5ce08fe8c4cbb36a226a4b7bf965798f`.
+- Successful CI: `42691479759` (all five verification/build stages successful).
+- Follow-up documentation commits: update this progress log and the master plan without changing application code; verify the resulting HEAD/CI status on the next session.
+- Next engineering batch: create a reproducible FFmpeg integration test script if CI environment supports it; then add hls.js for adaptive playback in browsers without native HLS, while retaining MP4 fallback; then run isolated database/worker/browser acceptance.
+- Manual user testing remains deferred until approximately **50% overall implementation**. Continue implementation without asking the user to test early.
