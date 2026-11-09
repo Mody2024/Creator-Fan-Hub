@@ -850,3 +850,10 @@ This section is mandatory for every future Raye2 development session. The reposi
 - After a successful database save, remove old source/thumbnail/HLS copies. Cleanup failures must be logged or surfaced as orphan candidates and must never roll back the committed record.
 - The database HLS pointer validator must reject malformed paths, cross-owner paths, cross-media paths, mismatched private/public buckets, and master playlists missing from Storage.
 - CI regression tests must cover both pre-commit cleanup and the invariant that post-commit errors do not delete committed media. Do not claim deployed database/storage acceptance until these migrations are applied and exercised in an isolated Supabase environment.
+
+
+### 19.6 Creator Workspace command-center redesign (2026-11-09)
+- The creator workspace home should read as a designed control room, not a generic dashboard template: strong branded welcome area, clear system/permission/publication status, a compact role-aware module grid, deliberate depth and restrained accents.
+- Preserve all server-side authorization gates and role-specific module visibility. The visual redesign must not make owner/admin-only links visible to creator/editor roles.
+- Keep the interface responsive across desktop/tablet/mobile, preserve Arabic RTL and English LTR, maintain keyboard focus visibility, and honor reduced-motion preferences.
+- This pass updates the creator workspace surface and its responsive visual system. It is not completion of the broader platform redesign: the public home/feed, watch page, member profiles, community, and the rest of Creator Studio still require coordinated visual redesign and real browser review.
