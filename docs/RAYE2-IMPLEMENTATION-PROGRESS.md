@@ -1473,3 +1473,36 @@ Session handoff:
 - Continue next with isolated database migration/Storage acceptance and deployed-worker verification; then real-browser HLS playback acceptance. Once those are complete, shift the main implementation focus back to the incomplete redesign and connected home/feed/watch/profile surfaces.
 - Report implementation and test/release readiness separately in every session. The user's first major manual testing stage remains targeted at approximately **50% overall implementation**; current implementation is 48%, so continue building without asking for manual testing yet.
 - Future sessions must read this master plan and progress log, verify the live `development` HEAD and latest CI, preserve the no-production-deploy boundary, and continue from this exact handoff rather than restarting or reverting to old percentages.
+
+
+## 2026-11-09 — Publication rollback safety + Creator Workspace redesign
+- [x] Publication state changes now use an explicit database commit boundary. Pre-commit failures clean staged source, thumbnail and HLS objects; post-commit errors cannot delete files referenced by the saved media record.
+- [x] Added rollback cleanup for staged thumbnail copies as well as the main source and adaptive HLS package.
+- [x] Corrected the database HLS master-path regex to use an unambiguous PostgreSQL character class for the dot.
+- [x] Added regression coverage for pre-commit cleanup and the post-commit no-delete invariant.
+- [x] Redesigned the Creator Workspace command center: richer branded welcome panel, clearer status cards, compact four-column module navigation, layered cards, subtle visual accents, responsive breakpoints, Arabic RTL refinements and reduced-motion support.
+- [x] Added tests for the new command-center visual system and confirmed existing server-side role gates remain in the page.
+- [x] Exact-HEAD CI run `42699987429` passed on code HEAD `e3beab33013e73efeab7cd09b3bd6ac237643f52`: repository automated tests, TypeScript, ESLint, Next.js production build, and media-worker Docker image build with the real FFmpeg HLS smoke test.
+- [ ] Supabase project `Creator-Fan-Hub` is active, but it currently has no development database branch. Production migration history is behind the repo and does not contain the new media-worker/HLS migrations. Do not apply these changes to production. A separate database branch/environment is required before migration application and database acceptance; branch creation may incur cost, so do not create one without the user's explicit approval.
+- [ ] Run browser-level review of the redesigned Creator Workspace in desktop/mobile and Arabic/English. The CI build validates compilation, not visual appearance.
+- [ ] Continue the broader redesign across public home/feed, watch page, member profiles, community and remaining Creator Studio modules; do not mark Wave 1 complete based on this single workspace surface.
+- [ ] Keep full friend/manual acceptance testing in the user's hands; continue implementation unless they explicitly switch to the test stage.
+
+### Updated progress
+- **Overall implementation: 50%** (up from 48%; the media publication rollback invariant and the Creator Workspace command-center redesign are implemented and pass exact-HEAD CI).
+- **Test/release readiness: 45%** (up from 43%; exact-HEAD automated tests, TypeScript, ESLint, Next.js build and FFmpeg Docker smoke all pass; database application and browser/manual acceptance remain open).
+- **Wave 1 — visual redesign: 46%** (up from 44%; the Creator Workspace home has a redesigned visual system, while the public/member surfaces remain).
+- **Wave 4 — Creator Studio: 53%** (up from 50%; workspace overview redesign and safer media publication workflow delivered; other Creator Studio modules still need work).
+- **Native video pipeline: 58%** (up from 55%; publication rollback now protects source, thumbnail and HLS assets across the database commit boundary).
+- **Release readiness: 27%** (up from 25%; CI is green, but isolated database, deployed-worker and browser acceptance are not complete).
+- **Publication rollback batch: 100% implementation + CI**; isolated Supabase and live Storage acceptance remain open.
+- **Creator Workspace command-center redesign batch: 100% implementation + CI**; visual browser review remains open.
+
+### Exact next-session handoff
+- Branch: `development`; production branch and deployment remain untouched.
+- Application implementation HEAD: `e3beab33013e73efeab7cd09b3bd6ac237643f52`.
+- Exact-HEAD successful CI: run `42699987429` (all stages passed, including Next.js build and Docker/FFmpeg HLS smoke test).
+- Latest documentation update after this code: master plan commit `04ab045795e9e2a78aaaf7e7ccb2718574e0c4d3`; this progress-log entry is the next documentation commit.
+- Supabase project check: active project `scxkgybuodhuohcxpfat`; no development branches exist. Production migrations currently stop at `20261102215604`; do not apply repo migrations directly to production.
+- Next implementation priority: continue the broader redesign on the public home/feed and watch/member profile surfaces, then continue Creator Studio workflow completeness. Database migration acceptance must wait for an approved isolated Supabase branch/environment.
+- Future sessions must read both plan and progress log, verify live development HEAD and latest CI, preserve the no-main/no-production boundary, report implementation and test/release readiness separately, and continue from this handoff.
