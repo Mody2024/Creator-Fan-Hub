@@ -1608,3 +1608,12 @@ Audited progress (scope estimates, not telemetry):
 - **Release readiness: 27%** (last recorded; database, deployed service and browser acceptance remain).
 - Latest verified CI code HEAD: `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`; CI run: `42700591061`.
 - Current code changes after that checkpoint include the community picker, creator rewards admin navigation, and revoked-award accounting fix; they are not yet validated by that older CI run.
+
+
+### Exact continuation handoff after audit
+- Latest development HEAD after this audit: `d5be19470dffaa3818c9375cdc6d88b9bdd75270`.
+- Reward accounting fix commit: `b5447df78fe22347685d56b554d39538010d2982`; regression test commit: `658889dadd46a99933cda5d7cfe743fdad933709`.
+- CI: pending for these commits. The previous green run `42700591061` is only for `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`; never report it as verification of the current HEAD.
+- Current active batch: correct revoked-award balance/progression accounting. Implementation is committed; tests are authored, not executed.
+- Next substantial Creator Studio batch: complete creator sponsorship campaign status/approval visibility and verified creator reward workflows without awarding points from draft campaigns, simulated events or unverified sponsor delivery. Use only trusted provider/service-role verified events for any future delivery-based awards.
+- Then run exact-HEAD CI and continue the isolated database/deployed-worker/browser acceptance plan. Do not create a Supabase development branch without explicit approval due possible cost.
