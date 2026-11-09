@@ -59,6 +59,14 @@ test("sponsor review page and dashboard navigation enforce owner/admin access",(
  assert.ok(dashboard.includes("Sponsor campaign reviews"));
 });
 
+test("campaign creators can see their own immutable sponsorship review timeline",()=>{
+ assert.ok(creator.includes("type SponsorReviewEvent="));
+ assert.ok(creator.includes('from("raye2_creator_sponsor_review_events")'));
+ assert.ok(creator.includes(".in(\"campaign_id\",campaignIds)"));
+ assert.ok(creator.includes("Review history"));
+ assert.ok(creator.includes("event.event_type.replaceAll"));
+ assert.ok(creator.includes("event.note"));
+});
 test("creator can request review only for editable draft campaigns and sees review outcome",()=>{
  assert.ok(creator.includes('row.status!=="draft"'));
  assert.ok(creator.includes('["not_submitted","rejected"].includes(row.approval_status)'));
