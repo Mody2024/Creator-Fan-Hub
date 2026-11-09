@@ -31,7 +31,7 @@ test("creator rewards UI clearly distinguishes points from cash and displays his
  assert.ok(component.includes("Reward history"));
  assert.ok(component.includes("raye2_creator_reward_summary"));
  assert.ok(component.includes("raye2_creator_reward_ledger"));
- assert.ok(component.includes('.eq("creator_id",userData.user.id)'));
+ assert.ok(component.includes('.eq("creator_id",creatorId)'));
  assert.ok(component.includes("Revoked awards are excluded"));
 });
 test("creator dashboard mounts the rewards center",()=>{
@@ -57,4 +57,18 @@ test("creator reward normalizers handle malformed summaries, ledgers and rules",
  assert.ok(source.includes("export function normalizeCreatorRewardRules"));
  assert.ok(source.includes("typeof value===\"number\"||typeof value===\"string\""));
  assert.ok(source.includes("Math.max(0,Math.trunc(parsed))"));
+});
+
+test("creator rewards center displays only achievements earned by the signed-in creator",()=>{
+ assert.ok(component.includes('from("member_achievements").select("achievement_code,earned_at").eq("user_id",creatorId)'));
+ assert.ok(component.includes('from("achievement_catalog").select("code,title,description,icon")'));
+ assert.ok(component.includes("normalizeCreatorAchievements"));
+ assert.ok(component.includes("Your earned milestones"));
+ assert.ok(component.includes("Only achievements recorded by Raye2 are shown here."));
+});
+test("achievement normalization ignores unknown and malformed achievement records",()=>{
+ assert.ok(component.includes("if(typeof row.achievement_code!==\"string\"||typeof row.earned_at!==\"string\")return []"));
+ assert.ok(component.includes("if(!detail)return []"));
+ assert.ok(component.includes("export function normalizeCreatorProgression"));
+ assert.ok(component.includes("Math.max(0,Math.min(100,Math.trunc(percent)))"));
 });
