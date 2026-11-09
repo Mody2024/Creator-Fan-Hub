@@ -40,6 +40,8 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  const [confirmed,setConfirmed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [status,setStatus]=useState("Creator-contracted sponsorship setup. Playback delivery is still disabled; automatic ad delivery is not enabled yet.");
+ const [campaignFilter,setCampaignFilter]=useState("all");
+ const [campaignSearch,setCampaignSearch]=useState("");
  const eligibleAssets=assets.filter(asset=>(asset.media_type==="video"||asset.media_type==="image")&&asset.is_published&&asset.media_id!==mediaId);
  const campaignCounts=useMemo(()=>({
   draft:rows.filter(row=>row.status==="draft").length,
@@ -47,6 +49,11 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   paused:rows.filter(row=>row.status==="paused").length,
   other:rows.filter(row=>!["draft","active","paused"].includes(row.status)).length
  }),[rows]);
+ const visibleCampaigns=useMemo(()=>{
+  const query=campaignSearch.trim().toLocaleLowerCase();
+  return rows.filter(row=>(campaignFilter==="all"||row.status===campaignFilter)&&
+   (!query||[row.sponsor_name,row.category_key,row.placement,row.disclosure_text].some(value=>value.toLocaleLowerCase().includes(query))));
+ },[rows,campaignFilter,campaignSearch]);
  const campaignWindow=(row:SponsorCampaign)=>{
   const start=row.starts_at?new Date(row.starts_at).toLocaleDateString():"No start date";
   const end=row.ends_at?new Date(row.ends_at).toLocaleDateString():"No end date";
@@ -170,12 +177,21 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    <article><span>Active campaigns</span><strong>{campaignCounts.active}</strong><small>Requires verified activation</small></article>
    <article><span>Paused / other</span><strong>{campaignCounts.paused+campaignCounts.other}</strong><small>Not currently eligible for delivery</small></article>
   </div>
-  <div className="nhen-playlist-list">
-   {rows.map(row=><article className="nhen-playlist-row" key={row.id}>
+  <div className="nhen-inline-actions raye2-sponsor-filters">
+   <label>Search campaigns<input type="search" value={campaignSearch} onChange={event=>setCampaignSearch(event.target.value)} placeholder="Sponsor, category, placement or disclosure"/></label>
+   <label>Campaign status<select value={campaignFilter} onChange={event=>setCampaignFilter(event.target.value)}>
+    <option value="all">All statuses ({rows.length})</option>
+    <option value="draft">Draft ({campaignCounts.draft})</option>
+    <option value="active">Active ({campaignCounts.active})</option>
+    <option value="paused">Paused ({campaignCounts.paused})</option>
+   </select></label>
+  </div>
+  <div className="nhen-playlist-list" aria-live="polite">
+   {visibleCampaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
     <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small><small>{campaignWindow(row)}</small><small>Disclosure: {row.disclosure_text}</small></span>
     <div className="nhen-inline-actions">{row.status==="active"?<button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>Pause</button>:<><button type="button" disabled={busy||row.status!=="draft"} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy||row.status!=="draft"} onClick={()=>void deleteDraft(row)}>Delete unused draft</button></>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
-   {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}
+   {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}{rows.length>0&&!visibleCampaigns.length&&<p className="nhen-muted">No campaigns match these filters. Change the search or status filter.</p>}
   </div>
   <SponsorAnalytics mediaId={mediaId}/>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>
