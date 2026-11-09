@@ -1700,3 +1700,11 @@ This entry records **all committed implementation work regardless of test/build 
 
 ### Branch hygiene note
 One regression-test file was briefly created on the default `main` branch because the branch argument was omitted from that single file-creation call. It was immediately deleted from `main` in commit `7e8c6f923cca59e1f2dc60813e8d158f70697bcb`, then recreated explicitly on `development` in commit `8e0e2b3fdb55894b173b51a9b9263933bf25eb5d`. The test file is absent from current `main`; no application code, migration or deployment was made on `main`. The two audit commits remain in its history; no force-reset was attempted.
+
+
+### Security refinement — 2026-11-10
+- [x] Tightened the review-field database trigger: even owner/admin users must use the trusted review RPCs; direct table updates cannot bypass audit-event creation.
+- [x] Extended the regression test to assert there is no direct owner/admin bypass.
+- [ ] This refinement and its test are committed but remain unexecuted pending Vercel/build capacity and isolated database verification.
+- Commits: `9a5b6a1f4203a1dd5494bc8e07b63ff9536286ca` (RPC-only trigger guard), `a768a13652eb0e79b5e7a9d83ae8b47175c69a54` (regression assertion).
+- Implementation credit is included in the Creator Studio ledger above; verification status is unchanged.
