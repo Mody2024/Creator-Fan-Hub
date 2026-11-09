@@ -65,7 +65,7 @@ test("legacy creator management tools now inherit the Raye2 workspace theme and 
   ]);
   assert.ok(dashboard.includes('className="dashboard-shell raye2-creator-shell"'));
   assert.ok(dashboard.includes('href="/raye2/studio"'));
-  assert.ok(analytics.includes('className="dashboard-shell raye2-creator-shell"'));
+  assert.ok(analytics.includes('className="dashboard-shell raye2-creator-shell raye2-analytics-page"'));
   assert.ok(analytics.includes('href="/raye2/studio"'));
   assert.ok(moderation.includes('className="dashboard-shell raye2-creator-shell"'));
   assert.ok(moderation.includes('href="/raye2/studio"'));
