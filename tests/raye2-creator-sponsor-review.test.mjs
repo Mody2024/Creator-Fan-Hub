@@ -45,6 +45,12 @@ test("guarded review updates are allowed only inside the two trusted RPC transac
  assert.ok(guardMigration.includes("raye2_admin_review_creator_sponsor"));
 });
 
+test("creator dashboard imports remain valid and sponsor review navigation stays in JSX",()=>{
+ assert.ok(dashboard.startsWith('import { redirect } from "next/navigation";'));
+ assert.ok(!dashboard.startsWith('import { redirect } from "n{'));
+ assert.ok(dashboard.includes('href="/creator/sponsor-reviews"'));
+ assert.ok(dashboard.indexOf('href="/creator/sponsor-reviews"')>dashboard.indexOf('<nav className="module-grid creator-quick-nav"'));
+});
 test("sponsor review page and dashboard navigation enforce owner/admin access",()=>{
  assert.ok(route.includes('["owner","admin"].includes(admin.role)'));
  assert.ok(route.includes("access=restricted"));
