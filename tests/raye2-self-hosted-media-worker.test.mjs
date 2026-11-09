@@ -229,3 +229,27 @@ test("self-hosted worker has an isolated minimal runtime image and secret-safe c
  assert.ok(dockerignore.includes(".env"));
  assert.ok(dockerignore.includes("node_modules"));
 });
+
+test("video worker creates bounded 360p and 720p adaptive HLS renditions with audio when present",()=>{
+ assert.ok(worker.includes("MAX_HLS_DURATION_SECONDS = 3600"));
+ assert.ok(worker.includes('name: "360p", maxWidth: 640, maxHeight: 360'));
+ assert.ok(worker.includes('name: "720p", maxWidth: 1280, maxHeight: 720'));
+ assert.ok(worker.includes('"libx264"'));
+ assert.ok(worker.includes('"hls_time", "6"'));
+ assert.ok(worker.includes('"hls_playlist_type", "vod"'));
+ assert.ok(worker.includes('...(hasAudio ? ["-c:a", "aac"'));
+ assert.ok(worker.includes('"-an"'));
+ assert.ok(worker.includes("master/master.m3u8"));
+ assert.ok(worker.includes("hlsSkippedReason"));
+});
+test("HLS storage writes are owner-bound, quota-reserved, path-validated and rolled back on partial failure",()=>{
+ assert.ok(worker.includes("async function storeHlsObject"));
+ assert.ok(worker.includes("MAX_HLS_OBJECT_BYTES = 25 * 1024 * 1024"));
+ assert.ok(worker.includes("reserve_raye2_worker_thumbnail_capacity"));
+ assert.ok(worker.includes('purpose: "raye2-hls"'));
+ assert.ok(worker.includes("const uploaded = []"));
+ assert.ok(worker.includes("partial HLS output cleanup failed"));
+ assert.ok(worker.includes("async function removeWorkerHls"));
+ assert.ok(worker.includes("generated HLS package needs orphan cleanup"));
+ assert.ok(worker.includes("const hlsMasterPath = result?.metadata?.processing?.hls?.masterPath"));
+});
