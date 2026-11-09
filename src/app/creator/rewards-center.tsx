@@ -28,7 +28,24 @@ export default function CreatorRewardsCenter(){
    if(summaryResult.error)throw summaryResult.error;
    const progressionResult=await supabase.rpc("raye2_creator_progression_summary");
    if(progressionResult.error)throw progressionResult.error;
-   setProgression(progressionResult.data as Progression);
+   const progressionRaw=progressionResult.data;
+   const progressionRow=Array.isArray(progressionRaw)?progressionRaw[0]:progressionRaw;
+   if(progressionRow && typeof progressionRow==="object"){
+    const row=progressionRow as Progression;
+    const points=Number(row.points);
+    const level=Number(row.level);
+    const nextLevelPoints=Number(row.next_level_points);
+    const rawPercent=Number(row.progress_percent);
+    if([points,level,nextLevelPoints,rawPercent].every(Number.isFinite)){
+     setProgression({...row,points,level,next_level_points:nextLevelPoints,progress_percent:Math.max(0,Math.min(100,rawPercent)),points_to_next:Math.max(0,Number(row.points_to_next)||0)});
+    }else{
+     setProgression(null);
+     throw new Error("Creator progression returned an invalid summary. Refresh or contact an administrator.");
+    }
+   }else{
+    setProgression(null);
+    throw new Error("Creator progression is not available for this account yet.");
+   }
    if(historyResult.error)throw historyResult.error;
    if(rulesResult.error)throw rulesResult.error;
    const raw=summaryResult.data;
