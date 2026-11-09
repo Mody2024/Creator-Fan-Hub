@@ -958,3 +958,21 @@ Progress estimates (full ten-wave scope; conservative):
 - Wave 4 — Creator ecosystem: **37%** (creator control room and analytics visual pass; upload, transcoding, playback and creator workflow acceptance remain).
 - Wave 9 — release readiness: **21%** (this visual patch does not count as runtime verification).
 - Whole Raye2 platform: **~39% provisional**, unchanged from the conservative full-plan baseline. Styling one dashboard does not justify increasing total completion. This is not a test/build/runtime metric. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Video Publishing Studio interface batch
+- [x] Add a dedicated Raye2 Video Publishing Studio visual system and wire it into the authenticated Creator workspace.
+- [x] Redesign the source/metadata editor, publication-readiness checklist, distinct draft and publish actions, live watch-page preview, searchable catalog, video thumbnails and playlist controls.
+- [x] Add responsive desktop/tablet/mobile layouts, bilingual RTL-aware direction, visible focus states and reduced-motion support.
+- [x] Add a regression test verifying the stylesheet is loaded and the core editor/readiness/preview/responsive styles remain present.
+- [x] Preserve the existing server-side role gate, asset processing requirements, publication validation, private-draft path and playlist actions; no storage/transcoding behavior was changed.
+- [ ] Execute the full Node test suite, TypeScript, ESLint and Next.js production build against this exact HEAD.
+- [ ] Browser-verify real creator/editor/analyst roles, failed/processing/ready sources, draft versus publish, playlist operations and Arabic layout.
+- [ ] Verify the newest Vercel development deployment reaches READY; no current preview claim until checked.
+- [ ] Next implementation should prioritize the media-library upload journey and actual media-worker/transcoding/playback gaps, not just further dashboard styling.
+
+### Progress estimate refresh
+- Wave 1 — redesign: **44%** (additional route-scoped Video Studio visual system; global shell extraction and redesign of remaining product surfaces remain).
+- Wave 4 — Creator Studio: **38%** (publishing studio UX now has a dedicated layout, while actual video transcoding/HLS/DASH, upload-to-watch end-to-end acceptance, exclusives and live delivery remain major gaps).
+- Wave 9 — release readiness: **21%** (new regression test authored; not executed in this environment).
+- Whole Raye2 platform: **~39% provisional**, unchanged. This is an implementation estimate against the entire master plan, not a CI/build/runtime metric. No production deployment and no changes to `main`.
