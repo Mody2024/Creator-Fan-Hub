@@ -863,3 +863,16 @@ Progress accounting: this is a focused Wave 1 design integration, not completion
 - Wave 1 (brand system and full product redesign): **34%** provisional, up from 31% after scoped Creator Studio, Watch and Mini's design integrations. This is not full redesign completion; profile, community, global shell, theme/brand assets and remaining routes still need work.
 - Wave 3 (video/feed/discovery): unchanged at **22%**; these changes are visual/navigation work and do not claim a complete native media journey.
 - Overall Raye2: **~39%** provisional. No production deployment or main-branch change. Latest batch is committed to development; verification is pending.
+
+
+## 2026-11-09 — Series + Notifications redesign batch
+- [x] Add a shared Raye2 collection visual system for the Series index and individual playlist detail route.
+- [x] Replace visible NHEN branding in the Series headers with Raye2 identity and route the brand home action to /raye2/home.
+- [x] Restyle collection cards, playlist metadata, video rows, responsive grids and keyboard focus.
+- [x] Apply Raye2 identity to the notifications page, preserving server-side authentication and notification queries.
+- [x] Add a responsive inbox visual system for unread/read states, live connection status, mark-read actions and mobile layout.
+- [x] Preserve existing notification realtime subscription and mark-read persistence.
+- [ ] Run TypeScript, lint, tests and production build; verify preview deployment and browser screenshots.
+- [ ] Continue Community and global shell redesign, then profile and messaging consistency.
+
+Progress estimates are provisional implementation estimates, not CI or acceptance-test results: Wave 1 **36%**; Wave 3 **22%**; Wave 5 (community/social) **16%**; overall Raye2 **~40%**. No production deployment and no changes to main.
