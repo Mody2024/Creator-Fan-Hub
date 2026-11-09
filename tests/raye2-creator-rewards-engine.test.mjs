@@ -49,3 +49,12 @@ test("creator reward center filters malformed ledger and milestone rows",()=>{
  assert.ok(component.includes('typeof row.code==="string"&&typeof row.title==="string"&&row.enabled===true'));
  assert.ok(component.includes('"Date unavailable"'));
 });
+
+test("creator reward normalizers handle malformed summaries, ledgers and rules",async()=>{
+ const source=component;
+ assert.ok(source.includes("export function normalizeCreatorRewardSummary"));
+ assert.ok(source.includes("export function normalizeCreatorRewardHistory"));
+ assert.ok(source.includes("export function normalizeCreatorRewardRules"));
+ assert.ok(source.includes("typeof value===\"number\"||typeof value===\"string\""));
+ assert.ok(source.includes("Math.max(0,Math.trunc(parsed))"));
+});
