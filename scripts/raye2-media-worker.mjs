@@ -191,7 +191,7 @@ async function walkFiles(directory, prefix = "") {
 }
 
 async function storeHlsObject(ownerId, mediaId, leaseToken, bucket, relativePath, absolutePath) {
-  if (!/^(?:master|360p|720p)(?:\\/[A-Za-z0-9_.-]+)+$/.test(relativePath)) {
+  if (!/^(?:master|360p|720p)(?:\/[A-Za-z0-9_.-]+)+$/.test(relativePath)) {
     throw new Error("Generated HLS output path is invalid.");
   }
   const file = await readFile(absolutePath);
