@@ -1067,3 +1067,19 @@ Progress estimates (full master plan):
 - Wave 4 — Creator ecosystem: **42%** (watch-route and player safeguards now have explicit regression coverage; actual adaptive processing and end-to-end creator publishing remain).
 - Wave 9 — release readiness: **24%** (additional public watch/player tests authored; execution pending).
 - Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator analytics data-contract hardening
+- [x] Normalize analytics RPC payloads whether returned as a row object or an array.
+- [x] Discard malformed rows without media IDs/titles before ranking or rendering.
+- [x] Normalize counts to finite, non-negative numbers to prevent malformed database values corrupting totals and rankings.
+- [x] Add regression coverage for both RPC response shapes and count normalization.
+- [ ] Run the new regression tests, type-check, lint and production build on exact HEAD.
+- [ ] Validate the analytics RPC against the deployed migration and realistic creator roles in an isolated Supabase project.
+- [ ] Browser-check analytics export, empty states, Arabic locale and permission denial.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **43%** (analytics data normalization hardened; live RPC/database acceptance and the broader video pipeline remain unverified).
+- Wave 9 — release readiness: **24%** (new analytics regression tests authored; exact-HEAD CI still pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
