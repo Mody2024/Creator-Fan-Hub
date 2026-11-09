@@ -9,7 +9,7 @@ The worker is **not hosted by Vercel**. Run it on an always-on computer/server y
 ## Requirements
 
 - Node.js 22 (same major version as the application).
-- Project dependencies installed with the repository lockfile.
+- The isolated worker runtime dependencies declared in `worker.package.json`.
 - `ffprobe` for video/audio metadata extraction.
 - Duration validation prefers the container duration and falls back to the primary media stream duration when the container does not report one.
 - `ffmpeg` for video thumbnail extraction. If it is unavailable or cannot decode a source, the worker records a thumbnail skip reason where possible; it does not claim a transcode occurred.
@@ -27,9 +27,20 @@ Set these variables in the private shell/service environment:
 ## Run
 
 ```sh
-npm install
+npm install --no-save --no-package-lock @supabase/supabase-js@2.57.4 sharp@0.35.5
 npm run media:worker
 ```
+
+### Container build
+
+The repository includes a dedicated worker image, separate from the Next.js app dependency tree:
+
+```sh
+docker build -f Dockerfile.raye2-media-worker -t raye2-media-worker .
+docker run --restart unless-stopped --env-file .env.raye2-worker raye2-media-worker
+```
+
+Create `.env.raye2-worker` on the private host only; include the Supabase URL and server-only service-role key. Never commit this file or pass the secret as a public build argument. The image runs as the unprivileged `node` user and includes FFmpeg/FFprobe. The container health check confirms the process is alive; it does not prove Supabase connectivity or queue health.
 
 Run under a process supervisor on a machine you control if you need continuous processing. Stop it with the normal process signal. The worker polls when the queue is empty and backs off after errors.
 
@@ -82,3 +93,12 @@ Run under a process supervisor on a machine you control if you need continuous p
 - The Creator Media Library shows counts for waiting, processing, ready and failed assets, and can filter by processing state.
 - Owners, admins and assigned creators can request a retry for their own failed private assets. The request is audited, limited to two manual retries per asset, and only requeues the item; it never marks a file ready.
 - The trusted worker remains the only component allowed to process media and complete a processing lease.
+
+
+## Container image and dependency isolation
+
+- `Dockerfile.raye2-media-worker` packages the queue consumer independently from Next.js.
+- `worker.package.json` pins only the Supabase server client and Sharp runtime needed by the worker; FFmpeg/FFprobe are installed from the Debian package repository in the image.
+- `.dockerignore` excludes local environment files, Git metadata, Next.js output and local dependencies from the build context.
+- The container runs as the unprivileged Node user and uses a process-liveness health check. A healthy process is not proof that database migrations are applied or that queue jobs are completing.
+- The image has not been built or deployed by this repository change. Build and test it on an isolated development host before connecting it to any Supabase project.
