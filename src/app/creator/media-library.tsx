@@ -10,6 +10,59 @@ type StorageCapacity = {used_bytes:number;reserved_bytes:number;quota_bytes:numb
 type MediaHealth = StorageCapacity & {orphan_candidate_count:number;orphan_candidate_bytes:number;oldest_orphan_candidate_at:string|null;expired_reservations_cleaned:number};
 type MediaRow = { media_id: string; title: string; media_type: MediaKind | "model3d" | "youtube"; source_url: string | null; storage_path: string | null; alt_text: string; metadata: Record<string, unknown>; is_published: boolean; created_at: string; processing_status?: string; processing_attempts?: number; processing_error?: string|null; processing_updated_at?: string; processing_completed_at?: string|null; size_bytes?: number|null; mime_type?: string|null; thumbnail_path?: string|null; preview_url?: string | null };
 const LIMIT = 50 * 1024 * 1024;
+async function copyHlsPackage(
+  supabase: NonNullable<ReturnType<typeof getSupabaseBrowserClient>>,
+  masterPath: string,
+  destinationBucket: "creator-media-private" | "creator-media-public",
+  ownerId: string,
+  mediaId: string
+): Promise<{ masterPath: string; copiedPaths: string[]; sourceBucket: string; sourcePaths: string[] }> {
+  const [sourceBucket, ...masterParts] = masterPath.split("/");
+  const masterObject = masterParts.join("/");
+  const streamRoot = masterObject.replace(/\\/master\\/master\\.m3u8$/, "");
+  if (!["creator-media-private", "creator-media-public"].includes(sourceBucket)
+    || sourceBucket === destinationBucket
+    || !masterObject.endsWith("/master/master.m3u8")
+    || !streamRoot.startsWith(`${ownerId}/streams/${mediaId}-`)
+    || !streamRoot.split("/").every(part => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) {
+    throw new Error("The adaptive video package path does not match this creator and media item.");
+  }
+  const sourcePaths: string[] = [];
+  const copiedPaths: string[] = [];
+  const copyFolder = async (folder: string): Promise<void> => {
+    const { data: entries, error: listError } = await supabase.storage.from(sourceBucket).list(folder, { limit: 1000 });
+    if (listError) throw listError;
+    for (const entry of entries ?? []) {
+      if (!entry.name || !/^[A-Za-z0-9_.-]+$/.test(entry.name)) continue;
+      const objectPath = `${folder}/${entry.name}`;
+      if (entry.id === null) { await copyFolder(objectPath); continue; }
+      const { data: blob, error: downloadError } = await supabase.storage.from(sourceBucket).download(objectPath);
+      if (downloadError || !blob) throw downloadError ?? new Error("Could not read an adaptive video segment.");
+      const { data: reservation, error: reservationError } = await supabase.rpc("reserve_nhen_media_upload", { p_bytes: blob.size, p_bucket: destinationBucket });
+      if (reservationError || !reservation?.[0]?.reservation_id) throw reservationError ?? new Error("Could not reserve storage for the adaptive video package.");
+      const { error: uploadError } = await supabase.storage.from(destinationBucket).upload(objectPath, blob, {
+        contentType: entry.name.endsWith(".m3u8") ? "application/vnd.apple.mpegurl" : "video/mp2t", cacheControl: "3600", upsert: false
+      });
+      if (uploadError) {
+        await supabase.rpc("release_nhen_media_upload_reservation", { p_reservation_id: reservation[0].reservation_id });
+        throw uploadError;
+      }
+      sourcePaths.push(objectPath); copiedPaths.push(objectPath);
+    }
+  };
+  try {
+    await copyFolder(streamRoot);
+    if (!copiedPaths.includes(`${streamRoot}/master/master.m3u8`)) throw new Error("The adaptive video master playlist is missing.");
+    return { masterPath: `${destinationBucket}/${streamRoot}/master/master.m3u8`, copiedPaths, sourceBucket, sourcePaths };
+  } catch (error) {
+    if (copiedPaths.length) {
+      const { error: cleanupError } = await supabase.storage.from(destinationBucket).remove(copiedPaths);
+      if (cleanupError) console.error("Adaptive video destination cleanup failed.", cleanupError.message);
+    }
+    throw error;
+  }
+}
+
 const ACCEPTED: Record<string, MediaKind> = { "image/jpeg":"image", "image/png":"image", "image/webp":"image", "image/gif":"image", "video/mp4":"video", "video/webm":"video", "audio/mpeg":"audio", "audio/mp4":"audio", "audio/wav":"audio", "audio/ogg":"audio" };
 
 function safeFileName(name: string) { return name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/^-+|-+$/g,"").slice(-100) || "asset"; }
@@ -321,7 +374,11 @@ export default function MediaLibrary() {
     let destinationReservationId: string | null = null;
     let destinationThumbnailReservationId: string | null = null;
     let nextThumbnailPath: string | null = null;
+    let nextHlsPackage: Awaited<ReturnType<typeof copyHlsPackage>> | null = null;
     const previousThumbnailPath = item.thumbnail_path ?? null;
+    const processingMeta = item.metadata?.processing as Record<string, unknown> | undefined;
+    const hlsMeta = processingMeta?.hls as Record<string, unknown> | undefined;
+    const previousHlsMasterPath = typeof hlsMeta?.masterPath === "string" ? hlsMeta.masterPath : null;
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before changing publication.");
@@ -382,6 +439,10 @@ export default function MediaLibrary() {
         nextThumbnailPath=nextBucket+"/"+thumbnailFileName;
       }
 
+      if (previousHlsMasterPath) {
+        nextHlsPackage = await copyHlsPackage(supabase, previousHlsMasterPath, nextBucket, userData.user.id, item.media_id);
+      }
+
       // Revoke public access before changing the database publication state.
       if (item.is_published) {
         const {error:removePublicError}=await supabase.storage.from(bucket).remove([oldPath]);
@@ -393,7 +454,7 @@ export default function MediaLibrary() {
 
       const {data:saved,error:saveError}=await supabase.rpc("save_creator_media_with_thumbnail",{
         p_media_id:item.media_id,p_title:item.title,p_media_type:item.media_type,p_source_url:item.source_url,
-        p_storage_path:nextBucket+"/"+nextPath,p_alt_text:item.alt_text,p_metadata:item.metadata ?? {},
+        p_storage_path:nextBucket+"/"+nextPath,p_alt_text:item.alt_text,p_metadata:nextHlsPackage ? { ...item.metadata, processing: { ...(processingMeta ?? {}), hls: { ...(hlsMeta ?? {}), masterPath: nextHlsPackage.masterPath } } } : item.metadata ?? {},
         p_is_published:!item.is_published,p_thumbnail_path:nextThumbnailPath
       });
       if(saveError || !saved?.[0]?.saved) {
@@ -423,6 +484,10 @@ export default function MediaLibrary() {
         }
         throw saveError ?? new Error("Publication status was not saved. The temporary copy was removed.");
       }
+      if (nextHlsPackage && nextHlsPackage.sourcePaths.length) {
+        const { error: oldHlsCleanupError } = await supabase.storage.from(nextHlsPackage.sourceBucket).remove(nextHlsPackage.sourcePaths);
+        if (oldHlsCleanupError) console.error("Previous adaptive video package needs storage cleanup.", oldHlsCleanupError.message);
+      }
       let thumbnailNotice="";
       if(nextThumbnailPath && previousThumbnailPath) {
         const [previousBucket,...previousParts]=previousThumbnailPath.split("/");
@@ -436,7 +501,14 @@ export default function MediaLibrary() {
         setStatus("Asset moved back to private drafts; the public object was removed before metadata changed."+thumbnailNotice);
       }
       await load();
-    } catch(e) { setStatus(e instanceof Error ? e.message : "Could not change publication status."); }
+    } catch(e) {
+      if(nextHlsPackage?.copiedPaths.length){
+        const destinationBucket=nextHlsPackage.masterPath.split("/")[0];
+        const {error:cleanupError}=await supabase.storage.from(destinationBucket).remove(nextHlsPackage.copiedPaths);
+        if(cleanupError) console.error("Adaptive video rollback cleanup failed.",cleanupError.message);
+      }
+      setStatus(e instanceof Error ? e.message : "Could not change publication status.");
+    }
     finally {
       if(destinationReservationId) {
         try { await supabase.rpc("release_nhen_media_upload_reservation",{p_reservation_id:destinationReservationId}); }
