@@ -28,7 +28,7 @@ begin
   v_object:=substring(v_path from char_length(v_bucket)+2);
 
   if v_owner<>new.owner_id::text
-    or split_part(v_stream_root,'-',1)<>new.id::text then
+    or v_stream_root not like new.id::text||'-%' then
     raise exception 'adaptive playlist must belong to this creator and media item' using errcode='42501';
   end if;
 
