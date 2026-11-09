@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 
-test("creator dashboard quick navigation points to all eleven management areas", async () => {
+test("creator dashboard quick navigation points to its management areas", async () => {
   const [page, settings, polls, ideas, events, media, history, studio] = await Promise.all([
     read("../src/app/creator/page.tsx"),
     read("../src/app/creator/creator-settings.tsx"),
@@ -87,7 +87,7 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   const page = await read("../src/app/creator/page.tsx");
   assert.ok(page.includes('{admin.role === "owner" && ('));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
-  assert.ok(page.includes('8 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
+  assert.ok(page.includes('9 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
 });
 
 test("community interactions restore optimistic state and recover from failed requests", async () => {
