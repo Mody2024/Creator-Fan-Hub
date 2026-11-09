@@ -378,6 +378,9 @@ export default function MediaLibrary() {
     let destinationReservationId: string | null = null;
     let destinationThumbnailReservationId: string | null = null;
     let nextThumbnailPath: string | null = null;
+    let nextPath: string | null = null;
+    let nextBucket: "creator-media-private" | "creator-media-public" = item.is_published ? "creator-media-private" : "creator-media-public";
+    let databaseSaved = false;
     let nextHlsPackage: Awaited<ReturnType<typeof copyHlsPackage>> | null = null;
     const previousThumbnailPath = item.thumbnail_path ?? null;
     const processingMeta = item.metadata?.processing as Record<string, unknown> | undefined;
@@ -390,9 +393,9 @@ export default function MediaLibrary() {
       const oldPath=parts.join("/");
       if (!["creator-media-private","creator-media-public"].includes(bucket) || !/^[a-zA-Z0-9_-]+\/[a-zA-Z0-9_.-]+$/.test(oldPath) || (item.is_published && bucket!=="creator-media-public") || (!item.is_published && bucket!=="creator-media-private")) throw new Error("The stored path and publication state do not match. Refresh the library and check the media record.");
       if (oldPath.split("/")[0] !== userData.user.id) throw new Error("This file does not belong to the signed-in creator.");
-      const nextBucket=item.is_published?"creator-media-private":"creator-media-public";
+      nextBucket=item.is_published?"creator-media-private":"creator-media-public";
       const fileName=safeFileName(oldPath.split("/").pop() || "asset");
-      const nextPath=userData.user.id+"/"+crypto.randomUUID()+"-"+fileName;
+      nextPath=userData.user.id+"/"+crypto.randomUUID()+"-"+fileName;
       const {data:download,error:downloadError}=await supabase.storage.from(bucket).download(oldPath);
       if(downloadError || !download) throw downloadError ?? new Error("Could not read the stored file.");
 
@@ -488,6 +491,7 @@ export default function MediaLibrary() {
         }
         throw saveError ?? new Error("Publication status was not saved. The temporary copy was removed.");
       }
+      databaseSaved = true;
       if (nextHlsPackage && nextHlsPackage.sourcePaths.length) {
         const { error: oldHlsCleanupError } = await supabase.storage.from(nextHlsPackage.sourceBucket).remove(nextHlsPackage.sourcePaths);
         if (oldHlsCleanupError) console.error("Previous adaptive video package needs storage cleanup.", oldHlsCleanupError.message);
@@ -506,10 +510,23 @@ export default function MediaLibrary() {
       }
       await load();
     } catch(e) {
-      if(nextHlsPackage?.copiedPaths.length){
-        const destinationBucket=nextHlsPackage.masterPath.split("/")[0];
-        const {error:cleanupError}=await supabase.storage.from(destinationBucket).remove(nextHlsPackage.copiedPaths);
-        if(cleanupError) console.error("Adaptive video rollback cleanup failed.",cleanupError.message);
+      // Only remove staged destination objects before the database commit. Once
+      // saved, a later refresh/UI error must never delete the live published asset.
+      if(!databaseSaved) {
+        if(nextPath) {
+          const {error:cleanupError}=await supabase.storage.from(nextBucket).remove([nextPath]);
+          if(cleanupError) console.error("Media publication rollback cleanup failed.",cleanupError.message);
+        }
+        if(nextThumbnailPath) {
+          const [thumbnailBucket,...thumbnailParts]=nextThumbnailPath.split("/");
+          const {error:cleanupError}=await supabase.storage.from(thumbnailBucket).remove([thumbnailParts.join("/")]);
+          if(cleanupError) console.error("Thumbnail publication rollback cleanup failed.",cleanupError.message);
+        }
+        if(nextHlsPackage?.copiedPaths.length) {
+          const destinationBucket=nextHlsPackage.masterPath.split("/")[0];
+          const {error:cleanupError}=await supabase.storage.from(destinationBucket).remove(nextHlsPackage.copiedPaths);
+          if(cleanupError) console.error("Adaptive video rollback cleanup failed.",cleanupError.message);
+        }
       }
       setStatus(e instanceof Error ? e.message : "Could not change publication status.");
     }
