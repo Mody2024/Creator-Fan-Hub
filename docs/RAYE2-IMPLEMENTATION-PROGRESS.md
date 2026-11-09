@@ -1347,3 +1347,38 @@ Session handoff:
 - Full plan handoff update: `eb8a597c6d48bf12e12dc9a255ce9ece9b0479e2`.
 - Current next step: complete exact-HEAD CI, then proceed to native adaptive video processing/HLS and watch-player integration. Existing reward admin controls are already present; only extend them where the acceptance gaps show a real need.
 - User's first manual testing stage remains targeted at approximately **50% overall implementation**. Do not ask for manual tests before then.
+
+
+## 2026-11-09 — Adaptive HLS generation and watch integration (implementation batch)
+- [x] Added bounded adaptive VOD transcoding to the self-hosted media worker: 360p and 720p H.264 renditions, six-second HLS segments, AAC audio where present, and video-only handling where audio is absent.
+- [x] Added a one-hour adaptive-transcode ceiling, per-object output size limits, two-thread encoding, safe output path validation, quota reservations, and partial-package rollback.
+- [x] Added cleanup for incomplete HLS packages when the worker cannot complete its lease-owned processing job.
+- [x] Persisted the managed HLS master path within the worker processing metadata.
+- [x] Added safe watch-page resolution for published HLS playlists, constrained to the expected public Supabase origin and safe object path segments.
+- [x] Updated the native player to prefer HLS on browsers that support the native HLS source type and retain the original MP4 as a fallback.
+- [x] Added creator-library publication handling to copy the full HLS package with the source video and poster between private/public storage, reserve capacity for each copied object, update the managed master path, and clean up the old package after database publication succeeds.
+- [x] Added a migration that preserves the trusted ready state when the only processing metadata change is the HLS master path moving between visibility buckets.
+- [x] Added regression contracts for HLS generation limits, audio handling, cleanup, publication path binding, watch-page source validation and native player fallback.
+- [ ] Full exact-HEAD CI must pass after the latest code and documentation commits. Earlier runs on superseded SHAs are not proof for this final HEAD.
+- [ ] Run the worker against a tiny generated sample video and validate actual playlists, segment count, duration and audio; source-level contract tests do not prove ffmpeg output correctness.
+- [ ] Apply the new processing-preservation migration and platform sponsor migration in an isolated database; verify storage RLS and reservation-trigger behavior.
+- [ ] Complete real browser playback acceptance. Native HLS is selected only where the browser supports the HLS MIME type; other browsers currently retain MP4 fallback, not hls.js adaptive playback.
+- [ ] The worker's adaptive rendition outputs are private until the creator publishes the media. Do not treat code generation as proof of deployed worker operation or a published stream.
+
+### Updated dual progress (scope-based)
+- **Overall implementation: 46%** (up from 44%; adaptive transcoding code, visibility-aware package handling and watch-player integration are now implemented).
+- **Test/release readiness: 39%** (unchanged; CI, isolated database execution, actual ffmpeg sample validation and browser playback remain).
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 50%.**
+- **Native video pipeline implementation: 45%** (up from 35%; adaptive output and player wiring are implemented, but runtime acceptance remains).
+- **Release readiness: 25%.**
+- **Active adaptive video batch: 80%** (implementation and regression contracts authored; exact-HEAD CI and runtime acceptance pending).
+
+### Exact handoff
+- Branch: `development`; `main` and production remain untouched.
+- Main implementation commits: `dedf472a26d6bbf059619c2ac6c73298515ee31f`, `956218d25e15e99f29b329732c6c2a99c585ca6b`, `71197998d4cc57a0d3c0b6aaa59924b4347b916e`, `ea81ef74bd86e4320d3aeee70425d674632acbe0`, `ccda6f72fdc2df83db7ef37cede2b53f6525969f`, `72e20dd2cec24b03d8649214094a5d713310ecf7`, `25b443c60f5b9fef92db2a45d1a4eef026df3a06`, `3fedf6798c769fe1fa973a9428ebaf24e377238b`.
+- Regression tests added in `tests/raye2-self-hosted-media-worker.test.mjs`, `tests/raye2-watch-video-access.test.mjs`, and `tests/raye2-creator-media-library-redesign.test.mjs`.
+- Previous successful CI run on the immediately prior batch was `42688359519` for SHA `7c089f2367d881772d3d6cceb74927b75d29846b`; it predates adaptive HLS and is not evidence for this batch.
+- Latest known CI run before this final doc update was `42689968240` for SHA `d450db66c8fe26881f61a8de4e7384146f4dd7e6`, still in progress. Verify the newest run against the exact branch HEAD before reporting results.
+- Next batch: finish CI and static corrections; add actual ffmpeg sample generation/inspection and integration validation; harden storage rollback; then verify browser playback. Continue with redesign after the video pipeline acceptance path is stable.
+- User's first major manual testing stage remains approximately **50% overall implementation**. Do not request manual tests before that threshold.
