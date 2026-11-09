@@ -275,7 +275,7 @@ async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ow
         "-vf", filter, "-c:v", "libx264", "-preset", "veryfast", "-crf", String(variant.crf),
         "-maxrate", variant.name === "720p" ? "2200k" : "850k",
         "-bufsize", variant.name === "720p" ? "4400k" : "1700k",
-        "-threads", "2",
+        "-threads", "2", "-force_key_frames", "expr:gte(t,n_forced*6)", "-sc_threshold", "0",
         ...(hasAudio ? ["-c:a", "aac", "-b:a", variant.audioRate, "-ac", "2"] : ["-an"]),
         "-f", "hls", "-hls_time", "6", "-hls_playlist_type", "vod",
         "-hls_flags", "independent_segments",
