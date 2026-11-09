@@ -4,6 +4,7 @@ import "./nhen-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import LanguageSwitch from "./language-switch";
+import { cookies } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getPublicSiteConfig();
@@ -23,11 +24,13 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
   return (
-    <html lang="en" dir="ltr">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr">
       <body>
-        <LanguageSwitch />
+        <LanguageSwitch initialLocale={locale} />
         {children}
         <footer className="creator-credit">MADE BY ALMUDDATHTHIR</footer>
       </body>
