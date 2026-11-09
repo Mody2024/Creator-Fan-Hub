@@ -993,3 +993,22 @@ Progress estimates (entire master plan):
 - Wave 4 — Creator ecosystem: **39%** (media intake UX and publishing workspace improved; actual worker availability, storage configuration, transcoding, and end-to-end video playback remain unverified).
 - Wave 9 — release readiness: **22%** (one failing CI assertion has a targeted repair and regression coverage, pending rerun).
 - Whole Raye2 platform: **~39% provisional**, unchanged. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Isolated media worker container packaging
+- [x] Add a dedicated Docker image for the self-hosted media queue consumer, separate from the Next.js runtime.
+- [x] Pin a minimal worker-only dependency manifest for Supabase JS and Sharp; install FFmpeg/FFprobe in the image.
+- [x] Run the worker as the unprivileged Node user and add a process-liveness health check.
+- [x] Exclude Git metadata, local dependencies, Next build output and environment files from the Docker build context.
+- [x] Document private-host environment setup and container build/run commands; explicitly distinguish process health from actual queue health.
+- [x] Add source-level tests for the container/dependency/secret-safety contract.
+- [ ] Build the image and run it on an isolated development host; this repository does not prove Docker build success or deployment.
+- [ ] Apply and verify the database migrations on an isolated Supabase project; run image/audio/video processing acceptance tests.
+- [ ] Add real HLS/DASH renditions and end-to-end adaptive playback; this worker currently inspects media and creates thumbnails only.
+- [ ] Verify the latest CI and Vercel preview against the exact final commit.
+
+Progress estimates against the full ten-wave plan:
+- Wave 1 — redesign: **44%** (no new route redesign in this batch).
+- Wave 4 — Creator ecosystem: **40%** (worker now has a deployable container definition and isolated runtime manifest; no container build, deployment, database acceptance, transcoding or end-to-end playback has been verified).
+- Wave 9 — release readiness: **22%** (container contract test added but not yet executed).
+- Whole Raye2 platform: **~39% provisional**, unchanged. No production deployment and no changes to `main`.
