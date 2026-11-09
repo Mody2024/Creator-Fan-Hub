@@ -261,3 +261,13 @@ test("visibility-only HLS master path updates preserve trusted ready processing 
  assert.ok(migration.includes("(new.metadata #- '{processing,hls,masterPath}') is not distinct from"));
  assert.ok(migration.includes("(old.metadata #- '{processing,hls,masterPath}')"));
 });
+
+test("database rejects adaptive playlist pointers that do not match the media owner, id, visibility or stored master object",async()=>{
+ const migration=await readFile(new URL("../supabase/migrations/20261109470000_raye2_validate_managed_hls_pointer.sql",import.meta.url),"utf8");
+ assert.ok(migration.includes("enforce_raye2_media_hls_pointer"));
+ assert.ok(migration.includes("v_owner<>new.owner_id::text"));
+ assert.ok(migration.includes("v_stream_root not like new.id::text||'-%'"));
+ assert.ok(migration.includes("adaptive playlist visibility must match media publication"));
+ assert.ok(migration.includes("adaptive master playlist does not exist in managed storage"));
+ assert.ok(migration.includes("before insert or update of metadata,storage_path,is_published,owner_id"));
+});
