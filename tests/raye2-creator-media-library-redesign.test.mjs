@@ -36,7 +36,9 @@ test("creator publication moves the complete HLS package with its source and upd
 });
 
 test("publication rollback never deletes committed media, and cleans staged source, thumbnail and HLS objects",()=>{
- const catchBlock=media.slice(media.indexOf("} catch(e) {",media.indexOf("async function setPublished")),media.indexOf("finally {",media.indexOf("async function setPublished")));
+ const rollbackAnchor=media.indexOf("// Only remove staged destination objects",media.indexOf("async function setPublished"));
+ const catchStart=media.lastIndexOf("} catch(e) {",rollbackAnchor);
+ const catchBlock=media.slice(catchStart,media.indexOf("finally {",rollbackAnchor));
  assert.match(media,/let databaseSaved = false/);
  assert.match(media,/databaseSaved = true/);
  assert.match(catchBlock,/if\(!databaseSaved\)/);
