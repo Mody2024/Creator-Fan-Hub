@@ -229,17 +229,26 @@ async function removeWorkerHls(ownerId, mediaId, masterPath) {
     console.warn("[raye2-worker] skipped cleanup for an unexpected HLS path", masterPath);
     return;
   }
-  const folder = objectPath.slice(0, -"/master/master.m3u8".length);
-  const { data:listed, error:listError } = await supabase.storage.from(bucket).list(folder, { limit: 1000 });
-  if (listError) {
-    console.error("[raye2-worker] HLS cleanup listing failed", listError.message);
-    return;
-  }
-  const paths = (listed ?? []).filter(item => item.name && /^[A-Za-z0-9_.-]+$/.test(item.name))
-    .map(item => `${folder}/${item.name}`);
-  if (paths.length) {
-    const { error } = await supabase.storage.from(bucket).remove(paths);
-    if (error) console.error("[raye2-worker] HLS outputs need orphan cleanup", error.message);
+  const root = objectPath.slice(0, -"/master/master.m3u8".length);
+  const objects = [];
+  const collect = async folder => {
+    const { data: entries, error } = await supabase.storage.from(bucket).list(folder, { limit: 1000 });
+    if (error) throw error;
+    for (const entry of entries ?? []) {
+      if (!entry.name || !/^[A-Za-z0-9_.-]+$/.test(entry.name)) continue;
+      const child = `${folder}/${entry.name}`;
+      if (entry.id === null) await collect(child);
+      else objects.push(child);
+    }
+  };
+  try {
+    await collect(root);
+    for (let offset = 0; offset < objects.length; offset += 100) {
+      const { error } = await supabase.storage.from(bucket).remove(objects.slice(offset, offset + 100));
+      if (error) throw error;
+    }
+  } catch (error) {
+    console.error("[raye2-worker] generated HLS package needs orphan cleanup", error instanceof Error ? error.message : String(error));
   }
 }
 
@@ -507,6 +516,10 @@ async function handleOne() {
     await heartbeat.stop();
     if (!completedSuccessfully && result?.thumbnailPath) {
       await removeWorkerThumbnail(job.owner_id, result.thumbnailPath, job.media_id);
+    }
+    const hlsMasterPath = result?.metadata?.processing?.hls?.masterPath;
+    if (!completedSuccessfully && typeof hlsMasterPath === "string") {
+      await removeWorkerHls(job.owner_id, job.media_id, hlsMasterPath);
     }
     const message = error instanceof Error ? error.message.slice(0, 1000) : "Unknown processing failure.";
     const { error: completeError } = await supabase.rpc("complete_raye2_media_processing_job", {
