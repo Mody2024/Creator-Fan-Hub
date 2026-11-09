@@ -24,3 +24,21 @@ test("Creator Studio workflow is responsive and reduced-motion aware",()=>{
  assert.ok(css.includes("@media(max-width:560px)"));
  assert.ok(css.includes("prefers-reduced-motion"));
 });
+
+const workspace=await readFile(new URL("../src/app/creator/raye2-creator-workspace.css",import.meta.url),"utf8");
+const home=await readFile(new URL("../src/app/creator/page.tsx",import.meta.url),"utf8");
+test("creator workspace command center redesign has a responsive hero, clear system states and compact module grid",()=>{
+ assert.ok(workspace.includes(".raye2-creator-shell .dashboard-welcome:after"));
+ assert.ok(workspace.includes("grid-template-columns:repeat(4,minmax(0,1fr))"));
+ assert.ok(workspace.includes("@media(max-width:1120px)"));
+ assert.ok(workspace.includes("@media(max-width:650px)"));
+ assert.ok(workspace.includes("prefers-reduced-motion"));
+ assert.ok(workspace.includes(".dashboard-stats article:before"));
+});
+test("creator workspace home keeps role-gated modules and English/Arabic layout while using the redesigned surface",()=>{
+ assert.ok(home.includes('dir={isArabic?"rtl":"ltr"}'));
+ assert.ok(home.includes('["owner","admin"].includes(admin.role)'));
+ assert.ok(home.includes('admin.role === "owner"'));
+ assert.ok(home.includes('className="dashboard-welcome"'));
+ assert.ok(home.includes('className="creator-quick-nav"'));
+});
