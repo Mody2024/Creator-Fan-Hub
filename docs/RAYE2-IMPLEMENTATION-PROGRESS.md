@@ -1196,3 +1196,21 @@ Session handoff:
 - Branch: `development`; production and `main` untouched.
 - Latest implementation batch: database-enforced creator sponsor lifecycle + regression contract.
 - Next: run exact-HEAD CI, then continue the Creator Studio rewards/achievement integration and campaign lifecycle acceptance; next major media blocker remains actual adaptive HLS generation and end-to-end playback.
+
+
+## 2026-11-09 — Creator rewards data hardening: CI regression repair
+- [x] Reviewed the completed CI failure for HEAD `51981f458884ac304b5dced9a509892e238591b3`: 407/408 tests passed; the new malformed reward-history test failed because the UI normalization code had not actually been applied in the preceding patch.
+- [x] Applied the missing normalization in `rewards-center.tsx`: reject malformed summary data, filter invalid reward ledger entries and enabled rule rows, clamp malformed point values, and display a safe fallback for invalid dates.
+- [x] Kept the test assertions tied to the actual intended runtime behavior rather than weakening/removing the regression test.
+- [ ] Verify full CI on the final exact HEAD, including type-check, lint, Next.js build and media worker Docker build.
+- [ ] Apply sponsorship lifecycle migration in an isolated Supabase database and validate creator/admin role transitions.
+- [ ] Add runtime-level tests or pure-function tests for reward normalization rather than relying only on source contract checks.
+- [ ] Continue Creator Studio lifecycle acceptance, then actual adaptive HLS transcoding and playback.
+
+Progress remains acceptance-based and unchanged until exact-HEAD CI and runtime/database acceptance:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff: `development` only; production and `main` untouched. Current next step is to verify the reward-normalization fix, then continue the larger Creator Studio batch.
