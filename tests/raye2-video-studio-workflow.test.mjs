@@ -44,3 +44,12 @@ test("video metadata editor exposes live watch URL and bounded character counter
  assert.ok(source.includes("tags.split(",").map(x=>x.trim()).filter(Boolean).length"));
  assert.ok(source.includes("/watch/{normalizedSlug||"));
 });
+
+test("video studio separates private draft saving from publication",()=>{
+ assert.ok(source.includes("saveDraft:"));
+ assert.ok(source.includes("publishNow:"));
+ assert.ok(source.includes("onClick={()=>void save(false)}"));
+ assert.ok(source.includes("onClick={()=>void save(true)}"));
+ assert.ok(source.includes("disabled={busy||!selected||!canPublish}"));
+ assert.ok(source.includes("disabled={busy||!selected||publishedAt}"));
+});

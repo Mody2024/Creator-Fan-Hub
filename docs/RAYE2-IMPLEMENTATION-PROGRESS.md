@@ -793,3 +793,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Update the legacy source-contract assertion to recognize the stricter real-calendar-date validator.
 - [x] Preserve rejection of impossible dates and acceptance of same-day campaign windows.
 - [ ] Re-run CI on the corrected development head.
+
+
+## 2026-11-09 — Creator Studio publishing controls
+- [x] Replace the ambiguous single save action with explicit private-draft and publish actions.
+- [x] Keep publish action disabled until all existing source, visibility, processing, slug and description checks pass.
+- [x] Prevent the private-draft action from accidentally unpublishing an already-published video in the default published state.
+- [x] Give published pages a distinct “save published changes” action label.
+- [x] Add regression coverage for draft/publish action separation.
+- [ ] Verify CI and preview for this development commit.
