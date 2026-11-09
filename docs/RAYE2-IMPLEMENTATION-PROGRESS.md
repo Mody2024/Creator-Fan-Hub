@@ -1747,3 +1747,20 @@ One regression-test file was briefly created on the default `main` branch becaus
 - Implementation commit: `f30d0e59c86edc348838af6e214ff6bc468f279c`.
 - Regression test commit: `8f129323f5579ea029f5806c9a72bf556f3e6676`.
 - This adds to Creator Studio's implementation inventory; it does not change the **38% full-platform / 35% provisional Wave 4** planning estimates until the next weighted review.
+
+
+## 2026-11-10 — Creator sponsorship decision notifications
+- [x] Added `raye2_creator_notifications` with creator ownership, campaign reference, unique review-event reference, notification type, title/body, creation time and read timestamp.
+- [x] Added RLS so only the assigned/publisher creator can read their own inbox; no direct client insert or update permission is granted.
+- [x] Added authenticated `raye2_mark_creator_notification_read(uuid)` RPC, scoped to the signed-in creator.
+- [x] Extended the owner/admin decision RPC so the review event and creator notification are written in the same transaction. A notification insert failure rolls back the review decision instead of silently losing the notification.
+- [x] Approval/rejection notification copy explicitly says that contract review does not activate or deliver ads.
+- [x] Added an English/Arabic creator inbox in the Creator Dashboard with unread count, timestamps, refresh and mark-as-read.
+- [x] Added regression assertions for notification creation, creator-only RLS, read RPC and dashboard integration.
+- [ ] Migration and RPC remain committed but unapplied/unexecuted. Tests are authored but not run; TypeScript, lint, Next build and browser/RTL checks remain pending.
+- [ ] Validate on an isolated database that the replacement review RPC preserves all prior authorization/locking/validation checks and that notification insert is atomic with the audit event.
+- Migration commit: `08d5dddb0f9d07bf30c59986287672dbc819afe4`.
+- Inbox component commit: `724166a6e11f49374135ac7d551984999494b550`.
+- Dashboard integration commit: `608333f68e0e2c28fb5d7bc81236a4268d7c19c0`.
+- Regression test commit: `f4069d92680b95836ec1d803ed25fa3c539c7abe`.
+- **Progress:** Wave 4 Creator Studio moves from 35% to **36% provisional** for the added creator notification capability. Full ten-wave implementation remains **38%** at current whole-number rounding. Implementation and verification remain separate.
