@@ -1531,3 +1531,21 @@ Session handoff:
 - Master-plan documentation follow-up: `4e26446096af065204d614eb7ede662d27e61b5f`; progress-log update follows.
 - Continue the broader public home/feed, watch and member profile redesign, then finish remaining Creator Studio workflows. Keep the overall percentage conservative; 50% is the manual-testing milestone the user mentioned, but continue implementation as requested rather than interrupting them to test.
 - Supabase project `scxkgybuodhuohcxpfat` has no development database branch; production migration history is behind the repository. Wait for explicit approval before creating a potentially billable isolated branch, and never apply the pending migrations directly to production.
+
+
+## 2026-11-09 — Creator rewards discoverability and community reaction accessibility
+- [x] Add an explicit owner/admin-only Creator Workspace shortcut to the existing reward administration panel; creator/editor roles do not receive this administrative entry point.
+- [x] Add English and Arabic labels/descriptions and include the new role-gated destination in the workspace's active-area count.
+- [x] Convert the Community reaction picker from hover-only opening to explicit click/tap state with `aria-expanded`, Escape-to-close, focus-leave dismissal and a selected-reaction close behavior.
+- [x] Add source-level regression tests for the reward navigation role gate and the reaction picker's touch/keyboard interaction contract.
+- [ ] Run the new tests plus full CI (Node tests, TypeScript, lint, Next.js build and media-worker Docker smoke build) on the quiet exact HEAD; tests were authored but not executed in this batch.
+- [ ] Browser-check owner/admin versus creator/editor navigation, touch reaction selection, keyboard focus, and Arabic RTL.
+- [ ] Continue the priority Creator Studio integration: connect verified sponsor lifecycle events to recognition only after a trustworthy delivery/approval event exists; do not award points for drafts or imply real sponsor revenue. Then complete the remaining creator workflow and rewards acceptance.
+
+Progress estimates (full master plan; conservative):
+- Wave 1 — redesign: **44%** (this batch adds a direct role-aware entry point; it does not complete the global shell or remaining route redesign).
+- Wave 4 — Creator Studio: **46%** (existing creator rewards and sponsorship controls are connected in the workspace; real delivery events, complete campaign acceptance and isolated database verification remain).
+- Wave 5 — social/community: **22%** (reaction-picker accessibility behavior is implemented in code; browser verification remains).
+- Wave 9 — release readiness: **25%** (regression coverage authored, exact-HEAD CI still pending).
+- Whole Raye2 platform: **~39% provisional**, unchanged. This is not a test/build/runtime metric. No production deployment and no changes to `main`.
+- Branch: `development`; keep manual user/friends testing deferred until approximately 50% implementation progress.
