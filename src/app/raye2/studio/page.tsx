@@ -62,23 +62,30 @@ export default async function Raye2CreatorStudioPage() {
     noAccess: "Some library data could not be loaded. You can retry from the content tools.", coming: "COMING SOON / EXPERIMENTAL", note: "Counts reflect only the data your account is allowed to access."
   };
 
-  return <main className={styles.shell} dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-    <header className={styles.header}>
+  return <main className={styles.shell} data-raye2-surface="creator-studio" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
+    <header className={styles.header} data-slot="header">
       <div><span className={styles.eyebrow}>{t.eyebrow}</span><span className={styles.role}>{t.role}: {role.toUpperCase()}</span></div>
+      <nav data-slot="nav" aria-label={isArabic ? "تنقل مساحة المبدع" : "Creator workspace navigation"}>
+        <Link href="/raye2/home">{isArabic ? "الرئيسية" : "Home"}</Link>
+        <Link href="/raye2/studio" aria-current="page">{isArabic ? "الاستوديو" : "Studio"}</Link>
+        {canPublish && <Link href="/creator">{isArabic ? "إدارة المحتوى" : "Content tools"}</Link>}
+        {canAnalyze && <Link href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}
+        {canModerate && <Link href="/creator/community">{isArabic ? "الإشراف" : "Moderation"}</Link>}
+      </nav>
       <Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link>
     </header>
-    <section className={styles.hero}>
+    <section className={styles.hero} data-slot="hero">
       <div><span className={styles.eyebrow}>RAYE2 / CREATOR TOOLS</span><h1>{t.title}<em>{t.accent}</em></h1><p>{t.intro}</p></div>
       <div className={styles.heroMark} aria-hidden="true"><span>R</span><i /></div>
     </section>
-    <section className={styles.metrics} aria-label={isArabic ? "ملخص المكتبة" : "Library overview"}>
+    <section className={styles.metrics} data-slot="metrics" aria-label={isArabic ? "ملخص المكتبة" : "Library overview"}>
       <article className={styles.metric}><span>{t.assets}</span><strong>{mediaUnavailable ? "—" : media.length.toLocaleString(locale)}</strong><small>{t.note}</small></article>
       <article className={styles.metric}><span>{t.publicAssets}</span><strong>{mediaUnavailable ? "—" : publishedMedia.toLocaleString(locale)}</strong><small>{t.published}</small></article>
       <article className={styles.metric}><span>{t.drafts}</span><strong>{mediaUnavailable ? "—" : draftMedia.toLocaleString(locale)}</strong><small>{isArabic ? "تظل خاصة حتى النشر" : "Private until published"}</small></article>
       <article className={styles.metric}><span>{t.videos}</span><strong>{catalogUnavailable ? "—" : publishedVideos.toLocaleString(locale)}</strong><small>{t.published}</small></article>
     </section>
     {(mediaUnavailable || catalogUnavailable) && <p className={styles.notice} role="status">{t.noAccess}</p>}
-    <section className={styles.workflow}>
+    <section className={styles.workflow} data-slot="workflow">
       <div className={styles.workflowIntro}><span className={styles.eyebrow}>{isArabic ? "مسار النشر" : "PUBLISHING WORKFLOW"}</span><h2>{isArabic ? "من الملف إلى صفحة المشاهدة." : "From asset to watch page."}</h2><p>{isArabic ? "ارفع الوسائط أولًا، ثم جهّز صفحة المشاهدة، وبعدها تابع الأداء." : "Upload an asset, prepare its watch page, then follow its performance."}</p></div>
       <div className={styles.workflowActions}>
         {canPublish && <Link href="/creator#creator-media" className={styles.primaryAction}><span>01</span><strong>{t.uploadNow}</strong><i>↗</i></Link>}
@@ -86,7 +93,7 @@ export default async function Raye2CreatorStudioPage() {
         {canAnalyze && <Link href="/creator/analytics" className={styles.primaryAction}><span>03</span><strong>{isArabic ? "مراجعة الأداء" : "Review performance"}</strong><i>↗</i></Link>}
       </div>
     </section>
-    <section className={styles.section}>
+    <section className={styles.section} data-slot="recent">
       <div className={styles.sectionHead}><div><span className={styles.eyebrow}>{t.recent}</span><h2>{t.recentDesc}</h2></div>{canPublish && <Link className={styles.viewAll} href="/creator#creator-media">{t.viewAll} ↗</Link>}</div>
       <div className={styles.recentList}>
         {recentMedia.map((item) => {
@@ -97,7 +104,7 @@ export default async function Raye2CreatorStudioPage() {
         {!recentMedia.length && <p className={styles.emptyRecent}>{t.emptyRecent}</p>}
       </div>
     </section>
-    <section className={styles.section}>
+    <section className={styles.section} data-slot="workspaces">
       <div className={styles.sectionHead}><span className={styles.eyebrow}>{t.workspace}</span><h2>{t.manage}</h2></div>
       <div className={styles.grid}>
         {canPublish && <article className={styles.card}><span className={styles.cardIndex}>01 / PUBLISH</span><h3>{t.manage}</h3><p>{t.manageDesc}</p><Link className={styles.action} href="/creator">{t.open} ↗</Link></article>}
@@ -106,7 +113,7 @@ export default async function Raye2CreatorStudioPage() {
         {canModerate && <article className={styles.card}><span className={styles.cardIndex}>03 / TRUST</span><h3>{t.moderation}</h3><p>{t.moderationDesc}</p><Link className={styles.action} href="/creator/community">{isArabic ? "فتح أدوات الإشراف" : "Open moderation"} ↗</Link></article>}
       </div>
     </section>
-    <section className={styles.beta}>
+    <section className={styles.beta} data-slot="beta">
       <div><span className={styles.eyebrow}>{t.coming}</span><h2>{t.beta}</h2><p>{t.betaDesc}</p></div>
       <span className={styles.betaMark} aria-hidden="true">✳</span>
     </section>
