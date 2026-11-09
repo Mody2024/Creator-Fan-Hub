@@ -1118,3 +1118,19 @@ Progress estimates:
 - Wave 4 — Creator Studio: **44%**.
 - Wave 9 — release readiness: **25%** (CI root cause isolated and stale regression expectation repaired; rerun pending).
 - Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
+
+
+## 2026-11-09 — Creator sponsorship pause authorization hardening
+- [x] Fetch the signed-in user before pausing an active creator sponsorship.
+- [x] Scope the update by campaign ID, authenticated creator ID, selected video ID and current active status.
+- [x] Require a returned updated row before reporting success; stale or unauthorized records now produce a clear error.
+- [x] Add regression coverage for the owner/video/status-scoped pause update.
+- [ ] Re-run full CI on the resulting exact HEAD. The preceding CI run is still running on an earlier commit; it is not verification of this change.
+- [ ] Validate RLS and campaign state transitions against an isolated Supabase database.
+- [ ] Browser-test active-to-paused flow with two separate creator accounts.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **45%** (creator sponsor pause now has explicit owner/video/state scoping; full campaign lifecycle and real playback delivery remain).
+- Wave 9 — release readiness: **25%** (additional sponsorship authorization regression coverage authored; exact-HEAD CI pending).
+- Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
