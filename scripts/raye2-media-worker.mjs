@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -12,6 +12,9 @@ const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const POLL_MS = Math.max(2000, Number(process.env.RAYE2_WORKER_POLL_MS ?? 10000));
 const MAX_SOURCE_BYTES = 50 * 1024 * 1024;
 const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024;
+const MAX_HLS_OBJECT_BYTES = 25 * 1024 * 1024;
+const MAX_HLS_DURATION_SECONDS = 3600;
+const MAX_TRANSCODE_TIMEOUT_MS = 20 * 60 * 1000;
 const PRIVATE_BUCKET = "creator-media-private";
 const PUBLIC_BUCKET = "creator-media-public";
 
@@ -174,6 +177,148 @@ async function storeThumbnail(ownerId, mediaId, leaseToken, bucket, thumbnailPat
   return { path: `${bucket}/${objectPath}`, bytes: file.byteLength };
 }
 
+
+async function walkFiles(directory, prefix = "") {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    const absolute = join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await walkFiles(absolute, relative));
+    else if (entry.isFile()) files.push({ absolute, relative, bytes: (await stat(absolute)).size });
+  }
+  return files;
+}
+
+async function storeHlsObject(ownerId, mediaId, leaseToken, bucket, relativePath, absolutePath) {
+  if (!/^(?:master|360p|720p)(?:\\/[A-Za-z0-9_.-]+)+$/.test(relativePath)) {
+    throw new Error("Generated HLS output path is invalid.");
+  }
+  const file = await readFile(absolutePath);
+  if (!file.byteLength || file.byteLength > MAX_HLS_OBJECT_BYTES) {
+    throw new Error("Generated HLS output exceeded the per-object storage safety limit.");
+  }
+  const { data: reservationId, error: reserveError } = await supabase.rpc(
+    "reserve_raye2_worker_thumbnail_capacity",
+    { p_owner_id: ownerId, p_bucket: bucket, p_bytes: file.byteLength },
+  );
+  if (reserveError) throw reserveError;
+  const objectPath = `${ownerId}/streams/${mediaId}-${leaseToken}/${relativePath}`;
+  const contentType = relativePath.endsWith(".m3u8")
+    ? "application/vnd.apple.mpegurl"
+    : "video/mp2t";
+  const { error: uploadError } = await supabase.storage.from(bucket).upload(objectPath, file, {
+    contentType,
+    cacheControl: "3600",
+    upsert: false,
+    metadata: { ownerId, purpose: "raye2-hls", mediaId },
+  });
+  if (uploadError) {
+    await supabase.rpc("release_raye2_worker_thumbnail_capacity", { p_reservation_id: reservationId });
+    throw uploadError;
+  }
+  return { path: `${bucket}/${objectPath}`, bytes: file.byteLength };
+}
+
+async function removeWorkerHls(ownerId, mediaId, masterPath) {
+  if (!masterPath) return;
+  const [bucket, ...parts] = masterPath.split("/");
+  const objectPath = parts.join("/");
+  const expectedPrefix = `${ownerId}/streams/${mediaId}-`;
+  if (![PRIVATE_BUCKET, PUBLIC_BUCKET].includes(bucket) || !objectPath.startsWith(expectedPrefix) || !objectPath.endsWith("/master/master.m3u8")) {
+    console.warn("[raye2-worker] skipped cleanup for an unexpected HLS path", masterPath);
+    return;
+  }
+  const folder = objectPath.slice(0, -"/master/master.m3u8".length);
+  const { data:listed, error:listError } = await supabase.storage.from(bucket).list(folder, { limit: 1000 });
+  if (listError) {
+    console.error("[raye2-worker] HLS cleanup listing failed", listError.message);
+    return;
+  }
+  const paths = (listed ?? []).filter(item => item.name && /^[A-Za-z0-9_.-]+$/.test(item.name))
+    .map(item => `${folder}/${item.name}`);
+  if (paths.length) {
+    const { error } = await supabase.storage.from(bucket).remove(paths);
+    if (error) console.error("[raye2-worker] HLS outputs need orphan cleanup", error.message);
+  }
+}
+
+async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ownerId, mediaId, leaseToken, bucket) {
+  if (!Number.isFinite(durationSeconds) || durationSeconds > MAX_HLS_DURATION_SECONDS) {
+    return { hls: null, skippedReason: `Adaptive playback is limited to videos of ${MAX_HLS_DURATION_SECONDS / 60} minutes in this worker version.` };
+  }
+  const root = join(workDir, "hls");
+  const uploaded = [];
+  const masterDir = join(root, "master");
+  await mkdir(masterDir, { recursive: true });
+  const variants = [
+    { name: "360p", maxWidth: 640, maxHeight: 360, crf: 27, audioRate: "96k", bandwidth: 850000 },
+    { name: "720p", maxWidth: 1280, maxHeight: 720, crf: 24, audioRate: "128k", bandwidth: 2200000 },
+  ];
+  try {
+    for (const variant of variants) {
+      const variantDir = join(root, variant.name);
+      await mkdir(variantDir, { recursive: true });
+      const filter = `scale=w='min(${variant.maxWidth},iw)':h='min(${variant.maxHeight},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
+      const args = [
+        "-hide_banner", "-loglevel", "error", "-i", sourcePath,
+        "-map", "0:v:0", ...(hasAudio ? ["-map", "0:a:0?"] : []),
+        "-vf", filter, "-c:v", "libx264", "-preset", "veryfast", "-crf", String(variant.crf),
+        "-maxrate", variant.name === "720p" ? "2200k" : "850k",
+        "-bufsize", variant.name === "720p" ? "4400k" : "1700k",
+        "-threads", "2",
+        ...(hasAudio ? ["-c:a", "aac", "-b:a", variant.audioRate, "-ac", "2"] : ["-an"]),
+        "-f", "hls", "-hls_time", "6", "-hls_playlist_type", "vod",
+        "-hls_flags", "independent_segments",
+        "-hls_segment_filename", join(variantDir, "segment_%05d.ts"),
+        "-y", join(variantDir, "index.m3u8"),
+      ];
+      await run("ffmpeg", args, MAX_TRANSCODE_TIMEOUT_MS);
+    }
+    const master = [
+      "#EXTM3U",
+      "#EXT-X-VERSION:3",
+      ...variants.flatMap(variant => [
+        `#EXT-X-STREAM-INF:BANDWIDTH=${variant.bandwidth},NAME="${variant.name}"`,
+        `../${variant.name}/index.m3u8`,
+      ]),
+      "",
+    ].join("\n");
+    const masterFile = join(masterDir, "master.m3u8");
+    await writeFile(masterFile, master, "utf8");
+    const files = await walkFiles(root);
+    if (!files.some(file => file.relative === "master/master.m3u8")
+      || !files.some(file => file.relative === "360p/index.m3u8")
+      || !files.some(file => file.relative === "720p/index.m3u8")) {
+      throw new Error("Adaptive HLS package is missing a required master or rendition playlist.");
+    }
+    for (const file of files) {
+      const stored = await storeHlsObject(ownerId, mediaId, leaseToken, bucket, file.relative, file.absolute);
+      uploaded.push(stored.path);
+    }
+    return {
+      hls: {
+        masterPath: `${bucket}/${ownerId}/streams/${mediaId}-${leaseToken}/master/master.m3u8`,
+        variants: variants.map(variant => variant.name),
+        segmentDurationSeconds: 6,
+        hasAudio,
+        outputObjects: files.length,
+      },
+      skippedReason: null,
+    };
+  } catch (error) {
+    if (uploaded.length) {
+      const prefix = `${ownerId}/streams/${mediaId}-${leaseToken}/`;
+      const paths = uploaded.map(value => value.slice(bucket.length + 1)).filter(value => value.startsWith(prefix));
+      if (paths.length) {
+        const { error: cleanupError } = await supabase.storage.from(bucket).remove(paths);
+        if (cleanupError) console.error("[raye2-worker] partial HLS output cleanup failed", cleanupError.message);
+      }
+    }
+    throw error;
+  }
+}
+
 async function processJob(job) {
   if (!job.owner_id || !job.storage_path) throw new Error("Media job is missing its owner or storage path.");
   const [bucket, ...pathParts] = job.storage_path.split("/");
@@ -221,6 +366,14 @@ async function processJob(job) {
           thumbnail = await makeThumbnail(job.media_type, job.mime_type, sourcePath, workDir, extracted.durationSeconds);
         } catch (error) {
           thumbnailSkippedReason = `Video thumbnail unavailable: ${error instanceof Error ? error.message.slice(0, 300) : "ffmpeg failed"}`;
+        }
+        try {
+          const hasAudio = extracted.streams.some(stream => stream.type === "audio");
+          const packageResult = await makeHlsPackage(sourcePath, workDir, extracted.durationSeconds, hasAudio, job.owner_id, job.media_id, job.lease_token, bucket);
+          if (packageResult.hls) extracted.hls = packageResult.hls;
+          if (packageResult.skippedReason) extracted.hlsSkippedReason = packageResult.skippedReason;
+        } catch (error) {
+          extracted.hlsSkippedReason = `Adaptive playback unavailable: ${error instanceof Error ? error.message.slice(0, 400) : "transcoding failed"}`;
         }
       }
     } else {
