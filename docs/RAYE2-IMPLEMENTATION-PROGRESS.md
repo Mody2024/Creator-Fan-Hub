@@ -817,3 +817,11 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Update the owner-scoped publishing regression test to assert the explicit save intent passed to the guarded RPC.
 - [x] Add regression coverage for draft/publish intent persistence.
 - [ ] Re-run full CI, type-check, lint and build.
+
+
+## 2026-11-09 — Creator analytics failure-state accuracy
+- [x] Prevent unavailable analytics RPC results from appearing as genuine zero views, reactions, comments or interaction rate.
+- [x] Render neutral unavailable markers for all aggregate KPI values when the service request fails.
+- [x] Preserve the existing bilingual error messaging in highlights and video-performance table.
+- [x] Add regression coverage for unavailable-versus-zero KPI presentation.
+- [ ] Verify CI and preview.

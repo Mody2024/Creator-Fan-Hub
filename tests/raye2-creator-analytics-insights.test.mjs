@@ -21,3 +21,5 @@ test("analytics insights remain aggregate and avoid quality or reach guarantees"
 });
 
 test("analytics distinguishes unavailable data from a genuinely empty account",()=>{assert.ok(page.includes("Analytics could not be loaded."));assert.ok(page.includes("Performance highlights could not load."));assert.ok(page.includes("Publish your first video to start building performance insights."));});
+
+test("analytics does not present failed metric requests as genuine zero performance",()=>{assert.ok(page.includes('error?"—":totals.views.toLocaleString()'));assert.ok(page.includes('error?"—":totals.reactions.toLocaleString()'));assert.ok(page.includes('error?"—":totals.comments.toLocaleString()'));assert.ok(page.includes('error?"—":interactionsPerView.toFixed(1)'));});
