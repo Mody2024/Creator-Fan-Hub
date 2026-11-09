@@ -1214,3 +1214,27 @@ Progress remains acceptance-based and unchanged until exact-HEAD CI and runtime/
 - Whole Raye2 platform: **~39% provisional**.
 
 Session handoff: `development` only; production and `main` untouched. Current next step is to verify the reward-normalization fix, then continue the larger Creator Studio batch.
+
+
+## 2026-11-09 — Creator rewards normalization extracted for focused verification
+- [x] Corrected the previous patch so normalized summary/history/rule data is applied to the actual Creator Rewards loading flow.
+- [x] Extracted dedicated normalization helpers for reward summary, reward ledger history and enabled reward rules, making the behavior independently reviewable and easier to test.
+- [x] Reject unsupported count input types rather than coercing arbitrary values; clamp negative/fractional/non-finite numeric counts to safe nonnegative integers.
+- [x] Keep malformed reward entries out of the history and invalid reward-rule entries out of the catalogue.
+- [x] Added regression coverage for the extracted normalization helpers while retaining the more specific UI contract checks.
+- [x] Verified the previous media-worker Docker image build passed on commit `fd7c395946c3e711f86abada7e766c81e49c457b`.
+- [ ] Verify the complete test/typecheck/lint/Next.js build suite on the current exact HEAD. The previous verify job was cancelled during dependency installation; a rerun was requested, but subsequent commits may supersede that run.
+- [ ] Verify the new sponsor lifecycle trigger against an isolated PostgreSQL/Supabase database and two distinct creator identities.
+- [ ] Browser-check Creator Studio sponsor draft CRUD and reward history with real authorized accounts.
+- [ ] Continue the media worker from metadata/thumbnail processing to actual video rendition generation and HLS playlist/segment publication. Current worker still does not create adaptive streaming outputs; don't claim native streaming is complete.
+
+Progress is still acceptance-based and unchanged because the latest work is code-level normalization and test coverage, not full Creator Studio acceptance:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff:
+- Branch: `development`; `main` and production untouched.
+- Latest batch: reward normalization applied and extracted; sponsor lifecycle DB guard remains committed.
+- Next batch: verify exact-HEAD CI, then continue complete Creator Studio sponsor/reward workflow acceptance; afterwards implement adaptive video processing/HLS with an end-to-end playback test.
