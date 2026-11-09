@@ -1103,3 +1103,18 @@ Progress estimates against the complete ten-wave plan:
 
 - Final batch HEAD: `f50932c8c58ad3e31cc4e6df12543155af82de91`.
 - Note: the dashboard-navigation CI runs were automatically cancelled as later commits superseded them. The last completed successful full run is `43e920b2`; it predates the sponsorship-navigation patch. Re-run verification on a quiet exact HEAD before claiming the new patch passed.
+
+
+## 2026-11-09 — CI regression repair
+- [x] Investigated the failed exact-HEAD CI run: 402/403 tests passed; the only failure was a stale role-aware Creator dashboard count assertion after adding the sponsorship destination.
+- [x] Updated both role-count expectations to the current nine creator destinations.
+- [x] Kept the new bilingual sponsorship navigation regression test in place.
+- [x] Confirmed the isolated media-worker Docker image build job passed on the failed workflow run.
+- [ ] Re-run full CI against the corrected exact HEAD; TypeScript, lint and Next.js build did not run in the failed attempt because the test gate stopped first.
+- [ ] Verify browser flows and isolated Supabase role behavior.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **44%**.
+- Wave 9 — release readiness: **25%** (CI root cause isolated and stale regression expectation repaired; rerun pending).
+- Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
