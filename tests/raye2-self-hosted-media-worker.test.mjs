@@ -271,3 +271,15 @@ test("database rejects adaptive playlist pointers that do not match the media ow
  assert.ok(migration.includes("adaptive master playlist does not exist in managed storage"));
  assert.ok(migration.includes("before insert or update of metadata,storage_path,is_published,owner_id"));
 });
+
+test("media worker Docker build runs a real ffmpeg HLS smoke test against generated video segments",async()=>{
+ const smoke=await readFile(new URL("../scripts/test-raye2-hls-smoke.mjs",import.meta.url),"utf8");
+ const docker=await readFile(new URL("../Dockerfile.raye2-media-worker",import.meta.url),"utf8");
+ assert.ok(smoke.includes('testsrc2=size=1280x720:rate=24:duration=12'));
+ assert.ok(smoke.includes('"ffprobe"'));
+ assert.ok(smoke.includes("assert.equal(segmentNames.length, 2"));
+ assert.ok(smoke.includes('stream.codec_type === "audio"'));
+ assert.ok(smoke.includes("variant.maxWidthExpected"));
+ assert.ok(docker.includes("COPY scripts/test-raye2-hls-smoke.mjs"));
+ assert.ok(docker.includes("RUN node scripts/test-raye2-hls-smoke.mjs"));
+});
