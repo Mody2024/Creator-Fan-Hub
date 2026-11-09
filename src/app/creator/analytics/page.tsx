@@ -12,7 +12,9 @@ export default async function CreatorAnalyticsPage(){
  const {data:claims}=await supabase.auth.getClaims();const userId=claims?.claims?.sub;if(typeof userId!=="string")redirect("/creator/login");
  const {data:admin}=await supabase.from("creator_admins").select("role").eq("user_id",userId).eq("active",true).maybeSingle();
  if(!admin||!["owner","admin","editor","analyst"].includes(admin.role))redirect("/creator?access=analytics-only");
- const {data,error}=await supabase.rpc("get_creator_video_analytics");const metrics=(data??[]) as Metric[];
+ const {data,error}=await supabase.rpc("get_creator_video_analytics");
+ const rawMetrics=Array.isArray(data)?data:data&&typeof data==="object"?[data]:[];
+ const metrics:Metric[]=rawMetrics.filter((item):item is Record<string,unknown>=>!!item&&typeof item==="object"&&typeof item.media_id==="string"&&typeof item.title==="string").map(item=>({media_id:item.media_id as string,title:item.title as string,view_count:Math.max(0,Number(item.view_count)||0),reaction_count:Math.max(0,Number(item.reaction_count)||0),comment_count:Math.max(0,Number(item.comment_count)||0),published_at:typeof item.published_at==="string"?item.published_at:null}));
  const rankedMetrics=[...metrics].sort((a,b)=>Number(b.view_count)-Number(a.view_count));
  const totals=metrics.reduce((a,m)=>({views:a.views+Number(m.view_count),reactions:a.reactions+Number(m.reaction_count),comments:a.comments+Number(m.comment_count)}),{views:0,reactions:0,comments:0});
  const interactionsPerView=totals.views>0?((totals.reactions+totals.comments)/totals.views)*100:0;
