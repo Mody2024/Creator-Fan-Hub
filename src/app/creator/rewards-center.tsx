@@ -78,7 +78,8 @@ export default function CreatorRewardsCenter(){
  const [summary,setSummary]=useState<Summary|null>(null);
  const [progression,setProgression]=useState<Progression|null>(null);
  const [history,setHistory]=useState<Reward[]>([]);
- const [rules,setRules]=useState<Rule[]>([]);\n const [achievements,setAchievements]=useState<Achievement[]>([]);
+ const [rules,setRules]=useState<Rule[]>([]);
+ const [achievements,setAchievements]=useState<Achievement[]>([]);
  const [busy,setBusy]=useState(true);
  const [status,setStatus]=useState("Loading creator rewards…");
  const load=useCallback(async()=>{
@@ -103,12 +104,15 @@ export default function CreatorRewardsCenter(){
    if(!normalizedProgression)throw new Error("Creator progression returned an invalid summary. Refresh or contact an administrator.");
    setProgression(normalizedProgression);
    if(historyResult.error)throw historyResult.error;
-   if(rulesResult.error)throw rulesResult.error;\n   if(earnedResult.error)throw earnedResult.error;\n   if(catalogResult.error)throw catalogResult.error;
+   if(rulesResult.error)throw rulesResult.error;
+   if(earnedResult.error)throw earnedResult.error;
+   if(catalogResult.error)throw catalogResult.error;
    const normalizedSummary=normalizeCreatorRewardSummary(summaryResult.data);
    if(!normalizedSummary)throw new Error("Creator reward summary is missing or malformed. Refresh or contact an administrator.");
    setSummary(normalizedSummary);
    setHistory(normalizeCreatorRewardHistory(historyResult.data));
-   setRules(normalizeCreatorRewardRules(rulesResult.data));\n   setAchievements(normalizeCreatorAchievements(earnedResult.data,catalogResult.data));
+   setRules(normalizeCreatorRewardRules(rulesResult.data));
+   setAchievements(normalizeCreatorAchievements(earnedResult.data,catalogResult.data));
    setStatus("Reward points are recognition credits, not cash. Revoked awards are excluded from the available balance.");
   }catch(error){
    setStatus(error instanceof Error?error.message:"Creator rewards could not be loaded. Apply the creator rewards migration and retry.");
