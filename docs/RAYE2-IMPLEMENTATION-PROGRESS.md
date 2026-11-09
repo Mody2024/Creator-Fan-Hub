@@ -1149,3 +1149,26 @@ Progress estimates:
 - Wave 4 — Creator Studio: **46%** (analytics export now handles malformed metrics/dates safely; sponsorship lifecycle, end-to-end media processing and dashboard visual redesign remain).
 - Wave 9 — release readiness: **25%** (new export edge-case tests authored; exact-HEAD CI pending).
 - Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
+
+
+## 2026-11-09 — Cross-session continuation contract and verified CI handoff
+- [x] Added a mandatory session-start protocol to the full platform plan: re-read the master plan/progress log, verify the live branch HEAD and latest CI, inspect existing code/tests, then resume the highest-priority incomplete deliverable.
+- [x] Defined “go on/continue” as authorization to resume implementation without asking the user to repeat the plan.
+- [x] Set the next execution priority: end-to-end Creator Studio sponsor lifecycle + reward/achievement integration + role/authorization regression tests; then actual adaptive HLS/video pipeline; then major connected-platform redesign and remaining social/release scope.
+- [x] Added acceptance-based percentage rules, larger cohesive batch expectations, exact-HEAD verification requirements and explicit no-fabricated-progress rules.
+- [x] Preserved the development-only workflow: no merge to `main`, no production deployment, and no production data changes without explicit authorization.
+- [x] Verified current branch HEAD before the documentation update: `1adce29c61f3aa065aa68a68ec76a565f2e7f08d`.
+- [x] Verified GitHub Actions “Free CI” for that exact pre-documentation HEAD completed successfully (run `42680697742`, conclusion `success`).
+- [ ] Re-verify CI for the new documentation commit's exact HEAD; do not transfer the prior success claim to a different SHA.
+- [ ] Continue with the Creator Studio lifecycle/rewards batch; no implementation completion is claimed by this planning update alone.
+
+Progress remains acceptance-based and unchanged by this documentation-only batch:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff:
+- Branch: `development` only.
+- Production / `main`: untouched.
+- Next batch: inspect current sponsorship schema, UI and RPCs; complete creator campaign lifecycle and reward/achievement visibility with authorization, tests and docs. Keep automated ad delivery and actual payouts disabled/unclaimed until their external/legal/provider requirements are satisfied.
