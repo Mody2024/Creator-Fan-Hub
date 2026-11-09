@@ -857,3 +857,9 @@ This section is mandatory for every future Raye2 development session. The reposi
 - Preserve all server-side authorization gates and role-specific module visibility. The visual redesign must not make owner/admin-only links visible to creator/editor roles.
 - Keep the interface responsive across desktop/tablet/mobile, preserve Arabic RTL and English LTR, maintain keyboard focus visibility, and honor reduced-motion preferences.
 - This pass updates the creator workspace surface and its responsive visual system. It is not completion of the broader platform redesign: the public home/feed, watch page, member profiles, community, and the rest of Creator Studio still require coordinated visual redesign and real browser review.
+
+
+### 19.7 Watch detail style-contract repair (2026-11-09)
+- Keep watch detail JSX class names aligned with the actual responsive CSS selectors. Header, brand mark, title row, reaction picker wrapper and comment composer must use the defined style hooks.
+- Add regression coverage that checks both sides of the contract (markup class present and stylesheet selector defined) so a future rename cannot silently strip the watch page's layout styling.
+- Preserve the existing player-first layout, official video metadata, reaction picker, save/share actions, description/tags, discussion flow, Arabic RTL and responsive breakpoints.
