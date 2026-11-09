@@ -98,7 +98,9 @@ export default function VideoStudio(){
  function choose(id:string){setSelected(id);const v=videos.find(x=>x.media_id===id);const asset=assets.find(x=>x.media_id===id);setSlug(v?.slug??slugify(asset?.title??""));setDescription(v?.description??asset?.alt_text??"");setCategory(v?.category??"Other");setTags((v?.tags??[]).join(", "));setDuration(v?.duration_seconds?String(v.duration_seconds):"");setFeatured(v?.featured??false);setAllowComments(v?.allow_comments??true);setPublishedAt(!!v?.published_at)}
  async function save(publish?:boolean){
   const shouldPublish=publish??publishedAt;
-  if(!supabase||!selected||busy)return;setBusy(true);setStatus("");
+  if(!supabase||!selected||busy)return;
+  if(current?.published_at&&!shouldPublish&&!window.confirm(t.unpublishConfirm))return;
+  setBusy(true);setStatus("");
   try{
    const asset=assets.find(x=>x.media_id===selected);if(!asset)throw new Error(t.selectFirst);
    const safeSlug=slugify(slug);if(safeSlug.length<3)throw new Error(t.slugError);
