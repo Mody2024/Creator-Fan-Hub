@@ -802,3 +802,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Give published pages a distinct “save published changes” action label.
 - [x] Add regression coverage for draft/publish action separation.
 - [ ] Verify CI and preview for this development commit.
+
+
+## 2026-11-09 — Creator Studio publish-action CI recovery
+- [x] Resolve TypeScript mismatch introduced by explicit draft/publish buttons calling a zero-argument save function.
+- [x] Pass the requested publish intent into the save operation and use that exact intent for all validation, slug checks, RPC payload and success feedback.
+- [x] Update the published-state control after a successful save.
+- [x] Add responsive, keyboard-visible action styling for draft and publish controls.
+- [x] Add regression coverage for explicit publish intent and responsive actions.
+- [ ] Verify CI for the corrected branch head.

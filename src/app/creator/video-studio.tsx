@@ -93,7 +93,8 @@ export default function VideoStudio(){
 
 
  function choose(id:string){setSelected(id);const v=videos.find(x=>x.media_id===id);const asset=assets.find(x=>x.media_id===id);setSlug(v?.slug??slugify(asset?.title??""));setDescription(v?.description??asset?.alt_text??"");setCategory(v?.category??"Other");setTags((v?.tags??[]).join(", "));setDuration(v?.duration_seconds?String(v.duration_seconds):"");setFeatured(v?.featured??false);setAllowComments(v?.allow_comments??true);setPublishedAt(!!v?.published_at)}
- async function save(){
+ async function save(publish?:boolean){
+  const shouldPublish=publish??publishedAt;
   if(!supabase||!selected||busy)return;setBusy(true);setStatus("");
   try{
    const asset=assets.find(x=>x.media_id===selected);if(!asset)throw new Error(t.selectFirst);
@@ -106,21 +107,21 @@ export default function VideoStudio(){
    if(cleanCategory.length>40)throw new Error(t.categoryError);
    if(cleanTags.length>12||cleanTags.some(tag=>tag.length>40))throw new Error(t.tagsError);
    if(parsedDuration!==null&&(!Number.isSafeInteger(parsedDuration)||parsedDuration<1||parsedDuration>86400))throw new Error(t.durationError);
-   if(publishedAt&&!asset.is_published)throw new Error(t.privateError);
-   if(publishedAt){
+   if(shouldPublish&&!asset.is_published)throw new Error(t.privateError);
+   if(shouldPublish){
     const {data:slugOwner,error:slugLookupError}=await supabase.from("video_catalog").select("media_id").eq("slug",safeSlug).neq("media_id",selected).maybeSingle();
     if(slugLookupError)throw slugLookupError;
     if(slugOwner)throw new Error(t.slugConflict);
    }
-   if(publishedAt&&asset.media_type!=="youtube"&&asset.processing_status!=="ready")throw new Error(t.processingError);
+   if(shouldPublish&&asset.media_type!=="youtube"&&asset.processing_status!=="ready")throw new Error(t.processingError);
    const {data:saved,error}=await supabase.rpc("save_raye2_video_catalog",{
     p_media_id:selected,p_slug:safeSlug,p_description:cleanDescription,p_category:cleanCategory,
     p_tags:cleanTags,p_duration_seconds:parsedDuration,p_featured:featured,
-    p_allow_comments:allowComments,p_publish:publishedAt
+    p_allow_comments:allowComments,p_publish:shouldPublish
    });
    if(error)throw error;
    if(!Array.isArray(saved)||!saved[0]?.saved)throw new Error("This video could not be saved. Confirm it belongs to your creator account.");
-   setStatus(publishedAt?t.savedPublic:t.savedDraft);await load();
+   setPublishedAt(shouldPublish);setStatus(shouldPublish?t.savedPublic:t.savedDraft);await load();
   }catch(e){setStatus(e instanceof Error?e.message:"Could not save video details.")}finally{setBusy(false)}
  }
  async function createPlaylist(){

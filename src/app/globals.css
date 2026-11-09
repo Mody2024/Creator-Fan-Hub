@@ -922,3 +922,9 @@ button:disabled { opacity: .52; }
 @media(max-width:760px){.raye2-creator-shell .creator-quick-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.raye2-creator-shell .creator-quick-nav .module-card{min-height:176px;padding:15px}}
 @media(max-width:430px){.raye2-creator-shell .creator-quick-nav{grid-template-columns:1fr}.raye2-creator-shell .creator-quick-nav .module-card{min-height:145px}}
 @media(prefers-reduced-motion:reduce){.raye2-creator-shell .creator-quick-nav .module-card{transition:none}.raye2-creator-shell .creator-quick-nav .module-card:hover{transform:none}}
+
+/* Creator Studio: keep draft and publish actions distinct and thumb-friendly. */
+.raye2-creator-shell .raye2-video-save-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+.raye2-creator-shell .raye2-video-save-actions .button{flex:1 1 190px;min-height:46px;white-space:normal}
+.raye2-creator-shell .raye2-video-save-actions .button:focus-visible{outline:2px solid var(--accent,#79b1ff);outline-offset:3px}
+@media(max-width:520px){.raye2-creator-shell .raye2-video-save-actions{display:grid;grid-template-columns:1fr}.raye2-creator-shell .raye2-video-save-actions .button{width:100%}}
