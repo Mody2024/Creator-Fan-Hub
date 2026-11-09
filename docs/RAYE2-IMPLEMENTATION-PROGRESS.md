@@ -1414,3 +1414,32 @@ Session handoff:
 - Follow-up documentation commits: update this progress log and the master plan without changing application code; verify the resulting HEAD/CI status on the next session.
 - Next engineering batch: create a reproducible FFmpeg integration test script if CI environment supports it; then add hls.js for adaptive playback in browsers without native HLS, while retaining MP4 fallback; then run isolated database/worker/browser acceptance.
 - Manual user testing remains deferred until approximately **50% overall implementation**. Continue implementation without asking the user to test early.
+
+
+## 2026-11-09 — Cross-browser adaptive playback with hls.js
+- [x] Added the Apache-2.0 `hls.js` playback engine (version `1.7.4`) as a free application dependency.
+- [x] Added runtime selection: native HLS on supported browser runtimes, hls.js over Media Source Extensions where appropriate, and original-file fallback if the adaptive engine is unsupported or encounters a fatal playback error.
+- [x] Added cleanup of the hls.js instance when the player unmounts or the source changes.
+- [x] Preserved the existing watch player controls, loading/error state, retry behavior and timestamp seeking.
+- [x] Added regression tests for hls.js dependency, MSE support, native HLS selection, adaptive attachment and fallback behavior.
+- [x] Exact-HEAD GitHub Actions run `42691972242` passed on code SHA `7f5a48eff743c08273e841441e6521418e29423a`: automated tests, TypeScript, ESLint, Next.js production build and media-worker Docker build.
+- [ ] Verify adaptive rendition switching, seeking and fatal-error recovery in actual browsers; CI does not emulate browser playback.
+- [ ] Apply the HLS pointer and processing-preservation migrations in an isolated Supabase database and verify RLS/storage object visibility.
+- [ ] Run the worker against a real test upload using the configured server-only secret; verify the uploaded HLS package is reachable only after publication.
+
+### Current progress
+- **Overall implementation: 47%** (up from 46%; cross-browser adaptive playback engine and fallback logic are now integrated).
+- **Test/release readiness: 42%** (up from 41%; exact-HEAD CI passed after hls.js integration; database and browser acceptance remain).
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 49%** (up from 45%; HLS generation, owner/visibility binding, package movement and cross-browser player integration are implemented).
+- **Release readiness: 25%.**
+- **Active adaptive-video batch: 95% implementation** (code, tests, sample encoding and CI are complete; isolated database, deployed worker and browser playback acceptance remain).
+
+### Exact next-session handoff
+- Branch: `development`; production deployment is not authorized.
+- Last fully verified application-code SHA: `7f5a48eff743c08273e841441e6521418e29423a`.
+- Successful CI: `42691972242` (tests, type-check, lint, Next.js build and media-worker Docker image all passed).
+- Follow-up documentation commit updating the full plan: `7e0115c586063abbf27ce99da817b6a9508f5bcf`.
+- Next engineering batch: harden HLS package retention/orphan cleanup, add a repeatable worker-level FFmpeg integration test, and add a browser acceptance checklist/automated player test. Then proceed to the remaining major redesign and connected home/feed/watch/profile work.
+- User's first manual testing stage remains targeted at approximately **50% overall implementation**. Current overall implementation is 47%; do not ask the user to test early.
