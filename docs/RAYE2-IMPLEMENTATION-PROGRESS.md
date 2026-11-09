@@ -1506,3 +1506,28 @@ Session handoff:
 - Supabase project check: active project `scxkgybuodhuohcxpfat`; no development branches exist. Production migrations currently stop at `20261102215604`; do not apply repo migrations directly to production.
 - Next implementation priority: continue the broader redesign on the public home/feed and watch/member profile surfaces, then continue Creator Studio workflow completeness. Database migration acceptance must wait for an approved isolated Supabase branch/environment.
 - Future sessions must read both plan and progress log, verify live development HEAD and latest CI, preserve the no-main/no-production boundary, report implementation and test/release readiness separately, and continue from this handoff.
+
+
+## 2026-11-09 — Watch detail style-contract repair
+- [x] Reconnected the watch detail header to its actual CSS selector.
+- [x] Reconnected the Raye2 brand mark, title row, reaction picker wrapper and comment composer to their existing style selectors.
+- [x] Added a regression test that checks both JSX class names and matching global CSS selectors, preventing silent loss of layout styling after class renames.
+- [x] Exact-HEAD CI run `42700591061` passed on code HEAD `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`: automated repository tests, TypeScript, ESLint, Next.js production build, and media-worker Docker/FFmpeg smoke test.
+- [ ] Browser review remains open for player sizing, reaction picker positioning, comments and Arabic RTL. CI does not replace visual browser verification.
+
+### Updated progress
+- **Overall implementation: 50%** (held steady; this is an important UI wiring repair, but not a large new feature).
+- **Test/release readiness: 46%** (up from 45%; exact-HEAD CI green on the watch detail style-contract test).
+- **Wave 1 — visual redesign: 47%** (up from 46%; watch detail's intended branded/responsive styling is now actually connected to its markup).
+- **Wave 4 — Creator Studio: 53%.**
+- **Native video pipeline: 58%.**
+- **Release readiness: 27%.**
+- **Watch detail style-contract batch: 100% implementation + CI**; real browser appearance review remains open.
+
+### Exact next-session handoff
+- Branch: `development`; do not merge to `main`, deploy production, or apply migrations to the production Supabase project.
+- Latest application code HEAD: `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`.
+- Exact-HEAD successful CI: run `42700591061` (all verification stages passed, including Next.js build and worker Docker FFmpeg smoke test).
+- Master-plan documentation follow-up: `4e26446096af065204d614eb7ede662d27e61b5f`; progress-log update follows.
+- Continue the broader public home/feed, watch and member profile redesign, then finish remaining Creator Studio workflows. Keep the overall percentage conservative; 50% is the manual-testing milestone the user mentioned, but continue implementation as requested rather than interrupting them to test.
+- Supabase project `scxkgybuodhuohcxpfat` has no development database branch; production migration history is behind the repository. Wait for explicit approval before creating a potentially billable isolated branch, and never apply the pending migrations directly to production.
