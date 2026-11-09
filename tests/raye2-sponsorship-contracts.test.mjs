@@ -88,7 +88,7 @@ test("creator sponsor draft validates frequency, category and calendar dates",as
  const component=await read("../src/app/creator/creator-video-sponsorship.tsx");
  assert.ok(component.includes("frequency<1||frequency>5"));
  assert.ok(component.includes("input.category.trim().length>40"));
- assert.ok(component.includes("/^\\\\d{4}-\\\\d{2}-\\\\d{2}$/"));
+ assert.ok(component.includes("/^\\d{4}-\\d{2}-\\d{2}$/"));
  assert.ok(component.includes("input.ends<input.starts"));
 });
 test("resetting creator sponsor editor restores the default placement",async()=>{

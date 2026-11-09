@@ -787,3 +787,9 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Confirm the selected creative is still an eligible published asset before saving.
 - [x] Add regression contracts for same-day campaigns, impossible dates and shared validation.
 - [ ] Run CI and verify the development preview.
+
+ 
+## 2026-11-09 — Sponsorship validation CI contract alignment
+- [x] Update the legacy source-contract assertion to recognize the stricter real-calendar-date validator.
+- [x] Preserve rejection of impossible dates and acceptance of same-day campaign windows.
+- [ ] Re-run CI on the corrected development head.
