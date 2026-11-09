@@ -9,6 +9,7 @@ import SponsorAnalytics from "./sponsor-analytics";
 
 type SponsorAsset={media_id:string;title:string;media_type:string;is_published:boolean};
 type SponsorCampaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;starts_at:string|null;ends_at:string|null;max_per_viewer:number;status:string;sponsor_asset_media_id:string;category_key:string;category_exclusive:boolean;approval_status:string;approval_requested_at:string|null;approval_reviewed_at:string|null;approval_note:string};
+type SponsorReviewEvent={id:string;campaign_id:string;event_type:string;note:string;created_at:string};
 type CreatorSponsorDraftInput={sponsorName:string;creativeId:string;disclosure:string;confirmed:boolean;starts:string;ends:string;frequency:string;category:string};
 export function validateCreatorSponsorDraft(input:CreatorSponsorDraftInput):string|null{
  if(input.sponsorName.trim().length<2||input.sponsorName.trim().length>120)return "Sponsor name must contain 2–120 characters.";
@@ -27,6 +28,7 @@ export function validateCreatorSponsorDraft(input:CreatorSponsorDraftInput):stri
 export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string;assets:SponsorAsset[]}){
  const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);
  const [rows,setRows]=useState<SponsorCampaign[]>([]);
+ const [reviewEvents,setReviewEvents]=useState<SponsorReviewEvent[]>([]);
  const [sponsorName,setSponsorName]=useState("");
  const [creativeId,setCreativeId]=useState("");
  const [disclosure,setDisclosure]=useState("Sponsored");
@@ -61,12 +63,20 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
  };
 
  const load=useCallback(async()=>{
-  if(!supabase||!mediaId){setRows([]);return}
+  if(!supabase||!mediaId){setRows([]);setReviewEvents([]);return}
   const {data,error}=await supabase.from("raye2_creator_sponsor_campaigns")
    .select("id,sponsor_name,disclosure_text,placement,starts_at,ends_at,max_per_viewer,status,sponsor_asset_media_id,category_key,category_exclusive,approval_status,approval_requested_at,approval_reviewed_at,approval_note")
    .eq("media_id",mediaId).order("created_at",{ascending:false});
   if(error){setStatus("Sponsorship settings are not available yet. Apply the Raye2 creator sponsorship migration before using this section.");return}
-  setRows((data??[]) as SponsorCampaign[]);
+  const campaigns=(data??[]) as SponsorCampaign[];
+  setRows(campaigns);
+  const campaignIds=campaigns.map(row=>row.id);
+  if(!campaignIds.length){setReviewEvents([]);return}
+  const {data:history,error:historyError}=await supabase.from("raye2_creator_sponsor_review_events")
+   .select("id,campaign_id,event_type,note,created_at")
+   .in("campaign_id",campaignIds).order("created_at",{ascending:false}).limit(100);
+  if(historyError){setReviewEvents([]);setStatus("Campaigns loaded, but review history is unavailable. Apply the sponsor review migration and verify creator history access.");return}
+  setReviewEvents((history??[]) as SponsorReviewEvent[]);
  },[supabase,mediaId]);
 
  useEffect(()=>{void load()},[load]);
@@ -202,7 +212,7 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   </div>
   <div className="nhen-playlist-list" aria-live="polite">
    {visibleCampaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
-    <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small><small>{campaignWindow(row)}</small><small>Disclosure: {row.disclosure_text}</small><small>Review: {row.approval_status.replaceAll("_"," ")}{row.approval_reviewed_at?` · reviewed ${new Date(row.approval_reviewed_at).toLocaleDateString()}`:""}</small>{row.approval_note&&<small>Reviewer note: {row.approval_note}</small>}</span>
+    <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small><small>{campaignWindow(row)}</small><small>Disclosure: {row.disclosure_text}</small><small>Review: {row.approval_status.replaceAll("_"," ")}{row.approval_reviewed_at?` · reviewed ${new Date(row.approval_reviewed_at).toLocaleDateString()}`:""}</small>{row.approval_note&&<small>Reviewer note: {row.approval_note}</small>}{reviewEvents.some(event=>event.campaign_id===row.id)&&<div className="raye2-sponsor-review-history"><small><strong>Review history</strong></small>{reviewEvents.filter(event=>event.campaign_id===row.id).map(event=><small key={event.id}>{event.event_type.replaceAll("_"," ")} · {new Date(event.created_at).toLocaleString()}{event.note?` · ${event.note}`:""}</small>)}</div>}</span>
     <div className="nhen-inline-actions">{row.status==="active"?<button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>Pause</button>:<><button type="button" disabled={busy||row.status!=="draft"||row.approval_status==="pending"||row.approval_status==="approved"} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy||row.status!=="draft"||row.approval_status==="pending"||row.approval_status==="approved"} onClick={()=>void deleteDraft(row)}>Delete unused draft</button>{["not_submitted","rejected"].includes(row.approval_status)&&<button type="button" disabled={busy} onClick={()=>void requestReview(row)}>Request review</button>}</>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
    {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}{rows.length>0&&!visibleCampaigns.length&&<p className="nhen-muted">No campaigns match these filters. Change the search or status filter.</p>}
