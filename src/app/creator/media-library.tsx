@@ -19,7 +19,7 @@ async function copyHlsPackage(
 ): Promise<{ masterPath: string; copiedPaths: string[]; sourceBucket: string; sourcePaths: string[] }> {
   const [sourceBucket, ...masterParts] = masterPath.split("/");
   const masterObject = masterParts.join("/");
-  const streamRoot = masterObject.replace(/\\/master\\/master\\.m3u8$/, "");
+  const streamRoot = masterObject.replace(/\/master\/master\.m3u8$/, "");
   if (!["creator-media-private", "creator-media-public"].includes(sourceBucket)
     || sourceBucket === destinationBucket
     || !masterObject.endsWith("/master/master.m3u8")
