@@ -778,3 +778,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Preserve bilingual error states and avoid incorrectly instructing creators to publish when analytics service failed.
 - [x] Add regression coverage for error-versus-empty behavior.
 - [ ] Re-run full CI and verify the latest preview.
+
+ 
+## 2026-11-09 — Creator sponsorship contract validation fix
+- [x] Correct strict campaign-date validation to reject impossible calendar dates instead of relying on permissive date parsing.
+- [x] Allow a campaign that starts and ends on the same calendar day, consistent with the shared validator.
+- [x] Route campaign saves through the shared complete validator so frequency, category length, disclosure, permission confirmation and dates cannot bypass validation.
+- [x] Confirm the selected creative is still an eligible published asset before saving.
+- [x] Add regression contracts for same-day campaigns, impossible dates and shared validation.
+- [ ] Run CI and verify the development preview.

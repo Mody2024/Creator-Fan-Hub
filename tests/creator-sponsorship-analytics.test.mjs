@@ -46,3 +46,13 @@ test("creator sponsorship CSV export is aggregate-only and formula-injection saf
  assert.ok(component.includes("Creator share unconfirmed"));
  assert.ok(component.includes("disabled={!report}"));
 });
+
+test("creator sponsorship accepts same-day contracts and rejects impossible calendar dates",()=>{
+ assert.ok(studio.includes("parsed.toISOString().slice(0,10)===value"));
+ assert.ok(studio.includes("input.ends<input.starts"));
+ assert.ok(!studio.includes("new Date(ends)<=new Date(starts)"));
+});
+test("creator sponsorship save uses the shared complete validation contract",()=>{
+ assert.ok(studio.includes("validateCreatorSponsorDraft({sponsorName,creativeId,disclosure,confirmed,starts,ends,frequency,category})"));
+ assert.ok(studio.includes("eligibleAssets.some(asset=>asset.media_id===creativeId)"));
+});

@@ -18,7 +18,7 @@ export function validateCreatorSponsorDraft(input:CreatorSponsorDraftInput):stri
  const frequency=Number(input.frequency);
  if(!Number.isInteger(frequency)||frequency<1||frequency>5)return "Planned exposures must be a whole number from 1 to 5.";
  if(input.category.trim().length>40)return "Contract category must contain at most 40 characters.";
- const validDate=(value:string)=>!value||(/^\\d{4}-\\d{2}-\\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+"T00:00:00Z")));
+ const validDate=(value:string)=>{if(!value)return true;if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const parsed=new Date(value+"T00:00:00Z");return !Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===value;};
  if(!validDate(input.starts)||!validDate(input.ends))return "Enter valid campaign dates.";
  if(input.starts&&input.ends&&input.ends<input.starts)return "The campaign end date must not be before its start date.";
  return null;
@@ -87,11 +87,9 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
 
  async function createCampaign(){
   if(!supabase||!mediaId||busy)return;
-  if(sponsorName.trim().length<2){setStatus("Enter the sponsor or brand name.");return}
-  if(!creativeId){setStatus("Choose a published sponsor image or video from your media library.");return}
-  if(disclosure.trim().length<3){setStatus("Add a clear sponsorship disclosure.");return}
-  if(!confirmed){setStatus("Confirm that you have permission to use the sponsor name and creative.");return}
-  if(starts&&ends&&new Date(ends)<=new Date(starts)){setStatus("The end date must be after the start date.");return}
+  const validation=validateCreatorSponsorDraft({sponsorName,creativeId,disclosure,confirmed,starts,ends,frequency,category});
+  if(validation){setStatus(validation);return}
+  if(!eligibleAssets.some(asset=>asset.media_id===creativeId)){setStatus("Choose a published sponsor image or video from your own media library.");return}
   setBusy(true);
   try{
    const {data:userData,error:userError}=await supabase.auth.getUser();
