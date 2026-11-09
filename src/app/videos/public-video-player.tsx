@@ -39,7 +39,7 @@ export default function PublicVideoPlayer({ src, hlsSrc, title, description, you
       referrerPolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline poster={poster || undefined} aria-label={description || title} onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)}>
-      {hlsSrc ? <source src={hlsSrc} type="application/vnd.apple.mpegurl" /> : null}\n      <source src={src} type="video/mp4" />\n      Your browser does not support video playback.
+      {hlsSrc ? <source src={hlsSrc} type="application/vnd.apple.mpegurl" /> : null}\n      <source src={src} />\n      Your browser does not support video playback.
     </video>}
   </div>;
 }
