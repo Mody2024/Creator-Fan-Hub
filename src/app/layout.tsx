@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const cookieStore = await cookies();
   const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
         <LanguageSwitch initialLocale={locale} />
         {children}
