@@ -116,3 +116,16 @@ test("pausing a creator sponsorship is scoped to the signed-in owner, video and 
  assert.ok(component.includes('.select("id").maybeSingle()'));
  assert.ok(component.includes("This active campaign is no longer available to pause."));
 });
+
+test("creator sponsor campaign lifecycle is enforced by the database, not only the UI",async()=>{
+ const guard=await read("../supabase/migrations/20261109300000_raye2_creator_sponsor_lifecycle_guard.sql");
+ assert.ok(guard.includes("before insert or update or delete on public.raye2_creator_sponsor_campaigns"));
+ assert.ok(guard.includes("new.status is distinct from 'draft'"));
+ assert.ok(guard.includes("old.status='draft' and new.status='draft'"));
+ assert.ok(guard.includes("old.status='active' and new.status='paused'"));
+ assert.ok(guard.includes("invalid creator campaign lifecycle transition"));
+ assert.ok(guard.includes("only your unused draft campaigns can be deleted"));
+ assert.ok(guard.includes("campaign ownership and video binding are immutable"));
+ assert.ok(guard.includes("to_jsonb(new)-'status'-'updated_at'"));
+ assert.ok(guard.includes("to_jsonb(old)-'status'-'updated_at'"));
+});
