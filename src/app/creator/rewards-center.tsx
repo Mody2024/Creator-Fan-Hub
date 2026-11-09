@@ -8,8 +8,8 @@ type Progression={points:number;level:number;level_name:string;next_level_name:s
 type Reward={id:string;reward_code:string;points:number;status:"awarded"|"revoked";source_ref:string|null;note:string;created_at:string;revoked_at:string|null};
 
 type Rule={code:string;title:string;description:string;points:number;enabled:boolean};
-function safeRewardCount(value:unknown):number{
- const parsed=Number(value);
+export function safeRewardCount(value:unknown):number{
+ const parsed=typeof value==="number"||typeof value==="string"?Number(value):Number.NaN;
  return Number.isFinite(parsed)?Math.max(0,Math.trunc(parsed)):0;
 }
 export function normalizeCreatorRewardSummary(value:unknown):Summary|null{
@@ -22,6 +22,28 @@ export function normalizeCreatorRewardSummary(value:unknown):Summary|null{
   revoked_awards:safeRewardCount(item.revoked_awards),
   available_rules:safeRewardCount(item.available_rules)
  };
+}
+export function normalizeCreatorRewardHistory(value:unknown):Reward[]{
+ if(!Array.isArray(value))return [];
+ return value.filter((item:unknown)=>{
+  if(!item||typeof item!=="object")return false;
+  const row=item as Record<string,unknown>;
+  return typeof row.id==="string"&&typeof row.reward_code==="string"&&(row.status==="awarded"||row.status==="revoked");
+ }).map((item:unknown)=>{
+  const row=item as Reward;
+  return {...row,points:safeRewardCount(row.points),created_at:typeof row.created_at==="string"?row.created_at:""};
+ });
+}
+export function normalizeCreatorRewardRules(value:unknown):Rule[]{
+ if(!Array.isArray(value))return [];
+ return value.filter((item:unknown)=>{
+  if(!item||typeof item!=="object")return false;
+  const row=item as Record<string,unknown>;
+  return typeof row.code==="string"&&typeof row.title==="string"&&row.enabled===true;
+ }).map((item:unknown)=>{
+  const row=item as Rule;
+  return {...row,points:safeRewardCount(row.points)};
+ });
 }
 
 export default function CreatorRewardsCenter(){
@@ -67,24 +89,8 @@ export default function CreatorRewardsCenter(){
    const normalizedSummary=normalizeCreatorRewardSummary(summaryResult.data);
    if(!normalizedSummary)throw new Error("Creator reward summary is missing or malformed. Refresh or contact an administrator.");
    setSummary(normalizedSummary);
-   const validHistory=(historyResult.data??[]).filter((item:unknown)=>{
-    if(!item||typeof item!=="object")return false;
-    const row=item as Record<string,unknown>;
-    return typeof row.id==="string"&&typeof row.reward_code==="string"&&(row.status==="awarded"||row.status==="revoked");
-   }).map((item:unknown)=>{
-    const row=item as Reward;
-    return {...row,points:safeRewardCount(row.points)};
-   });
-   setHistory(validHistory);
-   const validRules=(rulesResult.data??[]).filter((item:unknown)=>{
-    if(!item||typeof item!=="object")return false;
-    const row=item as Record<string,unknown>;
-    return typeof row.code==="string"&&typeof row.title==="string"&&row.enabled===true;
-   }).map((item:unknown)=>{
-    const row=item as Rule;
-    return {...row,points:safeRewardCount(row.points)};
-   });
-   setRules(validRules);
+   setHistory(normalizeCreatorRewardHistory(historyResult.data));
+   setRules(normalizeCreatorRewardRules(rulesResult.data));
    setStatus("Reward points are recognition credits, not cash. Revoked awards are excluded from the available balance.");
   }catch(error){
    setStatus(error instanceof Error?error.message:"Creator rewards could not be loaded. Apply the creator rewards migration and retry.");
