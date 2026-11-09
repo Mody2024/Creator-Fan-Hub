@@ -57,8 +57,14 @@ test("public watch route accepts only owner-path-safe HLS master playlists from 
  assert.ok(page.includes("parsedHls.origin===parsedPublicUrl.origin"));
  assert.ok(page.includes('hlsSrc={hlsSrc}'));
 });
-test("native player prefers an adaptive HLS source where supported and retains the MP4 fallback",()=>{
- assert.ok(player.includes('type="application/vnd.apple.mpegurl"'));
- assert.ok(player.includes("<source src={src} />"));
+test("watch player uses hls.js for MSE browsers, native HLS where supported, and the original file as fallback",async()=>{
+ const packageJson=JSON.parse(await readFile(new URL("../package.json",import.meta.url),"utf8"));
+ assert.equal(packageJson.dependencies["hls.js"],"1.7.4");
+ assert.ok(player.includes('import("hls.js")'));
+ assert.ok(player.includes("HlsEngine.isSupported()"));
+ assert.ok(player.includes('player.canPlayType("application/vnd.apple.mpegurl")'));
+ assert.ok(player.includes("hls.loadSource(hlsSrc)"));
+ assert.ok(player.includes("hls.attachMedia(player)"));
+ assert.ok(player.includes("fallbackToFile"));
  assert.ok(player.includes("hlsSrc?: string | null"));
 });
