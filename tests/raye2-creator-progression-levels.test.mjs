@@ -21,3 +21,11 @@ test("creator rewards UI shows accessible level and progress meter",()=>{
  assert.ok(component.includes("aria-valuenow"));
  assert.ok(component.includes("Progress to next creator level"));
 });
+
+test("creator progression UI handles Supabase table-return arrays and clamps progress",()=>{
+ assert.ok(component.includes("const progressionRaw=progressionResult.data"));
+ assert.ok(component.includes("Array.isArray(progressionRaw)?progressionRaw[0]:progressionRaw"));
+ assert.ok(component.includes("Math.max(0,Math.min(100,rawPercent))"));
+ assert.ok(component.includes("setProgression(null)"));
+ assert.ok(component.includes("Creator progression returned an invalid summary"));
+});
