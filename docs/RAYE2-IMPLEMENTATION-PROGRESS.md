@@ -1791,3 +1791,15 @@ One regression-test file was briefly created on the default `main` branch becaus
 - Dashboard shortcut: `d82eabd71a5c8f91196313185b8a17719961f336`.
 - Regression test: `eb3fe9d8741464a8a12c08261a6fde56bb02d49c`.
 - **Progress:** No whole-platform percentage increase claimed for this usability refinement. Wave 4 remains **36% provisional** and full-platform implementation remains **38%** until a weighted acceptance review; verification credit remains zero for this batch.
+
+
+## 2026-11-10 — Creator video publishing lifecycle: unpublish
+- [x] Added a dedicated creator watch-page unpublish action in Video Studio.
+- [x] Requires explicit confirmation before changing a public watch page back into a private catalog draft.
+- [x] Reuses the existing `save_raye2_video_catalog` RPC with `p_publish:false` and current saved metadata; does not delete, privatize, or rewrite the underlying source media asset.
+- [x] Updates local publication state only after the RPC reports success, reloads the catalog, and provides English/Arabic confirmation and result messages.
+- [x] Added source regression assertions for confirmation, RPC mode, success state and bilingual copy.
+- [ ] Regression test is authored, not executed. Confirm the RPC's false-publication behavior against the deployed schema; test direct route/cache visibility, owner scoping, TypeScript, lint, build and mobile/RTL layout when preview is available.
+- Video Studio implementation: `2b287ae8177b5d1bf533aed3feaaa2e2d819deab`.
+- Regression test: `350d163a32296d9bd18cba371cf065f2149d9f25`.
+- **Progress:** Wave 4 remains **36% provisional** and overall remains **38%**; this lifecycle improvement is included in the implementation ledger but does not yet justify a weighted percentage increase. Verification remains pending.
