@@ -888,3 +888,20 @@ Progress estimates are provisional implementation estimates, not CI or acceptanc
 - [ ] Run full TypeScript, lint, tests and production build; confirm Vercel preview reaches READY.
 
 Progress estimates: Wave 1 redesign **38%**; Wave 5 social/community **19%**; Wave 3 videos/discovery **22%**; overall Raye2 **~41%**. These are implementation estimates only; deployment/CI verification is pending. All commits remain on development, main untouched.
+
+
+## 2026-11-09 — Community/profile connection polish
+- [x] Correct remaining visible NHEN legacy copy in the Community join, announcement, sharing and search labels.
+- [x] Route the Community home navigation back to the Raye2 home feed rather than the legacy root landing page.
+- [x] Connect member profile navigation to Series and Mini's discovery while retaining the existing videos, community posts, follows and profile editing.
+- [x] Replace the last visible legacy Nhenbits label with the Raye2 Mini's name.
+- [x] Polish member-profile focus, responsive navigation, hover states, RTL cover label and reduced-motion behavior.
+- [ ] Run full tests, type-check, lint and production build on the current HEAD.
+- [ ] Browser-verify community reaction picker with keyboard/touch, profile navigation and Arabic RTL.
+- [ ] Inspect the Vercel development preview for current HEAD; deployment status not yet confirmed.
+
+### Progress estimate refresh
+- Wave 1 — redesign: **39%** (route-scoped Community and profile connection/polish added; global shared shell and other legacy surfaces remain).
+- Wave 3 — video/feed/discovery: **23%** (cross-linking and discovery labels only; native end-to-end video delivery remains incomplete).
+- Wave 5 — social graph/community: **21%** (profile follow/block surfaces and community feed foundations exist; broader social features and acceptance remain).
+- Whole Raye2 platform: **~42% provisional**. This is a planning estimate, not a CI, runtime, database, preview, or owner-acceptance result. No production deployment and no main-branch change.
