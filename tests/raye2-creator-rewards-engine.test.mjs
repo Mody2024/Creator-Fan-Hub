@@ -38,3 +38,14 @@ test("creator dashboard mounts the rewards center",()=>{
  assert.ok(dashboard.includes("CreatorRewardsCenter"));
  assert.ok(dashboard.includes("<CreatorRewardsCenter />"));
 });
+
+test("creator reward summary normalization clamps malformed database counts",()=>{
+ assert.ok(component.includes("normalizeCreatorRewardSummary"));
+ assert.ok(component.includes("safeRewardCount"));
+ assert.ok(component.includes("Math.max(0,Math.trunc(parsed))"));
+});
+test("creator reward center filters malformed ledger and milestone rows",()=>{
+ assert.ok(component.includes('row.status==="awarded"||row.status==="revoked"'));
+ assert.ok(component.includes('typeof row.code==="string"&&typeof row.title==="string"&&row.enabled===true'));
+ assert.ok(component.includes('"Date unavailable"'));
+});
