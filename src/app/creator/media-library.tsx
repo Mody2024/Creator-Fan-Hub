@@ -20,11 +20,15 @@ async function copyHlsPackage(
   const [sourceBucket, ...masterParts] = masterPath.split("/");
   const masterObject = masterParts.join("/");
   const streamRoot = masterObject.replace(/\/master\/master\.m3u8$/, "");
+  const rootParts = streamRoot.split("/");
   if (!["creator-media-private", "creator-media-public"].includes(sourceBucket)
     || sourceBucket === destinationBucket
     || !masterObject.endsWith("/master/master.m3u8")
-    || !streamRoot.startsWith(`${ownerId}/streams/${mediaId}-`)
-    || !streamRoot.split("/").every(part => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) {
+    || rootParts.length !== 3
+    || rootParts[0] !== ownerId
+    || rootParts[1] !== "streams"
+    || !rootParts[2].startsWith(`${mediaId}-`)
+    || !rootParts.every(part => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) {
     throw new Error("The adaptive video package path does not match this creator and media item.");
   }
   const sourcePaths: string[] = [];
