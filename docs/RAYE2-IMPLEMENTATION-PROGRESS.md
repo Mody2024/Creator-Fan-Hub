@@ -905,3 +905,21 @@ Progress estimates: Wave 1 redesign **38%**; Wave 5 social/community **19%**; Wa
 - Wave 3 — video/feed/discovery: **23%** (cross-linking and discovery labels only; native end-to-end video delivery remains incomplete).
 - Wave 5 — social graph/community: **21%** (profile follow/block surfaces and community feed foundations exist; broader social features and acceptance remain).
 - Whole Raye2 platform: **~42% provisional**. This is a planning estimate, not a CI, runtime, database, preview, or owner-acceptance result. No production deployment and no main-branch change.
+
+
+## 2026-11-09 — Global brand and locale foundations
+- [x] Make the root document read the saved locale cookie on the server and render the initial HTML `lang` and `dir` correctly, avoiding the previous English/LTR-first document shell for Arabic users.
+- [x] Pass the server-resolved locale into the language switch so its initial state matches the rendered document.
+- [x] Unify global dark palette tokens with the current graphite / blue Raye2 direction.
+- [x] Add consistent keyboard focus, form-control typography, text-selection and reduced-motion foundations.
+- [x] Confirm the resulting development commit `4e7bc60` has a Vercel deployment in **READY** state: `creator-fan-hub-3z2siubya-modytupegaming-9846.vercel.app`.
+- [ ] Run repository test, lint, TypeScript and production build scripts against this exact HEAD; deployment READY alone does not prove all independent checks pass.
+- [ ] Browser-check locale switching and Arabic/LTR route exceptions to ensure document direction does not break explicitly LTR widgets.
+- [ ] Continue shared global navigation extraction and messaging UI integration; this batch did not implement messaging functionality.
+
+### Progress estimate refresh
+- Wave 1 — redesign and global brand foundations: **41%**.
+- Wave 3 — video/feed/discovery: **23%**.
+- Wave 5 — social/community/profile: **22%**.
+- Wave 6 — messaging: **85%** (existing messaging foundation; no new messaging behavior in this batch).
+- Overall Raye2: **~43% provisional**. Estimates are planning measures, not acceptance-test completion. Latest checked deployment is a development preview only. No production deployment and no changes to `main`.
