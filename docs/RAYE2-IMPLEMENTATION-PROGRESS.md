@@ -1292,3 +1292,33 @@ Session handoff:
 - Current implementation batch: creator rewards now displays actual earned achievements and normalizes progression.
 - Pre-batch exact HEAD: `720359e555808832a4fa4787a5745015e03b79a1`; the preceding documentation change triggered CI run `42685821537` which was queued at the time of handoff. Verify current exact HEAD and CI before the next change.
 - Next: complete the remaining Creator Studio campaign/reward admin lifecycle, then tackle actual adaptive video output and watch-player integration. Do not pause for user manual testing before 50% implementation.
+
+
+## 2026-11-09 — Platform sponsor lifecycle and Creator Studio admin controls
+- [x] Fixed platform campaign draft editing so the selected published creative is restored into the form; previous behavior could leave the wrong creative selected on save.
+- [x] Added owner-scoped deletion for unused platform sponsor drafts, with confirmation and a no-delete path for non-draft campaigns.
+- [x] Changed status actions to require the authenticated admin, campaign creator, expected previous state and a returned updated row. This avoids silently treating a stale campaign as successfully updated.
+- [x] Added explicit UI actions for draft edit/delete, draft or paused configuration activation, and active campaign pause; completed campaigns are not offered reactivation.
+- [x] Added a database trigger enforcing platform sponsor campaign lifecycle rules: campaigns start as owner-bound drafts; only the creating admin can edit/delete their own draft; ownership is immutable; active/paused configuration is immutable; allowed transitions are explicitly constrained.
+- [x] Added regression tests for platform sponsor ownership, lifecycle transitions, selected creative restoration, safe deletion and scoped state updates.
+- [ ] Run and pass the full CI workflow on the final exact HEAD. Do not count tests as passed merely because assertions were authored.
+- [ ] Apply the new platform lifecycle migration in an isolated Supabase/PostgreSQL database and verify admin/creator role separation. Manual database/browser checks remain deferred until the approximately 50% implementation testing gate.
+- [ ] Automatic ad delivery and impression measurement remain disabled. Campaign activation here is configuration state only; do not present this as live ad serving or revenue.
+- [ ] Next implementation: finish admin-side reward rule/grant/revoke controls and creator reward status visibility; then begin actual adaptive transcoding/HLS outputs and native player integration.
+
+### Updated dual progress (scope-based)
+- **Overall implementation: 44%** (up from 43%; platform campaign edit/delete/state workflows now have matching UI and database lifecycle enforcement).
+- **Test/release readiness: 39%** (unchanged; CI on this batch and isolated database/browser checks remain pending).
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 50%** (up from 49%; platform sponsor lifecycle controls and database enforcement implemented).
+- **Native video pipeline implementation: 35%** (worker still does not generate adaptive renditions/HLS playlists/segments).
+- **Release readiness: 25%.**
+- **Active batch implementation: 85%** (code, database guard and regression contracts authored; exact-HEAD CI and isolated database execution remain).
+
+Session handoff:
+- Branch: `development`; `main` and production untouched.
+- Code commits in this batch: `cbd8b99515ea8ca72c093cb8bdbdbaf7db5c53b8`, `d69ae6507e02c95eb8e89689e1740ca25134946e`, `33e0848b95aa87180ad4977f51599286363fabd5`.
+- Previous verified full CI: run `42686965615` on exact HEAD `12ba4dd52724e279fbfc3f5a47d0a1385eb4cf96` passed tests, type-check, lint, Next.js build and media-worker Docker build.
+- Current batch CI: not yet verified. The previous run is not evidence for these new commits.
+- No database migration execution or browser acceptance is claimed.
+- Next: add admin-side reward rule/grant/revoke management with role-scoped RPCs and tests, then implement bounded HLS transcoding and playback.
