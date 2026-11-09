@@ -56,3 +56,19 @@ test("creator sponsorship save uses the shared complete validation contract",()=
  assert.ok(studio.includes("validateCreatorSponsorDraft({sponsorName,creativeId,disclosure,confirmed,starts,ends,frequency,category})"));
  assert.ok(studio.includes("eligibleAssets.some(asset=>asset.media_id===creativeId)"));
 });
+
+test("creator sponsor workspace summarizes campaign states without presenting drafts as delivered",()=>{
+ assert.ok(studio.includes("campaignCounts=useMemo"));
+ assert.ok(studio.includes('rows.filter(row=>row.status==="draft").length'));
+ assert.ok(studio.includes('rows.filter(row=>row.status==="active").length'));
+ assert.ok(studio.includes('rows.filter(row=>row.status==="paused").length'));
+ assert.ok(studio.includes("Saved privately; not delivered"));
+ assert.ok(studio.includes("Requires verified activation"));
+});
+
+test("creator sponsor campaign cards expose date window and disclosure contract",()=>{
+ assert.ok(studio.includes("campaignWindow(row)"));
+ assert.ok(studio.includes("Disclosure: {row.disclosure_text}"));
+ assert.ok(studio.includes("No start date"));
+ assert.ok(studio.includes("No end date"));
+});
