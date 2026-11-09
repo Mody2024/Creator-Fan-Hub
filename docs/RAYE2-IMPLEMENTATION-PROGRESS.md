@@ -876,3 +876,15 @@ Progress accounting: this is a focused Wave 1 design integration, not completion
 - [ ] Continue Community and global shell redesign, then profile and messaging consistency.
 
 Progress estimates are provisional implementation estimates, not CI or acceptance-test results: Wave 1 **36%**; Wave 3 **22%**; Wave 5 (community/social) **16%**; overall Raye2 **~40%**. No production deployment and no changes to main.
+
+
+## 2026-11-09 — Community surface redesign batch
+- [x] Add a route-scoped Raye2 Community visual system for feed, composer, post cards, filters, reaction picker, discovery rail and mobile navigation.
+- [x] Replace visible legacy NHEN header identity with the Raye2 home mark and update primary community copy.
+- [x] Preserve the current authentication, post publishing, reaction, bookmark, comment, report, follow suggestion and realtime feed logic.
+- [x] Add responsive tablet/mobile layouts, accessible focus states and reduced-motion support.
+- [ ] Verify community reaction menu interaction with keyboard and touch, and check Arabic copy/RTL in browser.
+- [ ] Complete the remaining global shell, creator/member profile visual pass and messaging consistency.
+- [ ] Run full TypeScript, lint, tests and production build; confirm Vercel preview reaches READY.
+
+Progress estimates: Wave 1 redesign **38%**; Wave 5 social/community **19%**; Wave 3 videos/discovery **22%**; overall Raye2 **~41%**. These are implementation estimates only; deployment/CI verification is pending. All commits remain on development, main untouched.
