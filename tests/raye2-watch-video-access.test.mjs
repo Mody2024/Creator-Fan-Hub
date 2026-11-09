@@ -53,7 +53,7 @@ test("player exposes loading and failure states to assistive technology",()=>{
 test("public watch route accepts only owner-path-safe HLS master playlists from the same trusted Supabase origin",()=>{
  assert.ok(page.includes("media_items!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status,metadata)"));
  assert.ok(page.includes("media.metadata?.processing?.hls?.masterPath"));
- assert.ok(page.includes('hlsParts.at(-1)==="master.m3u8"'));
+ assert.ok(page.includes('hlsParts[5]==="master.m3u8"'));
  assert.ok(page.includes("parsedHls.origin===parsedPublicUrl.origin"));
  assert.ok(page.includes('hlsSrc={hlsSrc}'));
 });
