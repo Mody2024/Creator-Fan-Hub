@@ -796,3 +796,40 @@ Creator/streamer dashboard should show eligible monetized content, campaign/spon
 - Provider, age, privacy, copyright, moderation, fraud and payout eligibility gates are documented and tested.
 - The full feature is available in the development preview with internal test campaigns before the one-month friends test; production remains gated.
 
+
+
+## 19. Cross-session continuity and implementation operating contract
+
+This section is mandatory for every future Raye2 development session. The repository is the source of truth; do not rely on chat memory alone.
+
+### 19.1 Session start protocol
+
+1. Read this full plan, `docs/RAYE2-IMPLEMENTATION-PROGRESS.md`, and the latest relevant wave-specific plan before changing code.
+2. Inspect the current `development` branch HEAD, recent commits, latest GitHub Actions runs, and working tree/branch context available through the repository tools. Never assume a prior session's reported SHA or CI state is still current.
+3. Read the actual implementation and tests for the next priority. Treat existing code, migrations, tests and docs as authoritative; do not recreate already implemented work or silently drop requirements.
+4. Resume from the highest-priority incomplete deliverable in the progress log. If a new session starts with a short instruction such as “go on” or “continue”, that means continue implementation using this protocol, not ask the user to restate the plan.
+5. Give the user a concise starting update with verified overall and wave percentages, current branch/HEAD, latest exact-HEAD CI status, and the batch being resumed.
+
+### 19.2 Implementation batch rules
+
+- Prefer substantial, cohesive, end-to-end batches over isolated cosmetic edits or repeated tiny fixes. A batch should deliver working behavior, its authorization/data contract, regression tests, and documentation together where practical.
+- Prioritize in this order unless a newly discovered blocker changes it: (1) finish Creator Studio lifecycle and rewards/sponsorship workflows; (2) complete the native video pipeline, including actual adaptive renditions/HLS and playback acceptance; (3) complete the major Raye2 redesign and connected feed/watch/profile experience; (4) finish remaining social, community, messaging and voice scope; (5) harden governance, accessibility, localization, security and release readiness.
+- The next committed engineering batch after this handoff is a Creator Studio end-to-end batch: inspect and complete sponsor campaign lifecycle (create/configure/edit/attach/pause/review with owner/creator authorization and state transitions), connect reward/achievement controls to creator-facing status without fabricated balances, and add role-based regression tests. Do not label campaign configuration as live ad delivery or claim real payouts.
+- Keep the media pipeline as a first-class blocker: the current worker probes media and generates thumbnails but does not transcode video or generate HLS playlists/segments. Implement actual adaptive outputs only with a documented storage/layout/publication contract, bounded processing, cleanup, lease ownership and tests. Do not mark streaming complete until a real isolated end-to-end playback test passes.
+- Keep UI redesign substantive and coherent across navigation, feed, Creator Studio, watch pages, profiles and responsive Arabic/English layouts. Do not count a new link/card or CSS micro-adjustment as completion of the redesign wave.
+- Do not invent successful browser checks, database acceptance, preview deployment, storage capacity, monetization, or runtime behavior. Separate code/test evidence from environment-dependent verification.
+
+### 19.3 Progress and reporting rules
+
+- Every user-facing continuation update must include percentages: whole platform, active wave, and the batch's affected area(s).
+- Percentages are acceptance-based estimates, not commit counts. Raise a percentage only when a meaningful requirement is implemented and its relevant regression checks pass; test-authored-but-not-executed, unverified migrations, and untested UI must remain explicitly provisional.
+- Keep the ten-wave master plan and the implementation progress log synchronized. Record completed deliverables, remaining blockers, test/CI evidence, exact resulting HEAD, and the next concrete batch after each meaningful batch.
+- Do not inflate progress because documentation was updated or because several small commits were made. If no acceptance-level progress occurred, keep the percentage unchanged and explain why.
+- Prefer one larger batch with multiple related files and tests; avoid unnecessary commits that repeatedly cancel CI. Run or await verification on the quiet exact HEAD before claiming success.
+
+### 19.4 Branch, deployment and handoff safeguards
+
+- All ongoing implementation and previews stay on `development`. Do not merge to `main`, deploy production, or change production data unless the user explicitly authorizes that separate release step.
+- Do not reset, force-push, overwrite, or discard user work. Fetch fresh file/blob SHAs before sequential GitHub content updates.
+- At the end of each session, append a handoff entry to the progress log containing: date, branch, exact HEAD, verified CI result, files/features changed, tests run versus merely authored, environment checks still pending, updated percentages, and the next batch in execution order.
+- A future assistant should continue from the repository's latest handoff and verify it against the live branch before acting; this instruction persists even if chat history is unavailable.
