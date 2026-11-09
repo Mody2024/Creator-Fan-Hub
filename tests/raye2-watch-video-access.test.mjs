@@ -59,6 +59,6 @@ test("public watch route accepts only owner-path-safe HLS master playlists from 
 });
 test("native player prefers an adaptive HLS source where supported and retains the MP4 fallback",()=>{
  assert.ok(player.includes('type="application/vnd.apple.mpegurl"'));
- assert.ok(player.includes('type="video/mp4"'));
+ assert.ok(player.includes("<source src={src} />"));
  assert.ok(player.includes("hlsSrc?: string | null"));
 });
