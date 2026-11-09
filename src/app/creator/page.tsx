@@ -12,6 +12,7 @@ import VideoStudio from "./video-studio";
 import AchievementInsights from "./achievement-insights";
 import CreatorRewardsCenter from "./rewards-center";
 import CreatorRewardsAdmin from "./rewards-admin";
+import CreatorNotifications from "./creator-notifications";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import "./raye2-creator-workspace.css";
 import "../raye2/studio/video-publishing-studio.css";
@@ -77,6 +78,7 @@ export default async function CreatorDashboardPage() {
       <EventSocialManagement />
       <MediaLibrary />
       <VideoStudio />
+      <CreatorNotifications locale={isArabic?"ar":"en"} />
       <AchievementInsights />
       <CreatorRewardsCenter />
       {["owner","admin"].includes(admin.role) && <CreatorRewardsAdmin />}
