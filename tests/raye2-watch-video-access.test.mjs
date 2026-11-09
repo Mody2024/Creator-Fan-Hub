@@ -49,3 +49,16 @@ test("player exposes loading and failure states to assistive technology",()=>{
  assert.ok(player.includes('aria-live="polite"'));
  assert.ok(player.includes("Preparing your video"));
 });
+
+test("public watch route accepts only owner-path-safe HLS master playlists from the same trusted Supabase origin",()=>{
+ assert.ok(page.includes("media_items!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status,metadata)"));
+ assert.ok(page.includes("media.metadata?.processing?.hls?.masterPath"));
+ assert.ok(page.includes('hlsParts.at(-1)==="master.m3u8"'));
+ assert.ok(page.includes("parsedHls.origin===parsedPublicUrl.origin"));
+ assert.ok(page.includes('hlsSrc={hlsSrc}'));
+});
+test("native player prefers an adaptive HLS source where supported and retains the MP4 fallback",()=>{
+ assert.ok(player.includes('type="application/vnd.apple.mpegurl"'));
+ assert.ok(player.includes('type="video/mp4"'));
+ assert.ok(player.includes("hlsSrc?: string | null"));
+});
