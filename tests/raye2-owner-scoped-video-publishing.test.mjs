@@ -26,7 +26,7 @@ test("public watch pages require the underlying media to be published",()=>{
 
 test("creator studio saves through the guarded RPC, not direct table upsert",()=>{
  assert.ok(studio.includes('supabase.rpc("save_raye2_video_catalog"'));
- assert.ok(studio.includes("p_publish:publishedAt"));
+ assert.ok(studio.includes("p_publish:shouldPublish"));
  assert.ok(!studio.includes('supabase.from("video_catalog").upsert'));
 });
 
@@ -61,3 +61,5 @@ test("public watch-page UI checks slug conflicts before invoking the guarded pub
  assert.ok(studio.includes("if(slugOwner)throw new Error(t.slugConflict)"));
  assert.ok(studio.includes('rpc("save_raye2_video_catalog"'));
 });
+
+test("explicit draft and publish actions persist the exact requested state",()=>{assert.ok(studio.includes("async function save(publish?:boolean)"));assert.ok(studio.includes("const shouldPublish=publish??publishedAt"));assert.ok(studio.includes("p_publish:shouldPublish"));assert.ok(studio.includes("setPublishedAt(shouldPublish)"));});

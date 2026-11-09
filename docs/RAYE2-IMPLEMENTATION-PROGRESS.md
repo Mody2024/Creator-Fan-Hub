@@ -811,3 +811,9 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Add responsive, keyboard-visible action styling for draft and publish controls.
 - [x] Add regression coverage for explicit publish intent and responsive actions.
 - [ ] Verify CI for the corrected branch head.
+
+
+## 2026-11-09 — Publishing intent test-contract alignment
+- [x] Update the owner-scoped publishing regression test to assert the explicit save intent passed to the guarded RPC.
+- [x] Add regression coverage for draft/publish intent persistence.
+- [ ] Re-run full CI, type-check, lint and build.
