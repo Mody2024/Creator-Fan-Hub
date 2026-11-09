@@ -253,3 +253,11 @@ test("HLS storage writes are owner-bound, quota-reserved, path-validated and rol
  assert.ok(worker.includes("generated HLS package needs orphan cleanup"));
  assert.ok(worker.includes("const hlsMasterPath = result?.metadata?.processing?.hls?.masterPath"));
 });
+
+test("visibility-only HLS master path updates preserve trusted ready processing state",async()=>{
+ const migration=await readFile(new URL("../supabase/migrations/20261109460000_raye2_preserve_ready_hls_on_visibility_move.sql",import.meta.url),"utf8");
+ assert.ok(migration.includes("old.processing_status='ready'"));
+ assert.ok(migration.includes("new.is_published is distinct from old.is_published"));
+ assert.ok(migration.includes("(new.metadata #- '{processing,hls,masterPath}') is not distinct from"));
+ assert.ok(migration.includes("(old.metadata #- '{processing,hls,masterPath}')"));
+});
