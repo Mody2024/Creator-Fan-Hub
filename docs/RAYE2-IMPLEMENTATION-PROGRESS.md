@@ -1776,3 +1776,18 @@ One regression-test file was briefly created on the default `main` branch becaus
 - Route commit: `5e4fbb7ec45fb7e2c4128646b4d2b847209930d2`.
 - Regression test commit: `9e77752d91a9bd681d4ad88f83e6e042d56ab6a6`.
 - Wave 4 remains **36% provisional**; full platform remains **38%**. This is included in implementation tracking; no verification credit is claimed.
+
+
+## 2026-11-10 — Notification inbox usability batch
+- [x] Added an all/unread filter with live counts to the creator notification inbox.
+- [x] Added a scoped bulk mark-as-read RPC; it can update only unread notifications owned by the authenticated assigned creator.
+- [x] Added a single-action “Mark all as read” control, disabled when there is nothing to update or an action is in progress.
+- [x] Added English/Arabic labels and empty states for both filters.
+- [x] Added a numbered Creator Workspace navigation card linking directly to the notification inbox.
+- [x] Extended source regression assertions for the scoped RPC, filters, bulk action and navigation anchor.
+- [ ] Tests are authored but not executed. SQL migration, RPC permissions, client behavior, TypeScript, lint, build and RTL visual checks remain pending.
+- Migration: `c337e95609e47e39877fbc77a7b78b44d9905c3b`.
+- Inbox component: `6e6cbb3b1dbc129fda0a33b6cbcd91ecdde6eaf7`.
+- Dashboard shortcut: `d82eabd71a5c8f91196313185b8a17719961f336`.
+- Regression test: `eb3fe9d8741464a8a12c08261a6fde56bb02d49c`.
+- **Progress:** No whole-platform percentage increase claimed for this usability refinement. Wave 4 remains **36% provisional** and full-platform implementation remains **38%** until a weighted acceptance review; verification credit remains zero for this batch.
