@@ -72,3 +72,14 @@ test("creator sponsor campaign cards expose date window and disclosure contract"
  assert.ok(studio.includes("No start date"));
  assert.ok(studio.includes("No end date"));
 });
+
+test("creator sponsor workspace supports live search and status filtering without mutating campaign records",()=>{
+ assert.ok(studio.includes('const [campaignFilter,setCampaignFilter]=useState("all")'));
+ assert.ok(studio.includes('const [campaignSearch,setCampaignSearch]=useState("")'));
+ assert.ok(studio.includes("const visibleCampaigns=useMemo"));
+ assert.ok(studio.includes("row.sponsor_name,row.category_key,row.placement,row.disclosure_text"));
+ assert.ok(studio.includes('value="draft">Draft ({campaignCounts.draft})'));
+ assert.ok(studio.includes('value="active">Active ({campaignCounts.active})'));
+ assert.ok(studio.includes('value="paused">Paused ({campaignCounts.paused})'));
+ assert.ok(studio.includes("No campaigns match these filters."));
+});
