@@ -19,3 +19,14 @@ test("analytics CSV neutralizes spreadsheet formula injection and quotes cells",
  assert.ok(source.includes("/^\\s*[=+@-]/.test(text)"));
  assert.ok(source.includes("text.replace(/\"/g, '\"\"')"));
 });
+
+test("analytics CSV safely handles invalid dates and non-finite or negative metric values",()=>{
+ assert.ok(source.includes("function safeCount(value: unknown)"));
+ assert.ok(source.includes("Number.isFinite(parsed)?Math.max(0,parsed):0"));
+ assert.ok(source.includes("function safeDate(value: string | null)"));
+ assert.ok(source.includes("Number.isFinite(timestamp)?new Date(timestamp).toISOString().slice(0,10):null"));
+ assert.ok(source.includes("safeDate(item.publishedAt) ??"));
+ assert.ok(source.includes("safeCount(item.views)"));
+ assert.ok(source.includes("safeCount(item.reactions)"));
+ assert.ok(source.includes("safeCount(item.comments)"));
+});
