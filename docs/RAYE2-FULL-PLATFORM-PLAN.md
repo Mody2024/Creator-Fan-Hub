@@ -821,10 +821,14 @@ This section is mandatory for every future Raye2 development session. The reposi
 
 ### 19.3 Progress and reporting rules
 
-- Every user-facing continuation update must include percentages: whole platform, active wave, and the batch's affected area(s).
-- Percentages are acceptance-based estimates, not commit counts. Raise a percentage only when a meaningful requirement is implemented and its relevant regression checks pass; test-authored-but-not-executed, unverified migrations, and untested UI must remain explicitly provisional.
-- Keep the ten-wave master plan and the implementation progress log synchronized. Record completed deliverables, remaining blockers, test/CI evidence, exact resulting HEAD, and the next concrete batch after each meaningful batch.
-- Do not inflate progress because documentation was updated or because several small commits were made. If no acceptance-level progress occurred, keep the percentage unchanged and explain why.
+- Every continuation update must report two distinct measures: **implementation progress** (features built and integrated in code) and **test/release readiness** (features verified and safe for the user's later test stage).
+- Implementation progress is allowed to increase before manual user/friends testing. Do not freeze it at the test-readiness percentage. Count real code and integration against the master requirements; do not count plans, documentation-only commits, placeholders, or unintegrated code.
+- Test/release readiness must remain separate and conservative. Automated CI, migrations applied in an isolated database, browser verification and real-account checks are different evidence; label them accurately.
+- The user's first major manual testing stage is targeted at **about 50% implementation progress**. Until that threshold, continue building without asking the user to manually test every batch. Run automated CI and fix regressions as part of development; collect manual acceptance checks for the planned test stage.
+- At every update include: overall implementation %, test/release readiness %, active wave implementation %, and the active batch's implementation %. Show meaningful movement when a complete implementation requirement is delivered, even if manual testing is still pending.
+- Percentages are scope-based estimates, not commit counts. Raise implementation progress when meaningful planned functionality is implemented and integrated. Raise test/release readiness only when the corresponding verification is actually complete.
+- Keep the ten-wave master plan and implementation progress log synchronized. Record completed deliverables, remaining blockers, test/CI evidence, exact resulting HEAD, and the next concrete batch after each meaningful batch.
+- Do not inflate progress because documentation was updated or because several small commits were made. If no implementation-level progress occurred, keep implementation percentage unchanged and explain why.
 - Prefer one larger batch with multiple related files and tests; avoid unnecessary commits that repeatedly cancel CI. Run or await verification on the quiet exact HEAD before claiming success.
 
 ### 19.4 Branch, deployment and handoff safeguards
