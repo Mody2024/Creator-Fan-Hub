@@ -6,7 +6,23 @@ import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 type Summary={total_points:number;earned_awards:number;revoked_awards:number;available_rules:number};
 type Progression={points:number;level:number;level_name:string;next_level_name:string;level_floor:number;next_level_points:number;points_to_next:number;progress_percent:number};
 type Reward={id:string;reward_code:string;points:number;status:"awarded"|"revoked";source_ref:string|null;note:string;created_at:string;revoked_at:string|null};
+
 type Rule={code:string;title:string;description:string;points:number;enabled:boolean};
+function safeRewardCount(value:unknown):number{
+ const parsed=Number(value);
+ return Number.isFinite(parsed)?Math.max(0,Math.trunc(parsed)):0;
+}
+export function normalizeCreatorRewardSummary(value:unknown):Summary|null{
+ const row=Array.isArray(value)?value[0]:value;
+ if(!row||typeof row!=="object")return null;
+ const item=row as Record<string,unknown>;
+ return {
+  total_points:safeRewardCount(item.total_points),
+  earned_awards:safeRewardCount(item.earned_awards),
+  revoked_awards:safeRewardCount(item.revoked_awards),
+  available_rules:safeRewardCount(item.available_rules)
+ };
+}
 
 export default function CreatorRewardsCenter(){
  const [summary,setSummary]=useState<Summary|null>(null);
@@ -77,7 +93,7 @@ export default function CreatorRewardsCenter(){
   </div>
   <div className="nhen-card">
    <div className="nhen-card-heading"><div><span className="eyebrow">YOUR RECORD</span><h3>Reward history</h3></div></div>
-   {history.length?<div className="creator-achievement-list">{history.map(item=><article className="creator-achievement-row" key={item.id}><span aria-hidden="true">{item.status==="awarded"?"✦":"↶"}</span><div><strong>{item.reward_code.replace(/[-_]/g," ")}</strong><p>{item.note||"Creator recognition award"} · {new Date(item.created_at).toLocaleDateString()}</p></div><div><strong>{item.status==="revoked"?"−": "+"}{Number(item.points).toLocaleString()}</strong><small>{item.status}</small></div></article>)}</div>:<p className="editor-status">No reward awards have been recorded yet.</p>}
+   {history.length?<div className="creator-achievement-list">{history.map(item=><article className="creator-achievement-row" key={item.id}><span aria-hidden="true">{item.status==="awarded"?"✦":"↶"}</span><div><strong>{item.reward_code.replace(/[-_]/g," ")}</strong><p>{item.note||"Creator recognition award"} · {Number.isFinite(new Date(item.created_at).getTime())?new Date(item.created_at).toLocaleDateString():"Date unavailable"}</p></div><div><strong>{item.status==="revoked"?"−": "+"}{Number(item.points).toLocaleString()}</strong><small>{item.status}</small></div></article>)}</div>:<p className="editor-status">No reward awards have been recorded yet.</p>}
   </div>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>
  </section>;
