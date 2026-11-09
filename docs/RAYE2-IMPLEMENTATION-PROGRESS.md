@@ -1635,3 +1635,22 @@ Progress discipline:
 - Current exact-HEAD CI: **pending / not verified**. The prior successful run `42700591061` applies only to `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`.
 - Do not state that this batch passed automated tests, TypeScript, lint or build until a new exact-HEAD CI result confirms it.
 - Batch commits: `6283126ed810c945f93e6f3d20200809bc3f8a06` (sponsorship status summary and contract details); `172d29f20adfc12ea8748879499662ba4e02dd41` (regression coverage).
+
+
+## 2026-11-09 — Creator Studio sponsor campaign search and filtering
+- [x] Add a controlled campaign search across sponsor name, category, placement and disclosure text.
+- [x] Add status filters for all, draft, active and paused campaigns, with live counts in each option.
+- [x] Derive visible rows from local state only; filtering does not update campaign records or alter delivery state.
+- [x] Add regression assertions for search fields, status options and the empty-filter result.
+- [x] Re-fetch the implementation and test files from `development` and confirm the new code and assertions are present.
+- [ ] Automated tests, TypeScript, lint and Next.js build remain unverified for this exact code. GitHub workflow lookup returned no run for the test commit; the combined commit status currently reports Vercel failure due to build-rate limit (`upgradeToPro=build-rate-limit`). This is an infrastructure limitation, not a passing build.
+- [ ] Browser review remains pending for search/filter usability, small screens and Arabic/English layouts.
+- [ ] Next: add a campaign review/request-approval lifecycle with immutable status history and server-side role checks. Keep delivery activation disabled until the verified ad-serving/measurement provider exists.
+- Branch: `development`; no merge to `main`, no production deployment, and no production database changes.
+
+Progress:
+- **Overall implementation: 50% baseline** — unchanged; this is an additive management feature, but no full-plan weighted reassessment has been completed.
+- **Wave 4 Creator Studio: 53% last recorded** — this feature adds campaign-management usability; percentage not yet recalculated against all Creator Studio requirements.
+- **Test/release readiness: historical 46%; current batch verification pending.** Vercel status is currently failed due to build-rate limit, not green.
+- **Batch implementation: 100% of the scoped search/filter UI and source-level regression assertions committed; runtime/CI acceptance pending.**
+- Code commit: `033725a067b15330acadc2a64603a55044c69661`; test commit: `c5da85d5b7702a7d82282e6c68c2314937927d97`.
