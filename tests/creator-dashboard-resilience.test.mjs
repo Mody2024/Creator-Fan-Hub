@@ -21,7 +21,7 @@ test("creator dashboard quick navigation points to all eleven management areas",
   for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
     assert.ok(source.includes(`id="${id}"`), `management panel target missing: ${id}`);
   }
-  assert.ok(page.includes('8 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
+  assert.ok(page.includes('9 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
   assert.ok(page.includes('href="/creator/raye2"'));
   assert.ok(page.includes('href="#creator-rewards"'));
   assert.ok(!page.includes("More control, coming next."));
@@ -112,4 +112,15 @@ test("watch page preserves comment text on failure and handles share errors", as
   assert.ok(source.includes("Could not copy the link automatically."));
   assert.ok(source.includes("Some video details could not be loaded."));
   assert.ok(source.includes("aria-live=\"polite\""));
+});
+
+test("creator sponsorship quick navigation is bilingual and points to the existing sponsorship workspace",async()=>{
+ const page=await read("../src/app/creator/page.tsx");
+ const videoStudio=await read("../src/app/creator/video-studio.tsx");
+ assert.ok(page.includes('href="#creator-video-studio"'));
+ assert.ok(page.includes('sponsorships:"Creator sponsorships"'));
+ assert.ok(page.includes('sponsorships:"رعايات المبدعين"'));
+ assert.ok(page.includes("13 / PARTNERS"));
+ assert.ok(page.includes("{t.sponsorships}"));
+ assert.ok(videoStudio.includes("<CreatorVideoSponsorship mediaId={selected}"));
 });
