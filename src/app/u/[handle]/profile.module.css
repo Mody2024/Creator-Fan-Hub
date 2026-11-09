@@ -51,3 +51,23 @@
 .page[dir="rtl"] .top{flex-direction:row}
 .page[dir="rtl"] .profileTabs{flex-direction:row}
 @media(max-width:720px){.page{padding:0 12px 42px}.top{height:60px;margin:0 -12px 15px;padding:0 12px;gap:9px}.brandGlyph{width:33px;height:33px}.brandWord{font-size:14px}.search{width:auto;flex:1;height:35px;margin:0}.search input{font-size:9px}.search input::placeholder{font-size:0}.topLinks{gap:4px}.topLinks a{padding:8px;font-size:9px}.topLinks a:last-child{display:none}.cover{height:150px}.card{padding:17px}.heading{gap:9px;margin-top:-48px}.avatar{width:90px;height:90px}.identity{padding-top:47px}.identity h1{font-size:24px}.actions{padding-top:8px}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.stats>span{padding:0;border:0}.profileTabs{top:60px}.section{scroll-margin-top:118px}.achievementGrid{grid-template-columns:1fr}}
+
+/* Raye2 member identity — final navigation and content polish */
+.page{isolation:isolate}
+.topLinks a{white-space:nowrap}
+.search:focus-within{border-color:rgba(120,173,255,.38);box-shadow:0 0 0 3px rgba(120,173,255,.07)}
+.search input:focus-visible{outline:0}
+.profileTabs a{white-space:nowrap;transition:background .16s,color .16s}
+.profileTabs a:focus-visible{outline:2px solid #78adff;outline-offset:2px}
+.sectionHead .muted{font-variant-numeric:tabular-nums}
+.video video{max-height:420px}
+.videoInfo h3 a:hover,.videoInfo>a:hover,.website:hover{color:#b9d6ff;text-decoration:underline;text-underline-offset:3px}
+.post{transition:border-color .16s,background .16s}
+.post:hover{border-color:rgba(120,173,255,.22)}
+.editor{box-shadow:inset 0 1px rgba(255,255,255,.025)}
+.editor input:focus-visible,.editor textarea:focus-visible{outline:2px solid #78adff;outline-offset:2px}
+.block:hover{border-color:rgba(248,140,140,.35);color:#ffc0c0}
+.page[dir="rtl"] .cover:after{right:auto;left:24px}
+.page[dir="rtl"] .search{direction:rtl}
+@media(max-width:720px){.topLinks a{padding:7px 8px}.topLinks a:nth-child(2){display:none}.profileTabs{margin-inline:-2px}.cover:after{right:14px;bottom:14px;font-size:8px}.page[dir="rtl"] .cover:after{right:auto;left:14px}}
+@media(prefers-reduced-motion:reduce){.page *{scroll-behavior:auto!important;transition:none!important}}
