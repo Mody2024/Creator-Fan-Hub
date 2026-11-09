@@ -18,7 +18,7 @@ begin
   end if;
 
   if char_length(v_path)>500
-    or v_path !~ '^creator-media-(private|public)/[0-9a-fA-F-]{36}/streams/[0-9a-fA-F-]{36}-[0-9a-fA-F-]{36}/master/master\.m3u8$' then
+    or v_path !~ '^creator-media-(private|public)/[0-9a-fA-F-]{36}/streams/[0-9a-fA-F-]{36}-[0-9a-fA-F-]{36}/master/master[.]m3u8$' then
     raise exception 'invalid managed adaptive playlist path' using errcode='22023';
   end if;
 
