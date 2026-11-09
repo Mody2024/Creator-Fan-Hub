@@ -23,3 +23,11 @@ test("analytics insights remain aggregate and avoid quality or reach guarantees"
 test("analytics distinguishes unavailable data from a genuinely empty account",()=>{assert.ok(page.includes("Analytics could not be loaded."));assert.ok(page.includes("Performance highlights could not load."));assert.ok(page.includes("Publish your first video to start building performance insights."));});
 
 test("analytics does not present failed metric requests as genuine zero performance",()=>{assert.ok(page.includes('error?"—":totals.views.toLocaleString()'));assert.ok(page.includes('error?"—":totals.reactions.toLocaleString()'));assert.ok(page.includes('error?"—":totals.comments.toLocaleString()'));assert.ok(page.includes('error?"—":interactionsPerView.toFixed(1)'));});
+
+test("creator analytics safely normalizes object or array RPC payloads",()=>{
+ assert.ok(page.includes("const rawMetrics=Array.isArray(data)?data:data&&typeof data===\"object\"?[data]:[]"));
+ assert.ok(page.includes("item.media_id===\"string\""));
+ assert.ok(page.includes("Math.max(0,Number(item.view_count)||0)"));
+ assert.ok(page.includes("Math.max(0,Number(item.reaction_count)||0)"));
+ assert.ok(page.includes("Math.max(0,Number(item.comment_count)||0)"));
+});
