@@ -1617,3 +1617,21 @@ Audited progress (scope estimates, not telemetry):
 - Current active batch: correct revoked-award balance/progression accounting. Implementation is committed; tests are authored, not executed.
 - Next substantial Creator Studio batch: complete creator sponsorship campaign status/approval visibility and verified creator reward workflows without awarding points from draft campaigns, simulated events or unverified sponsor delivery. Use only trusted provider/service-role verified events for any future delivery-based awards.
 - Then run exact-HEAD CI and continue the isolated database/deployed-worker/browser acceptance plan. Do not create a Supabase development branch without explicit approval due possible cost.
+
+
+## 2026-11-09 — Creator Studio sponsorship visibility batch
+- [x] Add a live campaign-state summary for draft, active, paused and other campaign statuses in each creator video sponsorship workspace.
+- [x] Explicitly label drafts as private/not delivered and active campaigns as requiring verified activation; do not imply ad delivery is operational.
+- [x] Show each campaign's contract date window and its exact viewer-facing disclosure text in the campaign list.
+- [x] Add regression assertions for campaign-state counts, non-delivery wording, date boundaries and disclosure visibility.
+- [ ] Exact-HEAD CI has not run for this batch; the GitHub commit lookup returned no workflow runs for the new test commit. Tests are authored, not executed.
+- [ ] Browser verify empty/loading/error states, narrow-screen layout, campaign statuses and Arabic/English presentation.
+- [ ] Next Creator Studio priority: implement explicit campaign review/approval state and clear audit trail for creator contract drafts. Keep activation fail-closed until a real verified delivery adapter, measurement, disclosure and frequency enforcement are operational.
+- Implementation batch is committed to `development`; no production deployment or `main` changes.
+
+Progress discipline:
+- Overall implementation remains **50% baseline**; this UI/visibility batch is an additive scoped improvement, but no full-plan percentage increase is claimed before scope-weighted review.
+- Wave 4 Creator Studio remains **53% last recorded**; new work does not change the recorded percentage pending full-plan recalculation.
+- Current exact-HEAD CI: **pending / not verified**. The prior successful run `42700591061` applies only to `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`.
+- Do not state that this batch passed automated tests, TypeScript, lint or build until a new exact-HEAD CI result confirms it.
+- Batch commits: `6283126ed810c945f93e6f3d20200809bc3f8a06` (sponsorship status summary and contract details); `172d29f20adfc12ea8748879499662ba4e02dd41` (regression coverage).
