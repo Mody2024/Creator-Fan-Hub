@@ -43,7 +43,7 @@ test("publication rollback never deletes committed media, and cleans staged sour
  assert.match(media,/databaseSaved = true/);
  assert.match(catchBlock,/if\(!databaseSaved\)/);
  assert.match(catchBlock,/remove\(\[nextPath\]\)/);
- assert.match(catchBlock,/remove\\(\\[thumbnailParts\\.join\\("\\/"\\)\\]\\)/);
+ assert.match(catchBlock,/remove\(\[thumbnailParts\.join\("\/"\)\]\)/);
  assert.match(catchBlock,/remove\(nextHlsPackage\.copiedPaths\)/);
  assert.ok(catchBlock.indexOf("if(!databaseSaved)")<catchBlock.indexOf("remove([nextPath])"));
 });
