@@ -1,0 +1,66 @@
+/* Raye2 Watch library — cohesive responsive media discovery surface */
+.raye2-watch-library {
+  --watch-bg:#080c13;--watch-panel:#101823;--watch-raised:#172333;
+  --watch-line:rgba(218,231,248,.12);--watch-text:#f3f6fb;
+  --watch-muted:#9aa9bd;--watch-blue:#80b4ff;
+  min-height:100vh;padding:0 clamp(16px,3vw,44px) 64px;
+  color:var(--watch-text);background:var(--watch-bg);
+  font-family:var(--font-sans,Inter,ui-sans-serif,system-ui,sans-serif);
+}
+.raye2-watch-library *{box-sizing:border-box}
+.raye2-watch-library a{color:inherit;text-decoration:none}
+.raye2-watch-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.raye2-watch-header{width:min(1480px,100%);min-height:76px;margin:auto;display:flex;align-items:center;gap:clamp(16px,3vw,42px);border-bottom:1px solid var(--watch-line)}
+.raye2-watch-brand{width:42px;height:42px;flex:0 0 auto;display:grid;place-items:center;border:1px solid rgba(128,180,255,.35);border-radius:13px;background:linear-gradient(145deg,#1a2a40,#0c1420);color:var(--watch-blue);font-size:22px;font-weight:950;letter-spacing:-.08em}
+.raye2-watch-search{height:42px;max-width:560px;flex:1;display:flex;align-items:center;gap:10px;padding:0 13px;border:1px solid var(--watch-line);border-radius:12px;background:var(--watch-panel);color:var(--watch-muted)}
+.raye2-watch-search:focus-within{border-color:rgba(128,180,255,.65);box-shadow:0 0 0 3px rgba(128,180,255,.1)}
+.raye2-watch-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:var(--watch-text);font:inherit;font-size:12px}
+.raye2-watch-search input::placeholder{color:#7f8da1}
+.raye2-watch-search kbd{padding:3px 6px;border:1px solid var(--watch-line);border-radius:5px;font-size:10px}
+.raye2-watch-header nav{display:flex;align-items:center;gap:8px;margin-left:auto}
+.raye2-watch-header nav a{padding:9px 11px;border-radius:9px;color:var(--watch-muted);font-size:11px;font-weight:750;transition:background .16s,color .16s}
+.raye2-watch-header nav a:hover{background:var(--watch-raised);color:var(--watch-text)}
+.raye2-watch-layout{width:min(1480px,100%);margin:28px auto 0;display:grid;grid-template-columns:190px minmax(0,1fr) 230px;gap:clamp(18px,2.4vw,34px);align-items:start}
+.raye2-watch-rail{position:sticky;top:22px;display:grid;gap:5px;padding:14px 10px;border:1px solid var(--watch-line);border-radius:15px;background:var(--watch-panel)}
+.raye2-watch-label{display:block;color:var(--watch-muted);font:750 9px/1.5 var(--font-mono,ui-monospace,monospace);letter-spacing:.13em}
+.raye2-watch-rail>.raye2-watch-label{padding:5px 9px 9px}
+.raye2-watch-rail>a{display:flex;align-items:center;gap:11px;padding:11px 10px;border-radius:9px;color:var(--watch-muted);font-size:11px;font-weight:750;transition:background .16s,color .16s}
+.raye2-watch-rail>a:hover,.raye2-watch-rail>a.active{background:rgba(128,180,255,.11);color:var(--watch-blue)}
+.raye2-watch-content{min-width:0}
+.raye2-watch-hero{position:relative;overflow:hidden;padding:clamp(28px,4.5vw,56px);border:1px solid var(--watch-line);border-radius:20px;background:radial-gradient(ellipse at 88% 0,rgba(79,145,232,.22),transparent 48%),linear-gradient(135deg,#121e2d,#0d141e 68%)}
+.raye2-watch-hero:after{content:"";position:absolute;right:-50px;bottom:-120px;width:280px;height:280px;border:1px solid rgba(128,180,255,.1);border-radius:50%;box-shadow:0 0 0 34px rgba(128,180,255,.025),0 0 0 70px rgba(128,180,255,.018);pointer-events:none}
+.raye2-watch-hero h1{position:relative;z-index:1;margin:15px 0 13px;font-size:clamp(38px,5.3vw,68px);line-height:.98;letter-spacing:-.075em}
+.raye2-watch-hero h1 em{color:var(--watch-blue);font-style:normal}
+.raye2-watch-hero>p{position:relative;z-index:1;max-width:560px;margin:0;color:var(--watch-muted);font-size:12px;line-height:1.9}
+.raye2-watch-hero-meta{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:18px;margin-top:27px;color:#b7c5d8;font:750 9px var(--font-mono,ui-monospace,monospace);letter-spacing:.1em}
+.raye2-watch-hero-meta span{display:flex;align-items:center;gap:8px}
+.raye2-watch-hero-meta i{width:7px;height:7px;border-radius:50%;background:#80b4ff;box-shadow:0 0 0 4px rgba(128,180,255,.12)}
+.raye2-watch-section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:36px 2px 15px}
+.raye2-watch-section-head h2{margin:6px 0 0;font-size:21px;letter-spacing:-.04em}
+.raye2-watch-section-head>span{color:var(--watch-muted);font-size:10px}
+.raye2-watch-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.raye2-watch-card{min-width:0;overflow:hidden;border:1px solid var(--watch-line);border-radius:15px;background:var(--watch-panel);transition:transform .18s,border-color .18s,background .18s}
+.raye2-watch-card:hover{transform:translateY(-3px);border-color:rgba(128,180,255,.34);background:#121e2c}
+.raye2-watch-card-media{position:relative;display:block;overflow:hidden;aspect-ratio:16/9;background:#0d1622}
+.raye2-watch-card-media video,.raye2-watch-card-media iframe{width:100%;height:100%;object-fit:cover}
+.raye2-watch-play{position:absolute;right:13px;bottom:13px;width:36px;height:36px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:rgba(8,13,21,.8);color:white;font-size:12px;pointer-events:none}
+.raye2-watch-card-copy{padding:16px}
+.raye2-watch-card-copy h3{margin:8px 0;font-size:15px;line-height:1.45;letter-spacing:-.025em}
+.raye2-watch-card-copy h3 a:hover{color:var(--watch-blue)}
+.raye2-watch-card-copy p{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:34px;margin:0;color:var(--watch-muted);font-size:11px;line-height:1.65}
+.raye2-watch-card-copy time{display:block;margin-top:13px;color:#78889e;font-size:10px}
+.raye2-watch-empty{padding:42px 24px;border:1px dashed var(--watch-line);border-radius:16px;text-align:center;background:rgba(16,24,35,.55)}
+.raye2-watch-empty>span{width:46px;height:46px;display:grid;place-items:center;margin:0 auto 15px;border:1px solid var(--watch-line);border-radius:14px;color:var(--watch-blue);background:var(--watch-raised)}
+.raye2-watch-empty h2{font-size:17px}
+.raye2-watch-empty p{color:var(--watch-muted);font-size:11px;line-height:1.7}
+.raye2-watch-aside{position:sticky;top:22px}
+.raye2-watch-aside section{padding:18px;border:1px solid var(--watch-line);border-radius:15px;background:var(--watch-panel)}
+.raye2-watch-aside h2{margin:11px 0;font-size:18px;letter-spacing:-.04em}
+.raye2-watch-aside p{color:var(--watch-muted);font-size:11px;line-height:1.8}
+.raye2-watch-aside a{display:block;margin-top:10px;padding:11px 10px;border:1px solid var(--watch-line);border-radius:9px;color:var(--watch-blue);font-size:10px;font-weight:800}
+.raye2-watch-aside a:hover{border-color:rgba(128,180,255,.4);background:rgba(128,180,255,.08)}
+.raye2-watch-library a:focus-visible,.raye2-watch-library button:focus-visible,.raye2-watch-library input:focus-visible{outline:2px solid var(--watch-blue);outline-offset:3px}
+@media(max-width:1120px){.raye2-watch-layout{grid-template-columns:170px minmax(0,1fr)}.raye2-watch-aside{display:none}}
+@media(max-width:760px){.raye2-watch-library{padding:0 16px 42px}.raye2-watch-header{min-height:68px;gap:12px}.raye2-watch-header nav{display:none}.raye2-watch-search{max-width:none}.raye2-watch-layout{display:block;margin-top:17px}.raye2-watch-rail{position:static;display:flex;align-items:center;gap:4px;margin-bottom:14px;padding:7px;overflow-x:auto}.raye2-watch-rail>.raye2-watch-label{display:none}.raye2-watch-rail>a{flex:0 0 auto;padding:10px;font-size:10px}.raye2-watch-hero{padding:28px 23px}.raye2-watch-grid{gap:11px}.raye2-watch-card-copy{padding:12px}.raye2-watch-card-copy h3{font-size:13px}}
+@media(max-width:540px){.raye2-watch-library{padding-inline:12px}.raye2-watch-search{height:40px}.raye2-watch-search kbd{display:none}.raye2-watch-hero h1{font-size:43px}.raye2-watch-grid{grid-template-columns:1fr}.raye2-watch-card-copy{padding:15px}.raye2-watch-section-head{margin-top:28px}.raye2-watch-card-copy h3{font-size:15px}}
+@media(prefers-reduced-motion:reduce){.raye2-watch-library *{scroll-behavior:auto!important;transition:none!important}}
