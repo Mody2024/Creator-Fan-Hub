@@ -39,6 +39,7 @@ test("sponsor review history is append-only and reviewed campaigns are retained"
 
 test("guarded review updates are allowed only inside the two trusted RPC transactions",()=>{
  assert.ok(guardMigration.includes("current_setting('app.raye2_sponsor_review_rpc',true)"));
+ assert.ok(!guardMigration.includes("and not exists(select 1 from public.creator_admins"));
  assert.equal((guardMigration.match(/set_config\('app\.raye2_sponsor_review_rpc','on',true\)/g)||[]).length,2);
  assert.ok(guardMigration.includes("raye2_request_creator_sponsor_review"));
  assert.ok(guardMigration.includes("raye2_admin_review_creator_sponsor"));
