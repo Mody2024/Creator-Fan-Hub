@@ -1030,3 +1030,21 @@ Progress estimates:
 - Wave 9 — release readiness: **23%** (a dedicated image-build CI job and regression guard have been added; run still pending).
 - Whole Raye2 platform: **~39% provisional**, unchanged.
 - Branch: `development`; production and `main` remain untouched.
+
+
+## 2026-11-09 — Creator progression RPC hardening
+- [x] Normalize the Supabase progression RPC response whether it returns one object or a table-return array.
+- [x] Validate numeric level/point fields before rendering.
+- [x] Clamp progress to 0–100 and remaining points to a non-negative value.
+- [x] Clear stale progression state and show an actionable status if the response is absent or malformed.
+- [x] Add regression tests for table-return arrays, invalid summaries and progress bounds.
+- [ ] Run the full CI workflow against the resulting HEAD and confirm the media-worker Docker build.
+- [ ] Verify migration 20261107340000 and creator reward progression against a real isolated Supabase database.
+- [ ] Browser-check creator, editor and analyst roles; no live account acceptance is claimed.
+- [ ] Verify the current Vercel preview; no production deployment.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **42%** (creator progression response handling hardened; media processing deployment, actual adaptive renditions and end-to-end playback still remain).
+- Wave 9 — release readiness: **23%** (regression tests authored, exact-HEAD CI and database acceptance pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
