@@ -1734,3 +1734,16 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] Added a regression assertion that the Creator Dashboard begins with the valid Next.js navigation import and that the sponsor-review link appears inside the JSX navigation rather than the import section.
 - [x] Test source is committed; it is **not executed**.
 - Commit: `320870d65ab505e6592cf0e898e390bbb787536a`.
+
+
+## 2026-11-10 — Creator-visible sponsorship review timeline
+- [x] Added creator-side loading of review events for only the creator's currently listed campaign IDs.
+- [x] Display review-requested, resubmitted, approved and rejected events with timestamps and reviewer notes in each campaign card.
+- [x] Uses the existing creator-scoped RLS policy on `raye2_creator_sponsor_review_events`; no broad event query by creator UI and no access to other creators' campaign IDs.
+- [x] Handles the empty campaign list and review-history query failure without hiding the campaign list.
+- [x] Added source-level regression assertions for event query scoping and visible timeline rendering.
+- [ ] Test source is authored, not executed. TypeScript, lint, Next.js build and browser/RTL checks remain pending.
+- [ ] Live database verification of the creator history RLS policy and applied migrations remains pending.
+- Implementation commit: `f30d0e59c86edc348838af6e214ff6bc468f279c`.
+- Regression test commit: `8f129323f5579ea029f5806c9a72bf556f3e6676`.
+- This adds to Creator Studio's implementation inventory; it does not change the **38% full-platform / 35% provisional Wave 4** planning estimates until the next weighted review.
