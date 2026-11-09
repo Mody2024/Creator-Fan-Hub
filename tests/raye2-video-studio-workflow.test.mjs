@@ -66,3 +66,13 @@ test("creator draft and publish actions remain separately accessible on narrow s
  assert.ok(css.includes(".raye2-video-save-actions"));
  assert.ok(css.includes("@media(max-width:520px)"));
 });
+
+test("video studio distinguishes catalog and playlist query failures from empty collections",()=>{
+ assert.ok(source.includes("catalogLoadFailed"));
+ assert.ok(source.includes("playlistLoadFailed"));
+ assert.ok(source.includes("videoResult.error?[]"));
+ assert.ok(source.includes("playlistResult.error?[]"));
+ assert.ok(source.includes("t.catalogLoadError"));
+ assert.ok(source.includes("t.playlistLoadError"));
+ assert.ok(source.includes('role={catalogLoadFailed?"alert":"status"}'));
+});

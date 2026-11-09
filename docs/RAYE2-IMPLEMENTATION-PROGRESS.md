@@ -825,3 +825,12 @@ This entry supersedes the older provisional 38% and 39% notes above for the curr
 - [x] Preserve the existing bilingual error messaging in highlights and video-performance table.
 - [x] Add regression coverage for unavailable-versus-zero KPI presentation.
 - [ ] Verify CI and preview.
+
+ 
+## 2026-11-09 — Creator Studio partial-load reliability
+- [x] Detect video-catalog query failures separately from an account with no configured videos.
+- [x] Detect playlist query failures separately from an account with no playlists.
+- [x] Show localized, accessible error states without hiding the rest of Creator Studio.
+- [x] Preserve successful media-library loading even if catalog or playlist reads fail.
+- [x] Add regression coverage for partial-load failure states.
+- [ ] Verify CI and development preview.
