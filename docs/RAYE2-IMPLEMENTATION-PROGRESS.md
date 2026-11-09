@@ -1172,3 +1172,27 @@ Session handoff:
 - Branch: `development` only.
 - Production / `main`: untouched.
 - Next batch: inspect current sponsorship schema, UI and RPCs; complete creator campaign lifecycle and reward/achievement visibility with authorization, tests and docs. Keep automated ad delivery and actual payouts disabled/unclaimed until their external/legal/provider requirements are satisfied.
+
+
+## 2026-11-09 — Creator sponsorship lifecycle database enforcement
+- [x] Added a database trigger so authenticated creators can create campaigns only as drafts.
+- [x] Permit creator edits only while a campaign remains a draft; creators cannot activate campaigns through direct database updates.
+- [x] Permit only the narrowly scoped active-to-paused transition, without allowing campaign content/configuration changes in the same update.
+- [x] Make campaign owner, target video and creation identity immutable for creator-authenticated updates.
+- [x] Restrict creator deletion to unused drafts; preserve paused/completed campaign history.
+- [x] Added a sponsorship contract regression test covering the database lifecycle guard and protected transitions.
+- [ ] Execute the sponsorship test and full CI on the final exact HEAD; the run triggered by the latest test commit is queued.
+- [ ] Apply the new migration in an isolated Supabase database and test valid/invalid transitions with separate creator accounts; repository tests are not a substitute for live PostgreSQL/RLS acceptance.
+- [ ] Browser-check draft creation/edit/delete and pause behavior in the development preview.
+- [ ] Do not enable campaign activation, automated ad delivery, impression claims or payouts; those remain blocked pending verified delivery, measurement and provider/legal readiness.
+
+Progress (acceptance-based; unchanged until exact-HEAD tests and isolated DB checks pass):
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff:
+- Branch: `development`; production and `main` untouched.
+- Latest implementation batch: database-enforced creator sponsor lifecycle + regression contract.
+- Next: run exact-HEAD CI, then continue the Creator Studio rewards/achievement integration and campaign lifecycle acceptance; next major media blocker remains actual adaptive HLS generation and end-to-end playback.
