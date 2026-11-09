@@ -9,7 +9,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY package.json ./
+# Keep the worker image independent from the Next.js application dependency tree.
+COPY worker.package.json ./package.json
 RUN npm install --omit=dev --no-audit --no-fund --no-package-lock \
     && npm cache clean --force
 
@@ -17,8 +18,7 @@ COPY scripts/raye2-media-worker.mjs ./scripts/raye2-media-worker.mjs
 
 USER node
 
-# The worker is a queue consumer, not an HTTP server. This checks that its
-# process remains alive; queue/database health is visible in worker logs.
+# This is a queue consumer, not an HTTP service.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "try { process.kill(1, 0) } catch { process.exit(1) }"
 
