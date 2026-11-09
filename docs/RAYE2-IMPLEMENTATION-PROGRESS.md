@@ -1099,3 +1099,7 @@ Progress estimates against the complete ten-wave plan:
 - Wave 4 — Creator Studio: **44%** (sponsorship controls are now easier to discover from the creator workspace; actual HLS/transcoding, live delivery and end-to-end acceptance remain).
 - Wave 9 — release readiness: **24%** (navigation regression coverage authored; exact-HEAD CI pending).
 - Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+- Final batch HEAD: `f50932c8c58ad3e31cc4e6df12543155af82de91`.
+- Note: the dashboard-navigation CI runs were automatically cancelled as later commits superseded them. The last completed successful full run is `43e920b2`; it predates the sponsorship-navigation patch. Re-run verification on a quiet exact HEAD before claiming the new patch passed.
