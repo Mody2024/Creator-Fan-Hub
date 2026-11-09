@@ -1654,3 +1654,49 @@ Progress:
 - **Test/release readiness: historical 46%; current batch verification pending.** Vercel status is currently failed due to build-rate limit, not green.
 - **Batch implementation: 100% of the scoped search/filter UI and source-level regression assertions committed; runtime/CI acceptance pending.**
 - Code commit: `033725a067b15330acadc2a64603a55044c69661`; test commit: `c5da85d5b7702a7d82282e6c68c2314937927d97`.
+
+
+## 2026-11-10 — Creator Studio sponsor approval workflow (implementation ledger; tests pending)
+This entry records **all committed implementation work regardless of test/build status**. Verification is tracked separately and must never be used to erase implementation credit.
+
+### Implemented and committed on `development`
+- [x] Campaign list status overview: draft, active, paused/other counts; clear draft-not-delivered and active-requires-verified-activation wording.
+- [x] Campaign contract visibility: start/end window, disclosure text, sponsor/category/placement search, status filtering and empty-filter state.
+- [x] Database approval lifecycle: `not_submitted → pending → approved/rejected`, creator-owned request RPC, owner/admin decision RPC, decision timestamps, reviewer identity and bounded reviewer note.
+- [x] Creator UI: request review from eligible drafts; pending/approved campaigns cannot be edited/deleted through the visible draft controls; review result and reviewer note are shown.
+- [x] Owner/admin review page: server-side authenticated role gate, pending review queue, approval/rejection actions, required rejection reason and decision history.
+- [x] Workspace navigation: bilingual owner/admin-only link to the sponsor review queue; active-area count updated.
+- [x] Audit preservation: review events are append-only; campaigns with review history cannot be deleted.
+- [x] Guard correction: review-field trigger permits the two trusted security-definer RPC transactions through a transaction-local marker; direct client edits remain blocked.
+- [x] Regression test file authored for role gates, RPC authorization, delivery fail-closed behavior, immutable audit, creator/admin workflow and the trusted-RPC guard.
+- [x] Re-fetched all seven implementation/migration/test paths from `development` and confirmed they exist at the expected branch.
+
+### Implementation vs verification ledger
+- **Implementation status:** all items above are committed source/schema/test code and are counted as implemented even though the tests have not run.
+- **Automated verification:** pending. The latest Vercel combined status reports failure with `upgradeToPro=build-rate-limit`; this is not a green build and does not establish whether the code compiles.
+- **Node regression tests:** authored, not executed.
+- **TypeScript / ESLint / Next.js build / media-worker smoke:** not executed for this exact code.
+- **Database migrations / RLS / RPC integration:** not applied or executed in an isolated Supabase database.
+- **Browser, mobile, Arabic RTL and accessibility acceptance:** pending.
+- **Delivery:** sponsorship review approval is contractual/content review only; `delivery_enabled=false` is returned by both RPCs. No ad delivery, viewer impression, payout or reward is fabricated.
+- **Production:** no deployment and no production database operation performed.
+
+### Progress accounting (full ten-wave denominator)
+- **Overall implementation: 50% (rounded; prior audited baseline retained).** The sponsor-management and approval implementation above is included in the implementation inventory even while untested. Its contribution is too small relative to the complete ten-wave scope to justify a whole-number increase at this rounding precision. This is not a verification percentage.
+- **Wave 4 — Creator Studio: 55% provisional**, up from the last recorded 53%, counting the committed sponsorship management/review workflow. Remaining Wave 4 work includes complete upload/draft/publishing UX, end-to-end native playback, real HLS acceptance, exclusives, quotas, live ingest/delivery, analytics correctness and environment acceptance.
+- **Wave 9 — security/release readiness: implementation additions recorded; acceptance remains pending.** Do not increase readiness because tests were merely authored.
+- **Test/release readiness: 46% last recorded historical estimate; current exact-HEAD verification is blocked/pending.** Do not label this batch verified.
+- Manual user/friends testing remains deferred until the agreed approximately 50% implementation milestone is reached and the user chooses to start.
+
+### Exact files and commits
+- `src/app/creator/creator-video-sponsorship.tsx` — sponsor status, dates/disclosure, search/filter, creator review request.
+- `src/app/creator/sponsor-reviews/page.tsx` and `sponsor-review-admin.tsx` — protected review queue and decision history.
+- `src/app/creator/page.tsx` — owner/admin navigation and localized labels.
+- `supabase/migrations/20261110100000_raye2_creator_sponsor_review_workflow.sql` — review schema and RPCs.
+- `supabase/migrations/20261110110000_raye2_preserve_creator_sponsor_review_audit.sql` — immutable history and deletion guard.
+- `supabase/migrations/20261110120000_raye2_fix_sponsor_review_rpc_guard.sql` — trusted RPC transaction guard.
+- `tests/raye2-creator-sponsor-review.test.mjs` — regression assertions (not run).
+- Relevant commits: `42caa5d2cdec513cc1ed1d861a6d32de89a28c2a`, `bff8fb6d0f96de306f5e89fedcaa555b699f5cb8`, `d121926419615a1a41dcefde1dace5be65866b0a8`, `0c3b229bf728ceceea285601965fe4ed2fe902f0`, `8b022f7062ee2b6bcda7f367a6fa47919af61fa2`, `ac77420618fe728533c0bc96622dde1d33a02851`, `8e0e2b3fdb55894b173b51a9b9263933bf25eb5d`.
+
+### Branch hygiene note
+One regression-test file was briefly created on the default `main` branch because the branch argument was omitted from that single file-creation call. It was immediately deleted from `main` in commit `7e8c6f923cca59e1f2dc60813e8d158f70697bcb`, then recreated explicitly on `development` in commit `8e0e2b3fdb55894b173b51a9b9263933bf25eb5d`. The test file is absent from current `main`; no application code, migration or deployment was made on `main`. The two audit commits remain in its history; no force-reset was attempted.
