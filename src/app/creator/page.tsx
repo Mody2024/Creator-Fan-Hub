@@ -1,5 +1,4 @@
-import { redirect } from "n{["owner","admin"].includes(admin.role) && <a className="module-card" href="/creator/sponsor-reviews"><div className="module-card-top"><span>15 / PARTNERS</span><span className="module-state">Review queue</span></div><h3>{t.sponsorReview}</h3><p>{t.sponsorReviewDesc}</p><span className="module-arrow">↗</span></a>}
-        ext/navigation";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -65,6 +64,7 @@ export default async function CreatorDashboardPage() {
 <a className="module-card" href="/creator/community"><div className="module-card-top"><span>07 / TRUST & SAFETY</span><span className="module-state">Community</span></div><h3>{t.moderation}</h3><p>{t.moderationDesc}</p><span className="module-arrow">↗</span></a>
         )}
         <a className="module-card" href="#creator-video-studio"><div className="module-card-top"><span>08 / VIDEO</span><span className="module-state">Studio</span></div><h3>{t.studio}</h3><p>{t.studioDesc}</p><span className="module-arrow">↗</span></a>
+        {["owner","admin"].includes(admin.role) && <a className="module-card" href="/creator/sponsor-reviews"><div className="module-card-top"><span>15 / PARTNERS</span><span className="module-state">Review queue</span></div><h3>{t.sponsorReview}</h3><p>{t.sponsorReviewDesc}</p><span className="module-arrow">↗</span></a>}
         <a className="module-card" href="#creator-video-studio"><div className="module-card-top"><span>13 / PARTNERS</span><span className="module-state">Sponsors</span></div><h3>{t.sponsorships}</h3><p>{t.sponsorshipsDesc}</p><span className="module-arrow">↗</span></a>
         <a className="module-card" href="#creator-rewards"><div className="module-card-top"><span>12 / PROGRESSION</span><span className="module-state">Rewards</span></div><h3>{t.rewards}</h3><p>{t.rewardsDesc}</p><span className="module-arrow">↗</span></a>
         {["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin"><div className="module-card-top"><span>14 / ADMINISTRATION</span><span className="module-state">Owner & admin</span></div><h3>{t.rewardsAdmin}</h3><p>{t.rewardsAdminDesc}</p><span className="module-arrow">↗</span></a>}
