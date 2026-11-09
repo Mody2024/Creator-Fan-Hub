@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./nhen-design-system.css";
+import "./raye2/raye2-brand-system.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import LanguageSwitch from "./language-switch";
 
