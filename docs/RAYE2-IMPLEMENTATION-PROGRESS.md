@@ -923,3 +923,21 @@ Progress estimates: Wave 1 redesign **38%**; Wave 5 social/community **19%**; Wa
 - Wave 5 — social/community/profile: **22%**.
 - Wave 6 — messaging: **85%** (existing messaging foundation; no new messaging behavior in this batch).
 - Overall Raye2: **~43% provisional**. Estimates are planning measures, not acceptance-test completion. Latest checked deployment is a development preview only. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator Control Room visual redesign
+- [x] Add a dedicated responsive Raye2 visual system to the authenticated Creator Workspace without replacing its server-side session/role checks or existing management modules.
+- [x] Improve workspace hierarchy: control-room welcome panel, status/permission cards, role chip, and grouped workspace navigation.
+- [x] Add clear routes back to the Raye2 platform and Studio, plus the existing sign-out action.
+- [x] Apply desktop, tablet and mobile layouts, Arabic direction support, keyboard focus and reduced-motion behavior.
+- [ ] Verify every dashboard anchor lands on its corresponding module; some existing modules are client components and must be checked in browser.
+- [ ] Run tests, type-check, lint and production build on this exact code head.
+- [ ] Confirm the latest Vercel preview is READY and smoke-test the authenticated dashboard with permitted test roles.
+- [ ] Continue Creator Studio upload workflow, creator analytics and progression UX after the visual shell is verified.
+
+Progress estimate refresh (against the entire master plan, conservative):
+- Wave 1 — brand system and redesign: **43%** (global palette/document locale foundations and additional route-scoped surfaces; shared component extraction, light theme, logo integration and many remaining routes are outstanding).
+- Wave 4 — Creator Studio and ecosystem: **36%** (workspace landing page visual pass only in this batch; upload/transcode/playback and end-to-end creator workflows remain incomplete).
+- Wave 5 — social/community: **22%**.
+- Wave 6 — messaging/chat: **85%** (existing implementation estimate; not modified in this batch).
+- Whole Raye2 platform: **~39% provisional**. The 43% figure from a previous short update was optimistic and should not replace the conservative 38% full-master-plan baseline without verified acceptance evidence. This is an implementation estimate, not a test/build/runtime metric. No production deployment and no changes to `main`.
