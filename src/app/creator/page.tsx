@@ -13,6 +13,7 @@ import AchievementInsights from "./achievement-insights";
 import CreatorRewardsCenter from "./rewards-center";
 import CreatorRewardsAdmin from "./rewards-admin";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
+import "./raye2-creator-workspace.css";
 
 export const dynamic = "force-dynamic";
 
@@ -37,8 +38,8 @@ export default async function CreatorDashboardPage() {
   if (admin.role === "analyst") redirect("/creator/analytics");
   if (!["owner","admin","creator","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
 
-  return <main className="dashboard-shell raye2-creator-shell" dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"}>
-    <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home"><span><strong>Raye2</strong><small>CREATOR WORKSPACE</small></span></Link><span className="admin-session"><i /> {t.auth}</span><nav className="raye2-creator-actions" aria-label="Creator navigation"><Link className="logout-button" href="/raye2/studio">{t.studioHome}</Link><form action="/creator/logout" method="post"><button className="logout-button" type="submit">{t.signOut}</button></form></nav></header>
+  return <main className="dashboard-shell raye2-creator-shell" data-raye2-role={admin.role} dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"}>
+    <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home"><span><strong>Raye2</strong><small>CREATOR WORKSPACE</small></span></Link><span className="admin-session"><i /> {t.auth}</span><span className="raye2-role-chip">{admin.role.toUpperCase()}</span><nav className="raye2-creator-actions" aria-label="Creator navigation"><Link className="logout-button" href="/raye2/home">{isArabic?"عرض المنصة ↗":"View platform ↗"}</Link><Link className="logout-button" href="/raye2/studio">{t.studioHome}</Link><form action="/creator/logout" method="post"><button className="logout-button" type="submit">{t.signOut}</button></form></nav></header>
     <div className="dashboard-content">
       <div className="dashboard-welcome"><div><span className="eyebrow">{t.eyebrow}</span><h1>{t.title}<em>{t.emphasis}</em></h1><p>{t.intro}</p></div><span className="draft-badge">{t.draft}</span></div>
       <section className="dashboard-stats"><article><span>{t.publicConfig}</span><strong>{t.connected}</strong><small>{t.source}</small></article><article><span>{t.access}</span><strong>{t.verified}</strong><small>{t.allowlist}</small></article><article><span>{t.publishing}</span><strong>{t.versions}</strong><small>{t.concurrent}</small></article></section>
