@@ -976,3 +976,20 @@ Progress estimates (full ten-wave scope; conservative):
 - Wave 4 — Creator Studio: **38%** (publishing studio UX now has a dedicated layout, while actual video transcoding/HLS/DASH, upload-to-watch end-to-end acceptance, exclusives and live delivery remain major gaps).
 - Wave 9 — release readiness: **21%** (new regression test authored; not executed in this environment).
 - Whole Raye2 platform: **~39% provisional**, unchanged. This is an implementation estimate against the entire master plan, not a CI/build/runtime metric. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Media intake UX and CI compatibility repair
+- [x] Fix the outdated Creator Studio regression assertion to recognize the route-scoped Analytics class while retaining the shared `raye2-creator-shell` contract.
+- [x] Add drag-and-drop media selection with the same MIME and 50 MB checks as the normal file picker.
+- [x] Add clipboard image paste support; ignore paste events inside inputs, textareas and editable content.
+- [x] Add accessible dropzone focus treatment, drag-active state, keyboard-operable file picker and reduced-motion styling.
+- [x] Add source-level regression coverage for the new upload intake and dropzone accessibility.
+- [ ] Re-run the complete CI suite; the prior HEAD failed one outdated assertion (387/388 tests passed), and this fix has not yet been executed.
+- [ ] Continue with actual storage/worker deployment checks and end-to-end upload-to-watch verification; drag/drop changes only the file selection UX.
+- [ ] Confirm latest Vercel preview state and inspect the current commit's deployment.
+
+Progress estimates (entire master plan):
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **39%** (media intake UX and publishing workspace improved; actual worker availability, storage configuration, transcoding, and end-to-end video playback remain unverified).
+- Wave 9 — release readiness: **22%** (one failing CI assertion has a targeted repair and regression coverage, pending rerun).
+- Whole Raye2 platform: **~39% provisional**, unchanged. No production deployment and no changes to `main`.
