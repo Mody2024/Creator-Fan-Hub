@@ -1460,9 +1460,9 @@ Session handoff:
 - **Overall implementation: 48%** (up from 47%; real media-output validation is now automated in the worker image build and the cross-browser HLS path is integrated).
 - **Test/release readiness: 43%** (up from 42%; exact-HEAD CI and generated FFmpeg playlist/segment checks pass; isolated database, deployed-worker and real-browser acceptance remain).
 - **Wave 1 — visual redesign: 44%.**
-- **Wave 4 — Creator Studio: 51%.**
+- **Wave 4 — Creator Studio: 50%.**
 - **Native video pipeline: 55%** (HLS generation, owner/visibility binding, package movement, hls.js/native/MP4 fallback and real FFmpeg output smoke test are implemented).
-- **Release readiness: 26%.**
+- **Release readiness: 25%.**
 - **Adaptive video implementation batch: 100% code + CI implementation**; **environment acceptance remains open** (database, deployed worker, real-browser playback).
 
 ### Exact next-session handoff
