@@ -941,3 +941,20 @@ Progress estimate refresh (against the entire master plan, conservative):
 - Wave 5 — social/community: **22%**.
 - Wave 6 — messaging/chat: **85%** (existing implementation estimate; not modified in this batch).
 - Whole Raye2 platform: **~39% provisional**. The 43% figure from a previous short update was optimistic and should not replace the conservative 38% full-master-plan baseline without verified acceptance evidence. This is an implementation estimate, not a test/build/runtime metric. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator analytics visual redesign
+- [x] Add a dedicated Raye2 analytics page style without changing server-side authentication, analytics RPCs, aggregate-only data handling, or CSV export behavior.
+- [x] Establish a clearer performance overview, privacy-first hero, metric cards, ranked content highlights and responsive video performance rows.
+- [x] Improve narrow-screen behavior with a horizontally scrollable metrics table rather than compressing numeric columns.
+- [x] Preserve bilingual page content and RTL-aware layout.
+- [x] Existing automated source tests cover aggregate metric math, truthful unavailable states, CSV formula-injection protection and reward ledger boundaries.
+- [ ] Run the repository's full CI (tests, TypeScript, lint, Next.js production build) against this exact HEAD.
+- [ ] Browser-verify analytics with owner/editor/analyst roles, empty/error states, CSV download and Arabic layout.
+- [ ] Confirm newest Vercel development preview reaches READY; do not infer from an earlier deployment.
+
+Progress estimates (full ten-wave scope; conservative):
+- Wave 1 — redesign: **44%** (shared global foundations and additional Community, profile, Creator Workspace and Analytics surfaces; global shell extraction and many remaining surfaces outstanding).
+- Wave 4 — Creator ecosystem: **37%** (creator control room and analytics visual pass; upload, transcoding, playback and creator workflow acceptance remain).
+- Wave 9 — release readiness: **21%** (this visual patch does not count as runtime verification).
+- Whole Raye2 platform: **~39% provisional**, unchanged from the conservative full-plan baseline. Styling one dashboard does not justify increasing total completion. This is not a test/build/runtime metric. No production deployment and no changes to `main`.
