@@ -19,7 +19,8 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  if(media.media_type==="video"&&media.processing_status!=="ready")notFound();
  let src="";
  let poster:string|null=null;
- let youtubeEmbedUrl:string|null=null;\n let hlsSrc:string|null=null;
+ let youtubeEmbedUrl:string|null=null;
+ let hlsSrc:string|null=null;
  if(media.media_type==="video"){
   if(!media.storage_path?.startsWith("creator-media-public/"))notFound();
   const parts=media.storage_path.split("/");
@@ -28,7 +29,15 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
   let parsedPublicUrl: URL;
   try { parsedPublicUrl=new URL(publicUrl); } catch { notFound(); }
   if(parsedPublicUrl.protocol!=="https:"||parsedPublicUrl.origin!==new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??"https://invalid.local").origin)notFound();
-  src=parsedPublicUrl.toString();\n  const hlsPath=media.metadata?.processing?.hls?.masterPath;\n  if(typeof hlsPath==="string"&&hlsPath.startsWith("creator-media-public/")){\n   const hlsParts=hlsPath.split("/");\n   if(hlsParts.length===6&&hlsParts[1]===parts[1]&&hlsParts[2]==="streams"&&hlsParts[3].startsWith(media.id+"-")&&hlsParts[4]==="master"&&hlsParts[5]==="master.m3u8"&&hlsParts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))){\n    const candidate=supabase.storage.from(hlsParts[0]).getPublicUrl(hlsParts.slice(1).join("/")).data.publicUrl;\n    try{const parsedHls=new URL(candidate);if(parsedHls.protocol==="https:"&&parsedHls.origin===parsedPublicUrl.origin)hlsSrc=parsedHls.toString();}catch{}\n   }\n  }
+  src=parsedPublicUrl.toString();
+  const hlsPath=media.metadata?.processing?.hls?.masterPath;
+  if(typeof hlsPath==="string"&&hlsPath.startsWith("creator-media-public/")){
+   const hlsParts=hlsPath.split("/");
+   if(hlsParts.length===6&&hlsParts[1]===parts[1]&&hlsParts[2]==="streams"&&hlsParts[3].startsWith(media.id+"-")&&hlsParts[4]==="master"&&hlsParts[5]==="master.m3u8"&&hlsParts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))){
+    const candidate=supabase.storage.from(hlsParts[0]).getPublicUrl(hlsParts.slice(1).join("/")).data.publicUrl;
+    try{const parsedHls=new URL(candidate);if(parsedHls.protocol==="https:"&&parsedHls.origin===parsedPublicUrl.origin)hlsSrc=parsedHls.toString();}catch{}
+   }
+  }
   if(media.thumbnail_path?.startsWith("creator-media-public/")){
    const thumbnailParts=media.thumbnail_path.split("/");
    if(thumbnailParts.length>=2&&thumbnailParts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))){
