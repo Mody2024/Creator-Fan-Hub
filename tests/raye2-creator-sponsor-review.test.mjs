@@ -79,6 +79,12 @@ test("sponsor review outcomes create private creator notifications atomically",(
  assert.ok(notificationMigration.includes("creator_id=(select auth.uid()) and public.is_nhen_video_publisher()"));
 });
 
+test("sponsor review administration and navigation include Arabic localization",()=>{
+ assert.ok(admin.includes('ar?"طلبات قيد المراجعة":"Pending review"'));
+ assert.ok(admin.includes('ar?"الموافقة على المراجعة":"Approve review"'));
+ assert.ok(admin.includes('ar?"سجل القرارات":"Decision history"'));
+ assert.ok(route.includes('locale==="ar"?"← مساحة المبدعين":"← Creator workspace"'));
+});
 test("creator dashboard exposes a private notification inbox with read actions",()=>{
  assert.ok(notificationComponent.includes('from("raye2_creator_notifications")'));
  assert.ok(notificationComponent.includes('rpc("raye2_mark_creator_notification_read"'));
