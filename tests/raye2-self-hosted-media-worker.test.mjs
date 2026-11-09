@@ -235,7 +235,7 @@ test("video worker creates bounded 360p and 720p adaptive HLS renditions with au
  assert.ok(worker.includes('name: "360p", maxWidth: 640, maxHeight: 360'));
  assert.ok(worker.includes('name: "720p", maxWidth: 1280, maxHeight: 720'));
  assert.ok(worker.includes('"libx264"'));
- assert.ok(worker.includes('"hls_time", "6"'));
+ assert.ok(worker.includes('"-hls_time", "6"'));
  assert.ok(worker.includes('"hls_playlist_type", "vod"'));
  assert.ok(worker.includes('...(hasAudio ? ["-c:a", "aac"'));
  assert.ok(worker.includes('"-an"'));
