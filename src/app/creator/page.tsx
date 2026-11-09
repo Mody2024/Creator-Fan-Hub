@@ -14,6 +14,7 @@ import CreatorRewardsCenter from "./rewards-center";
 import CreatorRewardsAdmin from "./rewards-admin";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import "./raye2-creator-workspace.css";
+import "../raye2/studio/video-publishing-studio.css";
 
 export const dynamic = "force-dynamic";
 
