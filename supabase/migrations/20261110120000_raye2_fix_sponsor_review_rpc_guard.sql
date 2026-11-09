@@ -9,9 +9,7 @@ begin
     is distinct from
     (old.approval_status,old.approval_requested_at,old.approval_reviewed_at,
      old.approval_reviewed_by,old.approval_note)
-    and coalesce(current_setting('app.raye2_sponsor_review_rpc',true),'')<>'on'
-    and not exists(select 1 from public.creator_admins a
-      where a.user_id=(select auth.uid()) and a.active=true and a.role in ('owner','admin')) then
+    and coalesce(current_setting('app.raye2_sponsor_review_rpc',true),'')<>'on' then
    raise exception 'sponsor review fields can only be changed through the review workflow' using errcode='42501';
  end if;
  return new;
