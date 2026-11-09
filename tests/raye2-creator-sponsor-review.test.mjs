@@ -69,6 +69,7 @@ test("campaign creators can see their own immutable sponsorship review timeline"
 });
 const notificationMigration=await readFile(new URL("../supabase/migrations/20261110130000_raye2_creator_sponsor_review_notifications.sql",import.meta.url),"utf8");
 const notificationComponent=await readFile(new URL("../src/app/creator/creator-notifications.tsx",import.meta.url),"utf8");
+const bulkReadMigration=await readFile(new URL("../supabase/migrations/20261110140000_raye2_creator_notification_bulk_read.sql",import.meta.url),"utf8");
 
 test("sponsor review outcomes create private creator notifications atomically",()=>{
  assert.ok(notificationMigration.includes("review_event_id uuid not null unique"));
@@ -106,4 +107,15 @@ test("admin review queue records a required rejection reason and exposes decisio
  assert.ok(admin.includes("raye2_admin_review_creator_sponsor"));
  assert.ok(admin.includes("Decision history"));
  assert.ok(admin.includes("raye2_creator_sponsor_review_events"));
+});
+
+test("creator notification inbox supports scoped bulk read and all/unread filters",()=>{
+ assert.ok(bulkReadMigration.includes("raye2_mark_all_creator_notifications_read"));
+ assert.ok(bulkReadMigration.includes("where creator_id=(select auth.uid()) and read_at is null"));
+ assert.ok(bulkReadMigration.includes("public.is_nhen_video_publisher()"));
+ assert.ok(bulkReadMigration.includes("grant execute on function public.raye2_mark_all_creator_notifications_read() to authenticated"));
+ assert.ok(notificationComponent.includes('rpc("raye2_mark_all_creator_notifications_read")'));
+ assert.ok(notificationComponent.includes('filter==="unread"'));
+ assert.ok(notificationComponent.includes("Mark all as read"));
+ assert.ok(notificationComponent.includes("visibleItems.map"));
 });
