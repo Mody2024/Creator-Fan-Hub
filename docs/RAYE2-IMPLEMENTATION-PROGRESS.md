@@ -1238,3 +1238,31 @@ Session handoff:
 - Branch: `development`; `main` and production untouched.
 - Latest batch: reward normalization applied and extracted; sponsor lifecycle DB guard remains committed.
 - Next batch: verify exact-HEAD CI, then continue complete Creator Studio sponsor/reward workflow acceptance; afterwards implement adaptive video processing/HLS with an end-to-end playback test.
+
+
+## 2026-11-09 — Progress tracking corrected: implementation vs. test readiness
+The previous single percentage mixed two different questions and made implementation look frozen whenever manual acceptance was pending. From this handoff onward, report two separate percentages.
+
+### Current baseline (scope-based estimate)
+- **Overall implementation: 42%** — planned functionality already present in code and integrated, including account/creator foundations, initial feed/watch/media upload and processing queue, analytics, sponsorship controls, rewards foundations, messaging/voice foundations and governance. This is a build-progress estimate, not a claim that every path is production-ready.
+- **Test/release readiness: 39%** — automated and environment-dependent acceptance remains incomplete; isolated database execution, real-account checks, browser acceptance and full video playback verification remain outstanding.
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 48%.**
+- **Native video pipeline implementation: 35%** (upload, processing queue, metadata and thumbnails exist; adaptive transcoding/HLS output is still missing).
+- **Release readiness: 25%.**
+
+### User's test-stage rule
+- Target the user's first major manual testing stage at approximately **50% overall implementation**.
+- Do not ask the user to test each development batch before that point. Continue implementation, run automated CI, fix obvious regressions, and keep manual/browser/database acceptance items recorded for the later testing stage.
+- Implementation percentage may rise as code is built even when test/release readiness remains unchanged. Never conflate the two.
+
+### Verified current branch evidence before this handoff update
+- Branch: `development`.
+- Pre-documentation HEAD: `8cb4faac2ddfa16c693e93395764b974e739edd6`.
+- GitHub Actions run `42685124041` for that exact pre-documentation HEAD: **success**.
+- Latest media-worker image build evidence remains older; do not transfer that result to a newer SHA.
+- No manual database or browser acceptance is claimed.
+- `main` and production remain untouched.
+
+### Next implementation batch
+Continue implementation rather than request manual testing: complete the Creator Studio sponsor/reward workflows and connect creator achievement status; then implement the actual adaptive video pipeline (bounded HLS renditions, owner-bound storage reservations, manifest publication and native player integration). Keep HLS marked incomplete until CI and the later manual test stage verify it.
