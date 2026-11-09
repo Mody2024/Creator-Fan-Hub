@@ -44,3 +44,15 @@ test("creator media upload UI distinguishes preparation, transfer, metadata save
  assert.match(library,/uploadStage==="uploading"/);
  assert.match(library,/Upload paused\. Your resumable session is retained/);
 });
+
+test("creator media library supports validated drag-and-drop and clipboard image selection",async()=>{
+ const library=await readFile(new URL("../src/app/creator/media-library.tsx",import.meta.url),"utf8");
+ assert.ok(library.includes("function handleFileDrop"));
+ assert.ok(library.includes("onDrop={handleFileDrop}"));
+ assert.ok(library.includes("onDragOver"));
+ assert.ok(library.includes('window.addEventListener("paste",handlePaste)'));
+ assert.ok(library.includes('item.type.startsWith("image/")'));
+ assert.ok(library.includes("acceptFile(pastedImage)"));
+ assert.ok(library.includes("ACCEPTED[selected.type]"));
+ assert.ok(library.includes("selected.size > LIMIT"));
+});
