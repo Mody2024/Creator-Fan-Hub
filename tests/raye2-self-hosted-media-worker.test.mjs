@@ -214,3 +214,18 @@ test("creator cannot publish native media until the processing worker marks it r
  assert.ok(library.includes('disabled={busy||(!item.is_published&&item.media_type!=="youtube"&&item.processing_status!=="ready")}'));
  assert.ok(library.includes('item.media_type!=="youtube"&&item.processing_status!=="ready"?t.publishNeedsReady:undefined'));
 });
+
+test("self-hosted worker has an isolated minimal runtime image and secret-safe container setup",async()=>{
+ const dockerfile=await readFile(new URL("../Dockerfile.raye2-media-worker",import.meta.url),"utf8");
+ const workerPackage=JSON.parse(await readFile(new URL("../worker.package.json",import.meta.url),"utf8"));
+ const dockerignore=await readFile(new URL("../.dockerignore",import.meta.url),"utf8");
+ assert.ok(dockerfile.includes("COPY worker.package.json ./package.json"));
+ assert.ok(dockerfile.includes("apt-get install -y --no-install-recommends ffmpeg"));
+ assert.ok(dockerfile.includes("USER node"));
+ assert.ok(dockerfile.includes('CMD ["node", "scripts/raye2-media-worker.mjs"]'));
+ assert.ok(workerPackage.dependencies["@supabase/supabase-js"]);
+ assert.ok(workerPackage.dependencies.sharp);
+ assert.equal(workerPackage.dependencies.next,undefined);
+ assert.ok(dockerignore.includes(".env"));
+ assert.ok(dockerignore.includes("node_modules"));
+});
