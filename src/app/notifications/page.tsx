@@ -1,6 +1,7 @@
 import {redirect} from "next/navigation";
 import {cookies} from "next/headers";
 import Link from "next/link";
+import "./raye2-notifications.css";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import NotificationsClient,{type Notice} from "./notifications-client";
 export const dynamic="force-dynamic";
@@ -13,5 +14,5 @@ export default async function NotificationsPage(){
  const {data:profiles}=actorIds.length?await supabase.from("member_profiles").select("user_id,handle,display_name").in("user_id",actorIds):{data:[]};
  const map=new Map((profiles??[]).map(x=>[x.user_id,x]));
  const notices:Notice[]=(data??[]).map(x=>({id:x.id,type:x.notification_type,targetType:x.target_type,targetId:x.target_id,message:x.message,readAt:x.read_at,createdAt:x.created_at,actor:map.get(x.actor_id)?.display_name??(isArabic?"عضو في NHEN":"NHEN member"),handle:map.get(x.actor_id)?.handle??null}));
- return <main className="nhen-profile-page" dir={isArabic?"rtl":"ltr"} lang={locale}><header className="nhen-watch-top"><Link className="nhen-brand" href="/">NHEN<span className="nhen-brand-mark">.</span></Link><nav><Link href="/community">{isArabic?"المجتمع":"Community"}</Link><Link href="/saved">{isArabic?"المحفوظات":"Saved"}</Link></nav></header><div className="nhen-notifications-wrap"><span className="nhen-section-label">{isArabic?"NHEN / صندوق الإشعارات":"NHEN IDENTITY / INBOX"}</span><h1>{isArabic?<>إشعاراتك <em>في نهين؟</em></>:<>Your <em>notifications.</em></>}</h1><p className="nhen-muted">{isArabic?"المتابعات والتفاعلات والنقاشات المعتمدة في مجتمعك.":"Follows, reactions and approved discussions from your NHEN community."}</p><NotificationsClient initialNotices={notices} locale={locale}/></div></main>
+ return <main className="raye2-notifications-page" dir={isArabic?"rtl":"ltr"} lang={locale}><header className="nhen-watch-top"><Link className="nhen-brand" href="/raye2/home" aria-label="Raye2 home">Raye2</Link><nav><Link href="/community">{isArabic?"المجتمع":"Community"}</Link><Link href="/saved">{isArabic?"المحفوظات":"Saved"}</Link></nav></header><div className="nhen-notifications-wrap"><span className="nhen-section-label">{isArabic?"RAYE2 / صندوق الإشعارات":"RAYE2 / NOTIFICATION INBOX"}</span><h1>{isArabic?<>إشعاراتك <em>في رايق؟</em></>:<>Your <em>notifications.</em></>}</h1><p className="nhen-muted">{isArabic?"المتابعات والتفاعلات والنقاشات المعتمدة في مجتمعك.":"Follows, reactions and approved discussions from your Raye2 community."}</p><NotificationsClient initialNotices={notices} locale={locale}/></div></main>
 }
