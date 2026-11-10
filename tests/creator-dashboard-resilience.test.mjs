@@ -21,7 +21,7 @@ test("creator dashboard quick navigation points to its management areas", async 
   for (const [source,id] of [[settings,"creator-settings"],[polls,"creator-polls"],[ideas,"creator-ideas"],[events,"creator-events-socials"],[media,"creator-media"],[history,"creator-history"],[studio,"creator-video-studio"]]) {
     assert.ok(source.includes(`id="${id}"`), `management panel target missing: ${id}`);
   }
-  assert.ok(page.includes('9 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
+  assert.ok(page.includes('10 + (["owner","admin"].includes(admin.role) ? 5 : 0) + (admin.role === "owner" ? 1 : 0)'));
   assert.ok(page.includes('href="/creator/raye2"'));
   assert.ok(page.includes('href="#creator-rewards"'));
   assert.ok(!page.includes("More control, coming next."));
@@ -87,7 +87,7 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   const page = await read("../src/app/creator/page.tsx");
   assert.ok(page.includes('{admin.role === "owner" && ('));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
-  assert.ok(page.includes('9 + (["owner","admin"].includes(admin.role) ? 3 : 0) + (admin.role === "owner" ? 1 : 0)'));
+  assert.ok(page.includes('10 + (["owner","admin"].includes(admin.role) ? 5 : 0) + (admin.role === "owner" ? 1 : 0)'));
 });
 
 test("community interactions restore optimistic state and recover from failed requests", async () => {

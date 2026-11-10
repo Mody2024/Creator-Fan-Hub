@@ -48,5 +48,5 @@ test("creator reward administration is directly discoverable only to owner and a
  assert.ok(home.includes('{["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin">'));
  assert.ok(home.includes('rewardsAdmin:"Creator reward administration"'));
  assert.ok(home.includes('rewardsAdmin:"إدارة مكافآت المبدعين"'));
- assert.ok(home.includes('? 4 : 0)'));
+ assert.ok(home.includes('10 + (["owner","admin"].includes(admin.role) ? 5 : 0) + (admin.role === "owner" ? 1 : 0)'));
 });

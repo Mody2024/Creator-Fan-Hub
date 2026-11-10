@@ -1811,3 +1811,19 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [ ] This guard is committed but unexecuted; runtime verification remains pending.
 - Fix: `1622fdddfb866477cdf623270a777accb6987fb3`.
 - Test: `f695a5c887e05dbc43d03f3738a3544ca525a67b`.
+
+
+## 2026-11-10 — Local execution of the previously unrun regression suite
+- [x] Installed dependencies (`npm install --no-audit --no-fund`, 359 packages) and executed the full Node regression suite locally for the first time on this batch: `npm test` reports **449 tests, 449 pass, 0 fail**.
+- [x] Ran `npm run check` (repository validation, 170 assertions) — passed.
+- [x] Ran `npx tsc --noEmit` — passed with no type errors.
+- [x] Ran `npm run lint` — passed with 0 errors (25 pre-existing `no-img-element`/`exhaustive-deps`/unused-var warnings; unchanged by this batch).
+- [x] Ran `npm run build` — Next.js production build succeeded for all 33 routes.
+- [x] Fixed the five failing assertions this first run exposed:
+  - **Source defect (real bug):** the Creator Dashboard "ACTIVE AREAS" counter base was never incremented when the notification-inbox card was added (`d82eabd`). It rendered **16** module cards for an owner but displayed **15**. Corrected the base from `9` to `10` in `src/app/creator/page.tsx` so owner/admin/creator now show 16/15/10, matching the rendered cards.
+  - `tests/creator-dashboard-resilience.test.mjs` (×2) and `tests/raye2-creator-studio-dashboard.test.mjs` (×1): stale count assertions predating the sponsorship and rewards-navigation batches; aligned to the corrected `10 + (owner/admin ? 5 : 0) + (owner ? 1 : 0)` formula.
+  - `tests/raye2-creator-sponsor-review.test.mjs`: the notification anchor `id="creator-notifications"` lives in the child `creator-notifications.tsx`, not the dashboard page; the assertion now checks the component that actually owns the id (the dashboard `href` assertion is retained).
+  - `tests/site.test.mjs`: the SECURITY DEFINER scanner false-positived on a prose comment containing the words "SECURITY DEFINER". The scanner now strips `--` comments before scanning and resolves trigger-only functions across all migrations via a global `execute function` index, instead of only the current file.
+- [ ] Still pending: applying the committed migrations and running live RLS/RPC acceptance against an isolated Supabase project; browser/mobile/RTL visual review; owner acceptance; Vercel preview confirmation.
+- **Progress:** This batch is a verification and correctness pass, not new feature scope. Wave 4 Creator Studio remains **36% provisional** and the full ten-wave implementation estimate remains **38%**; no percentage increase is claimed.
+
