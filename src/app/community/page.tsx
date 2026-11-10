@@ -16,6 +16,8 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   if (supabase) {
     const { data: claims } = await supabase.auth.getClaims();
     const userId = claims?.claims?.sub;
+    // Promote any scheduled posts whose publish time has arrived before reading the feed.
+    await supabase.rpc("raye2_publish_due_community_posts");
     if (typeof userId === "string") {
       const { count } = await supabase.from("member_notifications").select("id", { count: "exact", head: true }).eq("recipient_id", userId).is("read_at", null);
       unreadNotificationCount = count ?? 0;

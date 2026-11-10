@@ -653,3 +653,9 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-post-body{overflow-wrap:anywhere}
 .nhen-reaction-menu{max-width:min(300px,calc(100vw - 36px))}
 @media(max-width:640px){.nhen-feed-filter{position:sticky;top:64px;z-index:12;padding:8px 0;background:var(--nhen-bg)}.nhen-post-actions{gap:3px}.nhen-post-actions .nhen-action{padding:8px 9px;font-size:11px}}
+
+.nhen-saved-post>footer .nhen-collection-picker{position:relative}
+.nhen-saved-post>footer .nhen-collection-picker>button{border:0;background:transparent;color:var(--nhen-violet);font:inherit;font-weight:750;cursor:pointer}
+.nhen-collection-menu{position:absolute;z-index:20;right:0;bottom:calc(100% + 8px);display:grid;gap:4px;min-width:180px;padding:8px;border:1px solid var(--nhen-line);border-radius:12px;background:var(--nhen-bg);box-shadow:0 18px 45px #0006}
+.nhen-collection-menu button{text-align:left;padding:8px 10px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--nhen-ink);font:inherit;font-size:12px;cursor:pointer}
+.nhen-collection-menu button:hover{border-color:var(--nhen-line);background:var(--nhen-raised)}
