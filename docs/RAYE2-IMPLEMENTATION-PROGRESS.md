@@ -2037,3 +2037,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 10/10**: per-video tag counting, summed views, recent count, unpublished videos excluded, min-count keep/drop, mixed-case folding, limit clamp.
 - [x] Tests +3 (538 total); validator +2 assertions (213); gates green (152 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 6 moves from **18% to 26% provisional**; full ten-wave estimate moves from **~54% to ~55%**.
+
+## 2026-11-10 — Wave 6 watch creator/series context + public video outage repair (mega-batch)
+- [x] Added `raye2_get_watch_context(text)` (SECURITY DEFINER, STABLE, pinned `search_path`, anon + authenticated): creator identity with follower count and viewer follow state, plus the first published playlist and its playable episode count; blocked creators withheld.
+- [x] Watch page now shows a creator card (avatar, followers, optimistic Follow via `raye2_toggle_follow`) linking to `/u/<handle>` and a series card linking to `/series/<slug>` with "Episode N / M"; localized en/ar and styled.
+- [x] **Repaired a pre-existing outage**: the anon revoke of `can_view_creator_workspace()` broke the anon SELECT policies on `video_catalog`/`video_playlists`/`video_playlist_items`/`member_profiles`, so `/watch/<slug>` 404'd and home/shorts/Raye2-home/saved silently showed no videos. Restored the anon grant (anon still sees published-only).
+- [x] **Repaired ambiguous embeds**: pinned every public `video_catalog -> media_items` embed to `media_items!video_catalog_media_id_fkey!inner(...)` (home, public videos, watch library, Raye2 home, saved, shorts, community moments picker).
+- [x] **Live matrix 13/13** watch context + **7/7** anon visibility; all seven public embeds probed OK; `/`, `/shorts`, `/raye2/home` render seeded videos again.
+- [x] Tests 545/545 (+3); validator +6 assertions (219); gates green (154 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 6 moves from **26% to 34% provisional**; full ten-wave estimate moves from **~55% to ~56%**. The outage repair is a correctness fix that also unblocks previously invisible public content.
