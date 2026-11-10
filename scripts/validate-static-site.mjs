@@ -304,6 +304,13 @@ check("discovery exposes a pinned public creator-directory RPC counting only pub
 check("the creator directory supports published, followers and views sorting with a bounded limit", creatorDirectoryMigration.includes("least(greatest(coalesce(p_limit, 24), 1), 60)") && creatorDirectoryMigration.includes("when p_sort = 'followers' then 'followers'") && creatorDirectoryMigration.includes("when p_sort = 'views' then 'views'"));
 check("the creators page localizes, sorts and links each creator to their profile", creatorsSurface.includes('rpc("raye2_list_creators",{p_limit:48,p_sort:selected})') && creatorsSurface.includes('dir={isArabic?"rtl":"ltr"}') && creatorsSurface.includes('href={"/u/"+creator.handle}') && homeSurface.includes('href="/creators"') && searchSurface.includes('href="/creators"'));
 
+const seriesMigration = await read("../supabase/migrations/20261110250000_raye2_series_discovery.sql");
+const seriesIndex = await read("../src/app/series/page.tsx");
+const seriesDetail = await read("../src/app/series/[slug]/page.tsx");
+check("series discovery exposes pinned public read RPCs for the index and the detail", seriesMigration.includes("create or replace function public.raye2_list_series(") && seriesMigration.includes("create or replace function public.raye2_get_series(") && seriesMigration.includes("grant execute on function public.raye2_list_series(integer) to anon, authenticated") && seriesMigration.includes("grant execute on function public.raye2_get_series(text,integer) to anon, authenticated") && seriesMigration.includes("set search_path = ''"));
+check("series only exposes published playlists and published videos, including external embeds", seriesMigration.includes("pl.is_published = true") && seriesMigration.includes("mi.media_type in ('video', 'youtube')") && seriesMigration.includes("coalesce(a.video_count, 0) > 0"));
+check("both series surfaces are bilingual and RTL-aware", seriesIndex.includes('rpc("raye2_list_series",{p_limit:60})') && seriesIndex.includes('dir={isArabic?"rtl":"ltr"}') && seriesDetail.includes('rpc("raye2_get_series",{p_slug:slug,p_limit:200})') && seriesDetail.includes('dir={isArabic?"rtl":"ltr"}'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

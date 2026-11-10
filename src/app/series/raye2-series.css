@@ -10,8 +10,12 @@
 .raye2-series-page h1 em{color:var(--s-blue);font-style:normal}
 .raye2-series-page .nhen-muted{max-width:650px;color:var(--s-muted);font-size:13px;line-height:1.85}
 .raye2-series-page .nhen-series-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:34px}
-.raye2-series-page .nhen-series-card{min-height:230px;display:flex;flex-direction:column;align-items:flex-start;padding:23px;border:1px solid var(--s-line);border-radius:16px;background:linear-gradient(145deg,rgba(19,30,45,.96),var(--s-panel));transition:transform .18s,border-color .18s}
+.raye2-series-page .nhen-series-card{position:relative;overflow:hidden;min-height:230px;display:flex;flex-direction:column;align-items:flex-start;padding:23px;border:1px solid var(--s-line);border-radius:16px;background:linear-gradient(145deg,rgba(19,30,45,.96),var(--s-panel));transition:transform .18s,border-color .18s}
 .raye2-series-page .nhen-series-card:hover{transform:translateY(-3px);border-color:rgba(128,180,255,.4)}
+.raye2-series-page .nhen-series-cover{position:absolute;inset:0;z-index:0;opacity:.32}
+.raye2-series-page .nhen-series-cover img{object-fit:cover}
+.raye2-series-page .nhen-series-card>*{position:relative;z-index:1}
+.raye2-series-page .nhen-series-owner{color:var(--s-muted);font-size:10px;font-weight:750}
 .raye2-series-page .nhen-series-icon{width:42px;height:42px;display:grid;place-items:center;margin-bottom:24px;border:1px solid rgba(128,180,255,.22);border-radius:12px;background:rgba(128,180,255,.08);color:var(--s-blue);font-size:20px}
 .raye2-series-page .nhen-series-card h2{margin:10px 0;font-size:20px;letter-spacing:-.04em}
 .raye2-series-page .nhen-series-card p{color:var(--s-muted);font-size:11px;line-height:1.8}
