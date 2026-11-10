@@ -64,3 +64,16 @@
 @media(max-width:760px){.raye2-watch-library{padding:0 16px 42px}.raye2-watch-header{min-height:68px;gap:12px}.raye2-watch-header nav{display:none}.raye2-watch-search{max-width:none}.raye2-watch-layout{display:block;margin-top:17px}.raye2-watch-rail{position:static;display:flex;align-items:center;gap:4px;margin-bottom:14px;padding:7px;overflow-x:auto}.raye2-watch-rail>.raye2-watch-label{display:none}.raye2-watch-rail>a{flex:0 0 auto;padding:10px;font-size:10px}.raye2-watch-hero{padding:28px 23px}.raye2-watch-grid{gap:11px}.raye2-watch-card-copy{padding:12px}.raye2-watch-card-copy h3{font-size:13px}}
 @media(max-width:540px){.raye2-watch-library{padding-inline:12px}.raye2-watch-search{height:40px}.raye2-watch-search kbd{display:none}.raye2-watch-hero h1{font-size:43px}.raye2-watch-grid{grid-template-columns:1fr}.raye2-watch-card-copy{padding:15px}.raye2-watch-section-head{margin-top:28px}.raye2-watch-card-copy h3{font-size:15px}}
 @media(prefers-reduced-motion:reduce){.raye2-watch-library *{scroll-behavior:auto!important;transition:none!important}}
+
+.raye2-continue{margin:0 0 26px;padding:18px;border:1px solid rgba(121,177,255,.14);border-radius:18px;background:linear-gradient(180deg,rgba(121,177,255,.06),transparent)}
+.raye2-continue-head{margin:0 0 13px}
+.raye2-continue-head h2{font-size:16px;margin:6px 0 0;letter-spacing:-.02em}
+.raye2-continue-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.raye2-continue-card{overflow:hidden;border:1px solid rgba(121,177,255,.16);border-radius:13px;background:#0f1723;transition:border-color .15s}
+.raye2-continue-card:hover{border-color:rgba(121,177,255,.4)}
+.raye2-continue-thumb{position:relative;aspect-ratio:16/9;display:grid;place-items:center;background:radial-gradient(circle at 72% 22%,rgba(121,177,255,.24),transparent 46%),#0a1220;color:#78adff;font-size:22px}
+.raye2-continue-bar{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.12)}
+.raye2-continue-bar i{display:block;height:100%;background:#78adff}
+.raye2-continue-copy{padding:11px}
+.raye2-continue-copy h3{font-size:12px;line-height:1.45;margin:5px 0}
+.raye2-continue-copy p{color:#9fb0c6;font-size:9px;margin:0}

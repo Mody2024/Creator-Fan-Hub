@@ -121,11 +121,18 @@ export default function WatchDetailClient(props:Props){
   }
  }
 
+ async function saveProgress(position:number,duration:number){
+  if(!supabase||!member)return;
+  try{
+   await supabase.rpc("raye2_record_watch_progress",{p_media_id:props.mediaId,p_position:position,p_duration:duration});
+  }catch{}
+ }
+
  return <main className="raye2-detail-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <header className="raye2-detail-header"><Link className="raye2-detail-brand" href="/raye2/home">Raye2<span className="raye2-detail-brand-mark">.</span></Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/community">{t.community}</Link><Link href="/notifications">{t.notifications}</Link><Link href="/series">{t.series}</Link><Link href="/shorts">{t.shorts}</Link><Link href="/#videos">{t.videos}</Link></nav></header>
   <div className="raye2-detail-layout">
    <article className="raye2-detail-main">
-    <div className="raye2-detail-player"><PublicVideoPlayer startAt={props.startAt} hlsSrc={props.hlsSrc} src={props.src} poster={props.poster} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl} locale={locale}/></div>
+    <div className="raye2-detail-player"><PublicVideoPlayer startAt={props.startAt} hlsSrc={props.hlsSrc} src={props.src} poster={props.poster} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl} locale={locale} onProgress={saveProgress}/></div>
     <div className="raye2-detail-title"><div><span className="nhen-section-label">{props.category} / RAYE2 WATCH</span><h1>{props.title}</h1><p className="nhen-muted">{new Date(props.publishedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")} · {t.official}</p></div><span className="nhen-pill nhen-pill-official">✦ OFFICIAL</span></div>
     <div className="raye2-detail-actions"><div className="raye2-detail-reaction"><button className={liked?"active":""} aria-expanded={reactionPicker} aria-haspopup="menu" onClick={()=>setReactionPicker(value=>!value)} disabled={actionBusy}>{myReaction?<NhenReactionArt reaction={myReaction} size={19}/>:<NhenReactionArt reaction="spark" size={19}/>} {myReaction?({spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support"} as Record<string,string>)[myReaction]??t.react:t.react} · {likes}</button>{reactionPicker&&<div className="raye2-detail-picker" role="menu" aria-label={t.choose}>{[{id:"spark",icon:"✦",name:t.spark},{id:"orbit",icon:"◉",name:t.orbit},{id:"legend",icon:"♛",name:t.legend},{id:"laugh",icon:"≋",name:t.laugh},{id:"mindblown",icon:"✧",name:t.mindblown},{id:"support",icon:"♡",name:t.support}].map(item=><button type="button" role="menuitem" key={item.id} className={myReaction===item.id?"active":""} onClick={()=>void chooseReaction(item.id)} disabled={actionBusy}><NhenReactionArt reaction={item.id} size={25}/><span>{item.name}</span></button>)}</div>}</div><button className={saved?"active":""} onClick={()=>void toggleBookmark()} disabled={actionBusy}>▣ {saved?t.saved:t.save}</button><button onClick={()=>void shareVideo()}>↗ {t.share}</button></div>
     <section className="nhen-card nhen-card-pad raye2-detail-description"><h2>{t.about}</h2><p>{props.description||t.noDescription}</p>{props.tags.length>0&&<div className="raye2-detail-tags">{props.tags.map(tag=><Link key={tag} href={"/topics/"+encodeURIComponent(tag)}>#{tag}</Link>)}</div>}</section>

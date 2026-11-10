@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
+import ContinueWatching from "./continue-watching";
 import "./watch-library.css";
 export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
@@ -41,6 +42,7 @@ export default async function WatchLibraryPage(){
    <aside className="raye2-watch-rail"><span className="raye2-watch-label">YOUR SPACE</span><Link href="/raye2/home">⌂ <span>Home</span></Link><Link className="active" href="/watch">▶ <span>Watch</span></Link><Link href="/shorts">▤ <span>Mini’s</span></Link><Link href="/community">◉ <span>Communities</span></Link></aside>
    <section className="raye2-watch-content">
     <div className="raye2-watch-hero"><span className="raye2-watch-label">RAYE2 / WATCH</span><h1>Stories worth<br/><em>your time.</em></h1><p>Discover videos published by creators across Raye2. Watch, react, save and join the conversation.</p><div className="raye2-watch-hero-meta"><span><i/> CREATOR PUBLISHED</span><span>{videos.length} {videos.length===1?"VIDEO":"VIDEOS"}</span></div></div>
+    <ContinueWatching/>
     <div className="raye2-watch-section-head"><div><span className="raye2-watch-label">THE LIBRARY</span><h2>Latest videos</h2></div><span>{videos.length} available</span></div>
     <div className="raye2-watch-grid">{videos.map(video=><article className="raye2-watch-card" key={video.id}><Link className="raye2-watch-card-media" href={"/watch/"+video.slug}><PublicVideoPlayer src={video.src} poster={video.poster} title={video.title} description={video.description} youtubeEmbedUrl={video.youtubeEmbedUrl}/><span className="raye2-watch-play">▶</span></Link><div className="raye2-watch-card-copy"><span className="raye2-watch-label">{video.category.toUpperCase()} · OFFICIAL</span><h3><Link href={"/watch/"+video.slug}>{video.title}</Link></h3><p>{video.description}</p><time>{new Date(video.publishedAt).toLocaleDateString()}</time></div></article>)}</div>
     {!videos.length&&<div className="raye2-watch-empty"><span>▶</span><h2>Your next favourite video is on its way.</h2><p>There are no published videos available yet. Check back soon.</p></div>}

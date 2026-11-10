@@ -3,10 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type Hls from "hls.js";
 
-type Props = { src: string; hlsSrc?: string | null; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar" };
+type Props = { src: string; hlsSrc?: string | null; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar"; onProgress?: (position: number, duration: number) => void };
 
-export default function PublicVideoPlayer({ src, hlsSrc, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en" }: Props) {
+export default function PublicVideoPlayer({ src, hlsSrc, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en", onProgress }: Props) {
   const video = useRef<HTMLVideoElement>(null);
+  const lastReported = useRef(0);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -68,6 +69,18 @@ export default function PublicVideoPlayer({ src, hlsSrc, title, description, you
     return () => player.removeEventListener("loadedmetadata", seek);
   }, [startAt, attempt, hlsSrc]);
 
+  const reportProgress = () => {
+    if (!onProgress) return;
+    const player = video.current;
+    if (!player) return;
+    const position = Math.floor(player.currentTime || 0);
+    const duration = Number.isFinite(player.duration) ? Math.floor(player.duration) : 0;
+    // Throttle to roughly one write every 10 seconds of playback.
+    if (Math.abs(position - lastReported.current) < 10 && position !== 0) return;
+    lastReported.current = position;
+    onProgress(position, duration);
+  };
+
   if (failed) {
     return <div className="public-video-unavailable" role="status">
       <span aria-hidden="true">▶</span>
@@ -87,7 +100,7 @@ export default function PublicVideoPlayer({ src, hlsSrc, title, description, you
       referrerPolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline poster={poster || undefined} aria-label={description || title}
-      onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} src={!hlsSrc || useFallback ? src : undefined}>
+      onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} onTimeUpdate={reportProgress} onPause={reportProgress} onEnded={reportProgress} src={!hlsSrc || useFallback ? src : undefined}>
       Your browser does not support video playback.
     </video>}
   </div>;
