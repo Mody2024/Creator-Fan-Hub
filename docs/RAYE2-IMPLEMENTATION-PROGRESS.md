@@ -1961,3 +1961,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 17/17** with real JWTs: record/read, position clamping to duration, finished-item exclusion (>=95% or within 30s), draft/unpublished refusal, cross-member isolation, recency ordering, clear, anonymous empty read, anonymous write refusal.
 - [x] Tests +6 (498 total); validator +3 assertions (188); gates green (143 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 3 moves from **26% to 29% provisional**; full ten-wave estimate moves from **~45% to ~46%**.
+
+## 2026-11-10 — Wave 3 unified search (mega-batch)
+- [x] Replaced three separate Discover client queries (videos, people, posts) with one pinned `SECURITY DEFINER` read RPC `raye2_search(p_query, p_limit)` returning a single ranked set across videos, people, posts and tags.
+- [x] Ranking: exact match, then prefix, then loose; LIKE wildcards escaped; limit clamped to 60; blank queries return nothing. Only published videos, public members, published posts and valid tags are exposed.
+- [x] Discover gained a Tags tab and Tags section linking to topic pages, and lost its N+1 author lookups.
+- [x] **Live matrix 19/19**: four kinds returned, exact-title ranking, draft/unpublished/private/pending exclusion, `%` wildcard escaping, blank input, limit clamping, case-insensitivity.
+- [x] Tests +5 (503 total); validator +3 assertions (191); gates green (144 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 3 moves from **29% to 32% provisional**; full ten-wave estimate moves from **~46% to ~47%**.
