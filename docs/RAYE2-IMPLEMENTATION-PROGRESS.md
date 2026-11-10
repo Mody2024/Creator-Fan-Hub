@@ -2029,3 +2029,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 12/12**: public group returned, private group hidden, anonymous sees blocked content, signed-in viewer loses blocked author's posts in both directions, own content retained, rank ordering, limit clamp, no-match empty.
 - [x] Tests +4 (535 total); validator +2 assertions (211); gates green (151 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 6 moves from **10% to 18% provisional**; full ten-wave estimate moves from **~53% to ~54%**.
+
+## 2026-11-10 — Wave 6 browsable topics directory (mega-batch)
+- [x] Grew `raye2_list_topics` in place (dropped + recreated, same `integer, integer` signature) to add `total_views` and a 90-day `recent_video_count`; still pinned `SECURITY DEFINER`, granted to anon + authenticated, aggregating only published videos with case-folded tags.
+- [x] Added a public `/topics` index page: topic cards with video/view/recent counts, an All topics / Active topics (min 2) filter, localized copy, cards linking to `/topics/[tag]`.
+- [x] Topic detail page "All topics" link now returns to `/topics`.
+- [x] **Live matrix 10/10**: per-video tag counting, summed views, recent count, unpublished videos excluded, min-count keep/drop, mixed-case folding, limit clamp.
+- [x] Tests +3 (538 total); validator +2 assertions (213); gates green (152 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 6 moves from **18% to 26% provisional**; full ten-wave estimate moves from **~54% to ~55%**.
