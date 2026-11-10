@@ -1,0 +1,23 @@
+.raye2-topic-page{--bg:#080b12;--panel:#101722;--raised:#172334;--line:rgba(220,232,248,.11);--ink:#f3f6fb;--muted:#a2afc1;--blue:#78adff;min-height:100vh;padding:24px;background:var(--bg);color:var(--ink)}
+.raye2-topic-header{width:min(1200px,100%);margin:0 auto 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.raye2-topic-brand{font-size:22px;font-weight:900;letter-spacing:-.06em}
+.raye2-topic-brand span{color:var(--blue)}
+.raye2-topic-header nav{display:flex;gap:9px}
+.raye2-topic-header nav a{padding:9px 12px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:11px;font-weight:750}
+.raye2-topic-header nav a:hover{border-color:rgba(120,173,255,.35);color:var(--blue)}
+.raye2-topic-hero{width:min(1200px,100%);margin:0 auto 20px;padding:26px;border:1px solid var(--line);border-radius:18px;background:radial-gradient(ellipse at 90% 0,rgba(77,145,240,.2),transparent 55%),var(--panel)}
+.raye2-topic-label{font:700 10px monospace;letter-spacing:.12em;color:var(--muted)}
+.raye2-topic-hero h1{font-size:clamp(24px,4vw,40px);line-height:1.08;letter-spacing:-.05em;margin:10px 0}
+.raye2-topic-hero h1 em{font-style:normal;color:var(--blue)}
+.raye2-topic-hero p{color:var(--muted);font-size:12px;margin:0 0 12px}
+.raye2-topic-back{color:var(--blue);font-size:11px;font-weight:800}
+.raye2-topic-grid{width:min(1200px,100%);margin:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px}
+.raye2-topic-card{overflow:hidden;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.raye2-topic-card:hover{border-color:rgba(120,173,255,.35)}
+.raye2-topic-thumb{aspect-ratio:16/9;display:grid;place-items:center;background:radial-gradient(circle at 75% 20%,rgba(120,173,255,.25),transparent 45%),#0a1220;color:var(--blue);font-size:26px}
+.raye2-topic-copy{padding:13px}
+.raye2-topic-copy h3{font-size:13px;line-height:1.5;margin:6px 0}
+.raye2-topic-copy p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);font-size:10px;line-height:1.6;margin:0 0 6px}
+.raye2-topic-copy time{color:var(--muted);font-size:9px}
+.raye2-topic-empty{width:min(1200px,100%);margin:auto;padding:30px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:700px){.raye2-topic-page{padding:13px}.raye2-topic-hero{padding:20px 16px}.raye2-topic-grid{grid-template-columns:1fr}}

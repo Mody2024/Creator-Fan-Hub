@@ -55,5 +55,7 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
    youtubeEmbedUrl="https://www.youtube-nocookie.com/embed/"+id+"?rel=0";
   }catch{notFound();}
  }
- return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]}/>;
+ const relatedResult=await supabase.rpc("raye2_get_related_videos",{p_media_id:data.media_id,p_limit:6});
+ const related=(relatedResult.data??[]) as {slug:string;title:string;category:string;description:string;published_at:string}[];
+ return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related}/>;
 }

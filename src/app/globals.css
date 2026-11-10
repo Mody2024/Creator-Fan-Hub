@@ -968,3 +968,16 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .poll-schedule-row button{background:transparent;border:1px solid var(--line);color:var(--ink);padding:9px 12px;font:10px var(--mono);cursor:pointer}
 .poll-schedule-row button:disabled{opacity:.5;cursor:wait}
 @media(max-width:560px){.poll-schedule-row button{flex:1 1 40%}}
+
+.raye2-detail-related{margin-top:18px}
+.raye2-detail-related-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 2px 11px}
+.raye2-detail-related-head h2{font-size:15px;margin:0}
+.raye2-detail-related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:11px}
+.raye2-detail-related-card{overflow:hidden;border:1px solid rgba(121,177,255,.17);border-radius:13px;background:#101722}
+.raye2-detail-related-card:hover{border-color:rgba(120,173,255,.4)}
+.raye2-detail-related-thumb{aspect-ratio:16/9;display:grid;place-items:center;background:radial-gradient(circle at 75% 20%,rgba(120,173,255,.25),transparent 45%),#0a1220;color:#78adff;font-size:22px}
+.raye2-detail-related-copy{padding:11px}
+.raye2-detail-related-copy h3{font-size:12px;line-height:1.45;margin:5px 0}
+.raye2-detail-related-copy p{color:#a2afc1;font-size:9px;margin:0}
+.raye2-detail-tags a{padding:6px 9px;border:1px solid rgba(121,177,255,.17);border-radius:999px;background:rgba(121,177,255,.07);color:#a9cbfa;font-size:9px}
+.raye2-detail-tags a:hover{border-color:rgba(120,173,255,.45);color:#78adff}

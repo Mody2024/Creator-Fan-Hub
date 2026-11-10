@@ -276,6 +276,14 @@ check("discovery exposes public trending RPCs as pinned SECURITY DEFINER functio
 check("trending only surfaces published content and weights engagement with an age decay", trendingMigration.includes("p.status = 'published'") && trendingMigration.includes("mi.is_published = true and mi.media_type in ('video','youtube')") && trendingMigration.includes("3 * coalesce(r.reaction_count, 0) + 2 * coalesce(c.comment_count, 0)") && trendingMigration.includes("power(extract(epoch from (now() - p.created_at))"));
 check("the discover page renders trending videos, conversations and tags when no search term is present", searchPage.includes('rpc("raye2_get_trending_videos"') && searchPage.includes('rpc("raye2_get_trending_posts"') && searchPage.includes('rpc("raye2_get_trending_tags"') && searchPage.includes("{!term&&") && searchPage.includes("noTrending"));
 
+const topicsMigration = await read("../supabase/migrations/20261110210000_raye2_video_topics_related.sql");
+const topicPage = await read("../src/app/topics/[tag]/page.tsx");
+const watchDetailPage = await read("../src/app/watch/[slug]/page.tsx");
+const watchDetailClient = await read("../src/app/watch/[slug]/watch-detail-client.tsx");
+check("topics and related videos are public pinned SECURITY DEFINER read RPCs granted to anon and authenticated", topicsMigration.includes("create or replace function public.raye2_get_related_videos(") && topicsMigration.includes("create or replace function public.raye2_list_topics(") && topicsMigration.includes("create or replace function public.raye2_get_topic_videos(") && topicsMigration.includes("grant execute on function public.raye2_list_topics(integer,integer) to anon, authenticated") && topicsMigration.includes("set search_path = ''"));
+check("related videos rank by shared tags and category while topics only aggregate published videos", topicsMigration.includes("order by c.shared_tags desc, c.published_at desc") && topicsMigration.includes("c.shared_tags > 0 or c.category = (select category from source)") && topicsMigration.includes("length(btrim(tag)) between 1 and 40"));
+check("the topic page localizes, links from the watch detail tags, and the watch page loads a related-videos rail", topicPage.includes('cookieStore.get("nhen_locale")') && topicPage.includes('dir={isArabic?"rtl":"ltr"}') && topicPage.includes("raye2_get_topic_videos") && watchDetailPage.includes('rpc("raye2_get_related_videos"') && watchDetailClient.includes('href={"/topics/"+encodeURIComponent(tag)}') && watchDetailClient.includes("raye2-detail-related"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
