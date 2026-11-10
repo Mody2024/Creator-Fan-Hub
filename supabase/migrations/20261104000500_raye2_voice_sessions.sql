@@ -81,13 +81,13 @@ create policy "Raye2 voice sessions visible to invited and joined participants"
   ));
 create or replace function public.raye2_can_access_voice_session(p_session_id uuid,p_require_joined boolean default false)
 returns boolean language sql stable security definer set search_path=''
-as $
+as $$
   select (select auth.uid()) is not null and exists (
     select 1 from public.raye2_voice_participants p
     where p.session_id=p_session_id and p.user_id=(select auth.uid())
       and case when p_require_joined then p.status='joined' else p.status in ('invited','joined') end
   );
-$;
+$$;
 revoke all on function public.raye2_can_access_voice_session(uuid,boolean) from public,anon;
 grant execute on function public.raye2_can_access_voice_session(uuid,boolean) to authenticated;
 
@@ -425,9 +425,17 @@ grant execute on function public.raye2_respond_voice_recording_consent(uuid,text
 
 create or replace function public.raye2_can_access_voice_topic(p_topic text,p_require_joined boolean default false)
 returns boolean language sql stable security definer set search_path=''
-as $
+as $$
   select case
-    when p_topic ~ '^raye2:voice:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12} Invited users can
+    when p_topic ~ '^raye2:voice:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    then public.raye2_can_access_voice_session(substring(p_topic from 13)::uuid,p_require_joined)
+    else false
+  end;
+$$;
+revoke all on function public.raye2_can_access_voice_topic(text,boolean) from public,anon;
+grant execute on function public.raye2_can_access_voice_topic(text,boolean) to authenticated;
+
+-- Private Realtime topics are scoped to a session participant. Invited users can
 -- receive the incoming-call event; only joined participants can publish.
 drop policy if exists "Raye2 voice participants can receive private signaling" on realtime.messages;
 create policy "Raye2 voice participants can receive private signaling"
@@ -437,48 +445,6 @@ drop policy if exists "Raye2 joined voice participants can send private signalin
 create policy "Raye2 joined voice participants can send private signaling"
   on realtime.messages for insert to authenticated
   with check (extension in ('broadcast','presence') and public.raye2_can_access_voice_topic(realtime.topic(),true));
-
-revoke all on function public.raye2_create_voice_session(uuid,text) from public,anon;
-revoke all on function public.raye2_join_voice_session(uuid) from public,anon;
-revoke all on function public.raye2_decline_voice_invitation(uuid) from public,anon;
-revoke all on function public.raye2_leave_voice_session(uuid) from public,anon;
-revoke all on function public.raye2_moderate_voice_session(uuid,text,uuid) from public,anon;
-revoke all on function public.raye2_request_voice_recording_consent(uuid) from public,anon;
-revoke all on function public.raye2_respond_voice_recording_consent(uuid,text) from public,anon;
-
-    then public.raye2_can_access_voice_session(substring(p_topic from 13)::uuid,p_require_joined)
-    else false
-  end;
-$;
-revoke all on function public.raye2_can_access_voice_topic(text,boolean) from public,anon;
-grant execute on function public.raye2_can_access_voice_topic(text,boolean) to authenticated;
-
--- Private Realtime topics are scoped to a session participant. Invited users can
--- receive the incoming-call event; only joined participants can publish.
-drop policy if exists "Raye2 voice participants can receive private signaling" on realtime.messages;
-create policy "Raye2 voice participants can receive private signaling"
-  on realtime.messages for select to authenticated
-  using (
-    extension in ('broadcast','presence')
-    and exists (
-      select 1 from public.raye2_voice_participants p
-      where p.session_id=case when realtime.topic() ~ '^raye2:voice:[0-9a-fA-F-]{36}$'
-        then substring(realtime.topic() from 13)::uuid else null end
-        and p.user_id=(select auth.uid()) and p.status in ('invited','joined')
-    )
-  );
-drop policy if exists "Raye2 joined voice participants can send private signaling" on realtime.messages;
-create policy "Raye2 joined voice participants can send private signaling"
-  on realtime.messages for insert to authenticated
-  with check (
-    extension in ('broadcast','presence')
-    and exists (
-      select 1 from public.raye2_voice_participants p
-      where p.session_id=case when realtime.topic() ~ '^raye2:voice:[0-9a-fA-F-]{36}$'
-        then substring(realtime.topic() from 13)::uuid else null end
-        and p.user_id=(select auth.uid()) and p.status='joined'
-    )
-  );
 
 revoke all on function public.raye2_create_voice_session(uuid,text) from public,anon;
 revoke all on function public.raye2_join_voice_session(uuid) from public,anon;

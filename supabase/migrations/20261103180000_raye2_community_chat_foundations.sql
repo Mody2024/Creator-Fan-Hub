@@ -135,7 +135,7 @@ create index if not exists raye2_shared_memories_expiry_idx on public.raye2_shar
 
 create table if not exists public.raye2_platform_rules (
   rule_key text primary key check (rule_key ~ '^[a-z][a-z0-9_.-]{1,100}$'),
-  category text not null check (category in ('roles','content','chat','groups','voice','recording','watch_together','retention','storage','safety')),
+  category text not null check (category in ('roles','content','chat','groups','voice','recording','watch','watch_together','retention','storage','safety')),
   rule_value jsonb not null,
   status text not null default 'proposed' check (status in ('proposed','active','disabled')),
   description text not null default '',

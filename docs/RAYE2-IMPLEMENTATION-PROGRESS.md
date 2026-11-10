@@ -1827,3 +1827,31 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [ ] Still pending: applying the committed migrations and running live RLS/RPC acceptance against an isolated Supabase project; browser/mobile/RTL visual review; owner acceptance; Vercel preview confirmation.
 - **Progress:** This batch is a verification and correctness pass, not new feature scope. Wave 4 Creator Studio remains **36% provisional** and the full ten-wave implementation estimate remains **38%**; no percentage increase is claimed.
 
+
+
+## 2026-11-10 — First successful migration apply against a real Supabase stack
+- [x] Stood up the local Supabase stack (Docker 29.9.3 via `sudo dockerd`; Supabase CLI 3.1.0; Postgres `major_version = 17`; `pgcrypto`) and ran the **entire 109-file migration chain to completion for the first time**. `supabase db reset` applies every migration cleanly and reports "Finished supabase db reset on branch development."
+- [x] Fixed the four defects that had prevented any migration from ever applying:
+  1. `20261031234138_nhen_community_core.sql:85` — bare `$;` dollar-quote terminator (should be `$$;`). This halted the chain around migration 34.
+  2. `20261104000500_raye2_voice_sessions.sql` — two functions used a bare `as $` / `$;` delimiter pair instead of `as $$` / `$$;`.
+  3. `20261104000500_raye2_voice_sessions.sql` — a duplicated policy block had been spliced into the `raye2_can_access_voice_topic` function body (its regex literal was truncated mid-pattern and merged with the realtime-policy text). Reconstructed the function to its intended single-expression form and restored the realtime policies to the anti-recursion design that calls the `raye2_can_access_voice_topic(realtime.topic(),false|true)` helper instead of reading the participant table directly.
+  4. `20261102182905_nhen_explicit_public_reaction_rpc_grants.sql` — granted `execute` on `get_community_short_reaction_counts(uuid[])` before that function was created in `20261102190914`. Removed the premature grant (the function is still granted in the later migration).
+  5. `20261103180000_raye2_community_chat_foundations.sql` — the `raye2_platform_rules.category` check constraint omitted `'watch'`, but `20261104040000_raye2_watch_together.sql` inserts five rows with category `'watch'`. Added `'watch'` to the allowed set.
+- [x] Verified the materialized schema on the live database: 76 public tables, 159 public functions, 127 public RLS policies, and 4 realtime policies.
+- [x] Live security acceptance (first ever for this schema):
+  - **151 of 151** `SECURITY DEFINER` functions pin `search_path` (`proconfig` includes `search_path=`).
+  - Creator RPCs (voice create/moderate, notification read) are granted to `authenticated` and `service_role` but **not** `anon`/`PUBLIC`.
+  - The only anon-executable `SECURITY DEFINER` functions are the seven intended public endpoints (poll vote, public poll results, public ideas read/submit, and the three aggregate reaction counters).
+  - RLS enforcement proven with real JWT claims: `anon` is denied at the table-privilege level; a non-owner `authenticated` user sees 0 rows; the owner sees their own row.
+- [x] Re-ran the full Node regression suite after the SQL edits: **449 tests, 449 pass, 0 fail**.
+- [x] Ran the Next.js app locally against the verified schema for the first time (`npm run dev` with a gitignored `.env.local`). Routes respond: `/` 200, `/community` 200, `/raye2/home` 200, `/series` 200; `/creator` correctly 307-redirects to `/creator/login`. No runtime errors in the dev log.
+- [x] End-to-end HTTP acceptance through PostgREST:
+  - anon calling the public aggregate RPC `get_community_reaction_counts` → **200**;
+  - anon calling creator RPC `raye2_mark_creator_notification_read` → **401** `permission denied for function`;
+  - authenticated non-creator calling it → **403** `assigned creator access required` (in-database guard);
+  - authenticated member reading `raye2_voice_preferences` → **200** with RLS-scoped rows;
+  - after granting `creator_admins` role `creator`, the same user's `raye2_mark_all_creator_notifications_read` → **200**.
+- [x] Added `supabase/.temp/` and `supabase/.branches/` to `.gitignore` (local CLI state only).
+- [x] Validated the reconstructed `raye2_can_access_voice_topic` helper at runtime: malformed topics return `false` without a UUID-cast error; an invited-only participant can receive but not send (`false`/`true` → `t`/`f`); a joined participant can do both (`t`/`t`); a non-participant gets `f`/`f`.
+- [ ] Still pending: browser/mobile/RTL visual review, owner acceptance, Vercel preview confirmation, and the remaining Raye2 backlog items.
+- **Progress:** This batch repairs the migration chain and provides the first real-schema verification. Wave 4 Creator Studio remains **36% provisional** and the full ten-wave implementation estimate remains **38%**; no percentage increase is claimed pending a weighted acceptance review.
