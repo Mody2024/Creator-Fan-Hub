@@ -12,12 +12,15 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   let posts: CommunityPost[] = [];
   let unreadNotificationCount = 0;
   let suggestedMembers: SuggestedMember[] = [];
+  let canModerate = false;
   if (supabase) {
     const { data: claims } = await supabase.auth.getClaims();
     const userId = claims?.claims?.sub;
     if (typeof userId === "string") {
       const { count } = await supabase.from("member_notifications").select("id", { count: "exact", head: true }).eq("recipient_id", userId).is("read_at", null);
       unreadNotificationCount = count ?? 0;
+      const { data: staffRow } = await supabase.from("creator_admins").select("role").eq("user_id", userId).eq("active", true).in("role", ["owner", "admin", "moderator"]).maybeSingle();
+      canModerate = !!staffRow;
       const [{ data: follows }, { data: blocks }, { data: candidates }] = await Promise.all([
         supabase.from("member_follows").select("followed_id").eq("follower_id", userId),
         supabase.from("member_blocks").select("blocked_id").eq("blocker_id", userId),
@@ -35,7 +38,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
     }
     let postQuery = supabase
       .from("community_posts")
-      .select("id,author_id,post_type,body,linked_video_id,status,created_at")
+      .select("id,author_id,post_type,body,linked_video_id,status,created_at,pinned")
       .eq("status", "published");
     if (followedIds !== null) postQuery = followedIds.length ? postQuery.in("author_id", followedIds) : postQuery.in("author_id", ["00000000-0000-0000-0000-000000000000"]);
     const { data } = await postQuery.order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(40);
@@ -52,8 +55,9 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
       body: row.body,
       createdAt: row.created_at,
       linkedVideoId: row.linked_video_id,
+      pinned: row.pinned,
       author: byId.get(row.author_id) ?? { handle: "creator", display_name: "NHEN Creator", avatar_url: null }
     }));
   }
-  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} />;
+  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} canModerate={canModerate} />;
 }
