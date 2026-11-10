@@ -62,3 +62,33 @@ poll/idea surface. When seeding a creator in a live test, insert
 `docs/RAYE2-IMPLEMENTATION-PROGRESS.md` is the running log. Append a section per batch with the
 concrete defects live execution caught, the behavioral-matrix result, the gate results, and a
 progress estimate. Keep `main` untouched; work on `development`.
+
+## Anon-policy helper revokes are an outage class (hit twice)
+
+Several hardening migrations revoked `execute` on SECURITY DEFINER helpers from `anon`, but those
+helpers are called inside **anon SELECT policies**. When that happens every anonymous read of the
+affected table fails with `permission denied for function <name>` and the surface renders empty.
+Observed so far: `is_active_creator`, `can_view_creator_workspace`, `is_member_blocked`, and
+`private.can_moderate_community` (the last also needs `grant usage on schema private to anon`).
+
+Rule of thumb: a helper that appears in a `for select to anon` policy must be executable by anon.
+Granting is safe when the helper returns a caller-scoped answer (anon has no `auth.uid()`, so
+member/creator/moderation checks return false and reveal nothing). When a policy also reads a
+member-only table directly (e.g. `member_blocks`), move that read into a SECURITY DEFINER helper.
+
+Fast way to find these: for each anon-readable table, `select * limit 1` as anon and grep the error
+for `permission denied for function`. Tables that legitimately deny anon show `permission denied for
+table` instead — those are fine.
+
+## Local watch pages 404 by design
+
+`src/app/watch/[slug]/page.tsx` requires the resolved storage public URL to be `https:`
+(`if(parsedPublicUrl.protocol!=="https:")notFound()`). A local Supabase stack serves
+`http://127.0.0.1:54321/storage/...`, so the watch page always 404s locally. Do not treat that as a
+regression; verify watch behaviour at the RPC/RLS layer and via validator/tests instead.
+
+## Live Supabase verification
+
+`npx supabase@latest db reset --no-seed` reapplies the whole migration chain locally. Use it to
+prove new migrations and to run behavioral matrices with the anon + service-role keys from
+`supabase status`. Docker socket perms may need fixing for uid 10001 first.
