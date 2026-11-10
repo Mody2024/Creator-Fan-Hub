@@ -143,8 +143,8 @@ export default function CommunityClient({ initialPosts, selectedFeed, unreadNoti
   async function followSuggested(userId: string) {
     if (!supabase || !member || followBusy) return;
     setFollowBusy(userId);
-    const { error } = await supabase.from("member_follows").insert({ follower_id: member.id, followed_id: userId });
-    if (error) setStatus(t.followError); else setFollowedSuggestions(current => [...current, userId]);
+    const { data, error } = await supabase.rpc("raye2_toggle_follow", { p_target_id: userId });
+    if (error || data !== true) setStatus(t.followError); else setFollowedSuggestions(current => [...current, userId]);
     setFollowBusy(null);
   }
 

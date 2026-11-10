@@ -9,32 +9,40 @@ type Profile={userId:string;handle:string;displayName:string;bio:string;avatarUr
 export type ProfilePost={id:string;body:string;createdAt:string;type:string};
 type ProfileVideo={id:string;title:string;slug:string;description:string;category:string;src:string};
 type ProfileShort={id:string;title:string;caption:string;src:string;duration:number};
+type Connection={userId:string;handle:string;displayName:string;avatarUrl:string|null};
 
 export default function MemberProfileClient({profile,posts,videos,communityShorts,locale="en",followerCount,followingCount}:{profile:Profile;posts:ProfilePost[];videos:ProfileVideo[];communityShorts:ProfileShort[];locale?:"en"|"ar";followerCount:number;followingCount:number}){
- const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);const isArabic=locale==="ar";const t=isArabic?{community:"المجتمع",watch:"شاهد",cancel:"إلغاء",edit:"تعديل الملف الشخصي",follow:"متابعة",following:"تتابعه",unblock:"إلغاء الحظر",block:"حظر",signIn:"سجّل الدخول لمتابعة الأعضاء.",followError:"تعذر تحديث قائمة المتابعة.",blockError:"تعذر حظر هذا العضو.",unblockError:"تعذر إلغاء الحظر.",unblocked:"تم إلغاء الحظر.",saveError:"تعذر حفظ الملف الشخصي.",saved:"تم تحديث الملف الشخصي.",display:"الاسم المعروض",bioLabel:"نبذة",website:"الموقع الإلكتروني",save:"حفظ الملف الشخصي ↗",milestones:"الإنجازات",posts:"منشورات",followers:"متابعون",followingStat:"يتابع",joined:"انضم",videos:"الفيديوهات",published:"منشور",noVideos:"لا توجد فيديوهات منشورة بعد.",bits:"ميني",shared:"تمت المشاركة",noBits:"لا توجد لقطات مشتركة بعد.",communityPosts:"منشورات المجتمع",noPosts:"لا توجد منشورات عامة بعد.",official:"رسمي",communityType:"المجتمع"}:{community:"Community",watch:"Watch",cancel:"Cancel",edit:"Edit profile",follow:"Follow",following:"Following",unblock:"Unblock",block:"Block",signIn:"Sign in to follow members.",followError:"Could not update your following list.",blockError:"Could not block this member.",unblockError:"Could not unblock this member.",unblocked:"Member unblocked.",saveError:"Could not save profile.",saved:"Profile updated.",display:"Display name",bioLabel:"Bio",website:"Website",save:"Save profile ↗",milestones:"MILESTONES",posts:"Posts",followers:"Followers",followingStat:"Following",joined:"Joined",videos:"Videos",published:"published",noVideos:"No published videos yet.",bits:"Mini's",shared:"shared",noBits:"No Mini’s shared yet.",communityPosts:"Community posts",noPosts:"No public posts yet.",official:"OFFICIAL",communityType:"COMMUNITY"};
+ const supabase=useMemo(()=>getSupabaseBrowserClient(),[]);const isArabic=locale==="ar";const t=isArabic?{community:"المجتمع",watch:"شاهد",cancel:"إلغاء",edit:"تعديل الملف الشخصي",follow:"متابعة",following:"تتابعه",unblock:"إلغاء الحظر",block:"حظر",signIn:"سجّل الدخول لمتابعة الأعضاء.",followError:"تعذر تحديث قائمة المتابعة.",blockError:"تعذر حظر هذا العضو.",unblockError:"تعذر إلغاء الحظر.",unblocked:"تم إلغاء الحظر.",saveError:"تعذر حفظ الملف الشخصي.",saved:"تم تحديث الملف الشخصي.",display:"الاسم المعروض",bioLabel:"نبذة",website:"الموقع الإلكتروني",save:"حفظ الملف الشخصي ↗",milestones:"الإنجازات",posts:"منشورات",followers:"متابعون",followingStat:"يتابع",joined:"انضم",videos:"الفيديوهات",published:"منشور",noVideos:"لا توجد فيديوهات منشورة بعد.",bits:"ميني",shared:"تمت المشاركة",noBits:"لا توجد لقطات مشتركة بعد.",communityPosts:"منشورات المجتمع",noPosts:"لا توجد منشورات عامة بعد.",official:"رسمي",communityType:"المجتمع",followersList:"المتابعون",followingList:"يتابعهم",mutual:"متابع مشترك",mutualLabel:"يتابعهم أشخاص تتابعهم",close:"إغلاق",loadingConnections:"جارٍ التحميل…",noConnections:"لا يوجد أعضاء لعرضهم بعد.",connectionsError:"تعذر تحميل القائمة."}:{community:"Community",watch:"Watch",cancel:"Cancel",edit:"Edit profile",follow:"Follow",following:"Following",unblock:"Unblock",block:"Block",signIn:"Sign in to follow members.",followError:"Could not update your following list.",blockError:"Could not block this member.",unblockError:"Could not unblock this member.",unblocked:"Member unblocked.",saveError:"Could not save profile.",saved:"Profile updated.",display:"Display name",bioLabel:"Bio",website:"Website",save:"Save profile ↗",milestones:"MILESTONES",posts:"Posts",followers:"Followers",followingStat:"Following",joined:"Joined",videos:"Videos",published:"published",noVideos:"No published videos yet.",bits:"Mini's",shared:"shared",noBits:"No Mini’s shared yet.",communityPosts:"Community posts",noPosts:"No public posts yet.",official:"OFFICIAL",communityType:"COMMUNITY",followersList:"Followers",followingList:"Following",mutual:"mutual",mutualLabel:"Followed by people you follow",close:"Close",loadingConnections:"Loading…",noConnections:"No members to show yet.",connectionsError:"Could not load this list."};
  const [viewer,setViewer]=useState<string|null>(null),[following,setFollowing]=useState(false),[blocked,setBlocked]=useState(false),[relationshipBusy,setRelationshipBusy]=useState(false),[followers,setFollowers]=useState(followerCount),[editing,setEditing]=useState(false),[displayName,setDisplayName]=useState(profile.displayName),[bio,setBio]=useState(profile.bio),[website,setWebsite]=useState(profile.websiteUrl??""),[notice,setNotice]=useState("");
- useEffect(()=>{if(!supabase)return;let alive=true;void(async()=>{const {data}=await supabase.auth.getUser();if(!alive||!data.user)return;setViewer(data.user.id);if(data.user.id!==profile.userId){const {data:edge}=await supabase.from("member_follows").select("follower_id").eq("follower_id",data.user.id).eq("followed_id",profile.userId).maybeSingle();if(alive)setFollowing(!!edge);const {data:block}=await supabase.from("member_blocks").select("blocked_id").eq("blocker_id",data.user.id).eq("blocked_id",profile.userId).maybeSingle();if(alive)setBlocked(!!block)}})();return()=>{alive=false}},[supabase,profile.userId]);
- async function toggleFollow(){if(!supabase||!viewer){setNotice(t.signIn);return}if(relationshipBusy||viewer===profile.userId||blocked)return;setRelationshipBusy(true);const next=!following;setFollowing(next);setFollowers(n=>Math.max(0,n+(next?1:-1)));try{const result=next?await supabase.from("member_follows").insert({follower_id:viewer,followed_id:profile.userId}):await supabase.from("member_follows").delete().eq("follower_id",viewer).eq("followed_id",profile.userId);if(result.error){setFollowing(!next);setFollowers(n=>Math.max(0,n+(next?-1:1)));setNotice(t.followError)}}catch{setFollowing(!next);setFollowers(n=>Math.max(0,n+(next?-1:1)));setNotice(t.followError)}finally{setRelationshipBusy(false)}}
+ const [mutualCount,setMutualCount]=useState(0);
+ const [connections,setConnections]=useState<{kind:"followers"|"following";loading:boolean;rows:Connection[]}|null>(null);
+ useEffect(()=>{if(!supabase)return;let alive=true;void(async()=>{const {data}=await supabase.auth.getUser();if(!alive||!data.user)return;setViewer(data.user.id);if(data.user.id!==profile.userId){const {data:edge}=await supabase.from("member_follows").select("follower_id").eq("follower_id",data.user.id).eq("followed_id",profile.userId).maybeSingle();if(alive)setFollowing(!!edge);const {data:block}=await supabase.from("member_blocks").select("blocked_id").eq("blocker_id",data.user.id).eq("blocked_id",profile.userId).maybeSingle();if(alive)setBlocked(!!block);const {data:mutual}=await supabase.rpc("raye2_get_mutual_followers",{p_user_id:profile.userId,p_limit:30});if(alive&&Array.isArray(mutual))setMutualCount(mutual.length)}})();return()=>{alive=false}},[supabase,profile.userId]);
+ async function toggleFollow(){if(!supabase||!viewer){setNotice(t.signIn);return}if(relationshipBusy||viewer===profile.userId||blocked)return;setRelationshipBusy(true);const previous=following;setFollowing(!previous);setFollowers(n=>Math.max(0,n+(previous?-1:1)));try{const {data,error}=await supabase.rpc("raye2_toggle_follow",{p_target_id:profile.userId});if(error)throw error;const next=!!data;if(next!==!previous){setFollowing(next);setFollowers(n=>Math.max(0,n+(next?1:-1)));}}catch{setFollowing(previous);setFollowers(n=>Math.max(0,n+(previous?1:-1)));setNotice(t.followError)}finally{setRelationshipBusy(false)}}
  async function toggleBlock(){
   if(!supabase||!viewer||viewer===profile.userId||relationshipBusy)return;
   setRelationshipBusy(true);
+  const wasBlocked=blocked;
   try{
-  if(!blocked){
-   const {error:blockError}=await supabase.from("member_blocks").insert({blocker_id:viewer,blocked_id:profile.userId});
-   if(blockError){setNotice(t.blockError);return;}
-   const {error:followError}=await supabase.from("member_follows").delete().eq("follower_id",viewer).eq("followed_id",profile.userId);
-   if(followError){
-    await supabase.from("member_blocks").delete().eq("blocker_id",viewer).eq("blocked_id",profile.userId);
-    setNotice(t.blockError);return;
+   const {data,error}=await supabase.rpc("raye2_toggle_block",{p_target_id:profile.userId});
+   if(error)throw error;
+   const nowBlocked=!!data;
+   if(nowBlocked){
+    if(following){setFollowing(false);setFollowers(n=>Math.max(0,n-1));}
+    setBlocked(true);setNotice(isArabic?"تم حظر العضو وإلغاء المتابعة.":"Member blocked and follow removed.");
+   }else{
+    setBlocked(false);setNotice(t.unblocked);
    }
-   if(following){setFollowing(false);setFollowers(n=>Math.max(0,n-1));}
-   setBlocked(true);setNotice(isArabic?"تم حظر العضو وإلغاء المتابعة.":"Member blocked and follow removed.");
-  }else{
-   const {error}=await supabase.from("member_blocks").delete().eq("blocker_id",viewer).eq("blocked_id",profile.userId);
-   if(error){setNotice(t.unblockError);return;}
-   setBlocked(false);setNotice(t.unblocked);
-  }
-  }catch{setNotice(blocked?t.unblockError:t.blockError)}finally{setRelationshipBusy(false)}
+  }catch{setBlocked(wasBlocked);setNotice(blocked?t.unblockError:t.blockError)}finally{setRelationshipBusy(false)}
+ }
+ async function openConnections(kind:"followers"|"following"){
+  if(!supabase)return;
+  setConnections({kind,loading:true,rows:[]});
+  try{
+   const {data,error}=await supabase.rpc("raye2_get_member_connections",{p_user_id:profile.userId,p_kind:kind,p_limit:60});
+   if(error)throw error;
+   const rows=(Array.isArray(data)?data:[]).map((row:{user_id:string;handle:string;display_name:string;avatar_url:string|null})=>({userId:row.user_id,handle:row.handle,displayName:row.display_name,avatarUrl:row.avatar_url}));
+   setConnections({kind,loading:false,rows});
+  }catch{setNotice(t.connectionsError);setConnections({kind,loading:false,rows:[]})}
  }
  async function saveProfile(){if(!supabase||!viewer||viewer!==profile.userId)return;const {error}=await supabase.from("member_profiles").update({display_name:displayName.trim().slice(0,40),bio:bio.trim().slice(0,240),website_url:website.trim()||null}).eq("user_id",viewer);setNotice(error?t.saveError:t.saved);if(!error)setEditing(false)}
  return <main className={styles.page} dir={isArabic?"rtl":"ltr"} lang={locale}>
@@ -50,8 +58,9 @@ export default function MemberProfileClient({profile,posts,videos,communityShort
     {editing&&viewer===profile.userId&&<div className={styles.editor}><label>{t.display}<input value={displayName} onChange={e=>setDisplayName(e.target.value)} maxLength={40}/></label><label>{t.bioLabel}<textarea value={bio} onChange={e=>setBio(e.target.value)} maxLength={240} rows={3}/></label><label>{t.website}<input value={website} onChange={e=>setWebsite(e.target.value)} placeholder="https://…"/></label><button className={styles.primary} type="button" onClick={()=>void saveProfile()}>{t.save}</button></div>}
     {profile.bio&&<p className={styles.bio}>{profile.bio}</p>}
     {profile.websiteUrl&&<a className={styles.website} href={profile.websiteUrl} target="_blank" rel="noreferrer">{profile.websiteUrl}</a>}
+    {viewer&&viewer!==profile.userId&&mutualCount>0&&<p className={styles.mutual}>{mutualCount} {t.mutual} · {t.mutualLabel}</p>}
     {profile.achievements.length>0&&<section className={styles.achievements}><span className={styles.eyebrow}>{t.milestones}</span><div className={styles.achievementGrid}>{profile.achievements.map(a=><div className={styles.achievement} key={a.code} title={a.description}><span>{a.icon}</span><div><strong>{a.title}</strong><small>{a.description}</small></div></div>)}</div></section>}
-    <div className={styles.stats}><span><strong>{posts.length+videos.length+communityShorts.length}</strong>{t.posts}</span><span><strong>{followers}</strong>{t.followers}</span><span><strong>{followingCount}</strong>{t.followingStat}</span><span>{t.joined} {new Date(profile.joinedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")}</span></div>
+    <div className={styles.stats}><span><strong>{posts.length+videos.length+communityShorts.length}</strong>{t.posts}</span><button type="button" className={styles.statButton} onClick={()=>void openConnections("followers")}><strong>{followers}</strong>{t.followers}</button><button type="button" className={styles.statButton} onClick={()=>void openConnections("following")}><strong>{followingCount}</strong>{t.followingStat}</button><span>{t.joined} {new Date(profile.joinedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")}</span></div>
    </section>
    {notice&&<p className={styles.notice} role="status">{notice}</p>}
    <nav className={styles.profileTabs} aria-label={isArabic?"أقسام الملف الشخصي":"Profile sections"}><a href="#profile-videos">{t.videos}</a><a href="#profile-shorts">{t.bits}</a><a href="#profile-posts">{t.communityPosts}</a></nav>
@@ -59,5 +68,11 @@ export default function MemberProfileClient({profile,posts,videos,communityShort
    <section className={styles.section} id="profile-shorts"><div className={styles.sectionHead}><h2>{t.bits}</h2><span className={styles.muted}>{communityShorts.length} {t.shared}</span></div>{communityShorts.length?<div className={styles.videoGrid}>{communityShorts.map(video=><article className={styles.video} key={video.id}><video src={video.src} controls playsInline preload="metadata" aria-label={video.title}/><div className={styles.videoInfo}><span className={styles.eyebrow}>RAYE2 MINI’S · {video.duration}s</span><h3>{video.title}</h3><p>{video.caption}</p></div></article>)}</div>:<div className={styles.empty}>{t.noBits}</div>}</section>
    <section className={styles.section} id="profile-posts"><div className={styles.sectionHead}><h2>{t.communityPosts}</h2><span className={styles.muted}>{posts.length} {t.posts}</span></div>{posts.length?posts.map(p=><article className={styles.post} key={p.id}><div className={styles.postMeta}>{p.type==="official"?"✦ "+t.official:t.communityType} · {new Date(p.createdAt).toLocaleDateString(isArabic?"ar-EG":"en-US")}</div><p>{p.body}</p></article>):<div className={styles.empty}>{t.noPosts}</div>}</section>
   </div>
+  {connections&&<div className={styles.modalBackdrop} role="dialog" aria-modal="true" aria-label={connections.kind==="followers"?t.followersList:t.followingList} onClick={()=>setConnections(null)}>
+   <div className={styles.modal} onClick={e=>e.stopPropagation()}>
+    <div className={styles.modalHead}><strong>{connections.kind==="followers"?t.followersList:t.followingList}</strong><button type="button" className={styles.secondary} onClick={()=>setConnections(null)}>{t.close}</button></div>
+    {connections.loading?<p className={styles.muted}>{t.loadingConnections}</p>:connections.rows.length?<ul className={styles.connectionList}>{connections.rows.map(person=><li key={person.userId}><Link href={"/u/"+person.handle} onClick={()=>setConnections(null)}><span className={styles.connectionAvatar}>{person.displayName.slice(0,1).toUpperCase()}</span><span><strong>{person.displayName}</strong><small>@{person.handle}</small></span></Link></li>)}</ul>:<p className={styles.muted}>{t.noConnections}</p>}
+   </div>
+  </div>}
  </main>
 }

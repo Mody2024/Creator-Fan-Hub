@@ -5,7 +5,7 @@ const failures = [];
 let assertionCount = 0;
 const check = (label, condition) => { assertionCount += 1; if (!condition) failures.push(label); };
 
-const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests, mediaOwnershipTests, ideaSubmissionContractTests, publishingHistoryTests, mediaRecoveryTests, resumableUpload, mediaHealthMigration, resumableReservationMigration, communityShorts, assetMetadataMigration, storageReservationGateMigration] = await Promise.all([
+const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson, events, socials, contentManager, media, dashboard, mediaMigration, ownershipMigration, ideasModeration, ideaSubmission, voteForm, pollManagement, historyComponent, historyRoute, historyMigration, mediaOwnershipMigration, narration, guidedTour, configSchema, eventSocial, publicIdeas, publicIdeasMigration, pollVisibilityMigration, publicGateHardeningMigration, draftRoute, publishRoute, boundedJsonHelper, boundedJsonTests, ideaSubmissionGateMigration, publicGateTests, creatorApiTests, mediaOwnershipTests, ideaSubmissionContractTests, publishingHistoryTests, mediaRecoveryTests, resumableUpload, mediaHealthMigration, resumableReservationMigration, communityShorts, assetMetadataMigration, storageReservationGateMigration, eventsRsvpMigration] = await Promise.all([
   read("../src/app/page.tsx"),
   read("../src/app/videos/public-videos.tsx"),
   read("../src/app/videos/public-video-player.tsx"),
@@ -52,7 +52,8 @@ const [page, publicVideos, publicVideoPlayer, config, poll, editor, packageJson,
   read("../supabase/migrations/20261101172923_nhen_resume_upload_reservations.sql"),
   read("../src/app/shorts/community-shorts-client.tsx"),
   read("../supabase/migrations/20261101174330_nhen_creator_media_asset_metadata_sync.sql"),
-  read("../supabase/migrations/20261101174604_nhen_enforce_storage_reservation_on_object_insert.sql")
+  read("../supabase/migrations/20261101174604_nhen_enforce_storage_reservation_on_object_insert.sql"),
+  read("../supabase/migrations/20261110170000_raye2_event_rsvps.sql")
 ]);
 
 check("homepage imports published poll component", page.includes('import PublishedPolls from "@/app/vote/published-polls"'));
@@ -150,8 +151,9 @@ check("creator editor has maintenance mode", editor.includes('update("maintenanc
 check("package defines build script", /"build"\s*:\s*"next build"/.test(packageJson));
 check("package defines lint script", /"lint"\s*:\s*"eslint \\."/.test(packageJson) || packageJson.includes('"lint": "eslint ."' ));
 
-check("public events read only published/completed events", events.includes('from("events")') && events.includes('["published","completed"]'));
-check("public event feed puts dated events before undated entries and uses semantic time markup", events.includes('nullsFirst:false') && events.includes("<time dateTime={event.starts_at}>"));
+check("public events read only published/completed events", eventsRsvpMigration.includes("status in ('published', 'completed')") && page.includes('rpc("raye2_get_public_events"'));
+check("public event feed puts dated events before undated entries and uses semantic time markup", eventsRsvpMigration.includes("order by (e.starts_at is null), e.starts_at asc") && events.includes("<time dateTime={event.starts_at}>"));
+check("public event RSVPs are authenticated-only and ownership-scoped", eventsRsvpMigration.includes("grant execute on function public.raye2_set_event_rsvp(uuid,text) to authenticated") && eventsRsvpMigration.includes("user_id = (select auth.uid())") && eventsRsvpMigration.includes("alter table public.event_rsvps enable row level security"));
 check("public socials read only published links", socials.includes('from("social_links")') && socials.includes('eq("is_published",true)'));
 check("creator event/social changes use guarded RPCs", contentManager.includes('rpc("save_creator_event"') && contentManager.includes('rpc("save_creator_social_link"'));
 check("creator event editor rejects end dates before or equal to start", contentManager.includes("new Date(ends)<=new Date(starts)") && contentManager.includes("The event end must be later than its start."));

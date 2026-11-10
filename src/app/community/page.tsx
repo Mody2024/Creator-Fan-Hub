@@ -21,13 +21,18 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
       unreadNotificationCount = count ?? 0;
       const { data: staffRow } = await supabase.from("creator_admins").select("role").eq("user_id", userId).eq("active", true).in("role", ["owner", "admin", "moderator"]).maybeSingle();
       canModerate = !!staffRow;
-      const [{ data: follows }, { data: blocks }, { data: candidates }] = await Promise.all([
+      const [{ data: suggested }, { data: follows }, { data: blocks }] = await Promise.all([
+        supabase.rpc("raye2_suggest_members", { p_limit: 5 }),
         supabase.from("member_follows").select("followed_id").eq("follower_id", userId),
-        supabase.from("member_blocks").select("blocked_id").eq("blocker_id", userId),
-        supabase.from("member_profiles").select("user_id,handle,display_name").neq("user_id", userId).eq("visibility", "public").order("updated_at", { ascending: false }).limit(24)
+        supabase.from("member_blocks").select("blocked_id").eq("blocker_id", userId)
       ]);
-      const excluded = new Set([userId, ...(follows ?? []).map(x => x.followed_id), ...(blocks ?? []).map(x => x.blocked_id)]);
-      suggestedMembers = (candidates ?? []).filter(x => !excluded.has(x.user_id)).slice(0, 5).map(x => ({ userId: x.user_id, handle: x.handle, displayName: x.display_name }));
+      if (Array.isArray(suggested) && suggested.length > 0) {
+        suggestedMembers = suggested.map(row => ({ userId: row.user_id, handle: row.handle, displayName: row.display_name }));
+      } else {
+        const excluded = new Set([userId, ...(follows ?? []).map(x => x.followed_id), ...(blocks ?? []).map(x => x.blocked_id)]);
+        const { data: candidates } = await supabase.from("member_profiles").select("user_id,handle,display_name").neq("user_id", userId).eq("visibility", "public").order("updated_at", { ascending: false }).limit(24);
+        suggestedMembers = (candidates ?? []).filter(x => !excluded.has(x.user_id)).slice(0, 5).map(x => ({ userId: x.user_id, handle: x.handle, displayName: x.display_name }));
+      }
     }
     let followedIds: string[] | null = null;
     if (selectedFeed === "following") {

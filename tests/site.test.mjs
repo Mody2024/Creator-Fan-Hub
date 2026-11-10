@@ -557,8 +557,11 @@ test("publishing a site draft requires compatible published media assets", async
 test("member follow and block actions prevent overlapping requests and handle failures", () => {
   assert.match(memberProfileClient, /relationshipBusy\s*\|\|\s*viewer===profile\.userId/);
   assert.match(memberProfileClient, /finally\{setRelationshipBusy\(false\)\}/);
-  assert.match(memberProfileClient, /catch\{setNotice\(blocked\?t\.unblockError:t\.blockError\)\}/);
+  assert.match(memberProfileClient, /catch\{setBlocked\(wasBlocked\);setNotice\(blocked\?t\.unblockError:t\.blockError\)\}/);
   assert.match(memberProfileClient, /disabled=\{blocked\|\|relationshipBusy\}/);
   assert.match(memberProfileClient, /disabled=\{relationshipBusy\}/);
-  assert.match(memberProfileClient, /if\(followError\)[\s\S]*member_blocks/);
+  // Blocking is now a single atomic server-side transaction instead of a two-step
+  // client write with manual compensation.
+  assert.match(memberProfileClient, /supabase\.rpc\("raye2_toggle_block"/);
+  assert.match(memberProfileClient, /supabase\.rpc\("raye2_toggle_follow"/);
 });
