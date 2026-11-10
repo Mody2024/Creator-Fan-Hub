@@ -2003,3 +2003,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 21/21**: own-inbox scoping, unread filter, summary counts, both-direction block exclusion, cursor paging without overlap, limit clamp, anonymous denied.
 - [x] Tests +4 (522 total); validator +3 assertions (203); gates green (148 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 5 moves from **34% to 38% provisional**; full ten-wave estimate moves from **~50% to ~51%**.
+
+## 2026-11-10 — Wave 5 public group spaces (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPCs `raye2_list_public_groups(p_limit, p_search)`, `raye2_get_group(p_slug)` (anon + authenticated) and member-gated `raye2_get_group_members(p_group_id, p_limit)` (authenticated only).
+- [x] Directory lists public, joinable groups with active member count, message count, last activity, topics and owner attribution, newest activity first, with optional name/description search. Limit clamped to 100.
+- [x] Detail returns one group by slug with counts, owner attribution and the caller's own role/status; private groups are returned only to members or managers. Roster orders owner-first and returns nothing to non-members.
+- [x] Added public `/groups` directory (search + cards with counts, activity and membership badge) and `/groups/[slug]` detail (counts, rules, member roster, private-group notice), bilingual and RTL-aware, and linked Spaces from the home rail.
+- [x] **Live matrix 25/25**: public listing excludes private groups, counts, search, anonymous/non-member/owner detail visibility, membership reflection, unknown-slug 404, roster gating.
+- [x] Tests +5 (527 total); validator +3 assertions (206); gates green (149 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **38% to 43% provisional**; full ten-wave estimate moves from **~51% to ~52%**.
