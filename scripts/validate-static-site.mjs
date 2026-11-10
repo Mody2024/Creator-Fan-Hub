@@ -297,6 +297,10 @@ check("discovery exposes one pinned public unified-search RPC across videos, peo
 check("unified search only surfaces published content and public members", searchMigration.includes("mi.is_published = true") && searchMigration.includes("mp.visibility = 'public'") && searchMigration.includes("cp.status = 'published'") && searchMigration.includes("length(btrim(tag)) between 1 and 40"));
 check("the discover page searches through the unified RPC and links tag results to topic pages", searchSurface.includes('rpc("raye2_search",{p_query:term,p_limit:40})') && searchSurface.includes('href={query("tags")}') && searchSurface.includes('href={"/topics/"+encodeURIComponent(tag.tag)}'));
 
+const searchGroupsMigration = await read("../supabase/migrations/20261110300000_raye2_search_groups.sql");
+check("search depth adds public groups and block-aware filtering in place", searchGroupsMigration.includes("create or replace function public.raye2_search(") && searchGroupsMigration.includes("'group'::text as kind") && searchGroupsMigration.includes("g.visibility = 'public'") && searchGroupsMigration.includes("not exists (select 1 from blocked bl where bl.uid = mp.user_id)") && searchGroupsMigration.includes("not exists (select 1 from blocked bl where bl.uid = cp.author_id)") && searchGroupsMigration.includes("grant execute on function public.raye2_search(text,integer) to anon, authenticated") && searchGroupsMigration.includes("set search_path = ''"));
+check("the discover page renders a spaces section linking to group pages", searchSurface.includes('groups=rows.filter(row=>row.kind==="group")') && searchSurface.includes('showGroups=selectedType==="all"||selectedType==="groups"') && searchSurface.includes('href={query("groups")}') && searchSurface.includes('href={"/groups/"+group.slug}'));
+
 const creatorDirectoryMigration = await read("../supabase/migrations/20261110240000_raye2_creator_directory.sql");
 const creatorsSurface = await read("../src/app/creators/page.tsx");
 const homeSurface = await read("../src/app/raye2/home/page.tsx");
