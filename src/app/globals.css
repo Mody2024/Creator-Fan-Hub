@@ -961,3 +961,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .public-event-actions button.is-going{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
 .public-event-actions button.is-interested{color:var(--muted)}
 .public-event-actions button:disabled{opacity:.55;cursor:wait}
+
+.poll-schedule-row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-top:12px;padding:14px;border:1px dashed var(--line)}
+.poll-schedule-row label{display:flex;flex-direction:column;gap:8px;font:10px var(--mono);color:var(--muted)}
+.poll-schedule-row input{padding:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:12px var(--font)}
+.poll-schedule-row button{background:transparent;border:1px solid var(--line);color:var(--ink);padding:9px 12px;font:10px var(--mono);cursor:pointer}
+.poll-schedule-row button:disabled{opacity:.5;cursor:wait}
+@media(max-width:560px){.poll-schedule-row button{flex:1 1 40%}}

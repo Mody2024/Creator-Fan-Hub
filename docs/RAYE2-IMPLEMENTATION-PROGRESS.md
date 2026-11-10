@@ -1906,3 +1906,19 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] Full gate suite green: all **139 migrations** apply on `supabase db reset`; repository validation 176 assertions; tests **475/475**; `tsc` clean; ESLint 0 errors (25 pre-existing warnings); Next.js production build OK.
 - [ ] Remaining Wave 5 work: polls depth, richer discovery/trending, and browser/RTL visual review.
 - **Progress:** Wave 5 moves from **24% to 30% provisional**; full ten-wave estimate moves from **~40% to ~42%**. Verification credit recorded for this batch (applied schema + 33-check live behavioral matrix).
+
+## 2026-11-10 — Wave 5 polls depth: scheduling + lifecycle (mega-batch)
+- [x] Closed a real publishing gap: the poll schema already allowed a `scheduled` status but no RPC could move a draft into it, a draft could not be corrected or removed, and nothing opened a scheduled poll when its start time arrived.
+- [x] Guarded `SECURITY DEFINER` RPCs (pinned `search_path`, `can_edit_creator_content()` guard, `authenticated`-only grants):
+  - `raye2_update_creator_poll(uuid,text,text,jsonb,timestamptz,timestamptz)` — correct title/description/options/dates while still `draft`/`scheduled` and vote-free; replaces options in order.
+  - `raye2_schedule_creator_poll(uuid,timestamptz)` — stage a draft to open automatically; rejects past times and inconsistent close times, requires ≥2 options.
+  - `raye2_delete_creator_poll(uuid)` — remove an unpublished, vote-free poll (options cascade).
+  - `raye2_open_due_polls()` → `integer` — lazy promoter granted to `anon, authenticated`: opens at most one due scheduled poll per call and only when no other poll is open, preserving the one-open-poll invariant without `pg_cron`.
+- [x] UI: the creator poll panel gains a Schedule control (datetime picker) and a Delete action on draft/scheduled polls, shows the auto-open time, and calls `raye2_open_due_polls` before loading; the public vote page also promotes due polls before reading results.
+- [x] Added `tests/raye2-poll-scheduling.test.mjs` (7 tests) and 3 validator assertions (now 179).
+- [x] **Live execution caught a real authorization mismatch**: my first cut guarded the new RPCs with `is_active_creator()` (any active admin, including `analyst`/`moderator`), but the existing poll RPCs use the stricter `can_edit_creator_content()` (owner/admin/editor). Aligned the new RPCs to the stricter guard. The live matrix also initially failed because it seeded `role='creator'`, which `can_edit_creator_content()` does not accept — corrected the fixture to `role='owner'`.
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 21/21 pass.** Covers create + edit (options replaced in order, out-of-range rejected), schedule guards (past time rejected, idempotent re-schedule), non-creator and anon denial on every mutation, lazy auto-open (due poll opens, second due poll stays scheduled while one is open), open polls rejected for edit/delete, voted polls rejected for delete, and clean delete with option cascade. The earlier community/collections matrix re-ran green at 33/33 on the same fresh DB.
+- [x] Full gate suite green: all **140 migrations** apply on `supabase db reset`; repository validation 179 assertions; tests **482/482**; `tsc` clean; ESLint 0 errors (25 pre-existing warnings); Next.js production build OK.
+- [x] Added `AGENTS.md` capturing the gates, the live-verification workflow, the security invariants, and the two distinct creator-authorization helpers that caused the mismatch above.
+- [ ] Remaining Wave 5 work: richer discovery/trending, and browser/RTL visual review.
+- **Progress:** Wave 5 moves from **30% to 35% provisional**; full ten-wave estimate moves from **~42% to ~43%**. Verification credit recorded for this batch (applied schema + 21-check live behavioral matrix).

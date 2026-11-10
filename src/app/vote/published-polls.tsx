@@ -7,6 +7,7 @@ export default async function PublishedPolls({locale="en"}:{locale?:"en"|"ar"}) 
   const isArabic=locale==="ar";
   const supabase = await createSupabaseServerClient();
   if (!supabase) return <p className="poll-empty">{isArabic?"التصويت غير متاح في هذه المعاينة حتى يتم إعداد قاعدة البيانات.":"Polls are unavailable in this preview until the database connection is configured."}</p>;
+  await supabase.rpc("raye2_open_due_polls");
   const { data, error } = await supabase.rpc("get_public_poll_results");
   if (error || !Array.isArray(data) || data.length === 0) {
     return <div className="vote-placeholder"><span className="vote-number">?</span><div><span className="eyebrow">{isArabic?"تصويت المجتمع القادم":"NEXT COMMUNITY POLL"}</span><h3>{isArabic?"يتم تجهيز التصويت القادم.":"The next vote is being prepared."}</h3><p>{isArabic?"ستظهر استطلاعات الرأي المنشورة هنا عندما يفتح المبدع تصويتًا جديدًا.":"Published polls will appear here when the creator opens one."}</p></div><span className="status-pill">{isArabic?"لا توجد استطلاعات منشورة":"NO PUBLISHED POLLS"}</span></div>;
