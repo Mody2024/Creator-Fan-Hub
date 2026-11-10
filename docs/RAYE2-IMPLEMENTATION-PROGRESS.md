@@ -1977,3 +1977,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 13/13**: public-only filtering, published-video gate, correct counts, all three sort orders, unknown-sort fallback, limit clamping.
 - [x] Tests +5 (508 total); validator +3 assertions (194); gates green (145 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
 - **Progress:** Wave 3 moves from **32% to 35% provisional**; full ten-wave estimate moves from **~47% to ~48%**.
+
+## 2026-11-10 — Wave 3 series discovery (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPCs `raye2_list_series(p_limit)` and `raye2_get_series(p_slug, p_limit)`.
+- [x] Index reports real playable video counts, summed runtime, a public cover path and creator attribution; empty playlists excluded; limit clamped to 100. Detail returns ordered episodes including external YouTube embeds; case-insensitive slug; limit clamped to 200.
+- [x] Series index rebuilt bilingual + RTL-aware with cover art, runtime and creator, and the N+1 count queries removed; detail page bilingual and marks external episodes.
+- [x] **Live matrix 22/22**: playable-only counts, runtime sum, cover path, creator attribution, position ordering, YouTube inclusion, draft/unpublished exclusion, case-insensitive slug, empty/unknown series, limit clamping.
+- [x] Tests +5 (513 total); validator +3 assertions (197); gates green (146 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 3 moves from **35% to 38% provisional**; full ten-wave estimate moves from **~48% to ~49%**.
