@@ -297,6 +297,13 @@ check("discovery exposes one pinned public unified-search RPC across videos, peo
 check("unified search only surfaces published content and public members", searchMigration.includes("mi.is_published = true") && searchMigration.includes("mp.visibility = 'public'") && searchMigration.includes("cp.status = 'published'") && searchMigration.includes("length(btrim(tag)) between 1 and 40"));
 check("the discover page searches through the unified RPC and links tag results to topic pages", searchSurface.includes('rpc("raye2_search",{p_query:term,p_limit:40})') && searchSurface.includes('href={query("tags")}') && searchSurface.includes('href={"/topics/"+encodeURIComponent(tag.tag)}'));
 
+const creatorDirectoryMigration = await read("../supabase/migrations/20261110240000_raye2_creator_directory.sql");
+const creatorsSurface = await read("../src/app/creators/page.tsx");
+const homeSurface = await read("../src/app/raye2/home/page.tsx");
+check("discovery exposes a pinned public creator-directory RPC counting only published public creators", creatorDirectoryMigration.includes("create or replace function public.raye2_list_creators(") && creatorDirectoryMigration.includes("mi.is_published = true") && creatorDirectoryMigration.includes("mp.visibility = 'public'") && creatorDirectoryMigration.includes("grant execute on function public.raye2_list_creators(integer,text) to anon, authenticated") && creatorDirectoryMigration.includes("set search_path = ''"));
+check("the creator directory supports published, followers and views sorting with a bounded limit", creatorDirectoryMigration.includes("least(greatest(coalesce(p_limit, 24), 1), 60)") && creatorDirectoryMigration.includes("when p_sort = 'followers' then 'followers'") && creatorDirectoryMigration.includes("when p_sort = 'views' then 'views'"));
+check("the creators page localizes, sorts and links each creator to their profile", creatorsSurface.includes('rpc("raye2_list_creators",{p_limit:48,p_sort:selected})') && creatorsSurface.includes('dir={isArabic?"rtl":"ltr"}') && creatorsSurface.includes('href={"/u/"+creator.handle}') && homeSurface.includes('href="/creators"') && searchSurface.includes('href="/creators"'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
