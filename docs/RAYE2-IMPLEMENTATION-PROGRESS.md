@@ -2012,3 +2012,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 25/25**: public listing excludes private groups, counts, search, anonymous/non-member/owner detail visibility, membership reflection, unknown-slug 404, roster gating.
 - [x] Tests +5 (527 total); validator +3 assertions (206); gates green (149 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 5 moves from **38% to 43% provisional**; full ten-wave estimate moves from **~51% to ~52%**.
+
+## 2026-11-10 — Wave 5 saved-library collection contents (mega-batch)
+- [x] Added pinned owner-scoped `SECURITY DEFINER` RPCs `raye2_get_collection(p_collection_id, p_limit)`, `raye2_update_collection(p_collection_id, p_name, p_description)` and `raye2_delete_collection(p_collection_id)`, all authenticated-only and re-checking ownership.
+- [x] Collection contents resolve published posts (author attribution + trimmed body) and published videos (title, alt text, slug), newest first; unpublished/removed items drop out; limit clamped to 200.
+- [x] Rename/redescribe validates name (1-60) and description (≤280); delete cascades items.
+- [x] Saved library opens a collection into a detail view with inline rename, delete and per-item removal; collection rows gained an Open action.
+- [x] **Live matrix 18/18**: contents and counts, post/video resolution, owner scoping, anonymous denial, rename + blank-name validation, item removal, unpublished-content dropping, non-owner delete denial, cascade delete.
+- [x] Tests +4 (531 total); validator +3 assertions (209); gates green (150 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **43% to 48% provisional**; full ten-wave estimate moves from **~52% to ~53%**.
