@@ -25,7 +25,7 @@ export default async function TopicPage({params}:{params:Promise<{tag:string}>})
  }
  return <main className="raye2-topic-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <header className="raye2-topic-header"><Link className="raye2-topic-brand" href="/raye2/home">Raye2<span>.</span></Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/watch">{t.watch}</Link><Link href="/search">{t.discover}</Link><Link href="/community">{t.community}</Link></nav></header>
-  <section className="raye2-topic-hero"><span className="raye2-topic-label">{t.eyebrow}</span><h1>{t.heading} <em>#{clean}</em></h1><p>{videos.length} {t.count}</p><Link className="raye2-topic-back" href="/search">← {t.back}</Link></section>
+  <section className="raye2-topic-hero"><span className="raye2-topic-label">{t.eyebrow}</span><h1>{t.heading} <em>#{clean}</em></h1><p>{videos.length} {t.count}</p><Link className="raye2-topic-back" href="/topics">← {t.back}</Link></section>
   {videos.length?<div className="raye2-topic-grid">{videos.map(video=><article className="raye2-topic-card" key={video.slug}><Link href={"/watch/"+video.slug}><div className="raye2-topic-thumb">▶</div><div className="raye2-topic-copy"><span className="raye2-topic-label">{video.category.toUpperCase()}</span><h3>{video.title}</h3><p>{video.description}</p><time>{new Date(video.published_at).toLocaleDateString(isArabic?"ar-EG":"en-US")}</time></div></Link></article>)}</div>:<div className="raye2-topic-empty">{t.empty}</div>}
  </main>;
 }

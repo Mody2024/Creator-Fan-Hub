@@ -20,4 +20,15 @@
 .raye2-topic-copy p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--muted);font-size:10px;line-height:1.6;margin:0 0 6px}
 .raye2-topic-copy time{color:var(--muted);font-size:9px}
 .raye2-topic-empty{width:min(1200px,100%);margin:auto;padding:30px;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:12px;text-align:center}
+.raye2-topic-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.raye2-topic-tabs a{padding:8px 13px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;font-weight:750}
+.raye2-topic-tabs a.active{border-color:rgba(120,173,255,.4);background:rgba(120,173,255,.14);color:var(--blue)}
+.raye2-topic-index-grid{width:min(1200px,100%);margin:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
+.raye2-topic-index-card{border:1px solid var(--line);border-radius:14px;background:var(--panel)}
+.raye2-topic-index-card:hover{border-color:rgba(120,173,255,.35)}
+.raye2-topic-index-card a{display:block;padding:16px}
+.raye2-topic-index-card .raye2-topic-label{display:block;font-size:14px;color:var(--ink);letter-spacing:0;font-family:inherit;font-weight:850;margin-bottom:12px;word-break:break-word}
+.raye2-topic-index-stats{display:flex;gap:16px;margin:0}
+.raye2-topic-index-stats dt{color:var(--muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.raye2-topic-index-stats dd{margin:4px 0 0;font-size:16px;font-weight:850;letter-spacing:-.03em}
 @media(max-width:700px){.raye2-topic-page{padding:13px}.raye2-topic-hero{padding:20px 16px}.raye2-topic-grid{grid-template-columns:1fr}}
