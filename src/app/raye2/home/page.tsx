@@ -87,6 +87,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
         <Link className={styles.railLink} href="/search"><span className={styles.railIcon}>⌕</span>{isArabic?"استكشف":"Explore"}</Link>
         <Link className={styles.railLink} href="/series"><span className={styles.railIcon}>▥</span>{isArabic?"السلاسل":"Series"}</Link>
         <Link className={styles.railLink} href="/creators"><span className={styles.railIcon}>✦</span>{isArabic?"صُنّاع المحتوى":"Creators"}</Link>
+        <Link className={styles.railLink} href="/groups"><span className={styles.railIcon}>#</span>{isArabic?"المساحات":"Spaces"}</Link>
         <Link className={styles.railLink} href="/community"><span className={styles.railIcon}>◉</span>{isArabic?"المجتمعات":"Communities"}</Link>
         <Link className={styles.railLink} href="/raye2"><span className={styles.railIcon}>✉</span>{isArabic?"الرسائل":"Messages"}</Link>
         <Link className={styles.railLink} href="/profile"><span className={styles.railIcon}>◎</span>{isArabic?"ملفي الشخصي":"My profile"}</Link>
