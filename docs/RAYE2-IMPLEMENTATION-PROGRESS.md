@@ -1922,3 +1922,18 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] Added `AGENTS.md` capturing the gates, the live-verification workflow, the security invariants, and the two distinct creator-authorization helpers that caused the mismatch above.
 - [ ] Remaining Wave 5 work: richer discovery/trending, and browser/RTL visual review.
 - **Progress:** Wave 5 moves from **30% to 35% provisional**; full ten-wave estimate moves from **~42% to ~43%**. Verification credit recorded for this batch (applied schema + 21-check live behavioral matrix).
+
+## 2026-11-10 — Wave 5 discovery: trending feeds (mega-batch)
+- [x] Closed a real gap: the Discover page only ever searched; with no query it showed an empty state, so there was no way to discover anything on Raye2.
+- [x] Added three pinned `SECURITY DEFINER` read RPCs (`anon, authenticated`), each bounding its limit/window and exposing published content only:
+  - `raye2_get_trending_videos(p_limit, p_window_days)` — views + 3×reactions + 2×published-comments, decayed by age in days.
+  - `raye2_get_trending_posts(p_limit, p_window_hours)` — 3×reactions + 2×published-comments, decayed by age in hours, with author handle and excerpt.
+  - `raye2_get_trending_tags(p_limit, p_window_days)` — most common tags across recently published videos, lowercased and counted.
+- [x] Discover page now renders trending tags, videos and conversations when no term is typed, with EN/AR strings and RTL support and new CSS.
+- [x] Added `tests/raye2-discovery-trending.test.mjs` (4 tests) and 3 validator assertions (now 182).
+- [x] **Live execution caught two fixture issues**: `video_reactions.reaction` allows only `spark/orbit/legend/laugh/mindblown/support` (not `like`), and the matrix needed a clean DB because seeded engagement accumulates across runs. Both corrected.
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 22/22 pass.** Covers fresh-vs-old ranking, per-metric counts (published comments only), bounded limits, window filtering (videos, posts and tags), tag counting/lowercasing, unpublished media and pending posts never trending, and anonymous read access.
+- [x] **Server-render smoke test**: `/search` returns HTTP 200 and renders the trending sections with seeded content in both EN and AR (`dir="rtl"`).
+- [x] Full gate suite green: **141 migrations** on fresh `db reset`; validator 182 assertions; tests **486/486**; `tsc` clean; ESLint 0 errors; build OK.
+- [ ] Remaining Wave 5 work: browser/RTL visual review of the new surfaces.
+- **Progress:** Wave 5 moves from **35% to 40% provisional**; full ten-wave estimate moves from **~43% to ~44%**.
