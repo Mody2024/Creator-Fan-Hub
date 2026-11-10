@@ -1937,3 +1937,19 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] Full gate suite green: **141 migrations** on fresh `db reset`; validator 182 assertions; tests **486/486**; `tsc` clean; ESLint 0 errors; build OK.
 - [ ] Remaining Wave 5 work: browser/RTL visual review of the new surfaces.
 - **Progress:** Wave 5 moves from **35% to 40% provisional**; full ten-wave estimate moves from **~43% to ~44%**.
+
+## 2026-11-10 — Wave 3 video topics + related videos (mega-batch)
+- [x] Closed a real discovery gap: the watch page listed tags as dead text and offered no "what next", so a viewer who finished a video had nowhere to go.
+- [x] Added three pinned `SECURITY DEFINER` read RPCs (`anon, authenticated`), each bounding its limit and exposing published video/youtube media only:
+  - `raye2_get_related_videos(p_media_id, p_limit)` — ranks other published videos by shared-tag count, then category match, then recency; never returns the source video.
+  - `raye2_list_topics(p_limit, p_min_count)` — every tag across published videos, lowercased, counted, blanks/oversized tags dropped, most used first.
+  - `raye2_get_topic_videos(p_tag, p_limit)` — videos carrying a tag, case-insensitive, newest first.
+- [x] The watch detail page now loads a "More like this" related rail and each tag links through to a topic browse page.
+- [x] New bilingual, RTL-aware `/topics/[tag]` page with EN/AR strings, empty state and its own CSS.
+- [x] Added `tests/raye2-video-topics-related.test.mjs` (6 tests) and 3 validator assertions (now 185).
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 27/27 pass.** Covers shared-tag vs category ranking, published-only (hidden drafts and unpublished media excluded), limit clamping, case-insensitive topic lookup, blank input, and anonymous read access.
+- [x] **Live execution caught one fixture bug**: the original matrix asserted a "same-category" video that was actually a different category; replaced with a genuine same-category, no-shared-tag video and re-ran clean.
+- [x] **Server-render smoke test**: `/topics/launch` returns HTTP 200 with seeded videos in EN and AR (`dir="rtl"`); the empty state renders for an unknown topic.
+- [x] Full gate suite green: **142 migrations** on fresh `db reset`; validator 185 assertions; tests **492/492**; `tsc` clean; ESLint 0 errors; build OK.
+- [x] Fixed a build-time CSS import path (`../topics.css`) caught by the production build.
+- **Progress:** Wave 3 moves from **23% to 26% provisional**; full ten-wave estimate moves from **~44% to ~45%**.
