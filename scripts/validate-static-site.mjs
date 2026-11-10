@@ -291,6 +291,12 @@ check("watch progress is a member-private table with RLS and guarded authenticat
 check("continue-watching returns only the caller's unfinished published videos with pinned search_path", continueWatchingMigration.includes("create or replace function public.raye2_get_continue_watching(") && continueWatchingMigration.includes("wp.user_id = auth.uid()") && continueWatchingMigration.includes("wp.position_seconds < least(wp.duration_seconds - 30, floor(wp.duration_seconds * 0.95))") && continueWatchingMigration.includes("set search_path = ''"));
 check("the player reports progress and the watch library mounts a resumable continue-watching rail", publicVideoPlayer.includes("onProgress?: (position: number, duration: number) => void") && publicVideoPlayer.includes("onTimeUpdate={reportProgress}") && watchLibraryPage.includes("import ContinueWatching from \"./continue-watching\"") && watchLibraryPage.includes("<ContinueWatching/>") && continueWatchingClient.includes('rpc("raye2_get_continue_watching"') && continueWatchingClient.includes('dir={isArabic?"rtl":"ltr"}'));
 
+const searchMigration = await read("../supabase/migrations/20261110230000_raye2_unified_search.sql");
+const searchSurface = await read("../src/app/search/page.tsx");
+check("discovery exposes one pinned public unified-search RPC across videos, people, posts and tags", searchMigration.includes("create or replace function public.raye2_search(") && searchMigration.includes("'video'::text as kind") && searchMigration.includes("'person'::text as kind") && searchMigration.includes("'post'::text as kind") && searchMigration.includes("'tag'::text as kind") && searchMigration.includes("grant execute on function public.raye2_search(text,integer) to anon, authenticated") && searchMigration.includes("set search_path = ''"));
+check("unified search only surfaces published content and public members", searchMigration.includes("mi.is_published = true") && searchMigration.includes("mp.visibility = 'public'") && searchMigration.includes("cp.status = 'published'") && searchMigration.includes("length(btrim(tag)) between 1 and 40"));
+check("the discover page searches through the unified RPC and links tag results to topic pages", searchSurface.includes('rpc("raye2_search",{p_query:term,p_limit:40})') && searchSurface.includes('href={query("tags")}') && searchSurface.includes('href={"/topics/"+encodeURIComponent(tag.tag)}'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
