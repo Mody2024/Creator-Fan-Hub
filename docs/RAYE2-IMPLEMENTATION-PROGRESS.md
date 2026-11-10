@@ -1953,3 +1953,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] Full gate suite green: **142 migrations** on fresh `db reset`; validator 185 assertions; tests **492/492**; `tsc` clean; ESLint 0 errors; build OK.
 - [x] Fixed a build-time CSS import path (`../topics.css`) caught by the production build.
 - **Progress:** Wave 3 moves from **23% to 26% provisional**; full ten-wave estimate moves from **~44% to ~45%**.
+
+## 2026-11-10 — Wave 3 continue-watching (mega-batch)
+- [x] Added member-private `watch_progress` (RLS on select/insert/update/delete, all scoped to `auth.uid()`) and three guarded RPCs: `raye2_record_watch_progress`, `raye2_get_continue_watching`, `raye2_clear_watch_progress`.
+- [x] `PublicVideoPlayer` gained an optional throttled `onProgress` callback (fires on timeupdate/pause/ended); the watch detail page persists progress.
+- [x] The watch library mounts a bilingual, RTL-aware "Continue watching" rail that links back with `?t=<seconds>` to resume.
+- [x] **Live matrix 17/17** with real JWTs: record/read, position clamping to duration, finished-item exclusion (>=95% or within 30s), draft/unpublished refusal, cross-member isolation, recency ordering, clear, anonymous empty read, anonymous write refusal.
+- [x] Tests +6 (498 total); validator +3 assertions (188); gates green (143 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 3 moves from **26% to 29% provisional**; full ten-wave estimate moves from **~45% to ~46%**.
