@@ -114,7 +114,7 @@ test("the community client wires drafts, scheduling and collection RPCs", () => 
 
 test("the community page promotes due scheduled posts before reading the feed", () => {
   assert.match(communityPage, /supabase\.rpc\("raye2_publish_due_community_posts"\)/);
-  assert.match(communityPage, /\.eq\("status", "published"\)/);
+  assert.match(communityPage, /rpc\("raye2_get_community_feed"/);
 });
 
 test("the saved library groups items into collections via the guarded RPCs", () => {

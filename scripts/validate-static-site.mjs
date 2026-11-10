@@ -311,6 +311,11 @@ check("series discovery exposes pinned public read RPCs for the index and the de
 check("series only exposes published playlists and published videos, including external embeds", seriesMigration.includes("pl.is_published = true") && seriesMigration.includes("mi.media_type in ('video', 'youtube')") && seriesMigration.includes("coalesce(a.video_count, 0) > 0"));
 check("both series surfaces are bilingual and RTL-aware", seriesIndex.includes('rpc("raye2_list_series",{p_limit:60})') && seriesIndex.includes('dir={isArabic?"rtl":"ltr"}') && seriesDetail.includes('rpc("raye2_get_series",{p_slug:slug,p_limit:200})') && seriesDetail.includes('dir={isArabic?"rtl":"ltr"}'));
 
+const communityFeedMigration = await read("../supabase/migrations/20261110260000_raye2_community_feed.sql");
+check("community feed exposes pinned public read RPCs with counts and comment attribution", communityFeedMigration.includes("create or replace function public.raye2_get_community_feed(") && communityFeedMigration.includes("create or replace function public.raye2_get_post_comments(") && communityFeedMigration.includes("grant execute on function public.raye2_get_community_feed(integer,text,boolean) to anon, authenticated") && communityFeedMigration.includes("grant execute on function public.raye2_get_post_comments(uuid,integer) to anon, authenticated") && communityFeedMigration.includes("set search_path = ''"));
+check("community feed only exposes published posts and comments and supports hot sorting", communityFeedMigration.includes("p.status = 'published'") && communityFeedMigration.includes("cc.status = 'published'") && communityFeedMigration.includes("when p_sort = 'hot' then 'hot' else 'latest' end") && communityFeedMigration.includes("not exists (select 1 from blocked b where b.uid = p.author_id)"));
+check("community surfaces use the feed RPC and surface comment counts and authors", communityPage.includes('rpc("raye2_get_community_feed", { p_limit: 40, p_sort: selectedSort, p_following_only: followingOnly })') && communityClient.includes('rpc("raye2_get_post_comments", { p_post_id: postId, p_limit: 50 })') && communityClient.includes("commentCounts[post.id]") && communityClient.includes("comment.author_handle"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

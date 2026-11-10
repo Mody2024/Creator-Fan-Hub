@@ -75,8 +75,8 @@ test("the community client wires the lifecycle RPCs with owner and moderator gat
 });
 
 test("the community page loads pin state and moderator status server-side", () => {
-  assert.match(page, /created_at,pinned/);
+  assert.match(page, /pinned: row\.pinned/);
   assert.match(page, /creator_admins/);
   assert.match(page, /canModerate=\{canModerate\}/);
-  assert.match(page, /pinned: row\.pinned/);
+  assert.match(page, /rpc\("raye2_get_community_feed"/);
 });

@@ -4,10 +4,12 @@ import CommunityClient, { type CommunityPost } from "./community-client";
 export const dynamic = "force-dynamic";
 
 type SuggestedMember = { userId: string; handle: string; displayName: string };
+type FeedRow = { id: string; author_id: string; post_type: string; body: string; linked_video_id: string | null; created_at: string; pinned: boolean; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null; reaction_count: number | string; comment_count: number | string };
 
-export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ feed?: string }> }) {
-  const { feed } = await searchParams;
+export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ feed?: string; sort?: string }> }) {
+  const { feed, sort } = await searchParams;
   const selectedFeed = feed === "following" ? "following" : "latest";
+  const selectedSort = sort === "hot" ? "hot" : "latest";
   const supabase = await createSupabaseServerClient();
   let posts: CommunityPost[] = [];
   let unreadNotificationCount = 0;
@@ -36,35 +38,25 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
         suggestedMembers = (candidates ?? []).filter(x => !excluded.has(x.user_id)).slice(0, 5).map(x => ({ userId: x.user_id, handle: x.handle, displayName: x.display_name }));
       }
     }
-    let followedIds: string[] | null = null;
-    if (selectedFeed === "following") {
-      if (typeof userId === "string") {
-        const { data: follows } = await supabase.from("member_follows").select("followed_id").eq("follower_id", userId);
-        followedIds = (follows ?? []).map(item => item.followed_id);
-      } else followedIds = [];
+    const followingOnly = selectedFeed === "following";
+    if (followingOnly && typeof userId !== "string") {
+      posts = [];
+    } else {
+      const { data } = await supabase.rpc("raye2_get_community_feed", { p_limit: 40, p_sort: selectedSort, p_following_only: followingOnly });
+      const rows = (data ?? []) as FeedRow[];
+      posts = rows.map(row => ({
+        id: row.id,
+        authorId: row.author_id,
+        type: row.post_type,
+        body: row.body,
+        createdAt: row.created_at,
+        linkedVideoId: row.linked_video_id,
+        pinned: row.pinned,
+        reactionCount: Number(row.reaction_count) || 0,
+        commentCount: Number(row.comment_count) || 0,
+        author: { handle: row.author_handle ?? "creator", display_name: row.author_display_name ?? "NHEN Creator", avatar_url: row.author_avatar_url ?? null }
+      }));
     }
-    let postQuery = supabase
-      .from("community_posts")
-      .select("id,author_id,post_type,body,linked_video_id,status,created_at,pinned")
-      .eq("status", "published");
-    if (followedIds !== null) postQuery = followedIds.length ? postQuery.in("author_id", followedIds) : postQuery.in("author_id", ["00000000-0000-0000-0000-000000000000"]);
-    const { data } = await postQuery.order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(40);
-    const rows = data ?? [];
-    const ids = [...new Set(rows.map(row => row.author_id))];
-    const { data: profiles } = ids.length
-      ? await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id", ids)
-      : { data: [] };
-    const byId = new Map((profiles ?? []).map(profile => [profile.user_id, profile]));
-    posts = rows.map(row => ({
-      id: row.id,
-      authorId: row.author_id,
-      type: row.post_type,
-      body: row.body,
-      createdAt: row.created_at,
-      linkedVideoId: row.linked_video_id,
-      pinned: row.pinned,
-      author: byId.get(row.author_id) ?? { handle: "creator", display_name: "NHEN Creator", avatar_url: null }
-    }));
   }
-  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} canModerate={canModerate} />;
+  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} selectedSort={selectedSort} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} canModerate={canModerate} />;
 }
