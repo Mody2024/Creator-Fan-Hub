@@ -1985,3 +1985,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 22/22**: playable-only counts, runtime sum, cover path, creator attribution, position ordering, YouTube inclusion, draft/unpublished exclusion, case-insensitive slug, empty/unknown series, limit clamping.
 - [x] Tests +5 (513 total); validator +3 assertions (197); gates green (146 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
 - **Progress:** Wave 3 moves from **35% to 38% provisional**; full ten-wave estimate moves from **~48% to ~49%**.
+
+## 2026-11-10 — Wave 5 community feed (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPCs `raye2_get_community_feed(p_limit, p_sort, p_following_only)` and `raye2_get_post_comments(p_post_id, p_limit)`.
+- [x] Feed returns author, reaction count, comment count and pinned flag in one call; supports latest/hot ordering (time-decayed engagement score) and following-only filtering; viewers never see posts from members they blocked. Limit clamped to 80.
+- [x] Comment thread returns published comments with author attribution, oldest first, only for published posts. Limit clamped to 100.
+- [x] Community page calls the feed RPC (removing the per-author profile round trip); client seeds counts from it, loads comments via the RPC, renders `@handle` attribution, and offers a New/Hot sort toggle.
+- [x] **Live matrix 21/21**: draft exclusion, published-only comment counts, author attribution, block exclusion, following-only feed, pinned-first ordering, comments hidden on drafts/unknown posts, limit clamping.
+- [x] Tests +5 (518 total); validator +3 assertions (200); gates green (147 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 5 moves from **30% to 34% provisional**; full ten-wave estimate moves from **~49% to ~50%**.
