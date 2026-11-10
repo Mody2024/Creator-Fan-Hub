@@ -2055,3 +2055,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrices:** profile overview 18/18; community reads/block semantics green; anon policy sweep across 19 tables shows no remaining "permission denied for function"; `/u/<handle>` and `/community` render again.
 - [x] Tests 550/550 (+5); validator +4 assertions (223); gates green (156 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 5 moves from **~70% to ~82% provisional**; full ten-wave estimate moves from **~56% to ~58%**. Two outage-class regressions fixed (workspace + block/moderation helpers), restoring all public reads.
+
+## 2026-11-10 — Wave 3/4 threaded video comments + per-comment reactions (mega-batch)
+- [x] Added `video_comments.parent_comment_id` with a guard trigger enforcing one-level threading (no self-replies, no nested replies, no cross-video replies).
+- [x] Reply visibility follows the parent comment: the public read policy requires a published, unblocked parent, so replies cannot leak while their parent is hidden.
+- [x] Added `video_comment_reactions` (member-only writes, anon-safe read policy) and a guarded `raye2_toggle_comment_reaction` RPC.
+- [x] Added pinned SECURITY DEFINER reads `raye2_get_video_comment_thread` and `raye2_get_video_comment_replies` (author identity, reply/reaction counts, the viewer's own reaction) granted to anon.
+- [x] Added `video_comment_reply` / `video_comment_reaction` notifications for the parent comment author and comment author.
+- [x] Watch client now renders author avatars/handles, per-comment reactions, a reply composer and expandable reply lists, with optimistic updates and bilingual strings.
+- [x] **Live matrix:** 21/21 (anon thread read, reply moderation gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
+- [x] Gates: validator 227 assertions; tests 556/556 (+6); tsc clean; lint 0 errors/24 warnings; build OK (157 migrations).
+- **Progress:** Wave 3 moves from **38% to 41% provisional**; full ten-wave estimate moves from **~58% to ~59%**.
