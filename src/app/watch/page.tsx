@@ -7,7 +7,7 @@ export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
  const supabase=await createSupabaseServerClient();
  if(!supabase)return <main className="nhen-app-shell"><p>NHEN Watch is temporarily unavailable.</p></main>;
- const {data}=await supabase.from("video_catalog").select("media_id,slug,description,category,tags,published_at,media_items!inner(title,storage_path,source_url,alt_text,is_published,media_type,processing_status,thumbnail_path)").not("published_at","is",null).order("published_at",{ascending:false}).limit(60);
+ const {data}=await supabase.from("video_catalog").select("media_id,slug,description,category,tags,published_at,media_items!video_catalog_media_id_fkey!inner(title,storage_path,source_url,alt_text,is_published,media_type,processing_status,thumbnail_path)").not("published_at","is",null).order("published_at",{ascending:false}).limit(60);
  const videos=(data??[]).flatMap(item=>{
   const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;
   if(!media?.is_published||!["video","youtube"].includes(media.media_type))return[];

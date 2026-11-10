@@ -33,7 +33,7 @@ export default async function PublicVideos() {
   if (!supabase) return null;
 
   const { data, error } = await supabase.from("video_catalog")
-    .select("media_id,slug,description,category,tags,featured,published_at,media_items!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,provider,playback_kind,processing_status)")
+    .select("media_id,slug,description,category,tags,featured,published_at,media_items!video_catalog_media_id_fkey!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,provider,playback_kind,processing_status)")
     .not("published_at", "is", null)
     .eq("media_items.is_published", true)
     .in("media_items.media_type", ["video", "youtube"])

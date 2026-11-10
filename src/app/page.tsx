@@ -32,7 +32,7 @@ export default async function HomePage() {
   let events:EventCard[]=[];
   if(supabase){
     const {data:videoRows}=await supabase.from("video_catalog")
-      .select("media_id,slug,description,category,published_at,media_items!inner(title,storage_path,source_url,alt_text,is_published,media_type)")
+      .select("media_id,slug,description,category,published_at,media_items!video_catalog_media_id_fkey!inner(title,storage_path,source_url,alt_text,is_published,media_type)")
       .not("published_at","is",null).eq("media_items.is_published",true)
       .order("published_at",{ascending:false}).limit(12);
     videos=(videoRows??[]).flatMap(item=>{

@@ -23,7 +23,7 @@ export default async function ShortsPage(){
   official:"Featured Mini’s",from:"FROM RAYE2 CREATORS"
  };
  const supabase=await createSupabaseServerClient();if(!supabase)return null;
- const {data}=await supabase.from("video_catalog").select("media_id,slug,description,category,tags,published_at,media_items!inner(title,storage_path,source_url,alt_text,is_published,media_type)").eq("category","Shorts").not("published_at","is",null).order("published_at",{ascending:false}).limit(30);
+ const {data}=await supabase.from("video_catalog").select("media_id,slug,description,category,tags,published_at,media_items!video_catalog_media_id_fkey!inner(title,storage_path,source_url,alt_text,is_published,media_type)").eq("category","Shorts").not("published_at","is",null).order("published_at",{ascending:false}).limit(30);
  const shorts=(data??[]).flatMap(item=>{
   const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;
   if(!media?.is_published||!["video","youtube"].includes(media.media_type))return[];

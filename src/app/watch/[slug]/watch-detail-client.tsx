@@ -2,11 +2,13 @@
 
 import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import NhenReactionArt from "./nhen-reaction-art";
 
-type Props={startAt?:number;hlsSrc?:string|null;mediaId:string;title:string;description:string;src:string;poster?:string|null;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[];related?:RelatedVideo[]};
+type Props={startAt?:number;hlsSrc?:string|null;mediaId:string;title:string;description:string;src:string;poster?:string|null;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[];related?:RelatedVideo[];context?:WatchContext|null};
+type WatchContext={creator_user_id:string;creator_handle:string|null;creator_display_name:string|null;creator_avatar_url:string|null;follower_count:number;is_following:boolean;series_slug:string|null;series_title:string|null;series_position:number|null;series_episode_count:number|null};
 type Comment={id:string;body:string;created_at:string;author_id:string};
 type RelatedVideo={slug:string;title:string;category:string;description:string;published_at:string};
 
@@ -23,11 +25,14 @@ export default function WatchDetailClient(props:Props){
  const [notice,setNotice]=useState("");
  const [actionBusy,setActionBusy]=useState(false);
  const [locale,setLocale]=useState<"en"|"ar">("en");
+ const [following,setFollowing]=useState(!!props.context?.is_following);
+ const [followers,setFollowers]=useState(Number(props.context?.follower_count??0));
+ const [followBusy,setFollowBusy]=useState(false);
  const isArabic=locale==="ar";
  const t=isArabic?{
-  home:"الرئيسية",community:"المجتمع",notifications:"الإشعارات",series:"السلاسل",shorts:"المقاطع",videos:"الفيديوهات",official:"فيديو رسمي من صانع المحتوى",react:"تفاعل",spark:"شرارة",orbit:"مدار",legend:"أسطوري",laugh:"مضحك",mindblown:"مذهل",support:"دعم",saved:"تم الحفظ",save:"حفظ",share:"مشاركة",about:"عن هذا الفيديو",noDescription:"لم تتم إضافة وصف بعد.",discussion:"النقاش",comments:"تعليق",commentPlaceholder:"اكتب تعليقًا مفيدًا…",sending:"جارٍ الإرسال…",commentAction:"علّق ↗",signIn:"سجّل الدخول للمشاركة في النقاش. تتم مراجعة التعليقات قبل نشرها.",choose:"اختر تفاعلك مع Raye2",viewError:"الفيديو يعمل، لكن تعذر تسجيل المشاهدة حاليًا.",loadError:"تعذر تحميل بعض تفاصيل الفيديو. تحقق من الاتصال وحدّث الصفحة للمحاولة مجددًا.",signReact:"سجّل الدخول للتفاعل مع الفيديوهات.",reactLive:"تم نشر تفاعلك على Raye2.",reactRemoved:"تمت إزالة تفاعلك.",reactError:"تعذر حفظ التفاعل. تمت استعادة تفاعلك السابق.",signSave:"سجّل الدخول لحفظ الفيديوهات.",savedVideo:"تم حفظ الفيديو.",unsavedVideo:"تمت إزالة الفيديو من المحفوظات.",saveError:"تعذر تحديث المحفوظات. تمت استعادة إعدادك السابق.",signComment:"سجّل الدخول للتعليق.",commentSent:"تم إرسال التعليق لمراجعة المبدع.",commentError:"تعذر إرسال التعليق. لا يزال النص موجودًا لتتمكن من المحاولة مجددًا.",shareCopied:"تم نسخ رابط الفيديو.",shareError:"تعذر نسخ الرابط تلقائيًا. يمكنك نسخ عنوان الصفحة من المتصفح.",related:"المزيد كهذا",relatedEmpty:"لا توجد فيديوهات مشابهة بعد."
+  home:"الرئيسية",community:"المجتمع",notifications:"الإشعارات",series:"السلاسل",shorts:"المقاطع",videos:"الفيديوهات",official:"فيديو رسمي من صانع المحتوى",react:"تفاعل",spark:"شرارة",orbit:"مدار",legend:"أسطوري",laugh:"مضحك",mindblown:"مذهل",support:"دعم",saved:"تم الحفظ",save:"حفظ",share:"مشاركة",about:"عن هذا الفيديو",noDescription:"لم تتم إضافة وصف بعد.",discussion:"النقاش",comments:"تعليق",commentPlaceholder:"اكتب تعليقًا مفيدًا…",sending:"جارٍ الإرسال…",commentAction:"علّق ↗",signIn:"سجّل الدخول للمشاركة في النقاش. تتم مراجعة التعليقات قبل نشرها.",choose:"اختر تفاعلك مع Raye2",viewError:"الفيديو يعمل، لكن تعذر تسجيل المشاهدة حاليًا.",loadError:"تعذر تحميل بعض تفاصيل الفيديو. تحقق من الاتصال وحدّث الصفحة للمحاولة مجددًا.",signReact:"سجّل الدخول للتفاعل مع الفيديوهات.",reactLive:"تم نشر تفاعلك على Raye2.",reactRemoved:"تمت إزالة تفاعلك.",reactError:"تعذر حفظ التفاعل. تمت استعادة تفاعلك السابق.",signSave:"سجّل الدخول لحفظ الفيديوهات.",savedVideo:"تم حفظ الفيديو.",unsavedVideo:"تمت إزالة الفيديو من المحفوظات.",saveError:"تعذر تحديث المحفوظات. تمت استعادة إعدادك السابق.",signComment:"سجّل الدخول للتعليق.",commentSent:"تم إرسال التعليق لمراجعة المبدع.",commentError:"تعذر إرسال التعليق. لا يزال النص موجودًا لتتمكن من المحاولة مجددًا.",shareCopied:"تم نسخ رابط الفيديو.",shareError:"تعذر نسخ الرابط تلقائيًا. يمكنك نسخ عنوان الصفحة من المتصفح.",related:"المزيد كهذا",relatedEmpty:"لا توجد فيديوهات مشابهة بعد.",creator:"صانع المحتوى",follow:"متابعة",following:"تتابعه",followerCount:"متابع",fromSeries:"من السلسلة",episode:"الحلقة",episodes:"حلقة",viewSeries:"اعرض السلسلة ↗",viewProfile:"الملف الشخصي ↗",signFollow:"سجّل الدخول لمتابعة صانع المحتوى.",followError:"تعذر تحديث قائمة المتابعة.",followingNow:"تتابع الآن."
  }:{
-  home:"Home",community:"Community",notifications:"Notifications",series:"Series",shorts:"Shorts",videos:"Videos",official:"Official creator upload",react:"React",spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support",saved:"Saved",save:"Save",share:"Share",about:"About this video",noDescription:"No description has been added yet.",discussion:"Discussion",comments:"comments",commentPlaceholder:"Add a thoughtful comment…",sending:"Sending…",commentAction:"Comment ↗",signIn:"Sign in to join the discussion. Comments are reviewed before publication.",choose:"Choose a Raye2 reaction",viewError:"Your video is playing, but its view could not be recorded right now.",loadError:"Some video details could not be loaded. Check your connection and refresh to try again.",signReact:"Sign in to react to videos.",reactLive:"Your Raye2 reaction is live.",reactRemoved:"Your reaction was removed.",reactError:"Could not save your reaction. Your previous reaction has been restored.",signSave:"Sign in to save videos.",savedVideo:"Video saved.",unsavedVideo:"Video removed from saved videos.",saveError:"Could not update saved videos. Your previous setting has been restored.",signComment:"Sign in to comment.",commentSent:"Comment submitted for creator review.",commentError:"Comment could not be submitted. Your text is still here so you can retry.",shareCopied:"Video link copied.",shareError:"Could not copy the link automatically. You can copy the page address from your browser.",related:"More like this",relatedEmpty:"No similar videos yet."
+  home:"Home",community:"Community",notifications:"Notifications",series:"Series",shorts:"Shorts",videos:"Videos",official:"Official creator upload",react:"React",spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support",saved:"Saved",save:"Save",share:"Share",about:"About this video",noDescription:"No description has been added yet.",discussion:"Discussion",comments:"comments",commentPlaceholder:"Add a thoughtful comment…",sending:"Sending…",commentAction:"Comment ↗",signIn:"Sign in to join the discussion. Comments are reviewed before publication.",choose:"Choose a Raye2 reaction",viewError:"Your video is playing, but its view could not be recorded right now.",loadError:"Some video details could not be loaded. Check your connection and refresh to try again.",signReact:"Sign in to react to videos.",reactLive:"Your Raye2 reaction is live.",reactRemoved:"Your reaction was removed.",reactError:"Could not save your reaction. Your previous reaction has been restored.",signSave:"Sign in to save videos.",savedVideo:"Video saved.",unsavedVideo:"Video removed from saved videos.",saveError:"Could not update saved videos. Your previous setting has been restored.",signComment:"Sign in to comment.",commentSent:"Comment submitted for creator review.",commentError:"Comment could not be submitted. Your text is still here so you can retry.",shareCopied:"Video link copied.",shareError:"Could not copy the link automatically. You can copy the page address from your browser.",related:"More like this",relatedEmpty:"No similar videos yet.",creator:"Creator",follow:"Follow",following:"Following",followerCount:"followers",fromSeries:"From the series",episode:"Episode",episodes:"episodes",viewSeries:"View series ↗",viewProfile:"View profile ↗",signFollow:"Sign in to follow this creator.",followError:"Could not update your following list.",followingNow:"You are now following."
  };
  useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
@@ -61,7 +66,7 @@ export default function WatchDetailClient(props:Props){
    }
   })();
   return()=>{alive=false};
- },[supabase,props.mediaId,props.allowComments]);
+ },[supabase,props.mediaId,props.allowComments,t.viewError,t.loadError]);
 
  async function chooseReaction(reaction:string){
   if(!supabase||!member){setNotice(t.signReact);return}
@@ -121,6 +126,27 @@ export default function WatchDetailClient(props:Props){
   }
  }
 
+ async function toggleFollow(){
+  if(!supabase){return}
+  if(!member){setNotice(t.signFollow);return}
+  if(followBusy||member===props.context?.creator_user_id)return;
+  setFollowBusy(true);
+  const previous=following;
+  setFollowing(!previous);
+  setFollowers(n=>Math.max(0,n+(previous?-1:1)));
+  try{
+   const {data,error}=await supabase.rpc("raye2_toggle_follow",{p_target_id:props.context!.creator_user_id});
+   if(error)throw error;
+   const next=!!data;
+   if(next!==!previous){setFollowing(next);setFollowers(n=>Math.max(0,n+(next?1:-1)));}
+   if(next)setNotice(t.followingNow);
+  }catch{
+   setFollowing(previous);
+   setFollowers(n=>Math.max(0,n+(previous?1:-1)));
+   setNotice(t.followError);
+  }finally{setFollowBusy(false)}
+ }
+
  async function saveProgress(position:number,duration:number){
   if(!supabase||!member)return;
   try{
@@ -134,6 +160,20 @@ export default function WatchDetailClient(props:Props){
    <article className="raye2-detail-main">
     <div className="raye2-detail-player"><PublicVideoPlayer startAt={props.startAt} hlsSrc={props.hlsSrc} src={props.src} poster={props.poster} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl} locale={locale} onProgress={saveProgress}/></div>
     <div className="raye2-detail-title"><div><span className="nhen-section-label">{props.category} / RAYE2 WATCH</span><h1>{props.title}</h1><p className="nhen-muted">{new Date(props.publishedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")} · {t.official}</p></div><span className="nhen-pill nhen-pill-official">✦ OFFICIAL</span></div>
+    {props.context?.creator_user_id&&<section className="raye2-detail-creator" aria-label={t.creator}>
+     <Link className="raye2-detail-creator-id" href={"/u/"+props.context.creator_handle}>
+      <span className="raye2-detail-creator-avatar">{props.context.creator_avatar_url?<Image src={props.context.creator_avatar_url} alt="" fill unoptimized />:"◎"}</span>
+      <span className="raye2-detail-creator-copy"><strong>{props.context.creator_display_name??"Raye2"}</strong><small>@{props.context.creator_handle} · {followers} {t.followerCount}</small></span>
+     </Link>
+     <div className="raye2-detail-creator-actions">
+      <button className={following?"active":""} onClick={()=>void toggleFollow()} disabled={followBusy||member===props.context.creator_user_id}>{following?t.following:t.follow}</button>
+      <Link href={"/u/"+props.context.creator_handle}>{t.viewProfile}</Link>
+     </div>
+    </section>}
+    {props.context?.series_slug&&<section className="raye2-detail-series" aria-label={t.fromSeries}>
+     <span className="nhen-section-label">{t.fromSeries}</span>
+     <div className="raye2-detail-series-body"><Link href={"/series/"+props.context.series_slug}><strong>{props.context.series_title}</strong><small>{t.episode} {Number(props.context.series_position)+1} / {Number(props.context.series_episode_count)} {t.episodes}</small></Link><Link href={"/series/"+props.context.series_slug}>{t.viewSeries}</Link></div>
+    </section>}
     <div className="raye2-detail-actions"><div className="raye2-detail-reaction"><button className={liked?"active":""} aria-expanded={reactionPicker} aria-haspopup="menu" onClick={()=>setReactionPicker(value=>!value)} disabled={actionBusy}>{myReaction?<NhenReactionArt reaction={myReaction} size={19}/>:<NhenReactionArt reaction="spark" size={19}/>} {myReaction?({spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support"} as Record<string,string>)[myReaction]??t.react:t.react} · {likes}</button>{reactionPicker&&<div className="raye2-detail-picker" role="menu" aria-label={t.choose}>{[{id:"spark",icon:"✦",name:t.spark},{id:"orbit",icon:"◉",name:t.orbit},{id:"legend",icon:"♛",name:t.legend},{id:"laugh",icon:"≋",name:t.laugh},{id:"mindblown",icon:"✧",name:t.mindblown},{id:"support",icon:"♡",name:t.support}].map(item=><button type="button" role="menuitem" key={item.id} className={myReaction===item.id?"active":""} onClick={()=>void chooseReaction(item.id)} disabled={actionBusy}><NhenReactionArt reaction={item.id} size={25}/><span>{item.name}</span></button>)}</div>}</div><button className={saved?"active":""} onClick={()=>void toggleBookmark()} disabled={actionBusy}>▣ {saved?t.saved:t.save}</button><button onClick={()=>void shareVideo()}>↗ {t.share}</button></div>
     <section className="nhen-card nhen-card-pad raye2-detail-description"><h2>{t.about}</h2><p>{props.description||t.noDescription}</p>{props.tags.length>0&&<div className="raye2-detail-tags">{props.tags.map(tag=><Link key={tag} href={"/topics/"+encodeURIComponent(tag)}>#{tag}</Link>)}</div>}</section>
     {(props.related??[]).length>0&&<section className="raye2-detail-related" aria-label={t.related}><div className="raye2-detail-related-head"><h2>{t.related}</h2><Link href={"/topics/"+encodeURIComponent(props.category.toLowerCase())}>{props.category} ↗</Link></div><div className="raye2-detail-related-grid">{props.related!.map(item=><article className="raye2-detail-related-card" key={item.slug}><Link href={"/watch/"+item.slug}><div className="raye2-detail-related-thumb">▶</div><div className="raye2-detail-related-copy"><span className="nhen-section-label">{item.category.toUpperCase()}</span><h3>{item.title}</h3><p>{item.description}</p></div></Link></article>)}</div></section>}

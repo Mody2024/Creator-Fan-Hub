@@ -120,7 +120,7 @@ export default function CommunityClient({ initialPosts, selectedFeed, selectedSo
   useEffect(() => {
     if (!supabase) return;
     let alive = true;
-    void supabase.from("video_catalog").select("media_id,slug,duration_seconds,media_items!inner(title,is_published,media_type)").not("published_at","is",null).eq("media_items.is_published",true).then(({data,error}: {data: MomentCatalogRow[] | null; error: unknown}) => {
+    void supabase.from("video_catalog").select("media_id,slug,duration_seconds,media_items!video_catalog_media_id_fkey!inner(title,is_published,media_type)").not("published_at","is",null).eq("media_items.is_published",true).then(({data,error}: {data: MomentCatalogRow[] | null; error: unknown}) => {
       if (!alive || error) return;
       const rows = (data ?? []).flatMap(item => {
         const media = Array.isArray(item.media_items) ? item.media_items[0] : item.media_items;

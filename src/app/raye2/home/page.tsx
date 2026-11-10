@@ -39,7 +39,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
     if(followedIds!==null) query=followedIds.length?query.in("author_id",followedIds):query.in("author_id",["00000000-0000-0000-0000-000000000000"]);
     const [{data:postRows},{data:videoRows}]=await Promise.all([
       query.order("pinned",{ascending:false}).order("created_at",{ascending:false}).limit(30),
-      supabase.from("video_catalog").select("media_id,slug,description,category,published_at,thumbnail_media_id,media_items!inner(title,is_published,media_type),thumbnail:media_items!video_catalog_thumbnail_media_id_fkey(storage_path,is_published,media_type,alt_text)").not("published_at","is",null).eq("media_items.is_published",true).order("published_at",{ascending:false}).limit(4)
+      supabase.from("video_catalog").select("media_id,slug,description,category,published_at,thumbnail_media_id,media_items!video_catalog_media_id_fkey!inner(title,is_published,media_type),thumbnail:media_items!video_catalog_thumbnail_media_id_fkey(storage_path,is_published,media_type,alt_text)").not("published_at","is",null).eq("media_items.is_published",true).order("published_at",{ascending:false}).limit(4)
     ]);
     posts=(postRows??[]) as FeedPost[];
     const authorIds=[...new Set(posts.map(post=>post.author_id))];
