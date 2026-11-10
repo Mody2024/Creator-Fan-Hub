@@ -1969,3 +1969,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 19/19**: four kinds returned, exact-title ranking, draft/unpublished/private/pending exclusion, `%` wildcard escaping, blank input, limit clamping, case-insensitivity.
 - [x] Tests +5 (503 total); validator +3 assertions (191); gates green (144 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
 - **Progress:** Wave 3 moves from **29% to 32% provisional**; full ten-wave estimate moves from **~46% to ~47%**.
+
+## 2026-11-10 — Wave 3 creator directory (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPC `raye2_list_creators(p_limit, p_sort)` listing public creators with at least one published video, plus published-video count, follower count and total views.
+- [x] Sortable by published / followers / views with unknown-sort fallback and a limit clamped to 60. Private profiles and creators with no published videos are never returned.
+- [x] New bilingual RTL `/creators` surface with sort tabs; each card links to `/u/<handle>`. Reachable from the home rail and the discover rail.
+- [x] **Live matrix 13/13**: public-only filtering, published-video gate, correct counts, all three sort orders, unknown-sort fallback, limit clamping.
+- [x] Tests +5 (508 total); validator +3 assertions (194); gates green (145 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 3 moves from **32% to 35% provisional**; full ten-wave estimate moves from **~47% to ~48%**.
