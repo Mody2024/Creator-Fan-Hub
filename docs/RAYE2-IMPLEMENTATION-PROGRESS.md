@@ -2021,3 +2021,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 18/18**: contents and counts, post/video resolution, owner scoping, anonymous denial, rename + blank-name validation, item removal, unpublished-content dropping, non-owner delete denial, cascade delete.
 - [x] Tests +4 (531 total); validator +3 assertions (209); gates green (150 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 5 moves from **43% to 48% provisional**; full ten-wave estimate moves from **~52% to ~53%**.
+
+## 2026-11-10 — Wave 6 search depth (mega-batch)
+- [x] Replaced `raye2_search(text, integer)` in place (same signature) to add a `group` kind for public, joinable groups with exact/prefix ranking, and to exclude accounts the viewer blocked in either direction from people and posts.
+- [x] Videos, tags and anonymous behaviour unchanged; still pinned `SECURITY DEFINER`, granted to anon + authenticated, exposing only published content, public members and public groups.
+- [x] Discover page renders a Spaces section and Spaces tab; group results link to `/groups/[slug]`.
+- [x] **Live matrix 12/12**: public group returned, private group hidden, anonymous sees blocked content, signed-in viewer loses blocked author's posts in both directions, own content retained, rank ordering, limit clamp, no-match empty.
+- [x] Tests +4 (535 total); validator +2 assertions (211); gates green (151 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 6 moves from **10% to 18% provisional**; full ten-wave estimate moves from **~53% to ~54%**.
