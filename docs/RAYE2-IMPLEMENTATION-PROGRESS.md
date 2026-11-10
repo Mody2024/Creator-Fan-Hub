@@ -1994,3 +1994,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 21/21**: draft exclusion, published-only comment counts, author attribution, block exclusion, following-only feed, pinned-first ordering, comments hidden on drafts/unknown posts, limit clamping.
 - [x] Tests +5 (518 total); validator +3 assertions (200); gates green (147 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
 - **Progress:** Wave 5 moves from **30% to 34% provisional**; full ten-wave estimate moves from **~49% to ~50%**.
+
+## 2026-11-10 — Wave 5 notification inbox (mega-batch)
+- [x] Added pinned authenticated `SECURITY DEFINER` read RPCs `raye2_get_notifications(p_limit, p_before, p_only_unread)` and `raye2_get_notification_summary()`.
+- [x] Inbox returns the caller's own notifications with actor attribution in one call, newest first, cursor-paged by `created_at`, optionally unread-only, and excludes actors the caller blocked or who blocked the caller. Limit clamped to 100.
+- [x] Summary returns unread total plus follow/reaction/comment counts, blocked actors excluded so counts match the inbox.
+- [x] Notifications page calls the inbox RPC; client renders filter tabs with live counts, keeps realtime inserts (refreshing the summary), and offers cursor-based Load more.
+- [x] **Live matrix 21/21**: own-inbox scoping, unread filter, summary counts, both-direction block exclusion, cursor paging without overlap, limit clamp, anonymous denied.
+- [x] Tests +4 (522 total); validator +3 assertions (203); gates green (148 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **34% to 38% provisional**; full ten-wave estimate moves from **~50% to ~51%**.
