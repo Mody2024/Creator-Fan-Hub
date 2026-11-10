@@ -2046,3 +2046,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix 13/13** watch context + **7/7** anon visibility; all seven public embeds probed OK; `/`, `/shorts`, `/raye2/home` render seeded videos again.
 - [x] Tests 545/545 (+3); validator +6 assertions (219); gates green (154 migrations, tsc, lint 0 errors, build OK).
 - **Progress:** Wave 6 moves from **26% to 34% provisional**; full ten-wave estimate moves from **~55% to ~56%**. The outage repair is a correctness fix that also unblocks previously invisible public content.
+
+## 2026-11-10 — Wave 5 profile depth + public community outage repair (mega-batch)
+- [x] Added `raye2_get_profile_overview(text)` (SECURITY DEFINER, STABLE, pinned `search_path`, anon + authenticated): real labelled counts (published videos, views, reactions, followers, following, posts, recent posts, shorts) and an `is_creator` flag, matching `member_profiles` RLS visibility.
+- [x] Profile header now shows true, individually-labelled stats (was labelling posts+videos+shorts as "Posts"), a creator badge and a private tag; posts section shows the true post count plus recent activity.
+- [x] Pinned the profile `media_items -> video_catalog` embed (bare embed was ambiguous -> empty videos section).
+- [x] **Repaired a pre-existing outage**: the anon revoke of `is_member_blocked()` plus `private.can_moderate_community()` being granted only to authenticated broke the anon SELECT policies on community posts/comments/shorts, video comments, member follows and member profiles -> the entire public community surface rendered empty. Restored the anon grants and moved the `member_blocks` reachability check into a new `raye2_viewer_blocked()` definer helper.
+- [x] **Live matrices:** profile overview 18/18; community reads/block semantics green; anon policy sweep across 19 tables shows no remaining "permission denied for function"; `/u/<handle>` and `/community` render again.
+- [x] Tests 550/550 (+5); validator +4 assertions (223); gates green (156 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **~70% to ~82% provisional**; full ten-wave estimate moves from **~56% to ~58%**. Two outage-class regressions fixed (workspace + block/moderation helpers), restoring all public reads.
