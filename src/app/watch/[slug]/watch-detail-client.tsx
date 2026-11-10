@@ -9,7 +9,8 @@ import NhenReactionArt from "./nhen-reaction-art";
 
 type Props={startAt?:number;hlsSrc?:string|null;mediaId:string;title:string;description:string;src:string;poster?:string|null;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[];related?:RelatedVideo[];context?:WatchContext|null};
 type WatchContext={creator_user_id:string;creator_handle:string|null;creator_display_name:string|null;creator_avatar_url:string|null;follower_count:number;is_following:boolean;series_slug:string|null;series_title:string|null;series_position:number|null;series_episode_count:number|null};
-type Comment={id:string;body:string;created_at:string;author_id:string};
+type ThreadComment={comment_id:string;author_id:string;author_handle:string|null;author_display_name:string|null;author_avatar_url:string|null;body:string;created_at:string;reply_count:number;reaction_count:number;my_reaction:string|null};
+type ThreadReply={comment_id:string;author_id:string;author_handle:string|null;author_display_name:string|null;author_avatar_url:string|null;body:string;created_at:string;reaction_count:number;my_reaction:string|null};
 type RelatedVideo={slug:string;title:string;category:string;description:string;published_at:string};
 
 export default function WatchDetailClient(props:Props){
@@ -20,8 +21,12 @@ export default function WatchDetailClient(props:Props){
  const [reactionPicker,setReactionPicker]=useState(false);
  const [saved,setSaved]=useState(false);
  const [likes,setLikes]=useState(0);
- const [comments,setComments]=useState<Comment[]>([]);
+ const [comments,setComments]=useState<ThreadComment[]>([]);
  const [comment,setComment]=useState("");
+ const [replies,setReplies]=useState<Record<string,ThreadReply[]>>({});
+ const [replyOpen,setReplyOpen]=useState<string|null>(null);
+ const [replyDraft,setReplyDraft]=useState("");
+ const [threadBusy,setThreadBusy]=useState<string|null>(null);
  const [notice,setNotice]=useState("");
  const [actionBusy,setActionBusy]=useState(false);
  const [locale,setLocale]=useState<"en"|"ar">("en");
@@ -30,9 +35,9 @@ export default function WatchDetailClient(props:Props){
  const [followBusy,setFollowBusy]=useState(false);
  const isArabic=locale==="ar";
  const t=isArabic?{
-  home:"الرئيسية",community:"المجتمع",notifications:"الإشعارات",series:"السلاسل",shorts:"المقاطع",videos:"الفيديوهات",official:"فيديو رسمي من صانع المحتوى",react:"تفاعل",spark:"شرارة",orbit:"مدار",legend:"أسطوري",laugh:"مضحك",mindblown:"مذهل",support:"دعم",saved:"تم الحفظ",save:"حفظ",share:"مشاركة",about:"عن هذا الفيديو",noDescription:"لم تتم إضافة وصف بعد.",discussion:"النقاش",comments:"تعليق",commentPlaceholder:"اكتب تعليقًا مفيدًا…",sending:"جارٍ الإرسال…",commentAction:"علّق ↗",signIn:"سجّل الدخول للمشاركة في النقاش. تتم مراجعة التعليقات قبل نشرها.",choose:"اختر تفاعلك مع Raye2",viewError:"الفيديو يعمل، لكن تعذر تسجيل المشاهدة حاليًا.",loadError:"تعذر تحميل بعض تفاصيل الفيديو. تحقق من الاتصال وحدّث الصفحة للمحاولة مجددًا.",signReact:"سجّل الدخول للتفاعل مع الفيديوهات.",reactLive:"تم نشر تفاعلك على Raye2.",reactRemoved:"تمت إزالة تفاعلك.",reactError:"تعذر حفظ التفاعل. تمت استعادة تفاعلك السابق.",signSave:"سجّل الدخول لحفظ الفيديوهات.",savedVideo:"تم حفظ الفيديو.",unsavedVideo:"تمت إزالة الفيديو من المحفوظات.",saveError:"تعذر تحديث المحفوظات. تمت استعادة إعدادك السابق.",signComment:"سجّل الدخول للتعليق.",commentSent:"تم إرسال التعليق لمراجعة المبدع.",commentError:"تعذر إرسال التعليق. لا يزال النص موجودًا لتتمكن من المحاولة مجددًا.",shareCopied:"تم نسخ رابط الفيديو.",shareError:"تعذر نسخ الرابط تلقائيًا. يمكنك نسخ عنوان الصفحة من المتصفح.",related:"المزيد كهذا",relatedEmpty:"لا توجد فيديوهات مشابهة بعد.",creator:"صانع المحتوى",follow:"متابعة",following:"تتابعه",followerCount:"متابع",fromSeries:"من السلسلة",episode:"الحلقة",episodes:"حلقة",viewSeries:"اعرض السلسلة ↗",viewProfile:"الملف الشخصي ↗",signFollow:"سجّل الدخول لمتابعة صانع المحتوى.",followError:"تعذر تحديث قائمة المتابعة.",followingNow:"تتابع الآن."
+  home:"الرئيسية",community:"المجتمع",notifications:"الإشعارات",series:"السلاسل",shorts:"المقاطع",videos:"الفيديوهات",official:"فيديو رسمي من صانع المحتوى",react:"تفاعل",spark:"شرارة",orbit:"مدار",legend:"أسطوري",laugh:"مضحك",mindblown:"مذهل",support:"دعم",saved:"تم الحفظ",save:"حفظ",share:"مشاركة",about:"عن هذا الفيديو",noDescription:"لم تتم إضافة وصف بعد.",discussion:"النقاش",comments:"تعليق",commentPlaceholder:"اكتب تعليقًا مفيدًا…",sending:"جارٍ الإرسال…",commentAction:"علّق ↗",signIn:"سجّل الدخول للمشاركة في النقاش. تتم مراجعة التعليقات قبل نشرها.",choose:"اختر تفاعلك مع Raye2",viewError:"الفيديو يعمل، لكن تعذر تسجيل المشاهدة حاليًا.",loadError:"تعذر تحميل بعض تفاصيل الفيديو. تحقق من الاتصال وحدّث الصفحة للمحاولة مجددًا.",signReact:"سجّل الدخول للتفاعل مع الفيديوهات.",reactLive:"تم نشر تفاعلك على Raye2.",reactRemoved:"تمت إزالة تفاعلك.",reactError:"تعذر حفظ التفاعل. تمت استعادة تفاعلك السابق.",signSave:"سجّل الدخول لحفظ الفيديوهات.",savedVideo:"تم حفظ الفيديو.",unsavedVideo:"تمت إزالة الفيديو من المحفوظات.",saveError:"تعذر تحديث المحفوظات. تمت استعادة إعدادك السابق.",signComment:"سجّل الدخول للتعليق.",commentSent:"تم إرسال التعليق لمراجعة المبدع.",commentError:"تعذر إرسال التعليق. لا يزال النص موجودًا لتتمكن من المحاولة مجددًا.",shareCopied:"تم نسخ رابط الفيديو.",shareError:"تعذر نسخ الرابط تلقائيًا. يمكنك نسخ عنوان الصفحة من المتصفح.",related:"المزيد كهذا",relatedEmpty:"لا توجد فيديوهات مشابهة بعد.",creator:"صانع المحتوى",follow:"متابعة",following:"تتابعه",followerCount:"متابع",fromSeries:"من السلسلة",episode:"الحلقة",episodes:"حلقة",viewSeries:"اعرض السلسلة ↗",viewProfile:"الملف الشخصي ↗",signFollow:"سجّل الدخول لمتابعة صانع المحتوى.",followError:"تعذر تحديث قائمة المتابعة.",followingNow:"تتابع الآن.",replies:"ردود",reply:"رد",replyPlaceholder:"اكتب ردًا…",replyAction:"رد ↗",showReplies:"اعرض الردود",hideReplies:"أخفِ الردود",replySent:"تم إرسال الرد لمراجعة المبدع.",reactComment:"تفاعل مع التعليق",noReplies:"لا توجد ردود بعد."
  }:{
-  home:"Home",community:"Community",notifications:"Notifications",series:"Series",shorts:"Shorts",videos:"Videos",official:"Official creator upload",react:"React",spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support",saved:"Saved",save:"Save",share:"Share",about:"About this video",noDescription:"No description has been added yet.",discussion:"Discussion",comments:"comments",commentPlaceholder:"Add a thoughtful comment…",sending:"Sending…",commentAction:"Comment ↗",signIn:"Sign in to join the discussion. Comments are reviewed before publication.",choose:"Choose a Raye2 reaction",viewError:"Your video is playing, but its view could not be recorded right now.",loadError:"Some video details could not be loaded. Check your connection and refresh to try again.",signReact:"Sign in to react to videos.",reactLive:"Your Raye2 reaction is live.",reactRemoved:"Your reaction was removed.",reactError:"Could not save your reaction. Your previous reaction has been restored.",signSave:"Sign in to save videos.",savedVideo:"Video saved.",unsavedVideo:"Video removed from saved videos.",saveError:"Could not update saved videos. Your previous setting has been restored.",signComment:"Sign in to comment.",commentSent:"Comment submitted for creator review.",commentError:"Comment could not be submitted. Your text is still here so you can retry.",shareCopied:"Video link copied.",shareError:"Could not copy the link automatically. You can copy the page address from your browser.",related:"More like this",relatedEmpty:"No similar videos yet.",creator:"Creator",follow:"Follow",following:"Following",followerCount:"followers",fromSeries:"From the series",episode:"Episode",episodes:"episodes",viewSeries:"View series ↗",viewProfile:"View profile ↗",signFollow:"Sign in to follow this creator.",followError:"Could not update your following list.",followingNow:"You are now following."
+  home:"Home",community:"Community",notifications:"Notifications",series:"Series",shorts:"Shorts",videos:"Videos",official:"Official creator upload",react:"React",spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support",saved:"Saved",save:"Save",share:"Share",about:"About this video",noDescription:"No description has been added yet.",discussion:"Discussion",comments:"comments",commentPlaceholder:"Add a thoughtful comment…",sending:"Sending…",commentAction:"Comment ↗",signIn:"Sign in to join the discussion. Comments are reviewed before publication.",choose:"Choose a Raye2 reaction",viewError:"Your video is playing, but its view could not be recorded right now.",loadError:"Some video details could not be loaded. Check your connection and refresh to try again.",signReact:"Sign in to react to videos.",reactLive:"Your Raye2 reaction is live.",reactRemoved:"Your reaction was removed.",reactError:"Could not save your reaction. Your previous reaction has been restored.",signSave:"Sign in to save videos.",savedVideo:"Video saved.",unsavedVideo:"Video removed from saved videos.",saveError:"Could not update saved videos. Your previous setting has been restored.",signComment:"Sign in to comment.",commentSent:"Comment submitted for creator review.",commentError:"Comment could not be submitted. Your text is still here so you can retry.",shareCopied:"Video link copied.",shareError:"Could not copy the link automatically. You can copy the page address from your browser.",related:"More like this",relatedEmpty:"No similar videos yet.",creator:"Creator",follow:"Follow",following:"Following",followerCount:"followers",fromSeries:"From the series",episode:"Episode",episodes:"episodes",viewSeries:"View series ↗",viewProfile:"View profile ↗",signFollow:"Sign in to follow this creator.",followError:"Could not update your following list.",followingNow:"You are now following.",replies:"replies",reply:"Reply",replyPlaceholder:"Write a reply…",replyAction:"Reply ↗",showReplies:"Show replies",hideReplies:"Hide replies",replySent:"Reply submitted for creator review.",reactComment:"React to comment",noReplies:"No replies yet."
  };
  useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
@@ -54,11 +59,11 @@ export default function WatchDetailClient(props:Props){
     const [reaction,bookmark,commentRows]=await Promise.all([
      userId?supabase.from("video_reactions").select("media_id,reaction").eq("media_id",props.mediaId).eq("user_id",userId).maybeSingle():Promise.resolve({data:null,error:null}),
      userId?supabase.from("video_bookmarks").select("media_id").eq("media_id",props.mediaId).eq("user_id",userId).maybeSingle():Promise.resolve({data:null,error:null}),
-     props.allowComments?supabase.from("video_comments").select("id,body,created_at,author_id").eq("media_id",props.mediaId).eq("status","published").order("created_at",{ascending:false}).limit(50):Promise.resolve({data:[],error:null})
+     props.allowComments?supabase.rpc("raye2_get_video_comment_thread",{p_media_id:props.mediaId,p_limit:50}):Promise.resolve({data:[],error:null})
     ]);
     if(!alive)return;
     if(reaction.error||bookmark.error||commentRows.error)throw reaction.error??bookmark.error??commentRows.error;
-    setLiked(!!reaction.data);setMyReaction(reaction.data?.reaction??null);setSaved(!!bookmark.data);setComments((commentRows.data??[]) as Comment[]);
+    setLiked(!!reaction.data);setMyReaction(reaction.data?.reaction??null);setSaved(!!bookmark.data);setComments((commentRows.data??[]) as ThreadComment[]);
     const view=await supabase.rpc("record_video_view",{p_media_id:props.mediaId});
     if(view.error&&alive)setNotice(t.viewError);
    }catch{
@@ -114,6 +119,53 @@ export default function WatchDetailClient(props:Props){
   }catch{
    setNotice(t.commentError);
   }finally{setActionBusy(false)}
+ }
+
+ async function toggleReplies(rootId:string){
+  if(!supabase)return;
+  if(replies[rootId]){setReplies(current=>{const next={...current};delete next[rootId];return next});return}
+  setThreadBusy(rootId);
+  try{
+   const {data,error}=await supabase.rpc("raye2_get_video_comment_replies",{p_parent_id:rootId,p_limit:50});
+   if(error)throw error;
+   setReplies(current=>({...current,[rootId]:(data??[]) as ThreadReply[]}));
+  }catch{
+   setNotice(t.loadError);
+  }finally{setThreadBusy(null)}
+ }
+
+ async function sendReply(rootId:string){
+  if(!supabase||!member){setNotice(t.signComment);return}
+  if(!replyDraft.trim()||threadBusy)return;
+  setThreadBusy(rootId);
+  try{
+   const {error}=await supabase.from("video_comments").insert({media_id:props.mediaId,author_id:member,body:replyDraft.trim(),status:"pending",parent_comment_id:rootId});
+   if(error)throw error;
+   setReplyDraft("");setReplyOpen(null);setNotice(t.replySent);
+  }catch{
+   setNotice(t.commentError);
+  }finally{setThreadBusy(null)}
+ }
+
+ async function reactToComment(commentId:string,isReply:boolean,current:string|null,reaction:string){
+  if(!supabase||!member){setNotice(t.signReact);return}
+  if(threadBusy)return;
+  const next=current===reaction?null:reaction;
+  const apply=(list:ThreadReply[])=>list.map(r=>r.comment_id===commentId?{...r,my_reaction:next,reaction_count:Math.max(0,r.reaction_count+(next&&!current?1:!next&&current?-1:0))}:r);
+  if(isReply){
+   setReplies(all=>{const next2={...all};for(const key of Object.keys(next2))next2[key]=apply(next2[key]);return next2});
+  }else{
+   setComments(list=>list.map(c=>c.comment_id===commentId?{...c,my_reaction:next,reaction_count:Math.max(0,c.reaction_count+(next&&!current?1:!next&&current?-1:0))}:c));
+  }
+  setThreadBusy(commentId);
+  try{
+   const {error}=await supabase.rpc("raye2_toggle_comment_reaction",{p_comment_id:commentId,p_reaction:next});
+   if(error)throw error;
+  }catch{
+   if(isReply){setReplies(all=>{const next2={...all};for(const key of Object.keys(next2))next2[key]=next2[key].map(r=>r.comment_id===commentId?{...r,my_reaction:current,reaction_count:Math.max(0,r.reaction_count+(current&&!next?1:!current&&next?-1:0))}:r);return next2})}
+   else{setComments(list=>list.map(c=>c.comment_id===commentId?{...c,my_reaction:current,reaction_count:Math.max(0,c.reaction_count+(current&&!next?1:!current&&next?-1:0))}:c))}
+   setNotice(t.reactError);
+  }finally{setThreadBusy(null)}
  }
 
  async function shareVideo(){
@@ -179,7 +231,17 @@ export default function WatchDetailClient(props:Props){
     {(props.related??[]).length>0&&<section className="raye2-detail-related" aria-label={t.related}><div className="raye2-detail-related-head"><h2>{t.related}</h2><Link href={"/topics/"+encodeURIComponent(props.category.toLowerCase())}>{props.category} ↗</Link></div><div className="raye2-detail-related-grid">{props.related!.map(item=><article className="raye2-detail-related-card" key={item.slug}><Link href={"/watch/"+item.slug}><div className="raye2-detail-related-thumb">▶</div><div className="raye2-detail-related-copy"><span className="nhen-section-label">{item.category.toUpperCase()}</span><h3>{item.title}</h3><p>{item.description}</p></div></Link></article>)}</div></section>}
     {props.allowComments?<section className="nhen-card nhen-card-pad raye2-detail-comments"><div className="nhen-card-heading"><h2>{t.discussion}</h2><span className="nhen-muted">{comments.length} {t.comments}</span></div>
      {member?<div className="raye2-detail-compose"><textarea value={comment} onChange={e=>setComment(e.target.value)} rows={3} maxLength={1500} placeholder={t.commentPlaceholder}/><button className="button button-primary" onClick={()=>void sendComment()} disabled={!comment.trim()||actionBusy}>{actionBusy?t.sending:t.commentAction}</button></div>:<p className="nhen-muted">{t.signIn}</p>}
-     {comments.map(c=><article className="raye2-detail-comment" key={c.id}><p>{c.body}</p><time>{new Date(c.created_at).toLocaleDateString(isArabic?"ar-EG":"en-US")}</time></article>)}
+     {comments.map(c=><article className="raye2-detail-comment" key={c.comment_id}>
+      <div className="raye2-detail-comment-head"><Link href={c.author_handle?("/u/"+c.author_handle):"#"} className="raye2-detail-comment-author"><span className="raye2-detail-comment-avatar">{c.author_avatar_url?<Image src={c.author_avatar_url} alt="" fill unoptimized/>:(c.author_display_name??"R").slice(0,1).toUpperCase()}</span><strong>{c.author_display_name??c.author_handle??"Raye2"}</strong></Link><time>{new Date(c.created_at).toLocaleDateString(isArabic?"ar-EG":"en-US")}</time></div>
+      <p>{c.body}</p>
+      <div className="raye2-detail-comment-actions"><button type="button" className={c.my_reaction?"active":""} onClick={()=>void reactToComment(c.comment_id,false,c.my_reaction,"spark")} disabled={!!threadBusy} aria-label={t.reactComment}><NhenReactionArt reaction={c.my_reaction??"spark"} size={15}/> {c.reaction_count}</button><button type="button" onClick={()=>{setReplyOpen(open=>open===c.comment_id?null:c.comment_id);setReplyDraft("")}} disabled={!member}>{t.reply}</button>{c.reply_count>0&&<button type="button" onClick={()=>void toggleReplies(c.comment_id)} disabled={threadBusy===c.comment_id}>{replies[c.comment_id]?t.hideReplies:t.showReplies} · {c.reply_count}</button>}</div>
+      {replyOpen===c.comment_id&&<div className="raye2-detail-compose raye2-detail-reply-compose"><textarea value={replyDraft} onChange={e=>setReplyDraft(e.target.value)} rows={2} maxLength={1500} placeholder={t.replyPlaceholder}/><button className="button button-primary" onClick={()=>void sendReply(c.comment_id)} disabled={!replyDraft.trim()||!!threadBusy}>{threadBusy===c.comment_id?t.sending:t.replyAction}</button></div>}
+      {replies[c.comment_id]&&<div className="raye2-detail-replies">{(replies[c.comment_id]??[]).length?(replies[c.comment_id]??[]).map(r=><article className="raye2-detail-comment raye2-detail-reply" key={r.comment_id}>
+       <div className="raye2-detail-comment-head"><Link href={r.author_handle?("/u/"+r.author_handle):"#"} className="raye2-detail-comment-author"><span className="raye2-detail-comment-avatar">{r.author_avatar_url?<Image src={r.author_avatar_url} alt="" fill unoptimized/>:(r.author_display_name??"R").slice(0,1).toUpperCase()}</span><strong>{r.author_display_name??r.author_handle??"Raye2"}</strong></Link><time>{new Date(r.created_at).toLocaleDateString(isArabic?"ar-EG":"en-US")}</time></div>
+       <p>{r.body}</p>
+       <div className="raye2-detail-comment-actions"><button type="button" className={r.my_reaction?"active":""} onClick={()=>void reactToComment(r.comment_id,true,r.my_reaction,"spark")} disabled={!!threadBusy} aria-label={t.reactComment}><NhenReactionArt reaction={r.my_reaction??"spark"} size={15}/> {r.reaction_count}</button></div>
+      </article>):<p className="nhen-muted">{t.noReplies}</p>}</div>}
+     </article>)}
     </section>:null}
     {notice&&<p className="nhen-mod-notice" role="status" aria-live="polite">{notice}</p>}
    </article>

@@ -693,6 +693,19 @@ button:disabled { opacity: .52; }
 .raye2-detail-comment{padding:13px 0;border-top:1px solid rgba(220,232,248,.08)}
 .raye2-detail-comment p{margin:0 0 7px;color:#d9e1ed;font-size:11px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
 .raye2-detail-comment time{color:#8797ad;font-size:9px}
+.raye2-detail-comment-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}
+.raye2-detail-comment-author{display:inline-flex;align-items:center;gap:8px;color:#e7eefb;font-size:10px;text-decoration:none}
+.raye2-detail-comment-author strong{font-weight:700}
+.raye2-detail-comment-avatar{position:relative;display:inline-grid;place-items:center;width:24px;height:24px;overflow:hidden;border:1px solid rgba(121,177,255,.24);border-radius:999px;background:rgba(121,177,255,.12);color:#bcd8ff;font:800 10px var(--mono,monospace)}
+.raye2-detail-comment-actions{display:flex;align-items:center;gap:8px;margin-top:4px}
+.raye2-detail-comment-actions button{display:inline-flex;align-items:center;gap:5px;min-height:26px;padding:0 9px;border:1px solid rgba(220,232,248,.12);border-radius:999px;background:transparent;color:#9fb2ca;font-size:9px;font-weight:700;cursor:pointer}
+.raye2-detail-comment-actions button:hover:not(:disabled){border-color:rgba(121,177,255,.4);color:#d6e6ff}
+.raye2-detail-comment-actions button.active{border-color:rgba(121,177,255,.5);background:rgba(121,177,255,.14);color:#dcebff}
+.raye2-detail-comment-actions button:disabled{opacity:.5;cursor:default}
+.raye2-detail-reply-compose{margin:10px 0 4px}
+.raye2-detail-replies{margin:4px 0 0 14px;padding-inline-start:12px;border-inline-start:1px solid rgba(220,232,248,.12)}
+.raye2-detail-reply{padding:10px 0}
+.raye2-detail-reply:first-child{border-top:0}
 .raye2-detail-page .nhen-mod-notice{margin-top:14px;padding:11px 13px;border:1px solid rgba(121,177,255,.2);border-radius:10px;background:rgba(121,177,255,.08);color:#c6dcfa;font-size:10px}
 .raye2-detail-layout:after{content:"RAYE2 WATCH  /  MADE FOR DISCOVERY";align-self:start;grid-column:2;grid-row:1;margin-top:8px;padding:17px;border:1px solid rgba(220,232,248,.1);border-radius:12px;background:linear-gradient(145deg,#111b29,#0e1520);color:#8ea1bb;font:750 8px var(--mono,monospace);letter-spacing:.14em;line-height:1.8}
 .raye2-detail-page[dir="rtl"] .raye2-detail-title{flex-direction:row-reverse}
