@@ -2221,3 +2221,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 15/15 (usage accuracy, no false rejections, overview totals, unmeasurable rules excluded).
 - [x] Gates: validator 295 assertions; tests 635/635 (+4); tsc clean; lint 0 errors/24 warnings; build OK (173 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~98% to ~100%**; full ten-wave estimate **~80% to ~82%**.
+
+## 2026-11-10 — Durable background-job framework (mega-batch)
+- [x] `raye2_background_jobs` — durable queue with priority, run_at, lease, attempts, idempotency key, result/error.
+- [x] `raye2_enqueue_background_job` (admin/worker) + idempotent enqueue.
+- [x] `raye2_claim_background_job` (service-role worker only, `FOR UPDATE SKIP LOCKED`, expired-lease reclaim).
+- [x] `raye2_complete_background_job` — lease-token checked; exponential backoff requeue, fail at ceiling.
+- [x] `raye2_cancel_background_job` / `raye2_retry_background_job` (audited) + stats/list observability RPCs.
+- [x] Admin dashboard Jobs tab (backlog by status/kind, stuck leases, retry/cancel).
+- [x] **Live matrix:** 28/28 (access control, idempotency, lease guards, backoff→fail, manual retry, cancel rules, stats).
+- [x] Gates: validator 299 assertions; tests 639/639 (+4); tsc clean; lint 0 errors/24 warnings; build OK (174 migrations).
+- **Progress:** Wave 8 ~100%; Wave 9 (Security/reliability/ops) **~40% to ~55%**; full ten-wave estimate **~82% to ~84%**.
