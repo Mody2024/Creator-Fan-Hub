@@ -39,3 +39,19 @@
 .raye2-community-page .nhen-schedule-row input{padding:9px 11px;border:1px solid var(--c-line);border-radius:10px;font-size:12px;color:var(--c-text)}
 .raye2-community-page .nhen-collection-picker{position:relative;display:inline-flex}
 .raye2-community-page .nhen-collection-picker .nhen-reaction-menu{grid-template-columns:1fr;width:210px}
+
+.raye2-community-page .nhen-poll-compose{margin-top:10px;display:grid;gap:10px}
+.raye2-community-page .nhen-poll-compose-fields{display:grid;gap:8px;padding:12px;border:1px solid var(--c-line);border-radius:14px;background:var(--c-raised)}
+.raye2-community-page .nhen-poll-compose-option{display:flex;gap:8px;align-items:center}
+.raye2-community-page .nhen-poll-compose-option .nhen-search{flex:1;min-width:0}
+.raye2-community-page .nhen-poll-compose-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.raye2-community-page .nhen-poll{margin-top:12px;padding:14px;border:1px solid var(--c-line);border-radius:16px;background:var(--c-raised);display:grid;gap:10px}
+.raye2-community-page .nhen-poll-question{font-size:14px}
+.raye2-community-page .nhen-poll-options{display:grid;gap:8px}
+.raye2-community-page .nhen-poll-option{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden;padding:11px 14px;border:1px solid var(--c-line);border-radius:12px;background:var(--c-panel);color:var(--c-text);font:inherit;font-size:13px;text-align:start;cursor:pointer}
+.raye2-community-page .nhen-poll-option:disabled{cursor:default;opacity:1}
+.raye2-community-page .nhen-poll-option.is-chosen{border-color:var(--c-blue)}
+.raye2-community-page .nhen-poll-bar{position:absolute;inset-inline-start:0;top:0;bottom:0;background:rgba(128,180,255,.16);transition:width .3s ease;z-index:0}
+.raye2-community-page .nhen-poll-option-label,.raye2-community-page .nhen-poll-option-pct{position:relative;z-index:1}
+.raye2-community-page .nhen-poll-option-pct{font-size:11px;font-weight:800;color:var(--c-muted);white-space:nowrap}
+.raye2-community-page .nhen-poll-meta{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--c-muted)}
