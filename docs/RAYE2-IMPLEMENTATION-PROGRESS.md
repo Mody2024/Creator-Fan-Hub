@@ -2232,3 +2232,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 28/28 (access control, idempotency, lease guards, backoff→fail, manual retry, cancel rules, stats).
 - [x] Gates: validator 299 assertions; tests 639/639 (+4); tsc clean; lint 0 errors/24 warnings; build OK (174 migrations).
 - **Progress:** Wave 8 ~100%; Wave 9 (Security/reliability/ops) **~40% to ~55%**; full ten-wave estimate **~82% to ~84%**.
+
+## 2026-11-10 — Content takedown and copyright workflow (mega-batch)
+- [x] `raye2_content_takedowns` — target, reason, claimant, evidence, prior state, actor, reinstatement.
+- [x] `raye2_apply_content_takedown` — records prior state, immediately makes posts/comments `removed` and unpublishes media; copyright requires a claimant; duplicate active takedowns blocked.
+- [x] `raye2_reinstate_content_takedown` — restores prior state; both directions audited.
+- [x] `raye2_get_takedown_queue` — moderator queue.
+- [x] Community moderation workspace takedowns panel with reinstatement.
+- [x] **Live matrix:** 19/19 (access control, immediate inaccessibility, claimant rule, duplicate guard, reinstate, audit).
+- [x] Gates: validator 303 assertions; tests 643/643 (+4); tsc clean; lint 0 errors/24 warnings; build OK (175 migrations).
+- **Progress:** Wave 8 ~100%; Wave 9 (Security/reliability/ops) **~55% to ~68%**; full ten-wave estimate **~84% to ~86%**.
