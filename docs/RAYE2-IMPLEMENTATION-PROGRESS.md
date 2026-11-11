@@ -2066,3 +2066,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 21/21 (anon thread read, reply moderation gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
 - [x] Gates: validator 227 assertions; tests 556/556 (+6); tsc clean; lint 0 errors/24 warnings; build OK (157 migrations).
 - **Progress:** Wave 3 moves from **38% to 41% provisional**; full ten-wave estimate moves from **~58% to ~59%**.
+
+## 2026-11-10 — Threaded community Shorts comments + per-comment reactions (mega-batch)
+- [x] Added `community_short_comments.parent_comment_id` with a guard trigger enforcing one-level threading (no self-replies, no nested replies, no cross-short replies).
+- [x] Reply visibility follows the parent comment (published, unblocked parent required), so replies cannot leak while their parent is hidden.
+- [x] Added `community_short_comment_reactions` (member-only writes, anon-safe read policy) and a guarded `raye2_toggle_short_comment_reaction` RPC.
+- [x] Added pinned SECURITY DEFINER reads `raye2_get_short_comment_thread` / `raye2_get_short_comment_replies` (author identity, reply/reaction counts, the viewer's own reaction) granted to anon.
+- [x] Added `community_short_comment_reply` / `community_short_comment_reaction` notifications.
+- [x] Shorts client now renders author initials, per-comment reactions, a reply composer and expandable reply lists, with optimistic updates and bilingual strings.
+- [x] **Live matrix:** 20/20 (anon thread read, reply moderation gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
+- [x] Gates: validator 231 assertions; tests 562/562 (+6); tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Shorts comment depth complete; full ten-wave estimate moves from **~59% to ~60%**.
