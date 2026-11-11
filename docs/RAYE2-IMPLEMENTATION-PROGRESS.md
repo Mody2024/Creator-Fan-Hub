@@ -2192,3 +2192,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 17/17 (queue/resolve/audit access control, resolution audited, leaves open queue, filters by action/actor).
 - [x] Gates: validator 283 assertions; tests 623/623 (+4); tsc clean; lint 0 errors/24 warnings; build OK (170 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~72% to ~85%**; full ten-wave estimate **~73% to ~76%**.
+
+## 2026-11-10 — Cleanup execution + retention sweep (mega-batch)
+- [x] `raye2_cleanup_candidates()` — single candidate resolver honouring enabled policy + preserve flags.
+- [x] `raye2_estimate_cleanup_scope()` — scope-wide item/byte estimate.
+- [x] `raye2_queue_cleanup_job()` / `raye2_run_cleanup_job()` / `raye2_cancel_cleanup_job()` — lifecycle with audit entries; deletes only for `delete` policies, skips `archive`, per-category breakdown.
+- [x] `raye2_preview_retention_sweep()` — candidates + oldest per enabled policy.
+- [x] Admin cleanup tab gains queue/run/cancel per job + retention sweep preview.
+- [x] **Live matrix:** 20/20 (admin-only queue/run/cancel, frozen estimate matches deletions, old removed/recent kept, archive skipped, cancelled jobs inert).
+- [x] Gates: validator 287 assertions; tests 627/627 (+4); tsc clean; lint 0 errors/24 warnings; build OK (171 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~85% to ~93%**; full ten-wave estimate **~76% to ~78%**.
