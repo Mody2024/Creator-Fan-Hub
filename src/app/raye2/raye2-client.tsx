@@ -16,7 +16,8 @@ type MemorySettings = { group_id: string; contribution_policy: "all_members" | "
 type GroupMember = { group_id: string; user_id: string; role: "owner" | "admin" | "moderator" | "member"; status: string; joined_at: string; profile?: Profile };
 type JoinRequest = { id: string; group_id: string; user_id: string; note: string; status: "pending" | "approved" | "declined" | "cancelled"; created_at: string; profile?: Profile };
 type Conversation = { id: string; conversation_type: "direct" | "group"; group_id: string | null; status: string; created_at: string };
-type Message = { id: string; conversation_id: string; sender_id: string; body: string; parent_message_id: string | null; edited_at: string | null; created_at: string };
+type Message = { id: string; conversation_id: string; sender_id: string; body: string; parent_message_id: string | null; edited_at: string | null; created_at: string; topic_id?: string | null };
+type GroupTopic = { id: string; slug: string; name: string; topic_position: number; message_count: number };
 type Thread = { id: string; kind: "direct" | "group"; title: string; subtitle: string; conversationId: string; groupId: string | null; otherUserId: string | null; avatar: string; updatedAt: string; lastMessage: string; unread: number; canSend: boolean };
 type ReportTarget = { type: "message" | "user" | "group"; id: string; conversationId?: string | null };
 type SavedItem = { id: string; message_id: string | null; saved_content: { body?: string; sender_id?: string; created_at?: string }; created_at: string };
@@ -69,6 +70,10 @@ export default function Raye2Client() {
   const [messageSearchResults, setMessageSearchResults] = useState<PinnedMessage[]>([]);
   const [messageSearchBusy, setMessageSearchBusy] = useState(false);
   const [pinnedMessages, setPinnedMessages] = useState<PinnedMessage[]>([]);
+  const [groupTopics, setGroupTopics] = useState<GroupTopic[]>([]);
+  const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
+  const [showTopicManage, setShowTopicManage] = useState(false);
+  const [newTopicName, setNewTopicName] = useState("");
   const [messageRequests, setMessageRequests] = useState<MessageRequest[]>([]);
   const [requestProfiles, setRequestProfiles] = useState<Record<string, Profile>>({});
   const [allowMessageRequests, setAllowMessageRequests] = useState(true);
@@ -108,9 +113,9 @@ export default function Raye2Client() {
   const isAr = locale === "ar";
   const t = isAr ? {
     eyebrow:"مساحات RAYE2", title:"تواصل أقرب.", intro:"رسائلك ومجموعاتك ومجتمعاتك في مساحة واحدة.", chats:"المحادثات", groups:"مجموعاتي", discover:"اكتشف", saved:"المحفوظات", memories:"الذكريات المشتركة", invite:"دعوة أعضاء", createInvite:"إنشاء رابط دعوة", copyInvite:"نسخ الرابط", revokeInvite:"إلغاء الرابط", inviteExpiry:"صلاحية الرابط (ساعات)", inviteUses:"عدد مرات الاستخدام", inviteReady:"تم إنشاء رابط الدعوة.", inviteRevoked:"تم إلغاء رابط الدعوة.", saveMemory:"حفظ في الذكريات", memorySaved:"تم حفظ الذكرى للمجموعة.", search:"ابحث في المحادثات…", newMessage:"رسالة جديدة", newGroup:"مجموعة جديدة", groupName:"اسم المجموعة", groupDesc:"وصف مختصر (اختياري)", public:"عامة", private:"خاصة", create:"إنشاء المجموعة", cancel:"إلغاء", send:"إرسال", message:"اكتب رسالة…", emptyTitle:"اختر محادثة للبدء", emptyText:"ابدأ محادثة خاصة أو انضم إلى مجموعة.", noThreads:"لا توجد محادثات بعد", noGroups:"لم تنضم إلى مجموعات بعد", findPeople:"ابحث بالاسم أو اسم المستخدم", people:"الأعضاء", startChat:"ابدأ محادثة", join:"انضم", joined:"عضو بالفعل", publicGroups:"مجموعات عامة", noResults:"لا توجد نتائج مطابقة.", signIn:"سجّل الدخول لاستخدام Raye2", signInText:"المحادثات والمجموعات مرتبطة بحسابك وتحميها صلاحيات الوصول.", home:"الرئيسية", loading:"جارٍ التحميل…", failed:"تعذر تحميل البيانات. تحقق من اتصالك ثم أعد المحاولة.", sendError:"تعذر إرسال الرسالة.", createError:"تعذر إنشاء المجموعة. تأكد من الاسم وحاول مجددًا.", searchError:"تعذر إكمال البحث.", savedEmpty:"لا توجد رسائل محفوظة بعد.", save:"حفظ", unsave:"إزالة الحفظ", reply:"رد", edit:"تعديل", delete:"حذف", edited:"معدّلة", react:"تفاعل", privateLabel:"خاصة", publicLabel:"عامة", members:"الأعضاء", noMessages:"ابدأ المحادثة برسالة بسيطة.", back:"رجوع", groupReady:"تم إنشاء المجموعة.", chatReady:"تم فتح المحادثة.", profile:"الملف الشخصي", signOut:"تسجيل الخروج", inviteOnly:"دعوة فقط", rooms:"المساحات", safety:"تظل المجموعات الخاصة مخفية عن غير أعضائها.", loadingChat:"تحميل المحادثة…", manageGroup:"إدارة المجموعة", pendingRequests:"طلبات الانضمام", memberList:"الأعضاء", noRequests:"لا توجد طلبات معلقة.", noMembers:"لا يوجد أعضاء لعرضهم.", approve:"قبول", decline:"رفض", removeMember:"إزالة", roleOwner:"مالك", roleAdmin:"مشرف", roleModerator:"منسق", roleMember:"عضو", roleUpdated:"تم تحديث صلاحية العضو.", memberRemoved:"تمت إزالة العضو.",bannedMembers:"الأعضاء المحظورون", banMember:"حظر", unbanMember:"رفع الحظر", memberBanned:"تم حظر العضو.", memberUnbanned:"تم رفع الحظر.", noBans:"لا يوجد أعضاء محظورون.", requestReviewed:"تمت مراجعة الطلب.", preserveMemory:"احتفاظ دائم", preserveMemoryHint:"لن تنتهي هذه الذكرى تلقائيًا.", pinMemory:"تثبيت", unpinMemory:"إلغاء التثبيت", expirySoon:"تقترب هذه الذكرى من الانتهاء.", memoryUpdated:"تم تحديث الذكرى.", close:"إغلاق", searchMessages:"البحث في الرسائل", searchPlaceholder:"ابحث داخل هذه المحادثة…", noSearchResults:"لا توجد نتائج مطابقة.", pinnedMessages:"الرسائل المثبتة", pinMessage:"تثبيت", unpinMessage:"إلغاء التثبيت", messagePinned:"تم تثبيت الرسالة.", messageUnpinned:"تم إلغاء تثبيت الرسالة.", report:"إبلاغ", block:"حظر", reportTitle:"الإبلاغ عن محتوى أو حساب", reportReason:"سبب الإبلاغ", reportDetails:"تفاصيل إضافية (اختياري)", reportSent:"تم إرسال البلاغ للمراجعة.", blockConfirm:"هل تريد حظر هذا الحساب؟ لن يتمكن أي منكما من بدء محادثة جديدة.", blocked:"تم حظر الحساب.", reasons:{spam:"رسائل مزعجة",harassment:"مضايقة",hate:"خطاب كراهية",impersonation:"انتحال",copyright:"حقوق ملكية",other:"سبب آخر"}, notifications:"الإشعارات", messageRequests:"طلبات المراسلة", allowRequests:"السماح بطلبات مراسلة جديدة", requestPending:"بانتظار الرد", requestSent:"تم إرسال طلب المراسلة.", requestAccepted:"تم قبول الطلب وفتح المحادثة.", requestDeclined:"تم رفض طلب المراسلة.", requestUnavailable:"هذا الحساب لا يستقبل طلبات مراسلة جديدة.", acceptRequest:"قبول", declineRequest:"رفض", noMessageRequests:"لا توجد طلبات مراسلة معلقة.", contactSettings:"من يمكنه بدء محادثة معك؟", allowVoiceCalls:"السماح بالمكالمات الصوتية الخاصة", notificationSettings:"إعدادات الإشعارات", directNotifications:"رسائل خاصة", groupNotifications:"رسائل المجموعات", quietHours:"ساعات الهدوء", quietHoursEnable:"تفعيل ساعات الهدوء", quietStart:"من", quietEnd:"إلى", groupOverrides:"إعدادات إشعارات كل مجموعة", inherit:"افتراضي", allNotifications:"الكل", muted:"مكتومة", noNotifications:"لا توجد إشعارات جديدة.", markAllRead:"تحديد الكل كمقروء", notificationSaved:"تم حفظ إعدادات الإشعارات.",eventReminders:"تذكيرات الفعاليات", memoryPermissions:"صلاحيات الذكريات المشتركة", contributions:"من يمكنه إضافة الذكريات؟", exports:"من يمكنه تصدير الذكريات؟", allMembers:"كل الأعضاء", managersOnly:"المشرفون فقط", exportsDisabled:"التصدير معطّل", saveMemorySettings:"حفظ الصلاحيات", memorySettingsSaved:"تم تحديث صلاحيات الذكريات.", exportMemories:"تصدير JSON", exportNote:"يحتوي التصدير على النصوص والبيانات الوصفية فقط، ولا ينسخ ملفات الوسائط."
-  } : {
+  ,topics:"القنوات",topicAll:"كل الرسائل",topicGeneral:"عام",newTopic:"قناة جديدة",topicName:"اسم القناة",createTopic:"إنشاء",deleteTopic:"حذف",manageTopics:"إدارة القنوات",noTopics:"لا توجد قنوات بعد.",topicCreated:"تم إنشاء القناة.",topicDeleted:"تم حذف القناة.",topicError:"تعذر تحديث القناة.",postInTopic:"منشور في"} : {
     eyebrow:"RAYE2 / YOUR SPACES", title:"Closer conversations.", intro:"Your messages, groups and communities — connected in one place.", chats:"Chats", groups:"My groups", discover:"Discover", saved:"Saved", memories:"Shared Memories", invite:"Invite members", createInvite:"Create invite link", copyInvite:"Copy link", revokeInvite:"Revoke link", inviteExpiry:"Link expiry (hours)", inviteUses:"Maximum uses", inviteReady:"Invite link created.", inviteRevoked:"Invite link revoked.", saveMemory:"Save to Memories", memorySaved:"Saved to group memories.", search:"Search conversations…", newMessage:"New message", newGroup:"New group", groupName:"Group name", groupDesc:"A short description (optional)", public:"Public", private:"Private", create:"Create group", cancel:"Cancel", send:"Send", message:"Write a message…", emptyTitle:"Choose a conversation", emptyText:"Start a private chat or join a community group.", noThreads:"No conversations yet", noGroups:"You haven't joined any groups yet", findPeople:"Search by name or handle", people:"People", startChat:"Message", join:"Join group", joined:"Joined", publicGroups:"Public groups", noResults:"No matching results.", signIn:"Sign in to use Raye2", signInText:"Your conversations and groups are connected to your account and protected by access controls.", home:"Home", loading:"Loading…", failed:"Couldn't load your spaces. Check your connection and try again.", sendError:"Message couldn't be sent.", createError:"Couldn't create the group. Check the name and try again.", searchError:"Search couldn't be completed.", savedEmpty:"No saved messages yet.", save:"Save", unsave:"Unsave", reply:"Reply", edit:"Edit", delete:"Delete", edited:"edited", react:"React", privateLabel:"Private", publicLabel:"Public", members:"members", noMessages:"Start the conversation with a message.", back:"Back", groupReady:"Your group is ready.", chatReady:"Conversation opened.", profile:"Profile", signOut:"Sign out", inviteOnly:"Invite only", rooms:"Spaces", safety:"Private groups stay hidden from people who aren't members.", loadingChat:"Loading conversation…", manageGroup:"Manage group", pendingRequests:"Join requests", memberList:"Members", noRequests:"No pending requests.", noMembers:"No members to show.", approve:"Approve", decline:"Decline", removeMember:"Remove", roleOwner:"Owner", roleAdmin:"Admin", roleModerator:"Moderator", roleMember:"Member", roleUpdated:"Member permissions updated.", memberRemoved:"Member removed.",bannedMembers:"Banned members", banMember:"Ban", unbanMember:"Unban", memberBanned:"Member banned.", memberUnbanned:"Ban lifted.", noBans:"No banned members.", requestReviewed:"Request reviewed.", preserveMemory:"Preserve permanently", preserveMemoryHint:"This memory will not expire automatically.", pinMemory:"Pin", unpinMemory:"Unpin", expirySoon:"This memory is approaching expiry.", memoryUpdated:"Memory updated.", close:"Close", searchMessages:"Search messages", searchPlaceholder:"Search this conversation…", noSearchResults:"No matching messages.", pinnedMessages:"Pinned messages", pinMessage:"Pin", unpinMessage:"Unpin", messagePinned:"Message pinned.", messageUnpinned:"Message unpinned.", report:"Report", block:"Block", reportTitle:"Report content or account", reportReason:"Report reason", reportDetails:"Additional details (optional)", reportSent:"Your report was submitted for review.", blockConfirm:"Block this account? Neither of you will be able to start a new conversation.", blocked:"Account blocked.", reasons:{spam:"Spam",harassment:"Harassment",hate:"Hate speech",impersonation:"Impersonation",copyright:"Copyright",other:"Other"}, notifications:"Notifications", messageRequests:"Message requests", allowRequests:"Allow new message requests", requestPending:"Awaiting response", requestSent:"Message request sent.", requestAccepted:"Request accepted. Conversation opened.", requestDeclined:"Message request declined.", requestUnavailable:"This account is not accepting new message requests.", acceptRequest:"Accept", declineRequest:"Decline", noMessageRequests:"No pending message requests.", contactSettings:"Who can start a conversation with you?", allowVoiceCalls:"Allow private voice calls", notificationSettings:"Notification settings", directNotifications:"Direct messages", groupNotifications:"Group messages", quietHours:"Quiet hours", quietHoursEnable:"Enable quiet hours", quietStart:"From", quietEnd:"Until", groupOverrides:"Per-group notifications", inherit:"Default", allNotifications:"All", muted:"Muted", noNotifications:"All caught up.", markAllRead:"Mark all as read", notificationSaved:"Notification settings saved.",eventReminders:"Event reminders", memoryPermissions:"Shared Memories permissions", contributions:"Who can add memories?", exports:"Who can export memories?", allMembers:"All members", managersOnly:"Managers only", exportsDisabled:"Export disabled", saveMemorySettings:"Save permissions", memorySettingsSaved:"Memory permissions updated.", exportMemories:"Export JSON", exportNote:"Exports include text and metadata only; media files are not copied."
-  };
+  ,topics:"Channels",topicAll:"All messages",topicGeneral:"General",newTopic:"New channel",topicName:"Channel name",createTopic:"Create",deleteTopic:"Delete",manageTopics:"Manage channels",noTopics:"No channels yet.",topicCreated:"Channel created.",topicDeleted:"Channel deleted.",topicError:"Could not update the channel.",postInTopic:"Posted in"};
 
   useEffect(() => {
     try {
@@ -152,7 +157,7 @@ export default function Raye2Client() {
     const conversationIds = conversationRows.map(row => row.id);
     const [{ data: roster }, { data: messageRows }] = await Promise.all([
       conversationIds.length ? supabase.from("raye2_conversation_members").select("conversation_id,user_id").in("conversation_id", conversationIds) : Promise.resolve({ data: [] }),
-      conversationIds.length ? supabase.from("raye2_messages").select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at").in("conversation_id", conversationIds).order("created_at", { ascending: false }).limit(600) : Promise.resolve({ data: [] })
+      conversationIds.length ? supabase.from("raye2_messages").select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id").in("conversation_id", conversationIds).order("created_at", { ascending: false }).limit(600) : Promise.resolve({ data: [] })
     ]);
     const rosterRows = (roster ?? []) as Array<{ conversation_id: string; user_id: string }>;
     const profileIds = [...new Set(rosterRows.map(row => row.user_id).concat((messageRows ?? []).map((row: Message) => row.sender_id)))].filter(id => id !== uid);
@@ -236,6 +241,7 @@ export default function Raye2Client() {
   const canManageSelectedGroup = Boolean(selectedGroup && ["owner", "admin", "moderator"].includes(selectedGroup.memberRole ?? "member"));
   const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
   const currentMessages = messages.filter(message => selected && message.conversation_id === selected.conversationId);
+  const visibleMessages = activeTopicId ? currentMessages.filter(message => message.topic_id === activeTopicId) : currentMessages;
 
   useEffect(() => {
     if (!supabase || !selected?.conversationId) { setPinnedMessages([]); return; }
@@ -254,6 +260,16 @@ export default function Raye2Client() {
       });
     return () => { active = false; };
   }, [supabase, selected?.conversationId]);
+
+  useEffect(() => {
+    const groupId = selectedGroup?.id;
+    if (!supabase || !groupId) { setGroupTopics([]); setActiveTopicId(null); return; }
+    let active = true;
+    void supabase.rpc("raye2_list_group_topics", { p_group_id: groupId }).then(({ data }: { data: GroupTopic[] | null }) => {
+      if (active) setGroupTopics((data ?? []) as GroupTopic[]);
+    });
+    return () => { active = false; };
+  }, [supabase, selectedGroup?.id]);
 
   useEffect(() => {
     if (!supabase || !userId || !selected?.conversationId) {
@@ -730,16 +746,43 @@ export default function Raye2Client() {
     if (body.length > 5000) { setStatus(isAr ? "الحد الأقصى للرسالة 5000 حرف." : "Messages are limited to 5,000 characters."); return; }
     setBusy(true); setStatus("");
     const tempId = "local-" + Date.now();
-    const optimistic: Message = { id: tempId, conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: replyTo?.id ?? null, edited_at: null, created_at: new Date().toISOString() };
+    const optimistic: Message = { id: tempId, conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: replyTo?.id ?? null, edited_at: null, created_at: new Date().toISOString(), topic_id: activeTopicId ?? null };
     setMessages(current => [...current, optimistic]); setCompose(""); setReplyTo(null);
     try {
-      const { data, error } = await supabase.from("raye2_messages").insert({ conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: optimistic.parent_message_id }).select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at").single();
+      const { data, error } = await supabase.from("raye2_messages").insert({ conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: optimistic.parent_message_id, topic_id: activeTopicId ?? null }).select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id").single();
       if (error) throw error;
       setMessages(current => [...current.filter(message => message.id !== tempId), data as Message]);
       setThreads(current => current.map(thread => thread.id === selected.id ? { ...thread, lastMessage: body, updatedAt: (data as Message).created_at } : thread).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
     } catch {
       setMessages(current => current.filter(message => message.id !== tempId)); setCompose(body); setStatus(t.sendError);
     } finally { setBusy(false); }
+  }
+
+  async function createGroupTopic() {
+    if (!supabase || !selectedGroup || !canManageSelectedGroup || busy) return;
+    const name = newTopicName.trim();
+    if (!name) return;
+    setBusy(true); setStatus("");
+    try {
+      const { error } = await supabase.rpc("raye2_create_group_topic", { p_group_id: selectedGroup.id, p_name: name });
+      if (error) throw error;
+      setNewTopicName(""); setStatus(t.topicCreated);
+      const { data } = await supabase.rpc("raye2_list_group_topics", { p_group_id: selectedGroup.id });
+      setGroupTopics((data ?? []) as GroupTopic[]);
+    } catch { setStatus(t.topicError); } finally { setBusy(false); }
+  }
+
+  async function deleteGroupTopic(topicId: string) {
+    if (!supabase || !selectedGroup || !canManageSelectedGroup || busy) return;
+    setBusy(true); setStatus("");
+    try {
+      const { error } = await supabase.rpc("raye2_delete_group_topic", { p_topic_id: topicId });
+      if (error) throw error;
+      if (activeTopicId === topicId) setActiveTopicId(null);
+      setStatus(t.topicDeleted);
+      const { data } = await supabase.rpc("raye2_list_group_topics", { p_group_id: selectedGroup.id });
+      setGroupTopics((data ?? []) as GroupTopic[]);
+    } catch { setStatus(t.topicError); } finally { setBusy(false); }
   }
 
   async function toggleReaction(message: Message, key: string) {
@@ -896,9 +939,18 @@ export default function Raye2Client() {
             <div className={styles.chatHeader}><button className={styles.backButton} onClick={() => setMobilePane("list")}>← {t.back}</button><div className={styles.avatar}>{selected.avatar}</div><div className={styles.chatHeading}><h2>{selected.title}</h2><span>{typingUserIds.length ? (isAr ? "يكتب الآن…" : "Typing…") : (onlineUserIds.filter(id => id !== userId).length ? (isAr ? onlineUserIds.filter(id => id !== userId).length + " متصل" : onlineUserIds.filter(id => id !== userId).length + " online") : selected.subtitle)}</span></div><button className={styles.iconButton} title={t.saved} onClick={() => setTab("saved")}>⌑</button><button className={styles.iconButton} title={t.searchMessages} onClick={() => { setMessageSearchOpen(value => !value); setMessageSearchResults([]); }}>⌕</button>{selected?.kind === "direct" && selected.otherUserId && <><button className={styles.dangerButton} onClick={() => setReportTarget({ type: "user", id: selected.otherUserId! })}>{t.report}</button><button className={styles.dangerButton} onClick={() => void blockUser(selected.otherUserId!)}>{t.block}</button></>}{selected.kind === "group" && selectedGroup && supabase && userId && <><Raye2GroupVoiceControls supabase={supabase} userId={userId} groupId={selectedGroup.id} conversationId={selected.conversationId} groupName={selectedGroup.name} locale={locale} /><Raye2WatchTogetherControls supabase={supabase} conversationId={selected.conversationId} groupId={selectedGroup.id} groupName={selectedGroup.name} groupVisibility={selectedGroup.visibility} locale={locale} /></>}{selectedGroup && canManageSelectedGroup && <><button className={styles.miniButton} onClick={() => setShowGroupManage(true)}>{t.manageGroup}</button><button className={styles.miniButton} onClick={() => { setInviteUrl(""); setInviteId(null); setShowInvite(true); }}>{t.invite}</button></>}</div>
             {messageSearchOpen && <section className={styles.messageSearchPanel}><form onSubmit={event => { event.preventDefault(); void searchConversationMessages(); }}><input value={messageSearch} onChange={event => setMessageSearch(event.target.value)} placeholder={t.searchPlaceholder} maxLength={120}/><button type="submit" disabled={!messageSearch.trim() || messageSearchBusy}>{messageSearchBusy ? "…" : t.searchMessages}</button><button type="button" onClick={() => { setMessageSearchOpen(false); setMessageSearchResults([]); }}>{t.close}</button></form>{messageSearchResults.length ? messageSearchResults.map(result => <button key={result.id} className={styles.searchResult} onClick={() => { setMessages(current => current.some(item => item.id === result.id) ? current : [...current, result]); setMessageSearchOpen(false); setMessageSearchResults([]); }}><b>{profiles[result.sender_id]?.display_name ?? (isAr ? "عضو" : "Member")}</b><span>{result.body}</span><time>{stamp(result.created_at, locale)}</time></button>) : messageSearch && !messageSearchBusy ? <p className={styles.emptySmall}>{t.noSearchResults}</p> : null}</section>}
             {pinnedMessages.length > 0 && <section className={styles.pinnedPanel}><b>⌖ {t.pinnedMessages} · {pinnedMessages.length}</b><div>{pinnedMessages.slice(0,4).map(item => <button key={item.id} onClick={() => { setMessages(current => current.some(message => message.id === item.id) ? current : [...current, item]); setMessageSearchOpen(false); }}><span>{item.body}</span><small>{stamp(item.created_at, locale)}</small></button>)}</div></section>}
+            {selected.kind === "group" && selectedGroup && <div className={styles.topicBar} role="group" aria-label={t.topics}>
+              <button type="button" className={activeTopicId === null ? styles.topicActive : ""} aria-pressed={activeTopicId === null} onClick={() => setActiveTopicId(null)}>{t.topicAll}</button>
+              {groupTopics.map(topic => <button type="button" key={topic.id} className={activeTopicId === topic.id ? styles.topicActive : ""} aria-pressed={activeTopicId === topic.id} onClick={() => setActiveTopicId(topic.id)}>{topic.name}{topic.message_count ? ` · ${topic.message_count}` : ""}</button>)}
+              {canManageSelectedGroup && <button type="button" className={styles.topicManage} aria-pressed={showTopicManage} onClick={() => setShowTopicManage(value => !value)}>{t.manageTopics}</button>}
+            </div>}
+            {selected.kind === "group" && selectedGroup && showTopicManage && canManageSelectedGroup && <section className={styles.topicPanel}>
+              <div className={styles.topicCreate}><input value={newTopicName} onChange={event => setNewTopicName(event.target.value)} maxLength={60} placeholder={t.topicName} aria-label={t.topicName}/><button type="button" disabled={busy || !newTopicName.trim()} onClick={() => void createGroupTopic()}>{t.createTopic}</button></div>
+              {groupTopics.length === 0 ? <p className={styles.emptySmall}>{t.noTopics}</p> : <ul className={styles.topicList}>{groupTopics.map(topic => <li key={topic.id}><span>{topic.name} · {topic.message_count}</span><button type="button" disabled={busy} onClick={() => void deleteGroupTopic(topic.id)}>{t.deleteTopic}</button></li>)}</ul>}
+            </section>}
             <div className={styles.messageArea}>
-              {currentMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
-              {currentMessages.map(message => {
+              {visibleMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
+              {visibleMessages.map(message => {
                 const mine = message.sender_id === userId;
                 const author = profiles[message.sender_id];
                 const parent = message.parent_message_id ? messages.find(item => item.id === message.parent_message_id) : null;
@@ -908,6 +960,7 @@ export default function Raye2Client() {
                     {!mine && <span className={styles.author}>{author?.display_name ?? author?.handle ?? "Member"}</span>}
                     {parent && <div className={styles.replyQuote}>{parent.body}</div>}
                     <div className={styles.bubble}>{message.body}</div>
+                    {message.topic_id && <span className={styles.topicChip}>{t.postInTopic} {groupTopics.find(topic => topic.id === message.topic_id)?.name ?? ""}</span>}
                     <div className={styles.messageMeta}><time>{stamp(message.created_at, locale)}</time>{message.edited_at && <span>{t.edited}</span>}
                       <button onClick={() => setReplyTo(message)}>{t.reply}</button>{(selected?.kind === "direct" || canManageSelectedGroup) && <button onClick={() => void togglePinnedMessage(message)}>{pinnedMessages.some(item => item.id === message.id) ? t.unpinMessage : t.pinMessage}</button>}{!mine && <button onClick={() => setReportTarget({ type: "message", id: message.id, conversationId: message.conversation_id })}>{t.report}</button>}<button onClick={() => void toggleBookmark(message)}>{savedIds.includes(message.id) ? "⌑" : "＋"}</button>{selected?.kind === "group" && <button title={t.saveMemory} onClick={() => void saveSharedMemory(message)}>✦</button>}
                       {mine && <><button onClick={() => void editMessage(message)}>{t.edit}</button><button onClick={() => void deleteMessage(message)}>×</button></>}
