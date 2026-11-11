@@ -549,6 +549,21 @@ button:disabled { opacity: .52; }
 .nhen-short-comments-panel form{display:flex;gap:8px;min-width:0}
 .nhen-short-comments-panel input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink)}
 .nhen-short-comments-panel form button{padding:9px 14px;border:1px solid var(--accent);border-radius:7px;background:var(--accent-soft);color:var(--ink);cursor:pointer}
+.nhen-short-comment{display:grid;gap:6px;padding:10px 11px;border-radius:8px;background:var(--surface-raised)}
+.nhen-short-comment-head{display:flex;align-items:center;gap:8px}
+.nhen-short-comment-head strong{font-size:12px}
+.nhen-short-comment-head time{margin-inline-start:auto;color:var(--muted);font-size:11px}
+.nhen-short-comment-avatar{display:inline-grid;place-items:center;width:22px;height:22px;overflow:hidden;border-radius:999px;background:var(--accent-soft);color:var(--ink);font-size:11px;font-weight:800}
+.nhen-short-comment-avatar img{width:100%;height:100%;object-fit:cover}
+.nhen-short-comment p{margin:0;padding:0;background:none;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.nhen-short-comment-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.nhen-short-comment-actions button{padding:4px 9px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer}
+.nhen-short-comment-actions button:hover:not(:disabled){border-color:var(--accent);color:var(--ink)}
+.nhen-short-comment-actions button.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.nhen-short-comment-actions button:disabled{opacity:.5;cursor:default}
+.nhen-short-reply-form{margin-top:2px}
+.nhen-short-replies{display:grid;gap:8px;margin-top:6px;padding-inline-start:12px;border-inline-start:1px solid var(--line)}
+.nhen-short-comment-reply{background:var(--surface-soft)}
 .nhen-mod-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}
 .nhen-mod-tabs button{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface-soft);color:var(--ink);cursor:pointer}
 .nhen-mod-tabs button.active{border-color:var(--accent);background:var(--accent-soft)}
