@@ -991,6 +991,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .public-event-actions button{padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink);font:800 10px var(--mono);letter-spacing:.04em;cursor:pointer;transition:border-color .16s,background .16s}
 .public-event-actions button:hover{border-color:var(--accent)}
 .public-event-actions button.is-going{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
+.event-type-badge{display:inline-block;margin-inline-end:8px;padding:3px 8px;border:1px solid var(--line);border-radius:999px;font:800 8px var(--mono);letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.event-hosted{font-size:10px;color:var(--muted);margin-top:8px}
+.event-hosts{margin-top:14px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:8px}
+.event-host-list{list-style:none;display:grid;gap:6px;margin:0;padding:0}
+.event-host-list li{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px}
+.event-host-list button,.event-host-add button{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);font:800 9px var(--mono);cursor:pointer}
+.event-host-add{display:flex;gap:6px;flex-wrap:wrap}
+.event-host-add input{flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:11px}
+.event-host-add select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:11px}
 .public-event-actions button.is-interested{color:var(--muted)}
 .public-event-actions button:disabled{opacity:.55;cursor:wait}
 

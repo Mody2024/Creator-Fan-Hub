@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 type VideoCard = { id:string; slug:string; title:string; description:string; category:string; src:string; youtubeEmbedUrl:string|null; publishedAt:string };
 type PostCard = { id:string; body:string; createdAt:string; handle:string; displayName:string; avatarUrl:string|null };
-type EventCard = { id:string; title:string; description:string; starts_at:string|null; ends_at:string|null; status:string; going_count:number; my_rsvp:boolean };
+type EventCard = { id:string; title:string; description:string; starts_at:string|null; ends_at:string|null; status:string; event_type:string; going_count:number; host_count:number; my_rsvp:boolean; my_rsvp_status:string|null };
 
 export default async function HomePage() {
   const [config,supabase,cookieStore] = await Promise.all([getPublicSiteConfig(),createSupabaseServerClient(),cookies()]);
@@ -64,7 +64,7 @@ export default async function HomePage() {
     const profileMap=new Map((profiles??[]).map(p=>[p.user_id,p]));
     posts=(postRows??[]).map(p=>{const profile=profileMap.get(p.author_id);return{id:p.id,body:p.body,createdAt:p.created_at,handle:profile?.handle??"member",displayName:profile?.display_name??"Raye2 member",avatarUrl:profile?.avatar_url??null}});
     const {data:eventRows}=await supabase.rpc("raye2_get_public_events",{p_limit:12});
-    events=(Array.isArray(eventRows)?eventRows:[]).map((row:EventCard)=>({id:row.id,title:row.title,description:row.description,starts_at:row.starts_at,ends_at:row.ends_at,status:row.status,going_count:Number(row.going_count??0),my_rsvp:!!row.my_rsvp}));
+    events=(Array.isArray(eventRows)?eventRows:[]).map((row:EventCard)=>({id:row.id,title:row.title,description:row.description,starts_at:row.starts_at,ends_at:row.ends_at,status:row.status,event_type:row.event_type,going_count:Number(row.going_count??0),host_count:Number(row.host_count??0),my_rsvp:!!row.my_rsvp,my_rsvp_status:row.my_rsvp_status??null}));
   }
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-color-mode={config.colorMode} data-motion={config.motion}>
     <header className="nhen-app-header">
