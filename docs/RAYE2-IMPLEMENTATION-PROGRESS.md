@@ -2261,3 +2261,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 17/17 (access control, validation, percentiles, admin gating, prune + audit).
 - [x] Gates: validator 310 assertions; tests 650/650 (+4); tsc clean; lint 0 errors/24 warnings; build OK (177 migrations).
 - **Progress:** Wave 9 (Security/reliability/ops) **~76% to ~85%**; full ten-wave estimate **~87% to ~89%**.
+
+## 2026-11-10 — Cost and capacity accounting with backpressure (mega-batch)
+- [x] `raye2_capacity_limits` — configurable metrics (unit, limit, warning %, enabled), seeded for storage bytes, job queue, realtime connections, encoding queue.
+- [x] `raye2_capacity_used` — authoritative usage from real sources (or null; never invents numbers).
+- [x] `raye2_assert_capacity` (raises `53100` before exhaustion) + `raye2_enforce_job_capacity` trigger on the background-job queue.
+- [x] `raye2_get_capacity_report` (usage/limit/%/state/headroom, admin) + `raye2_set_capacity_limit` (tunable, audited).
+- [x] Admin dashboard Capacity tab (usage, limit, headroom, state).
+- [x] **Live matrix:** 14/14 (admin gating, real usage, exact headroom, queue backpressure + disable, tuning validation, critical state, audit).
+- [x] Gates: validator 314 assertions; tests 654/654 (+4); tsc clean; lint 0 errors/24 warnings; build OK (178 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~85% to ~92%**; full ten-wave estimate **~89% to ~90%**.
