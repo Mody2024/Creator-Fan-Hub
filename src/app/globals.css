@@ -564,6 +564,10 @@ button:disabled { opacity: .52; }
 .nhen-short-reply-form{margin-top:2px}
 .nhen-short-replies{display:grid;gap:8px;margin-top:6px;padding-inline-start:12px;border-inline-start:1px solid var(--line)}
 .nhen-short-comment-reply{background:var(--surface-soft)}
+.nhen-comment-actions{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px}
+.nhen-comment-actions .nhen-action{padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.nhen-comment-actions .nhen-action.is-active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.nhen-comment-replies{display:grid;gap:6px;margin-top:8px;padding-inline-start:12px;border-inline-start:1px solid var(--nhen-line)}
 .nhen-mod-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0}
 .nhen-mod-tabs button{display:flex;align-items:center;gap:8px;min-height:40px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:var(--surface-soft);color:var(--ink);cursor:pointer}
 .nhen-mod-tabs button.active{border-color:var(--accent);background:var(--accent-soft)}
