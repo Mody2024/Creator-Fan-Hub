@@ -2107,3 +2107,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 19/19 (creation, feed exposure, tally isolation before voting, voting, double-vote refusal, invalid creation, unknown option, second member, anonymous read/deny, notification).
 - [x] Gates: validator 244 assertions; tests 580/580 (+6); tsc clean; lint 0 errors/24 warnings; build OK (161 migrations).
 - **Progress:** Wave 5 moves from **~88% to ~91% provisional**; full ten-wave estimate moves from **~62% to ~63%**.
+
+## 2026-11-10 — Group bans (mega-batch)
+- [x] Added `raye2_ban_group_member` / `raye2_unban_group_member` (authenticated, hierarchy-aware, owner/self targets refused, audited) and a manager-only `raye2_get_group_bans` read; `raye2_group_members` gained `restricted_at`.
+- [x] Bans are durable: the existing join, invite and join-request review paths already refuse `banned` members, so a banned person can no longer rejoin a public group or reuse an invite — the gap that made removal temporary.
+- [x] Group manage modal now bans/unbans members and lists restricted members, with bilingual copy.
+- [x] **Live matrix:** 18/18 (member denied, owner ban, status/restricted_at, rejoin blocked, manager-only list, admin-vs-admin hierarchy, unban + rejoin, self-ban refused, audit, anon denied).
+- [x] Gates: validator 247 assertions; tests 585/585 (+5); tsc clean; lint 0 errors/24 warnings; build OK (162 migrations).
+- **Progress:** Wave 5 moves from **~91% to ~93% provisional**; full ten-wave estimate moves from **~63% to ~64%**.
