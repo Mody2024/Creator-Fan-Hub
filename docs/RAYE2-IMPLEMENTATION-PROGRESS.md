@@ -2142,3 +2142,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 12/12 (anon listing + counts, author assign, non-author/anon denied, unknown channel rejected, feed shape, channel filter, count tracking).
 - [x] Gates: validator 261 assertions; tests 601/601 (+5); tsc clean; lint 0 errors/24 warnings; build OK (165 migrations).
 - **Progress:** Wave 5 moves from **~97% to ~98%**; full ten-wave estimate moves from **~66% to ~67%**.
+
+## 2026-11-10 — Group chat topic channels (mega-batch)
+- [x] New `raye2_group_topics` (per-group, unique slug, manager-created) with member/manager read policy.
+- [x] `raye2_messages.topic_id` with a guard trigger rejecting cross-conversation topics.
+- [x] `raye2_create_group_topic` (manager-only, derived unique slug), `raye2_delete_group_topic` (manager-only, history kept), `raye2_list_group_topics` (membership-guarded, counts).
+- [x] Group chat channel bar (All + channels with counts), manager-only channel manager, per-message channel chip, and channel-scoped message list.
+- [x] **Live matrix:** 15/15 (create + unique slugs, member/outsider denied, member list, scoped message + count, cross-group rejected, manager-only delete, history kept).
+- [x] Gates: validator 265 assertions; tests 605/605 (+4); tsc clean; lint 0 errors/24 warnings; build OK (166 migrations).
+- **Progress:** Wave 5 moves from **~98% to ~99%**; full ten-wave estimate moves from **~67% to ~68%**.
