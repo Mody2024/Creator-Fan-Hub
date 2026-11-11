@@ -2251,3 +2251,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 11/11 (enforcement, window usage, disable, admin stats, comment read/insert after fix).
 - [x] Gates: validator 306 assertions; tests 646/646 (+3); tsc clean; lint 0 errors/24 warnings; build OK (176 migrations).
 - **Progress:** Wave 9 (Security/reliability/ops) **~68% to ~76%**; full ten-wave estimate **~86% to ~87%**.
+
+## 2026-11-10 — Telemetry for client errors, API latency, realtime quality (mega-batch)
+- [x] `raye2_telemetry_events` — bounded event store (type, surface, severity, message, duration, metric, context).
+- [x] `raye2_record_telemetry` — signed-in user events + service-role system events, with guards.
+- [x] `raye2_get_telemetry_summary` (counts by type/severity + p50/p95 latency), `raye2_list_telemetry_events` (filters), `raye2_prune_telemetry` (audited retention) — admin-only.
+- [x] `TelemetryReporter` client component (window `error` + `unhandledrejection`) mounted in the root layout.
+- [x] Admin dashboard Telemetry tab (errors, p50/p95 latency, recent events, prune).
+- [x] **Live matrix:** 17/17 (access control, validation, percentiles, admin gating, prune + audit).
+- [x] Gates: validator 310 assertions; tests 650/650 (+4); tsc clean; lint 0 errors/24 warnings; build OK (177 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~76% to ~85%**; full ten-wave estimate **~87% to ~89%**.
