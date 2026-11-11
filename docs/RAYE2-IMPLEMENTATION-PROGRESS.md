@@ -2133,3 +2133,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 18/18 (auth, typed event + reminder, validation, host/co-host + guard, single-host, feed shape, RSVP status, idempotent dispatch, opt-out).
 - [x] Gates: validator 257 assertions; tests 596/596 (+6); tsc clean; lint 0 errors/24 warnings; build OK (164 migrations).
 - **Progress:** Wave 5 moves from **~95% to ~97% provisional**; full ten-wave estimate moves from **~65% to ~66%**.
+
+## 2026-11-10 — Community feed topic channels (mega-batch)
+- [x] New `community_topics` curated channel set (seeded: general/feedback/help/behind-the-scenes/clips), publicly readable when active.
+- [x] `community_posts.topic_slug` with FK; `raye2_set_post_topic` lets only the author assign a channel.
+- [x] `raye2_list_community_topics` lists active channels with published-post counts; `raye2_get_community_feed` gained `p_topic` and returns `topic_slug`/`topic_name`.
+- [x] Composer channel selector; feed channel filter row with counts; per-post `#channel` badge.
+- [x] **Live matrix:** 12/12 (anon listing + counts, author assign, non-author/anon denied, unknown channel rejected, feed shape, channel filter, count tracking).
+- [x] Gates: validator 261 assertions; tests 601/601 (+5); tsc clean; lint 0 errors/24 warnings; build OK (165 migrations).
+- **Progress:** Wave 5 moves from **~97% to ~98%**; full ten-wave estimate moves from **~66% to ~67%**.
