@@ -2098,3 +2098,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 13/13 (summary counts, per-filter isolation, list/badge parity, filtered cursor paging, blocked-actor exclusion, anon denial).
 - [x] Gates: validator 240 assertions; tests 574/574 (+5); tsc clean; lint 0 errors/24 warnings; build OK (160 migrations).
 - **Progress:** Wave 5 moves from **~85% to ~88% provisional**; full ten-wave estimate moves from **~61% to ~62%**.
+
+## 2026-11-10 — Community feed polls (mega-batch)
+- [x] Added a post-scoped poll model: `community_post_polls`, `community_post_poll_options` and `community_post_poll_votes` (one vote per member), all RLS-enabled and revoked from direct client access.
+- [x] `raye2_create_community_poll` validates 2–6 unique options, a future closing time and option length; `raye2_vote_community_poll` enforces a published, unblocked parent, an open poll and a single vote; `raye2_get_community_poll` exposes an anon-safe tally without individual votes.
+- [x] `raye2_get_community_feed` now carries poll id, question, options, total, closing time and the viewer's own vote.
+- [x] Community composer gains a poll builder; poll posts render option bars that reveal results only after voting, with optimistic updates. New `community_poll_vote` notifications are localized in the inbox.
+- [x] **Live matrix:** 19/19 (creation, feed exposure, tally isolation before voting, voting, double-vote refusal, invalid creation, unknown option, second member, anonymous read/deny, notification).
+- [x] Gates: validator 244 assertions; tests 580/580 (+6); tsc clean; lint 0 errors/24 warnings; build OK (161 migrations).
+- **Progress:** Wave 5 moves from **~88% to ~91% provisional**; full ten-wave estimate moves from **~62% to ~63%**.
