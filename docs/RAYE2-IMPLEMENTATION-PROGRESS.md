@@ -2115,3 +2115,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 18/18 (member denied, owner ban, status/restricted_at, rejoin blocked, manager-only list, admin-vs-admin hierarchy, unban + rejoin, self-ban refused, audit, anon denied).
 - [x] Gates: validator 247 assertions; tests 585/585 (+5); tsc clean; lint 0 errors/24 warnings; build OK (162 migrations).
 - **Progress:** Wave 5 moves from **~91% to ~93% provisional**; full ten-wave estimate moves from **~63% to ~64%**.
+
+## 2026-11-10 — Community announcements (mega-batch)
+- [x] Added `raye2_create_community_announcement` (active-creator only, guarded, validates body and linked video) so official posts can finally be authored — the schema and feed already supported them but no write path existed.
+- [x] A trigger notifies the author's followers through the inbox (`community_announcement`), and the notification summary counts it as unread while keeping it out of the follow/reaction/comment buckets.
+- [x] New creator-workspace announcement composer (body, pin toggle, counter, bilingual) plus inbox localization.
+- [x] **Live matrix:** 16/16 (non-creator/anon denied, publish + official/published/pinned, feed + pinned-first ordering, follower notification and stranger exclusion, summary bucket isolation, validation).
+- [x] Gates: validator 250 assertions; tests 590/590 (+5); tsc clean; lint 0 errors/24 warnings; build OK (163 migrations).
+- **Progress:** Wave 5 moves from **~93% to ~95% provisional**; full ten-wave estimate moves from **~64% to ~65%**.
