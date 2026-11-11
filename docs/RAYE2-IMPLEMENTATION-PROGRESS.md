@@ -2151,3 +2151,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 15/15 (create + unique slugs, member/outsider denied, member list, scoped message + count, cross-group rejected, manager-only delete, history kept).
 - [x] Gates: validator 265 assertions; tests 605/605 (+4); tsc clean; lint 0 errors/24 warnings; build OK (166 migrations).
 - **Progress:** Wave 5 moves from **~98% to ~99%**; full ten-wave estimate moves from **~67% to ~68%**.
+
+## 2026-11-10 — Community moderation toolkit (mega-batch)
+- [x] `content_reports` resolution metadata; `community_posts`/`community_comments` moderation metadata.
+- [x] `raye2_report_community_content` (validates target type, reason, target existence).
+- [x] `raye2_moderate_community_post` / `_comment` (remove/reject/restore, moderator-only, audit row, auto-resolve reports).
+- [x] `raye2_get_community_moderation_queue`, `raye2_get_moderated_community_posts`, `raye2_resolve_content_report` (moderator-only).
+- [x] Report modal with reason chips; moderator workspace (report queue + removed-content restore); per-post remove action.
+- [x] **Live matrix:** 23/23 (report validation, moderator-only reads, remove/restore post + comment, audit rows, auto-resolve, manual dismiss with note).
+- [x] Gates: validator 269 assertions; tests 609/609 (+4); tsc clean; lint 0 errors/24 warnings; build OK (167 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) moves from **~35% to ~45%**; full ten-wave estimate **~68% to ~69%**.
