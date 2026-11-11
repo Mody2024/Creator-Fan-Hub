@@ -2242,3 +2242,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 19/19 (access control, immediate inaccessibility, claimant rule, duplicate guard, reinstate, audit).
 - [x] Gates: validator 303 assertions; tests 643/643 (+4); tsc clean; lint 0 errors/24 warnings; build OK (175 migrations).
 - **Progress:** Wave 8 ~100%; Wave 9 (Security/reliability/ops) **~55% to ~68%**; full ten-wave estimate **~84% to ~86%**.
+
+## 2026-11-10 — Rate limits + comment-policy recursion fix (mega-batch)
+- [x] `raye2_rate_limit_counters` + `raye2_rate_limit` (atomic fixed window) + `raye2_enforce_rate_limit` trigger on posts/comments/messages/safety reports.
+- [x] Configurable rules `rate.community.post.hourly` / `rate.community.comment.hourly` / `rate.chat.message.hourly` / `rate.safety.report.hourly`; non-positive disables.
+- [x] `raye2_get_rate_limit_usage` (caller) + `raye2_get_rate_limit_stats` (admin).
+- [x] **Critical fix:** comment-thread SELECT policies self-referenced their own table → infinite recursion that broke all community comments. Parent visibility moved to security-definer helpers; community_comments / community_short_comments / video_comments policies recreated.
+- [x] **Live matrix:** 11/11 (enforcement, window usage, disable, admin stats, comment read/insert after fix).
+- [x] Gates: validator 306 assertions; tests 646/646 (+3); tsc clean; lint 0 errors/24 warnings; build OK (176 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~68% to ~76%**; full ten-wave estimate **~86% to ~87%**.
