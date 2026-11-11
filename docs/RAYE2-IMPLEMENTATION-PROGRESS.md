@@ -2077,3 +2077,15 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 20/20 (anon thread read, reply moderation gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
 - [x] Gates: validator 231 assertions; tests 562/562 (+6); tsc clean; lint 0 errors/24 warnings; build OK.
 - **Progress:** Shorts comment depth complete; full ten-wave estimate moves from **~59% to ~60%**.
+
+## 2026-11-10 — Threaded community post comments + per-comment reactions (mega-batch)
+- [x] Added `community_comments.parent_comment_id` with a guard trigger enforcing one-level threading (no self-replies, no nested replies, no cross-post replies).
+- [x] Reply visibility follows the parent comment (published, unblocked parent required).
+- [x] Added `community_comment_reactions` (member-only writes, anon-safe read policy) and a guarded `raye2_toggle_post_comment_reaction` RPC.
+- [x] Extended `raye2_get_post_comments` with `reply_count`/`reaction_count`/`my_reaction` while keeping its existing columns, and closed a gap where the definer read did not exclude blocked authors.
+- [x] Added `raye2_get_post_comment_replies` (author identity, reaction count, the viewer's own reaction) granted to anon.
+- [x] Added `community_comment_reply` / `community_comment_reaction` notifications.
+- [x] Community client now renders per-comment reactions, a reply composer and expandable reply lists, with optimistic updates and bilingual strings.
+- [x] **Live matrix:** 19/19 (anon thread read, reply gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
+- [x] Gates: validator 236 assertions; tests 569/569 (+7); tsc clean; lint 0 errors/24 warnings; build OK (159 migrations).
+- **Progress:** All three community/video comment surfaces now have replies + per-comment reactions. Wave 5 moves from **~82% to ~85% provisional**; Wave 3 (watch comment depth) from **41% to 42% provisional**; full ten-wave estimate moves from **~60% to ~61%**.
