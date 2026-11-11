@@ -2123,3 +2123,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 16/16 (non-creator/anon denied, publish + official/published/pinned, feed + pinned-first ordering, follower notification and stranger exclusion, summary bucket isolation, validation).
 - [x] Gates: validator 250 assertions; tests 590/590 (+5); tsc clean; lint 0 errors/24 warnings; build OK (163 migrations).
 - **Progress:** Wave 5 moves from **~93% to ~95% provisional**; full ten-wave estimate moves from **~64% to ~65%**.
+
+## 2026-11-10 — Event reminders, host roles and event types (mega-batch)
+- [x] Events gained `event_type` (community/office_hours/qa/collab/watch_party/other), `reminder_minutes_before` and `reminder_sent_at`.
+- [x] New `event_hosts` (one host per event via partial unique index, many co-hosts) with creator-only `raye2_set_event_host`/`raye2_remove_event_host` and a public `raye2_get_event_hosts` limited to published events.
+- [x] `save_creator_event` now accepts type + reminder; `raye2_get_public_events` returns type, host count and exact RSVP status; notification preferences gained an event-reminders opt-out.
+- [x] `raye2_dispatch_event_reminders()` notifies going members once (claim + `FOR UPDATE SKIP LOCKED`), honouring opt-out and quiet hours.
+- [x] Creator form: type/reminder selectors + host/co-host editor; public calendar: type badge + "Hosted by" line; settings: event-reminders toggle.
+- [x] **Live matrix:** 18/18 (auth, typed event + reminder, validation, host/co-host + guard, single-host, feed shape, RSVP status, idempotent dispatch, opt-out).
+- [x] Gates: validator 257 assertions; tests 596/596 (+6); tsc clean; lint 0 errors/24 warnings; build OK (164 migrations).
+- **Progress:** Wave 5 moves from **~95% to ~97% provisional**; full ten-wave estimate moves from **~65% to ~66%**.
