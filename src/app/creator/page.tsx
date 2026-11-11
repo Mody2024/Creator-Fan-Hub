@@ -3,6 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CreatorSettings from "./creator-settings";
+import CreatorCapabilities from "./creator-capabilities";
 import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
@@ -38,7 +39,7 @@ export default async function CreatorDashboardPage() {
   if (adminError || !admin) redirect("/creator/login?access=restricted");
   if (admin.role === "moderator") redirect("/creator/community");
   if (admin.role === "analyst") redirect("/creator/analytics");
-  if (!["owner","admin","creator","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
+  if (!["owner","admin","creator","streamer","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
 
   return <main className="dashboard-shell raye2-creator-shell" data-raye2-role={admin.role} dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"}>
     <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home"><span><strong>Raye2</strong><small>CREATOR WORKSPACE</small></span></Link><span className="admin-session"><i /> {t.auth}</span><span className="raye2-role-chip">{admin.role.toUpperCase()}</span><nav className="raye2-creator-actions" aria-label="Creator navigation"><Link className="logout-button" href="/raye2/home">{isArabic?"عرض المنصة ↗":"View platform ↗"}</Link><Link className="logout-button" href="/raye2/studio">{t.studioHome}</Link><form action="/creator/logout" method="post"><button className="logout-button" type="submit">{t.signOut}</button></form></nav></header>
@@ -73,6 +74,7 @@ export default async function CreatorDashboardPage() {
         <a className="module-card" href="#creator-history"><div className="module-card-top"><span>06 / RELEASES</span><span className="module-state">Versions</span></div><h3>{t.history}</h3><p>{t.historyDesc}</p><span className="module-arrow">↗</span></a>
       </nav>
 
+      <CreatorCapabilities locale={isArabic?"ar":"en"} />
       <CreatorSettings />
       <PollManagement />
       {["owner","admin"].includes(admin.role) && <IdeaModerationQueue />}
