@@ -23,6 +23,16 @@
 .commentsPanel form{display:flex;gap:8px;margin-top:12px}
 .commentsPanel input{flex:1;min-width:0;padding:10px;border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);font:inherit}
 .commentsPanel form button{padding:0 13px;border:0;border-radius:9px;background:var(--r-accent);color:#071321;font-size:10px;font-weight:800}
+.commentItem{padding:9px 0;border-bottom:1px solid var(--r-line)}
+.commentHead{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.commentAuthor{font-size:11px;font-weight:700;color:var(--r-accent)}
+.commentTime{margin-inline-start:auto;font-size:10px;opacity:.65}
+.commentBody{margin:0;line-height:1.6}
+.commentActions{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.commentActions button{padding:3px 9px;border:1px solid var(--r-line);border-radius:999px;background:transparent;color:inherit;font-size:10px;font-weight:700;cursor:pointer}
+.commentActions button:hover{border-color:var(--r-accent)}
+.commentActions button.active{border-color:var(--r-accent);background:var(--r-raised)}
+.commentReplies{display:grid;gap:6px;margin-top:6px;padding-inline-start:12px;border-inline-start:1px solid var(--r-line)}
 .notice{margin:9px 0 0;color:var(--r-muted);font-size:10px}
 .shell[dir="rtl"] .reactionMenu{left:auto;right:0}
 .shell[dir="rtl"] .postActions{flex-direction:row-reverse}

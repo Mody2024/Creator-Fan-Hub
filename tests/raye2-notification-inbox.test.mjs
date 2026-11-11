@@ -53,9 +53,9 @@ test("inbox and summary exclude blocked actors in both directions", () => {
 });
 
 test("notification surfaces use the inbox and summary RPCs with filters and paging", () => {
-  assert.match(page, /rpc\("raye2_get_notifications",\{p_limit:40,p_before:null,p_only_unread:false\}\)/);
+  assert.match(page, /rpc\("raye2_get_notifications",\{p_limit:40,p_before:null,p_only_unread:false,p_filter:"all"\}\)/);
   assert.match(client, /rpc\("raye2_get_notification_summary"\)/);
-  assert.match(client, /rpc\("raye2_get_notifications",\{p_limit:40,p_before:oldest,p_only_unread:false\}\)/);
+  assert.match(client, /rpc\("raye2_get_notifications",\{p_limit:40,p_before:oldest,p_only_unread:false,p_filter:filter\}\)/);
   assert.match(client, /nhen-notification-filters/);
   assert.match(client, /matchesFilter/);
   assert.match(css, /nhen-notification-filters button\.active/);
