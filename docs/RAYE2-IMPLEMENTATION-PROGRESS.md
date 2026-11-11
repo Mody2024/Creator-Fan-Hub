@@ -2212,3 +2212,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 20/20 (access control, enforcement on post/comment, appeal ownership + dedupe, grant lifts, admin protection).
 - [x] Gates: validator 291 assertions; tests 631/631 (+4); tsc clean; lint 0 errors/24 warnings; build OK (172 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~93% to ~98%**; full ten-wave estimate **~78% to ~80%**.
+
+## 2026-11-10 — Quota usage and rejected-attempt tracking (mega-batch)
+- [x] `raye2_quota_rejections` table + `raye2_record_quota_rejection` — server-verified rejections only.
+- [x] `raye2_quota_used` (authoritative usage; null for unmeasurable rules) + `raye2_get_quota_usage` (caller usage/remaining).
+- [x] `raye2_get_quota_overview` — platform-admin rejection totals + distinct affected accounts per rule.
+- [x] Admin dashboard Quotas tab (limit, rejections, accounts, last rejection).
+- [x] **Live matrix:** 15/15 (usage accuracy, no false rejections, overview totals, unmeasurable rules excluded).
+- [x] Gates: validator 295 assertions; tests 635/635 (+4); tsc clean; lint 0 errors/24 warnings; build OK (173 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~98% to ~100%**; full ten-wave estimate **~80% to ~82%**.
