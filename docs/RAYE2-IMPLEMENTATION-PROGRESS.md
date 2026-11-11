@@ -2271,3 +2271,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 14/14 (admin gating, real usage, exact headroom, queue backpressure + disable, tuning validation, critical state, audit).
 - [x] Gates: validator 314 assertions; tests 654/654 (+4); tsc clean; lint 0 errors/24 warnings; build OK (178 migrations).
 - **Progress:** Wave 9 (Security/reliability/ops) **~85% to ~92%**; full ten-wave estimate **~89% to ~90%**.
+
+## 2026-11-10 — Role-based publishing permissions + quota matrix (mega-batch)
+- [x] **Streamer role** added to `creator_admins`/`creator_invites`; owner/admin assign it (no self-assign).
+- [x] `raye2_creator_tier` → creator / streamer / combined (owner,admin) / none.
+- [x] `raye2_role_quotas` seeded from the plan matrix (creator 5/4d; streamer 5/2; combined 3/3/20 non-additive; 30 Moments).
+- [x] `raye2_assert_creator_action` enforces action permission + monthly quota + long-video cooldown server-side, with reasons.
+- [x] `raye2_get_creator_capabilities` (allowed actions + reasons + quotas + real usage); admin `raye2_get_creator_permission_matrix` + `raye2_set_role_quota` (audited).
+- [x] Creator Studio: Streamer reaches the workspace; new **Permissions & quotas** panel (permitted actions, why blocked, usage/quota).
+- [x] **Live matrix:** 26/26 (tier mapping, non-additive quotas, per-tier blocks, cooldown, quota-reached, matrix, tuning, audit, role assignment).
+- [x] Gates: validator 318 assertions; tests 658/658 (+4); tsc clean; lint 0 errors/24 warnings; build OK (179 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~92% to ~96%**; full ten-wave estimate **~90% to ~91%**.
