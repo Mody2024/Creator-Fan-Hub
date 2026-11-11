@@ -2182,3 +2182,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 16/16 (creation/membership/message caps block and stay within limit, DM exempt from group cap, DM daily cap, rule reader fallback, member-only visibility).
 - [x] Gates: validator 279 assertions; tests 619/619 (+6); tsc clean; lint 0 errors/24 warnings; build OK (169 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~58% to ~72%**; full ten-wave estimate **~71% to ~73%**.
+
+## 2026-11-10 — Safety-report review queue + audit-log filtering (mega-batch)
+- [x] `raye2_get_safety_report_queue()` — status-filtered queue with reporter handle + target preview (moderator/platform-admin).
+- [x] `raye2_resolve_safety_report()` — reviewing/resolved/dismissed/open with append-only audit entry.
+- [x] `raye2_get_admin_audit_log()` — action/actor filters, bounded limit, platform-admin only.
+- [x] Community moderation workspace shows the safety queue with resolve/dismiss actions.
+- [x] Admin audit tab gains action/actor filters.
+- [x] **Live matrix:** 17/17 (queue/resolve/audit access control, resolution audited, leaves open queue, filters by action/actor).
+- [x] Gates: validator 283 assertions; tests 623/623 (+4); tsc clean; lint 0 errors/24 warnings; build OK (170 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~72% to ~85%**; full ten-wave estimate **~73% to ~76%**.
