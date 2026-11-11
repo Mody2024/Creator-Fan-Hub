@@ -2202,3 +2202,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 20/20 (admin-only queue/run/cancel, frozen estimate matches deletions, old removed/recent kept, archive skipped, cancelled jobs inert).
 - [x] Gates: validator 287 assertions; tests 627/627 (+4); tsc clean; lint 0 errors/24 warnings; build OK (171 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~85% to ~93%**; full ten-wave estimate **~76% to ~78%**.
+
+## 2026-11-10 — Moderation actions, enforcement and appeals (mega-batch)
+- [x] `raye2_member_restrictions` + `raye2_moderation_appeals` tables.
+- [x] `raye2_apply_member_restriction` / `raye2_lift_member_restriction` — warning/timeout/rate_reduction/feature_restriction/suspension/ban, audited; platform admins protected from moderators.
+- [x] `raye2_has_active_restriction` — single expiry-aware check; `raye2_enforce_restrictions` triggers on posts, comments and messages.
+- [x] `raye2_submit_moderation_appeal` (own restriction, one open) / `raye2_review_moderation_appeal` (grant lifts).
+- [x] Community moderation workspace lists active restrictions (timeout/restrict-posting/ban/lift) + open appeal queue (grant/deny).
+- [x] **Live matrix:** 20/20 (access control, enforcement on post/comment, appeal ownership + dedupe, grant lifts, admin protection).
+- [x] Gates: validator 291 assertions; tests 631/631 (+4); tsc clean; lint 0 errors/24 warnings; build OK (172 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~93% to ~98%**; full ten-wave estimate **~78% to ~80%**.
