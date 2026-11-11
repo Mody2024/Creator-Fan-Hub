@@ -2171,3 +2171,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 15/15 (health/roster admin-only, moderator rejected, classified storage, seeded thresholds, audited role change + suspension).
 - [x] Gates: validator 273 assertions; tests 613/613 (+4); tsc clean; lint 0 errors/24 warnings; build OK (168 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~45% to ~58%**; full ten-wave estimate **~69% to ~71%**.
+
+## 2026-11-10 — Rules-engine enforcement: quotas, cooldowns, caps (mega-batch)
+- [x] `raye2_rule_int(key, default)` guarded reader; activates the previously proposed caps.
+- [x] Group creation capped per rolling 30 days (`groups.created.normal_user.monthly`).
+- [x] Group membership capped via trigger (`groups.members.default`); existing members may re-activate.
+- [x] Group message length capped via trigger (`chat.message.max_characters`); DMs keep the column limit.
+- [x] New direct-conversation requests capped per rolling 24 hours (`chat.dm.new_conversations.daily`).
+- [x] `raye2_list_active_rules()` visibility surface (member-only); group manage modal lists active limits.
+- [x] **Live matrix:** 16/16 (creation/membership/message caps block and stay within limit, DM exempt from group cap, DM daily cap, rule reader fallback, member-only visibility).
+- [x] Gates: validator 279 assertions; tests 619/619 (+6); tsc clean; lint 0 errors/24 warnings; build OK (169 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~58% to ~72%**; full ten-wave estimate **~71% to ~73%**.
