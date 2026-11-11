@@ -4,6 +4,7 @@ import "./nhen-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import LanguageSwitch from "./language-switch";
+import TelemetryReporter from "./telemetry-reporter";
 import { cookies } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
         <LanguageSwitch initialLocale={locale} />
+        <TelemetryReporter />
         {children}
         <footer className="creator-credit">MADE BY ALMUDDATHTHIR</footer>
       </body>
