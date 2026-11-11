@@ -440,6 +440,12 @@ check("telemetry records client errors, API latency and system events", telemetr
 check("telemetry reports latency percentiles and is admin-gated", telemetryMigration.includes("percentile_cont(0.95)") && telemetryMigration.includes("create or replace function public.raye2_get_telemetry_summary(") && telemetryMigration.includes("raye2_is_platform_admin()") && telemetryMigration.includes("create or replace function public.raye2_prune_telemetry("));
 check("the client reports uncaught errors", telemetryReporter.includes('raye2_record_telemetry') && telemetryReporter.includes('"unhandledrejection"') && telemetryReporter.includes('addEventListener("error"'));
 check("the admin dashboard surfaces telemetry", telemetryAdmin.includes('rpc("raye2_list_telemetry_events"') && telemetryAdmin.includes('rpc("raye2_get_telemetry_summary"') && telemetryAdmin.includes("telemetry.map"));
+const capacityMigration = await read("../supabase/migrations/20261110580000_raye2_capacity_accounting.sql");
+const capacityAdmin = await read("../src/app/creator/raye2/admin-client.tsx");
+check("capacity limits are configurable and usage is measured from real sources", capacityMigration.includes("create table if not exists public.raye2_capacity_limits") && capacityMigration.includes("create or replace function public.raye2_capacity_used(") && capacityMigration.includes("when 'storage_bytes' then") && capacityMigration.includes("else null"));
+check("backpressure refuses work before a metric is exhausted", capacityMigration.includes("create or replace function public.raye2_assert_capacity(") && capacityMigration.includes("create or replace function public.raye2_enforce_job_capacity()") && capacityMigration.includes("create trigger raye2_background_jobs_capacity") && capacityMigration.includes("errcode='53100'"));
+check("the admin capacity report is gated and tunable", capacityMigration.includes("create or replace function public.raye2_get_capacity_report()") && capacityMigration.includes("create or replace function public.raye2_set_capacity_limit(") && capacityMigration.includes("raye2_is_platform_admin()"));
+check("the admin dashboard surfaces capacity", capacityAdmin.includes('rpc("raye2_get_capacity_report"') && capacityAdmin.includes("loadCapacity") && capacityAdmin.includes("capacity.map"));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
