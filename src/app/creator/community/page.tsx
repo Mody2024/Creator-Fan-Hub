@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CommunityModerationClient, { type QueueItem, type ReportItem } from "./moderation-client";
+import AnnouncementComposer from "./announcement-composer";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function CommunityModerationPage() {
     <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home"><span><strong>Raye2</strong><small>CREATOR WORKSPACE</small></span></Link><span className="admin-session"><i/> COMMUNITY SAFETY</span><Link className="logout-button" href="/raye2/studio">Back to Raye2 Studio ↗</Link></header>
     <div className="dashboard-content">
       <div className="dashboard-welcome"><div><span className="eyebrow">RAYE2 / TRUST & SAFETY</span><h1>Community <em>review.</em></h1><p>Review member submissions, handle reports and keep official creator content distinct.</p></div><span className="draft-badge">● PRIVATE WORKSPACE</span></div>
+      <AnnouncementComposer/>
       <CommunityModerationClient initialPosts={posts} initialComments={comments} initialVideoComments={videoComments} initialShortComments={shortComments} initialReports={reports}/>
     </div>
   </main>;
