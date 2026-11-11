@@ -2161,3 +2161,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 23/23 (report validation, moderator-only reads, remove/restore post + comment, audit rows, auto-resolve, manual dismiss with note).
 - [x] Gates: validator 269 assertions; tests 609/609 (+4); tsc clean; lint 0 errors/24 warnings; build OK (167 migrations).
 - **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) moves from **~35% to ~45%**; full ten-wave estimate **~68% to ~69%**.
+
+## 2026-11-10 — Platform admin dashboards + role management (mega-batch)
+- [x] Storage warning/critical thresholds seeded into `raye2_platform_rules` (rules engine).
+- [x] `raye2_get_platform_health()` — 14 aggregate counters, storage classified (admin-only).
+- [x] `raye2_list_platform_admins()` — creator roster joined to member profiles (admin-only).
+- [x] Admin UI: new "Platform health" tab (metric grid with OK/warning/critical) and "Roles & access" tab (role reassignment + suspend/reactivate, owner protected).
+- [x] Admin page loads both datasets server-side.
+- [x] **Live matrix:** 15/15 (health/roster admin-only, moderator rejected, classified storage, seeded thresholds, audited role change + suspension).
+- [x] Gates: validator 273 assertions; tests 613/613 (+4); tsc clean; lint 0 errors/24 warnings; build OK (168 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~45% to ~58%**; full ten-wave estimate **~69% to ~71%**.
