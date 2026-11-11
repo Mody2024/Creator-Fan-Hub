@@ -1,10 +1,10 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import CommunityClient, { type CommunityPost } from "./community-client";
+import CommunityClient, { type CommunityPost, type CommunityTopic } from "./community-client";
 
 export const dynamic = "force-dynamic";
 
 type SuggestedMember = { userId: string; handle: string; displayName: string };
-type FeedRow = { id: string; author_id: string; post_type: string; body: string; linked_video_id: string | null; created_at: string; pinned: boolean; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null; reaction_count: number | string; comment_count: number | string; poll_id: string | null; poll_question: string | null; poll_options: Array<{ option: string; votes: number | string }> | null; poll_total: number | string | null; poll_closes_at: string | null; my_poll_vote: string | null };
+type FeedRow = { id: string; author_id: string; post_type: string; body: string; linked_video_id: string | null; created_at: string; pinned: boolean; topic_slug: string | null; topic_name: string | null; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null; reaction_count: number | string; comment_count: number | string; poll_id: string | null; poll_question: string | null; poll_options: Array<{ option: string; votes: number | string }> | null; poll_total: number | string | null; poll_closes_at: string | null; my_poll_vote: string | null };
 
 export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ feed?: string; sort?: string }> }) {
   const { feed, sort } = await searchParams;
@@ -12,6 +12,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   const selectedSort = sort === "hot" ? "hot" : "latest";
   const supabase = await createSupabaseServerClient();
   let posts: CommunityPost[] = [];
+  let topics: CommunityTopic[] = [];
   let unreadNotificationCount = 0;
   let suggestedMembers: SuggestedMember[] = [];
   let canModerate = false;
@@ -20,6 +21,8 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
     const userId = claims?.claims?.sub;
     // Promote any scheduled posts whose publish time has arrived before reading the feed.
     await supabase.rpc("raye2_publish_due_community_posts");
+    const { data: topicRows } = await supabase.rpc("raye2_list_community_topics");
+    topics = (Array.isArray(topicRows) ? topicRows : []).map((row: { slug: string; name: string; post_count: number | string }) => ({ slug: row.slug, name: row.name, postCount: Number(row.post_count) || 0 }));
     if (typeof userId === "string") {
       const { count } = await supabase.from("member_notifications").select("id", { count: "exact", head: true }).eq("recipient_id", userId).is("read_at", null);
       unreadNotificationCount = count ?? 0;
@@ -55,9 +58,10 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
         reactionCount: Number(row.reaction_count) || 0,
         commentCount: Number(row.comment_count) || 0,
         poll: row.poll_id ? { id: row.poll_id, question: row.poll_question ?? "", options: (row.poll_options ?? []).map(o => ({ option: o.option, votes: Number(o.votes) || 0 })), total: Number(row.poll_total) || 0, closesAt: row.poll_closes_at, myVote: row.my_poll_vote } : null,
+        topicSlug: row.topic_slug, topicName: row.topic_name,
         author: { handle: row.author_handle ?? "creator", display_name: row.author_display_name ?? "Community member", avatar_url: row.author_avatar_url ?? null }
       }));
     }
   }
-  return <CommunityClient initialPosts={posts} selectedFeed={selectedFeed} selectedSort={selectedSort} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} canModerate={canModerate} />;
+  return <CommunityClient initialPosts={posts} topics={topics} selectedFeed={selectedFeed} selectedSort={selectedSort} unreadNotificationCount={unreadNotificationCount} suggestedMembers={suggestedMembers} canModerate={canModerate} />;
 }

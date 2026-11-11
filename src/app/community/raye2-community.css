@@ -41,6 +41,9 @@
 .raye2-community-page .nhen-collection-picker .nhen-reaction-menu{grid-template-columns:1fr;width:210px}
 
 .raye2-community-page .nhen-poll-compose{margin-top:10px;display:grid;gap:10px}
+.raye2-community-page .nhen-topic-compose{margin-top:10px}
+.raye2-community-page .nhen-topic-compose label{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:800;color:var(--c-muted);text-transform:uppercase;letter-spacing:.06em}
+.raye2-community-page .nhen-topic-compose select{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--c-line);border-radius:12px;background:var(--c-panel);color:var(--c-ink);font-size:12px}
 .raye2-community-page .nhen-poll-compose-fields{display:grid;gap:8px;padding:12px;border:1px solid var(--c-line);border-radius:14px;background:var(--c-raised)}
 .raye2-community-page .nhen-poll-compose-option{display:flex;gap:8px;align-items:center}
 .raye2-community-page .nhen-poll-compose-option .nhen-search{flex:1;min-width:0}
