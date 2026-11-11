@@ -2089,3 +2089,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 19/19 (anon thread read, reply gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
 - [x] Gates: validator 236 assertions; tests 569/569 (+7); tsc clean; lint 0 errors/24 warnings; build OK (159 migrations).
 - **Progress:** All three community/video comment surfaces now have replies + per-comment reactions. Wave 5 moves from **~82% to ~85% provisional**; Wave 3 (watch comment depth) from **41% to 42% provisional**; full ten-wave estimate moves from **~60% to ~61%**.
+
+## 2026-11-10 — Notification center completeness + threaded home feed comments (mega-batch)
+- [x] `raye2_get_notification_summary` now counts all eleven notification types (the six threaded reply/reaction types were previously invisible in the filter badges).
+- [x] `raye2_get_notifications` gained a `p_filter` (`all`/`follow`/`reaction`/`comment`); the comment bucket excludes reaction types so the list length matches its badge.
+- [x] Notifications client localizes all eleven types (the threaded types fell back to raw English in Arabic), pages within the active filter, and offers "Load more" for every filter.
+- [x] The Raye2 home feed comment panel now renders author identity, per-comment reactions, a reply composer and expandable replies, closing the last flat comment surface.
+- [x] **Live matrix:** 13/13 (summary counts, per-filter isolation, list/badge parity, filtered cursor paging, blocked-actor exclusion, anon denial).
+- [x] Gates: validator 240 assertions; tests 574/574 (+5); tsc clean; lint 0 errors/24 warnings; build OK (160 migrations).
+- **Progress:** Wave 5 moves from **~85% to ~88% provisional**; full ten-wave estimate moves from **~61% to ~62%**.
