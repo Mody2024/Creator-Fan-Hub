@@ -151,3 +151,11 @@
 }
 @media(max-width:380px){.topbarContext{display:none}.videoGrid{grid-template-columns:1fr}.videoInfo p{display:block}}
 @media(prefers-reduced-motion:reduce){.videoCard,.button,.railLink{transition:none}}
+
+/* Feed pagination: load-more control with loading, error and end states. */
+.home-feed-more { display: flex; flex-direction: column; gap: 14px; }
+.home-feed-more-button { align-self: center; margin: 4px 0 8px; padding: 11px 26px; border-radius: 999px; border: 1px solid color-mix(in srgb, currentColor 22%, transparent); background: transparent; color: inherit; font: inherit; font-weight: 600; cursor: pointer; transition: background 160ms ease, transform 160ms ease; }
+.home-feed-more-button:hover:not(:disabled) { background: color-mix(in srgb, currentColor 8%, transparent); transform: translateY(-1px); }
+.home-feed-more-button:disabled { opacity: 0.6; cursor: progress; }
+.home-feed-more-error { align-self: center; color: #e5484d; font-size: 13px; margin: 0; }
+.home-feed-more-end { align-self: center; font-size: 12px; opacity: 0.6; margin: 6px 0 0; letter-spacing: 0.02em; }
