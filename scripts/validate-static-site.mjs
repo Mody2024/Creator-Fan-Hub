@@ -478,6 +478,11 @@ check("accounts support deactivation, deletion and data export server-side", acc
 check("account deletion is logical first with a durable purge job", accountMigration.includes("'account.deletion_grace_days'") && accountMigration.includes("'account.purge'") && accountMigration.includes("account_purge:") && accountMigration.includes("raye2_background_jobs"));
 check("account lifecycle and preferences are owner-scoped", accountMigration.includes("Members read their own lifecycle") && accountMigration.includes("Members read their own preferences") && accountMigration.includes("create or replace function public.raye2_set_my_preferences("));
 check("the account page exposes lifecycle, preferences and export", accountSettings.includes('rpc("raye2_request_account_deletion"') && accountSettings.includes('rpc("raye2_request_data_export"') && accountSettings.includes('rpc("raye2_set_my_preferences"'));
+const recMigration = await read("../supabase/migrations/20261110640000_raye2_recommendations.sql");
+check("recommendations are explainable and privacy-safe", recMigration.includes("create or replace function public.raye2_get_recommended_videos(") && recMigration.includes("based_on_watch_history") && recMigration.includes("matched_category") && recMigration.includes("vv.viewer_id = (select auth.uid())"));
+check("recommendations respect exclusivity and expiry", recMigration.includes("vc.exclusive_until is null or vc.exclusive_until <= now()") && recMigration.includes("vc.available_until is null or vc.available_until > now()"));
+check("recommendation topics are owner-scoped", recMigration.includes("create or replace function public.raye2_get_my_recommendation_topics(") && recMigration.includes("grant execute on function public.raye2_get_my_recommendation_topics(integer) to authenticated"));
+check("the home page surfaces recommendations with a reason", homePage.includes('rpc("raye2_get_recommended_videos"') && homePage.includes("based_on_watch_history"));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
