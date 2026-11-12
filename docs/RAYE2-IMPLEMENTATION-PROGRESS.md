@@ -2311,3 +2311,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live discovery matrix:** anon listing + public read; streamer identity; private hidden and unreadable by anon; anon cannot report health/end; owner still works; moderated hidden; replays appear.
 - [x] Gates: validator 330 assertions; tests 671/671 (+4); tsc clean; lint 0 errors/24 warnings; build OK (183 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~33% to ~42% provisional**; full ten-wave estimate **~68% to ~69%**.
+
+## 2026-11-10 — Account self-service lifecycle, data export and preferences (mega-batch)
+- [x] `raye2_account_lifecycle` (active/deactivated/deletion_requested) + `raye2_user_preferences`, owner-scoped RLS.
+- [x] Deactivate / reactivate / request deletion; deletion is **logical first** with a durable `account.purge` job at the end of the tunable grace period (30 days); reactivation cancels the purge.
+- [x] `raye2_request_data_export` queues an `account.export` job (nothing fabricated); `raye2_get_my_data_exports`; preferences get/set with validation; all lifecycle changes audited.
+- [x] New `/account` settings page (lifecycle, preferences, export).
+- [x] **Account matrix:** 20/20 (defaults + anon blocked; deactivate/reactivate; deletion grace + queued purge; cancel purge; export scoping; preference defaults/update/preserve/reject/persist; isolation).
+- [x] Gates: validator 334 assertions; tests 675/675 (+4); tsc clean; lint 0 errors/24 warnings; build OK (184 migrations).
+- **Progress:** Wave 2 (accounts/identity) **~27% to ~40% provisional**; Wave 9 **~96% to ~97%**; full ten-wave estimate **~69% to ~70%**.
