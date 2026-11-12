@@ -2320,3 +2320,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Account matrix:** 20/20 (defaults + anon blocked; deactivate/reactivate; deletion grace + queued purge; cancel purge; export scoping; preference defaults/update/preserve/reject/persist; isolation).
 - [x] Gates: validator 334 assertions; tests 675/675 (+4); tsc clean; lint 0 errors/24 warnings; build OK (184 migrations).
 - **Progress:** Wave 2 (accounts/identity) **~27% to ~40% provisional**; Wave 9 **~96% to ~97%**; full ten-wave estimate **~69% to ~70%**.
+
+## 2026-11-10 — Explainable, privacy-safe video recommendations (mega-batch)
+- [x] `raye2_get_recommended_videos`: engagement-and-recency score + bounded lift from the viewer's **own** watch history; each row carries an explicit **reason** (`based_on_watch_history` + matched category, or `trending`).
+- [x] Respects exclusivity and availability expiry (no leaking exclusive/expired videos); affinity never exposed to others; `raye2_get_my_recommendation_topics` owner-scoped.
+- [x] Home page **Recommended for you** section with a reason line.
+- [x] **Recommendations matrix:** 11/11 (anon trending-reasoned; exclusive excluded; engagement ordering; personalization + reason; topics privacy; expiry + unpublished excluded).
+- [x] Gates: validator 338 assertions; tests 679/679 (+4); tsc clean; lint 0 errors/24 warnings; build OK (185 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~42% to ~50% provisional**; full ten-wave estimate **~70% to ~71%**.
