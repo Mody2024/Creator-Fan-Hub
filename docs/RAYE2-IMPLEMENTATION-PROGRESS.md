@@ -2282,3 +2282,15 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 26/26 (tier mapping, non-additive quotas, per-tier blocks, cooldown, quota-reached, matrix, tuning, audit, role assignment).
 - [x] Gates: validator 318 assertions; tests 658/658 (+4); tsc clean; lint 0 errors/24 warnings; build OK (179 migrations).
 - **Progress:** Wave 9 (Security/reliability/ops) **~92% to ~96%**; full ten-wave estimate **~90% to ~91%**.
+
+## 2026-11-10 — Live streaming lifecycle, quotas, moderation and replay retention (mega-batch)
+- [x] `raye2_live_streams` + `raye2_live_stream_events`; provider URLs stay null until a real provider exists (nothing invented).
+- [x] Active tunable rules: max duration 3h, max concurrent streams, replay retention 24h.
+- [x] `raye2_start_live_stream` server-authoritative: Streamer/Creator+Streamer gate + monthly/weekly quota + concurrency, serialized per streamer.
+- [x] `raye2_end_live_stream` sets the logical replay window and queues **physical deletion as a durable background job**; `raye2_expire_live_replays` enforces expiry.
+- [x] Health, visibility, moderation (audited), my-streams, public listing, visibility-aware single read, admin overview.
+- [x] Creator Studio **Live studio** panel; Admin dashboard **Live** tab; **Streamer** added to the role selector.
+- [x] Fixed a real bug found by the live matrix: `ON CONFLICT (idempotency_key)` could not target the **partial** unique index on background jobs; replaced with a guarded insert.
+- [x] **Live matrix:** 33/33 (role gating, weekly/monthly quota, concurrency, health permissions, end + ~24h replay window, queued cleanup, event log, visibility/listing, moderation, expiry).
+- [x] Gates: validator 323 assertions; tests 663/663 (+5); tsc clean; lint 0 errors/24 warnings; build OK (180 migrations).
+- **Progress:** Wave 4 (Creator Studio / exclusives / live) **~36% to ~55% provisional**; full ten-wave estimate **~65% to ~67%**.
