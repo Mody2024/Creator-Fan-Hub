@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CreatorSettings from "./creator-settings";
 import CreatorCapabilities from "./creator-capabilities";
+import CreatorLiveStudio from "./creator-live-studio";
 import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
@@ -75,6 +76,7 @@ export default async function CreatorDashboardPage() {
       </nav>
 
       <CreatorCapabilities locale={isArabic?"ar":"en"} />
+      {["streamer","admin","owner"].includes(admin.role) ? <CreatorLiveStudio locale={isArabic?"ar":"en"} /> : null}
       <CreatorSettings />
       <PollManagement />
       {["owner","admin"].includes(admin.role) && <IdeaModerationQueue />}
