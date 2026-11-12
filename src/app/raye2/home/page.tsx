@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 type FeedPost = { id:string; author_id:string; post_type:string; body:string; created_at:string };
 type VideoCard = { id:string; slug:string; title:string; description:string; category:string; published_at:string; thumbnail_url:string|null; thumbnail_alt:string };
+type LiveCard = { stream_id:string; title:string; handle:string|null; display_name:string|null; status:string; health:string; started_at:string|null; replay_until:string|null };
 
 export default async function Raye2HomePage({searchParams}:{searchParams:Promise<{feed?:string}>}) {
   const [{feed}, cookieStore]=await Promise.all([searchParams,cookies()]);
@@ -19,6 +20,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
   let posts:FeedPost[]=[];
   let authors=new Map<string,{handle:string;display_name:string;avatar_url:string|null}>();
   let videos:VideoCard[]=[];
+  let liveNow:LiveCard[]=[];
   let memberId:string|null=null;
   const reactionCounts=new Map<string,number>();
   const myReactions=new Map<string,string>();
@@ -37,10 +39,12 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
     }
     let query=supabase.from("community_posts").select("id,author_id,post_type,body,created_at").eq("status","published");
     if(followedIds!==null) query=followedIds.length?query.in("author_id",followedIds):query.in("author_id",["00000000-0000-0000-0000-000000000000"]);
-    const [{data:postRows},{data:videoRows}]=await Promise.all([
+    const [{data:postRows},{data:videoRows},{data:liveRows}]=await Promise.all([
       query.order("pinned",{ascending:false}).order("created_at",{ascending:false}).limit(30),
-      supabase.from("video_catalog").select("media_id,slug,description,category,published_at,thumbnail_media_id,media_items!video_catalog_media_id_fkey!inner(title,is_published,media_type),thumbnail:media_items!video_catalog_thumbnail_media_id_fkey(storage_path,is_published,media_type,alt_text)").not("published_at","is",null).eq("media_items.is_published",true).order("published_at",{ascending:false}).limit(4)
+      supabase.from("video_catalog").select("media_id,slug,description,category,published_at,thumbnail_media_id,media_items!video_catalog_media_id_fkey!inner(title,is_published,media_type),thumbnail:media_items!video_catalog_thumbnail_media_id_fkey(storage_path,is_published,media_type,alt_text)").not("published_at","is",null).eq("media_items.is_published",true).order("published_at",{ascending:false}).limit(4),
+      supabase.rpc("raye2_get_live_now",{p_limit:4})
     ]);
+    liveNow=(liveRows??[]) as LiveCard[];
     posts=(postRows??[]) as FeedPost[];
     const authorIds=[...new Set(posts.map(post=>post.author_id))];
     if(authorIds.length){
@@ -84,6 +88,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
         <Link className={`${styles.railLink} ${styles.railActive}`} href="/raye2/home"><span className={styles.railIcon}>⌂</span>{isArabic?"الرئيسية":"Home"}</Link>
         <Link className={styles.railLink} href="/watch"><span className={styles.railIcon}>▶</span>{isArabic?"مشاهدة":"Watch"}</Link>
         <Link className={styles.railLink} href="/shorts"><span className={styles.railIcon}>▤</span>{isArabic?"مقاطع قصيرة":"Mini’s"}</Link>
+        <Link className={styles.railLink} href="/live"><span className={styles.railIcon}>●</span>{isArabic?"مباشر":"Live"}</Link>
         <Link className={styles.railLink} href="/search"><span className={styles.railIcon}>⌕</span>{isArabic?"استكشف":"Explore"}</Link>
         <Link className={styles.railLink} href="/series"><span className={styles.railIcon}>▥</span>{isArabic?"السلاسل":"Series"}</Link>
         <Link className={styles.railLink} href="/creators"><span className={styles.railIcon}>✦</span>{isArabic?"صُنّاع المحتوى":"Creators"}</Link>
@@ -96,6 +101,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
         <section className={styles.welcome}><div className={styles.welcomeTopline}><span className={styles.eyebrow}>{isArabic?"مجتمع RAYE2 / الرئيسية":"RAYE2 COMMUNITY / HOME"}</span><span className={styles.liveDot}>{isArabic?"مساحتك":"YOUR SPACE"}</span></div><h1>{isArabic?"عالمك.":"Your world."}<br/><em>{isArabic?"مجتمعك.":"Your people."}</em></h1><p>{isArabic?"مساحة تجمع تحديثات صُنّاع المحتوى ونقاشات المجتمع والفيديوهات المميزة. اكتشف شيئًا جديدًا وشارك في الحوار.":"A connected place for creator updates, community conversations and videos worth your time. Find something new, then join the conversation."}</p>
           <div className={styles.welcomeActions}><Link className={`${styles.button} ${styles.buttonPrimary}`} href="/watch">{isArabic?"استكشف الفيديوهات ↗":"Explore videos ↗"}</Link><Link className={styles.button} href="/community">{isArabic?"افتح المجتمعات":"Open communities"}</Link></div>
         </section>
+        {liveNow.length?<><div className={styles.sectionHead}><h2>{isArabic?"مباشر الآن":"Live now"}</h2><Link className={styles.count} href="/live">{isArabic?"كل البث ↗":"View all live ↗"}</Link></div><div className={styles.videoGrid}>{liveNow.map(item=><article className={styles.videoCard} key={item.stream_id}><Link href={`/live/${item.stream_id}`}><div className={styles.videoFrame}><span aria-hidden="true">{item.status==="live"?"◉":"▷"}</span><span className={styles.videoPlay} aria-hidden="true">{item.status==="live"?"●":"▶"}</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{item.status==="live"?(isArabic?"مباشر":"LIVE"):(isArabic?"إعادة":"REPLAY")}</span><h3>{item.title}</h3><p>{item.display_name??item.handle??""}</p></div></Link></article>)}</div></>:null}
         <div className={styles.sectionHead}><h2>{isArabic?"نُشر حديثًا":"Recently published"}</h2><Link className={styles.count} href="/watch">View all videos ↗</Link></div>
         {videos.length?<div className={styles.videoGrid}>{videos.map(video=><article className={styles.videoCard} key={video.id}><Link href={`/watch/${video.slug}`}><div className={styles.videoFrame}>{video.thumbnail_url?<Image className={styles.videoThumbnail} src={video.thumbnail_url} alt={video.thumbnail_alt} fill sizes="(max-width: 720px) 100vw, 360px" unoptimized/>:<span aria-hidden="true">▶</span>}<span className={styles.videoPlay} aria-hidden="true">▶</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{video.category.toUpperCase()}</span><h3>{video.title}</h3><p>{video.description}</p></div></Link></article>)}</div>:<div className={styles.empty}>{isArabic?"ستظهر فيديوهات المبدعين هنا عند نشرها.":"New creator videos will appear here when published."}</div>}
         <div className={styles.feedBar}><div><span className={styles.eyebrow}>{isArabic?"منشورات المجتمع":"COMMUNITY FEED"}</span><h2 style={{fontSize:19,margin:"6px 0 0"}}>{isArabic?"حوارات تستحق وقتك":"Conversations that matter"}</h2></div><div className={styles.feedTabs}><Link className={selectedFeed==="latest"?`${styles.feedTab} ${styles.feedTabActive}`:styles.feedTab} href="/raye2/home?feed=latest">{isArabic?"الأحدث":"Latest"}</Link><Link className={selectedFeed==="following"?`${styles.feedTab} ${styles.feedTabActive}`:styles.feedTab} href="/raye2/home?feed=following">{isArabic?"تتابعهم":"Following"}</Link></div></div>

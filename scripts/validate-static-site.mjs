@@ -465,6 +465,13 @@ check("video exclusivity and expiry are enforced on the catalog read path", excl
 check("exclusivity and expiry caps are tunable and enforced", exclusivityMigration.includes("'video.exclusive_max_days'") && exclusivityMigration.includes("'video.expiry_max_days'") && exclusivityMigration.includes("exclusive window exceeds") && exclusivityMigration.includes("availability window exceeds"));
 check("only the owner sets exclusivity, and it is audited", exclusivityMigration.includes("create or replace function public.raye2_set_video_exclusivity(") && exclusivityMigration.includes("only the owner can set exclusivity") && exclusivityMigration.includes("video_exclusivity_set"));
 check("the Creator Studio sets video exclusivity and expiry", exclusivityPanel.includes('rpc("raye2_set_video_exclusivity"') && exclusivityPanel.includes('rpc("raye2_get_my_video_exclusivity"'));
+const liveDiscovery = await read("../supabase/migrations/20261110620000_raye2_live_discovery.sql");
+const livePage = await read("../src/app/live/page.tsx");
+const liveDetailPage = await read("../src/app/live/[id]/page.tsx");
+const homePage = await read("../src/app/raye2/home/page.tsx");
+check("live discovery lists only public live streams and in-window replays", liveDiscovery.includes("create or replace function public.raye2_get_live_now(") && liveDiscovery.includes("s.visibility = 'public'") && liveDiscovery.includes("s.replay_until > now()") && liveDiscovery.includes("grant execute on function public.raye2_get_live_now(integer) to anon, authenticated"));
+check("live watch detail is visibility-aware for anonymous viewers", liveDiscovery.includes("grant execute on function public.raye2_get_live_stream(uuid) to anon") && liveDetailPage.includes('rpc("raye2_get_live_stream"'));
+check("the live route and home surface discovery", livePage.includes('rpc("raye2_get_live_now"') && homePage.includes('rpc("raye2_get_live_now"') && homePage.includes('href="/live"'));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");

@@ -151,7 +151,7 @@ begin
   if char_length(coalesce(p_detail,'')) > 300 then raise exception 'detail too long' using errcode='22023'; end if;
   select streamer_id into v_owner from public.raye2_live_streams where id = p_stream_id for update;
   if v_owner is null then raise exception 'stream not found' using errcode='P0002'; end if;
-  if not (v_owner = auth.uid() or auth.role() = 'service_role' or public.raye2_is_platform_admin()) then
+  if not ((auth.uid() is not null and v_owner = auth.uid()) or auth.role() = 'service_role' or public.raye2_is_platform_admin()) then
     raise exception 'not permitted to report this stream' using errcode='42501';
   end if;
   update public.raye2_live_streams set health = p_health, health_detail = coalesce(p_detail,''), updated_at = now() where id = p_stream_id;
@@ -171,7 +171,7 @@ declare v_owner uuid; v_status text; v_ended timestamptz; v_replay timestamptz; 
 begin
   select streamer_id, status into v_owner, v_status from public.raye2_live_streams where id = p_stream_id for update;
   if v_owner is null then raise exception 'stream not found' using errcode='P0002'; end if;
-  if not (v_owner = auth.uid() or public.raye2_is_platform_admin()) then
+  if not ((auth.uid() is not null and v_owner = auth.uid()) or public.raye2_is_platform_admin()) then
     raise exception 'not permitted to end this stream' using errcode='42501';
   end if;
   if v_status <> 'live' then raise exception 'only a live stream can be ended' using errcode='22023'; end if;
@@ -203,7 +203,7 @@ begin
   if p_visibility not in ('public','unlisted','private') then raise exception 'invalid visibility' using errcode='22023'; end if;
   select streamer_id into v_owner from public.raye2_live_streams where id = p_stream_id for update;
   if v_owner is null then raise exception 'stream not found' using errcode='P0002'; end if;
-  if not (v_owner = auth.uid() or public.raye2_is_platform_admin()) then
+  if not ((auth.uid() is not null and v_owner = auth.uid()) or public.raye2_is_platform_admin()) then
     raise exception 'not permitted to change this stream' using errcode='42501';
   end if;
   update public.raye2_live_streams set visibility = p_visibility, updated_at = now() where id = p_stream_id;
@@ -289,7 +289,7 @@ begin
    from public.raye2_live_streams s where s.id = p_stream_id;
   if v_owner is null then raise exception 'stream not found' using errcode='P0002'; end if;
   v_admin := public.raye2_is_platform_admin();
-  if not (v_admin or v_owner = auth.uid()
+  if not (v_admin or (auth.uid() is not null and v_owner = auth.uid())
           or (v_visibility = 'public' and (v_status = 'live' or (v_status = 'replay' and v_replay > now())))) then
     raise exception 'stream not available' using errcode='42501';
   end if;
