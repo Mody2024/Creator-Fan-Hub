@@ -2294,3 +2294,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live matrix:** 33/33 (role gating, weekly/monthly quota, concurrency, health permissions, end + ~24h replay window, queued cleanup, event log, visibility/listing, moderation, expiry).
 - [x] Gates: validator 323 assertions; tests 663/663 (+5); tsc clean; lint 0 errors/24 warnings; build OK (180 migrations).
 - **Progress:** Wave 4 (Creator Studio / exclusives / live) **~36% to ~55% provisional**; full ten-wave estimate **~65% to ~67%**.
+
+## 2026-11-10 — Long-video exclusivity and availability expiry (mega-batch)
+- [x] `video_catalog.exclusive_until` + `available_until` (null = not exclusive / no expiry).
+- [x] `raye2_video_accessible` / `raye2_can_view_video` decide access; the catalog **SELECT policy** now uses it, so exclusive/expired videos are not readable by ordinary viewers in the database.
+- [x] `raye2_set_video_exclusivity` owner/admin only, requires published, rejects windows beyond tunable caps (`video.exclusive_max_days` 7, `video.expiry_max_days` 14), audited.
+- [x] `raye2_get_my_video_exclusivity` + Creator Studio **Video exclusivity & expiry** panel.
+- [x] **Exclusivity matrix:** 18/18 (public baseline; hidden from anon/others during exclusivity; owner/admin retain access; release after exclusivity; expiry hides; caps and negatives rejected; must be published; audit).
+- [x] Gates: validator 327 assertions; tests 667/667 (+4); tsc clean; lint 0 errors/24 warnings; build OK (182 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~22% to ~33% provisional**; Wave 4 **~55% to ~62% provisional**; full ten-wave estimate **~67% to ~68%**.
