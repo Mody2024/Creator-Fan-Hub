@@ -472,6 +472,12 @@ const homePage = await read("../src/app/raye2/home/page.tsx");
 check("live discovery lists only public live streams and in-window replays", liveDiscovery.includes("create or replace function public.raye2_get_live_now(") && liveDiscovery.includes("s.visibility = 'public'") && liveDiscovery.includes("s.replay_until > now()") && liveDiscovery.includes("grant execute on function public.raye2_get_live_now(integer) to anon, authenticated"));
 check("live watch detail is visibility-aware for anonymous viewers", liveDiscovery.includes("grant execute on function public.raye2_get_live_stream(uuid) to anon") && liveDetailPage.includes('rpc("raye2_get_live_stream"'));
 check("the live route and home surface discovery", livePage.includes('rpc("raye2_get_live_now"') && homePage.includes('rpc("raye2_get_live_now"') && homePage.includes('href="/live"'));
+const accountMigration = await read("../supabase/migrations/20261110630000_raye2_account_lifecycle.sql");
+const accountSettings = await read("../src/app/account/account-settings.tsx");
+check("accounts support deactivation, deletion and data export server-side", accountMigration.includes("create or replace function public.raye2_deactivate_account(") && accountMigration.includes("create or replace function public.raye2_request_account_deletion(") && accountMigration.includes("create or replace function public.raye2_reactivate_account()") && accountMigration.includes("create or replace function public.raye2_request_data_export()"));
+check("account deletion is logical first with a durable purge job", accountMigration.includes("'account.deletion_grace_days'") && accountMigration.includes("'account.purge'") && accountMigration.includes("account_purge:") && accountMigration.includes("raye2_background_jobs"));
+check("account lifecycle and preferences are owner-scoped", accountMigration.includes("Members read their own lifecycle") && accountMigration.includes("Members read their own preferences") && accountMigration.includes("create or replace function public.raye2_set_my_preferences("));
+check("the account page exposes lifecycle, preferences and export", accountSettings.includes('rpc("raye2_request_account_deletion"') && accountSettings.includes('rpc("raye2_request_data_export"') && accountSettings.includes('rpc("raye2_set_my_preferences"'));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
