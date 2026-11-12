@@ -2303,3 +2303,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Exclusivity matrix:** 18/18 (public baseline; hidden from anon/others during exclusivity; owner/admin retain access; release after exclusivity; expiry hides; caps and negatives rejected; must be published; audit).
 - [x] Gates: validator 327 assertions; tests 667/667 (+4); tsc clean; lint 0 errors/24 warnings; build OK (182 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~22% to ~33% provisional**; Wave 4 **~55% to ~62% provisional**; full ten-wave estimate **~67% to ~68%**.
+
+## 2026-11-10 — Public live discovery + anon private-stream fix (mega-batch)
+- [x] `raye2_get_live_now` (public live + in-window replays with streamer identity), granted to anon; `raye2_get_live_stream` now anon-callable.
+- [x] **Security fix:** live ownership checks compared `v_owner = auth.uid()` directly; for anon `auth.uid()` is null, so `not (null)` did not raise and **anon could read a private stream**. All four checks now require `auth.uid() is not null`.
+- [x] New `/live` listing and `/live/[id]` watch detail (player appears once a real provider is connected); home **Live now** section + nav link.
+- [x] **Live discovery matrix:** anon listing + public read; streamer identity; private hidden and unreadable by anon; anon cannot report health/end; owner still works; moderated hidden; replays appear.
+- [x] Gates: validator 330 assertions; tests 671/671 (+4); tsc clean; lint 0 errors/24 warnings; build OK (183 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~33% to ~42% provisional**; full ten-wave estimate **~68% to ~69%**.
