@@ -2328,3 +2328,10 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Recommendations matrix:** 11/11 (anon trending-reasoned; exclusive excluded; engagement ordering; personalization + reason; topics privacy; expiry + unpublished excluded).
 - [x] Gates: validator 338 assertions; tests 679/679 (+4); tsc clean; lint 0 errors/24 warnings; build OK (185 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~42% to ~50% provisional**; full ten-wave estimate **~70% to ~71%**.
+
+## 2026-11-10 — Keyset feed pagination with load-more (mega-batch)
+- [x] `raye2_get_community_feed_page`: keyset cursor `(created_at, id)` desc; no duplicate/missing items even as new posts arrive; keeps following-only + block exclusions.
+- [x] `HomeFeedMore` with explicit loading, error+retry and end states, reusing `HomeFeedPost`; mounted by the home feed when the first page is full.
+- [x] **Pagination matrix:** 9/9 (page size + newest-first; walk-all-exactly-once; stability under inserts; following filter; empty cursor).
+- [x] Gates: validator 340 assertions; tests 682/682 (+3); tsc clean; lint 0 errors/24 warnings; build OK (186 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~50% to ~58% provisional**; full ten-wave estimate **~71% to ~72%**.
