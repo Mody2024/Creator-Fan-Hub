@@ -1,52 +1,70 @@
-# Raye2 database backup and restore
+# Raye2 database and Storage backup/restore
 
 ## Purpose and limits
 
-The scheduled workflow `.github/workflows/supabase-backup.yml` creates a PostgreSQL custom-format dump once per day, encrypts it with age, and stores the encrypted artifact in GitHub Actions for 90 days.
+The scheduled workflow `.github/workflows/supabase-backup.yml` runs weekly. It creates:
+- A PostgreSQL custom-format dump using `pg_dump`.
+- A read-only export of every Supabase Storage bucket and object.
+- Separate age-encrypted files for the database and Storage archive.
 
-This is a **rolling recovery copy**, not permanent archival. GitHub automatically expires workflow artifacts after the configured retention period. A free hosted database and free CI do not provide a contractual guarantee against provider suspension, deletion, quota changes, or account loss. Keep an offline copy of the age identity (private key) and periodically download important backups to storage you control.
+Only encrypted files and non-sensitive run metadata are uploaded to GitHub Actions. Plaintext dumps and Storage files live only in a temporary runner directory and are removed when the job exits. The artifact is retained for 14 days to limit free artifact-storage use.
 
-The backup workflow is deliberately inactive until the owner adds the two configuration values below. It never writes database contents to the repository and never stores plaintext dumps as workflow artifacts.
+This is a **short rolling recovery copy**, not permanent archival. GitHub automatically expires workflow artifacts. Download important backups to storage you control before they expire. Free hosting and CI do not provide a contractual guarantee against provider suspension, deletion, quota changes or account loss.
 
-## Owner setup — do this near release, after all features are implemented
+PostgreSQL dumps and Storage object exports do not capture every Supabase project setting. Auth provider configuration, SMTP settings, Edge Function secrets, API keys, custom domains, project settings and external provider credentials must be documented/recreated separately. A restore into a new Supabase project needs a reviewed schema/auth migration process; do not assume a raw database dump can be blindly restored into managed system schemas.
+
+## Owner setup — do this near release, after implementation
 
 1. Generate an age identity on a trusted device using the official age tool: `age-keygen -o raye2-backup-identity.txt`.
 2. Keep the private identity line beginning with `AGE-SECRET-KEY-` offline in at least two safe places. Never commit it or send it in chat.
 3. Copy the public recipient line beginning with `age1` into GitHub repository **Settings → Secrets and variables → Actions → Variables** as `RAYE2_BACKUP_AGE_RECIPIENT`.
-4. Add the database connection string as the GitHub Actions **Secret** `SUPABASE_DB_URL`. Use the direct PostgreSQL connection string from the Supabase dashboard; if IPv6 is unavailable on the runner, use the session pooler connection string and its correct port/user.
-5. Run **Actions → Supabase encrypted backup → Run workflow** and confirm an encrypted artifact appears.
-6. Download one artifact and verify it decrypts on your trusted device before relying on it.
+4. Add the direct PostgreSQL connection string as the GitHub Actions **Secret** `SUPABASE_DB_URL`. If IPv6 is unavailable on the runner, use the session pooler connection string and its correct port/user.
+5. Add the Supabase service-role key as the GitHub Actions **Secret** `SUPABASE_SERVICE_ROLE_KEY`. It is used only in the backup job and must never be committed or exposed to browser code.
+6. Run **Actions → Supabase encrypted backup → Run workflow** and confirm the encrypted database and Storage files appear.
+7. Download one artifact and verify that both files decrypt on your trusted device before relying on it.
+
+The backup job refuses to run if any required value is missing. No credentials are needed to build or test the rest of the application.
 
 ## Restore drill
 
-Keep the age identity file offline as `raye2-backup-identity.txt`. Download an encrypted artifact and run:
+Keep the age identity file offline as `raye2-backup-identity.txt`. Download an artifact and decrypt the files:
 
 ```sh
 age --decrypt --identity raye2-backup-identity.txt raye2-postgres-<run-id>.dump.age > raye2-postgres.dump
+age --decrypt --identity raye2-backup-identity.txt raye2-storage-<run-id>.tar.gz.age | tar -xz
 pg_restore --list raye2-postgres.dump
 ```
 
-For an actual restore, create a separate empty recovery database and review the target carefully before running:
+After creating and validating a separate empty recovery database, a database restore can be rehearsed with:
 
 ```sh
 pg_restore --clean --if-exists --no-owner --no-acl --dbname "$RECOVERY_DATABASE_URL" raye2-postgres.dump
 ```
 
-Never point a restore command at production without a separate verified backup, a reviewed change window, and explicit owner approval.
+After the required Storage buckets exist in the recovery project, set `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` in a private shell and run:
+
+```sh
+node scripts/raye2-storage-restore.mjs storage
+```
+
+The Storage restore script verifies each object's path and byte size before upload. It upserts objects present in the backup and **does not delete objects absent from the backup**.
+
+Never point a restore command at production without a separate verified backup, a reviewed change window and explicit owner approval.
 
 ## Permanent-free availability reality
 
 - The existing activity-check workflow makes small read-only API requests three times per day. It improves activity visibility but **cannot guarantee** Supabase will never pause a Free project.
-- A Free Supabase project can still be paused under provider inactivity or policy rules. No GitHub script can override Supabase's platform controls.
-- A scheduled backup reduces data-loss risk but does not keep the database online.
+- A Free Supabase project can still be paused under provider inactivity or policy rules. No GitHub script can override Supabase platform controls.
+- Weekly backups reduce data-loss risk but do not keep the database online; artifacts expire after 14 days.
 - Always-on media processing, voice relay and live streaming need a continuously running machine/network. Open-source software removes license/API fees, not compute, storage, bandwidth, electricity or hardware costs.
 - To avoid unexpected charges, do not enable paid upgrades or usage-based add-ons. If a provider requires a paid tier for a required reliability guarantee, treat that feature as unavailable until the owner chooses a genuinely free alternative.
 
 ## Release gates
 
-- [ ] First encrypted backup succeeds.
+- [ ] First encrypted database and Storage backup succeeds.
 - [ ] Owner confirms private age identity is safely stored offline.
-- [ ] A backup is downloaded and decrypted successfully.
-- [ ] Restore listing is readable and a test restore succeeds in an isolated database.
-- [ ] Backup artifact retention and external offline-copy cadence are understood.
-- [ ] The owner accepts that Supabase Free does not guarantee zero pauses or zero deletion risk.
+- [ ] Both encrypted files are downloaded and decrypted successfully.
+- [ ] Database restore is rehearsed against an isolated recovery database.
+- [ ] Storage restore is rehearsed in an isolated recovery project.
+- [ ] Owner downloads an offline backup copy before the 14-day artifact expiry.
+- [ ] Supabase Free pause/deletion limitations are understood and accepted.
