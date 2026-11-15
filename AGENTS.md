@@ -92,3 +92,13 @@ regression; verify watch behaviour at the RPC/RLS layer and via validator/tests 
 `npx supabase@latest db reset --no-seed` reapplies the whole migration chain locally. Use it to
 prove new migrations and to run behavioral matrices with the anon + service-role keys from
 `supabase status`. Docker socket perms may need fixing for uid 10001 first.
+
+## Test-setup gotchas (cost real time)
+- Profiles are auto-created on signup: do NOT insert into `member_profiles` (PK conflict on `user_id`); `update` the handle/visibility instead.
+- `video_reactions.reaction` is restricted to `spark,orbit,legend,laugh,mindblown,support` (later migration overrides the original `like`), so seeding reactions with `like` fails the check.
+- `raye2_cleanup_jobs` requires `requested_by` and a `reason` (3-500 chars) on insert; create a preview row directly, then queue/run via RPC.
+- Native uploads: `media_items.processing_status` defaults to `uploaded`; the catalog read policy and `raye2_validate_watch_source` require `ready`, so tests must `update` it to `ready`.
+- Seed users with `admin.auth.admin.createUser` (service role) and use the same JWT to `signInWithPassword` on the anon client.
+
+## SECURITY DEFINER video-read invariant
+Any `SECURITY DEFINER` function that reads `public.video_catalog` must apply `public.raye2_can_view_video(vc.media_id)` (viewer-scoped, honours `auth.uid()`), because it bypasses the catalog RLS policy. A sweep script (last definition of each function, flag those with `video_catalog` but no `raye2_can_view_video`/`raye2_video_accessible`) catches regressions; only role-scoped/self-scoped functions should remain flagged.
