@@ -729,6 +729,31 @@ check("collection contents RPCs are owner-scoped, pinned and authenticated-only"
 check("collection contents resolve only published posts and videos", collectionMigration.includes("cp.status = 'published'") && collectionMigration.includes("vc.published_at is not null") && collectionMigration.includes("mi.is_published = true") && collectionMigration.includes("left join public.member_profiles mp on mp.user_id = cp.author_id"));
 check("saved library opens, renames, deletes and empties collections via RPC", savedClient.includes('rpc("raye2_get_collection",{p_collection_id:col.id,p_limit:200})') && savedClient.includes('rpc("raye2_update_collection",{p_collection_id:open.id,p_name:renameValue.trim(),p_description:open.description})') && savedClient.includes('rpc("raye2_delete_collection",{p_collection_id:open.id})') && savedClient.includes('rpc("raye2_remove_from_collection",{p_collection_id:open.id,p_kind:item.item_kind,p_item_id:item.item_id})'));
 
+
+// Raye2 single-theme palette (plan 1.1): black, white, grey and blue only, no theme switching.
+const PALETTE = new Set(["#0b0b0d","#141416","#1c1c1f","#242427","#4d8df6","#2f6fe0","#9dc0ff","#a1a1aa","#d6d6db","#f4f4f6","#5cc98f","#e0b878","#e87d85","#ffffff","#000000"]);
+async function collectCss(dir) {
+  const out = [];
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const full = dir + "/" + entry.name;
+    if (entry.isDirectory()) out.push(...(await collectCss(full)));
+    else if (entry.name.endsWith(".css")) out.push(full);
+  }
+  return out;
+}
+const cssFiles = await collectCss(new URL("../src", import.meta.url).pathname);
+const strayColors = [];
+let themeSwitchRefs = 0;
+for (const file of cssFiles) {
+  const text = await readFile(file, "utf8");
+  if (/prefers-color-scheme|\[data-theme|theme-toggle|theme-switcher/.test(text)) themeSwitchRefs += 1;
+  for (const match of text.matchAll(/#[0-9a-fA-F]{6}\b/g)) {
+    if (!PALETTE.has(match[0].toLowerCase())) strayColors.push(file.split("/src/")[1] + " " + match[0]);
+  }
+}
+check("all stylesheets use the single black/grey/blue Raye2 palette with no stray colors", strayColors.length === 0);
+check("Raye2 ships one theme with no light/dark switching", themeSwitchRefs === 0);
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

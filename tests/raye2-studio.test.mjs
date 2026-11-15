@@ -70,7 +70,7 @@ test("legacy creator management tools now inherit the Raye2 workspace theme and 
   assert.ok(moderation.includes('className="dashboard-shell raye2-creator-shell"'));
   assert.ok(moderation.includes('href="/raye2/studio"'));
   assert.ok(css.includes(".raye2-creator-shell{"));
-  assert.ok(css.includes("--accent:#79b1ff"));
+  assert.ok(css.includes("--accent:#4d8df6"));
   assert.ok(css.includes("@media(max-width:480px){.raye2-creator-shell"));
 });
 

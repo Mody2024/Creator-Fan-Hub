@@ -22,7 +22,7 @@ type SiteDraft = {
 const fallback: SiteDraft = {
   schemaVersion: 1,
   identity: { siteName: "Raye2", tagline: "A calmer place to discover, create and connect. · مساحة أهدأ للاكتشاف والإبداع والتواصل." },
-  appearance: { theme: "obsidian", accent: "#79b1ff", motion: "full" },
+  appearance: { theme: "obsidian", accent: "#4d8df6", motion: "full" },
   hero: { title: "Your next favorite video starts here.", body: "Vote on ideas, share what you want to see, and help shape the next upload.", mediaId: null, overlay: 0.35, muted: true, loop: true },
   maintenance: { enabled: false, message: "We'll be back soon." },
   layout: { sectionOrder: ["hero", "ideas", "poll", "events", "community", "socials", "videos"], visibleSections: ["hero", "ideas", "poll", "events", "community", "socials", "videos"] },
@@ -82,7 +82,7 @@ export default function CreatorSettings() {
       const normalizedDraft: SiteDraft = {
         ...fallback, ...loaded.draft,
         identity: { ...fallback.identity, ...loaded.draft.identity, siteName: "Raye2" },
-        appearance: { ...fallback.appearance, ...loaded.draft.appearance, accent: loaded.draft.appearance?.accent === "#C8FF4D" ? "#79b1ff" : (loaded.draft.appearance?.accent || fallback.appearance.accent) },
+        appearance: { ...fallback.appearance, ...loaded.draft.appearance, accent: loaded.draft.appearance?.accent === "#C8FF4D" ? "#4d8df6" : (loaded.draft.appearance?.accent || fallback.appearance.accent) },
         hero: { ...fallback.hero, ...loaded.draft.hero },
         maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance },
         layout: { ...fallback.layout, ...loaded.draft.layout },
@@ -197,14 +197,14 @@ export default function CreatorSettings() {
   return <section id="creator-settings" className="creator-editor" dir={isArabic?"rtl":"ltr"} lang={locale} aria-busy={busy || saving}>
     <div className="editor-topline"><span className="eyebrow">LIVE CONFIGURATION / DRAFT {revision} · {hasUnsavedChanges ? t.unsaved : t.saved}</span><button className="editor-reload" onClick={() => { if (hasUnsavedChanges && !window.confirm("Discard your unsaved changes and reload the saved draft?")) return; setBusy(true); void load(); }} disabled={busy || saving}>{t.reload}</button></div>
     {busy ? <p className="editor-status" role="status" aria-live="polite">{status}</p> : <>
-      <div className="draft-preview-wrap"><div className="draft-preview-label"><span>{t.preview}</span><small>{t.private}</small></div><div className="draft-preview" style={{"--preview-accent": draft.appearance.accent || "#79b1ff"} as React.CSSProperties & {"--preview-accent": string}}><div className="draft-preview-top"><span>{draft.identity.siteName || "Your website name"}</span><span>PREVIEW / 01</span></div><div className="draft-preview-main"><span className="draft-preview-eyebrow">{draft.identity.tagline || "Your tagline"}</span><h3>{draft.hero.title || "Your headline goes here"}</h3><p>{draft.hero.body || "Your description will appear here."}</p><span className="draft-preview-cta">{draft.featureFlags.polls ? "CAST YOUR VOTE ↗" : draft.featureFlags.ideas ? "SUBMIT AN IDEA ↗" : "EXPLORE ↗"}</span></div><div className="draft-preview-sections">{(draft.layout.sectionOrder ?? []).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index)=><span key={key}>{String(index+1).padStart(2,"0")} / {({hero:"Hero",ideas:"Ideas",poll:"Voting",events:"Events",community:"Community",socials:"Social links",videos:"Published videos"} as Record<string,string>)[key] ?? key}</span>)}</div>{draft.maintenance.enabled && <div className="draft-preview-maintenance">MAINTENANCE MODE · {draft.maintenance.message}</div>}</div></div><div className="editor-section-title"><span>01 / {t.identity}</span><h2>{t.headline}<em>{t.emphasis}</em></h2><p>{t.identityDesc}</p></div>
+      <div className="draft-preview-wrap"><div className="draft-preview-label"><span>{t.preview}</span><small>{t.private}</small></div><div className="draft-preview" style={{"--preview-accent": draft.appearance.accent || "#4d8df6"} as React.CSSProperties & {"--preview-accent": string}}><div className="draft-preview-top"><span>{draft.identity.siteName || "Your website name"}</span><span>PREVIEW / 01</span></div><div className="draft-preview-main"><span className="draft-preview-eyebrow">{draft.identity.tagline || "Your tagline"}</span><h3>{draft.hero.title || "Your headline goes here"}</h3><p>{draft.hero.body || "Your description will appear here."}</p><span className="draft-preview-cta">{draft.featureFlags.polls ? "CAST YOUR VOTE ↗" : draft.featureFlags.ideas ? "SUBMIT AN IDEA ↗" : "EXPLORE ↗"}</span></div><div className="draft-preview-sections">{(draft.layout.sectionOrder ?? []).filter(key=>(draft.layout.visibleSections ?? []).includes(key)).map((key,index)=><span key={key}>{String(index+1).padStart(2,"0")} / {({hero:"Hero",ideas:"Ideas",poll:"Voting",events:"Events",community:"Community",socials:"Social links",videos:"Published videos"} as Record<string,string>)[key] ?? key}</span>)}</div>{draft.maintenance.enabled && <div className="draft-preview-maintenance">MAINTENANCE MODE · {draft.maintenance.message}</div>}</div></div><div className="editor-section-title"><span>01 / {t.identity}</span><h2>{t.headline}<em>{t.emphasis}</em></h2><p>{t.identityDesc}</p></div>
       <div className="editor-grid">
         <label>{t.brand}<input value="Raye2 / رايق" readOnly aria-label="Fixed Raye2 bilingual brand identity" /><small>{t.fixed}</small></label>
         <label>{t.tagline}<input maxLength={240} value={draft.identity.tagline} onChange={e=>update("identity","tagline",e.target.value)} /></label>
         <label>{t.heroTitle}<input maxLength={180} value={draft.hero.title} onChange={e=>update("hero","title",e.target.value)} /></label>
         <label>{t.heroBody}<textarea maxLength={1000} rows={3} value={draft.hero.body} onChange={e=>update("hero","body",e.target.value)} /></label>
         <label>{t.theme}<input value="Raye2 — black / white / grey / blue" readOnly aria-label="Fixed single Raye2 theme" /><small>{t.fixed}</small></label>
-        <label>{t.accent}<input type="color" value={draft.appearance.accent || "#79b1ff"} onChange={e=>update("appearance","accent",e.target.value)} /></label>
+        <label>{t.accent}<input type="color" value={draft.appearance.accent || "#4d8df6"} onChange={e=>update("appearance","accent",e.target.value)} /></label>
         <label>{t.motion}<select value={draft.appearance.motion || "full"} onChange={e=>update("appearance","motion",e.target.value)}><option value="full">{t.full}</option><option value="reduced">{t.reduced}</option><option value="off">{t.minimal}</option></select><small>Respects visitors who prefer less movement and can disable decorative transitions.</small></label>
       </div>
       <div className="editor-grid">

@@ -1,17 +1,17 @@
 .raye2-minis-page { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
 .raye2-minis-heading { margin: 24px 0 16px; }
 .raye2-minis-heading h1 { font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 6px 0; }
-.raye2-minis-heading em { font-style: normal; color: var(--raye2-accent, #6c5ce7); }
+.raye2-minis-heading em { font-style: normal; color: var(--raye2-accent, #4d8df6); }
 .raye2-minis-feed { display: flex; flex-direction: column; gap: 24px; }
-.raye2-minis-compose { background: var(--surface-2, #14131c); border: 1px solid var(--border, #262433); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.raye2-minis-compose { background: var(--surface-2, #141416); border: 1px solid var(--border, #242427); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 .raye2-minis-compose h2 { margin: 0; font-size: 1.1rem; }
 .raye2-minis-compose label { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; }
-.raye2-minis-compose input[type="text"], .raye2-minis-compose input:not([type]) { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border, #262433); background: var(--surface-1, #0e0d14); color: inherit; }
+.raye2-minis-compose input[type="text"], .raye2-minis-compose input:not([type]) { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border, #242427); background: var(--surface-1, #0b0b0d); color: inherit; }
 .raye2-minis-compose progress { width: 100%; height: 8px; }
 .raye2-minis-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-.raye2-mini-card { background: var(--surface-2, #14131c); border: 1px solid var(--border, #262433); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.raye2-mini-card { background: var(--surface-2, #141416); border: 1px solid var(--border, #242427); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
 .raye2-mini-video { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; background: #000; }
 .raye2-mini-info { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
 .raye2-mini-info h3 { margin: 0; font-size: 1rem; }
-.raye2-mini-info p { margin: 0; font-size: .85rem; color: var(--muted, #9a97a8); }
-.raye2-mini-info small { color: var(--muted, #9a97a8); font-size: .75rem; }
+.raye2-mini-info p { margin: 0; font-size: .85rem; color: var(--muted, #a1a1aa); }
+.raye2-mini-info small { color: var(--muted, #a1a1aa); font-size: .75rem; }

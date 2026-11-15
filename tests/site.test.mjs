@@ -377,8 +377,8 @@ test("Nhen bilingual identity and logo studio are wired into public and creator 
 test("Raye2 theme accent reaches the bilingual brand and creator defaults", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.match(settings, /accent: "#79b1ff"/);
-  assert.match(design, /\.site, \.maintenance\s*\{\s*--nhen-accent: var\(--accent, #79b1ff\)/);
+  assert.match(settings, /accent: "#4d8df6"/);
+  assert.match(design, /\.site, \.maintenance\s*\{\s*--nhen-accent: var\(--accent, #4d8df6\)/);
   assert.match(design, /site \.nhen-wordmark \.site-logo-image/);
   assert.match(design, /Noto Kufi Arabic/);
 });

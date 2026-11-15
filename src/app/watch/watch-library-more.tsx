@@ -63,7 +63,7 @@ export default function WatchLibraryMore({
           ))}
         </div>
       ) : null}
-      {error ? <p role="alert" style={{ color: "#e5484d" }}>{error}</p> : null}
+      {error ? <p role="alert" style={{ color: "var(--error, #e87d85)" }}>{error}</p> : null}
       {!done ? (
         <button type="button" className="button button-secondary" disabled={busy} onClick={() => void loadMore()} style={{ margin: "18px auto", display: "block" }}>
           {busy ? "Loading…" : error ? "Retry" : "Load more videos"}

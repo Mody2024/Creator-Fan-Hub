@@ -1,12 +1,12 @@
 /* Raye2 Creator Studio — shared product-grade surface */
 [data-raye2-surface="creator-studio"] {
-  --studio-bg: #090d14;
-  --studio-panel: #111923;
-  --studio-panel-raised: #172231;
-  --studio-border: rgba(210, 224, 242, .12);
-  --studio-text: #f4f7fb;
-  --studio-muted: #9aa9bc;
-  --studio-blue: #78adff;
+  --studio-bg: #0b0b0d;
+  --studio-panel: #141416;
+  --studio-panel-raised: #1c1c1f;
+  --studio-border: rgba(244,244,246, .12);
+  --studio-text: #f4f4f6;
+  --studio-muted: #a1a1aa;
+  --studio-blue: #4d8df6;
   min-height: 100vh;
   padding: 0 clamp(16px, 4vw, 56px) 72px;
   color: var(--studio-text);
@@ -39,8 +39,8 @@
 [data-raye2-surface="creator-studio"] [data-slot="nav"] a:hover,
 [data-raye2-surface="creator-studio"] [data-slot="nav"] a[aria-current="page"] {
   color: var(--studio-text);
-  border-color: rgba(120, 173, 255, .2);
-  background: rgba(120, 173, 255, .09);
+  border-color: rgba(77,141,246, .2);
+  background: rgba(77,141,246, .09);
 }
 [data-raye2-surface="creator-studio"] [data-slot="hero"] {
   width: min(1360px, 100%);
@@ -93,8 +93,8 @@
   background: var(--studio-panel-raised);
 }
 [data-raye2-surface="creator-studio"] [data-slot="workflow"] a:hover {
-  border-color: rgba(120, 173, 255, .5);
-  background: #1b2b40;
+  border-color: rgba(77,141,246, .5);
+  background: #242427;
 }
 [data-raye2-surface="creator-studio"] [data-slot="recent"],
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] { margin-top: 54px; }
@@ -106,7 +106,7 @@
 [data-raye2-surface="creator-studio"] [data-slot="recent"] .recentItem {
   min-height: 76px;
   padding: 14px 18px;
-  border-color: rgba(210, 224, 242, .08);
+  border-color: rgba(244,244,246, .08);
 }
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .grid { gap: 14px; }
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .card {
@@ -119,8 +119,8 @@
 }
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .card:hover {
   transform: translateY(-3px);
-  border-color: rgba(120, 173, 255, .35);
-  background: #131f2e;
+  border-color: rgba(77,141,246, .35);
+  background: #1c1c1f;
 }
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .card h3 {
   margin-top: 32px;
@@ -133,15 +133,15 @@
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .action {
   min-height: 40px;
   align-items: center;
-  border-color: rgba(120, 173, 255, .22);
+  border-color: rgba(77,141,246, .22);
   border-radius: 9px;
   color: var(--studio-blue);
 }
 [data-raye2-surface="creator-studio"] [data-slot="beta"] {
   margin-top: 20px;
-  border-color: rgba(210, 224, 242, .16);
+  border-color: rgba(244,244,246, .16);
   border-radius: 15px;
-  background: #0e151f;
+  background: #141416;
 }
 [data-raye2-surface="creator-studio"] a:focus-visible {
   outline: 2px solid var(--studio-blue);
@@ -149,7 +149,7 @@
 }
 [data-raye2-surface="creator-studio"] ::selection {
   color: #fff;
-  background: rgba(120, 173, 255, .3);
+  background: rgba(77,141,246, .3);
 }
 [data-raye2-surface="creator-studio"][dir="rtl"] [data-slot="nav"] { justify-content: flex-start; }
 @media (max-width: 760px) {

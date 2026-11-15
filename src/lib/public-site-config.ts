@@ -39,7 +39,7 @@ const fallback: PublicSiteConfig = {
   heroTitle: "The next big thing starts with you.",
   heroBody: "Discover the community, put your ideas forward, and help decide what gets made next. Your voice moves the story forward.",
   theme: "obsidian",
-  accent: "#80b4ff",
+  accent: "#4d8df6",
   motion: "full",
   maintenance: { enabled: false, message: "We'll be back soon." },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },

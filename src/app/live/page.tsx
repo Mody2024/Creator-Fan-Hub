@@ -47,7 +47,7 @@ export default async function LivePage() {
             <li key={row.stream_id}>
               <Link href={`/live/${row.stream_id}`} style={{ display: "block", border: "1px solid rgba(128,128,128,0.25)", borderRadius: 12, padding: 16, textDecoration: "none", color: "inherit" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <span style={{ fontSize: 11, letterSpacing: 1.5, color: row.status === "live" ? "#e5484d" : "inherit" }}>{row.status === "live" ? t.live.toUpperCase() : t.replay.toUpperCase()}</span>
+                  <span style={{ fontSize: 11, letterSpacing: 1.5, color: row.status === "live" ? "var(--error, #e87d85)" : "inherit" }}>{row.status === "live" ? t.live.toUpperCase() : t.replay.toUpperCase()}</span>
                   <span style={{ fontSize: 11, opacity: 0.6 }}>{row.health}</span>
                 </div>
                 <h2 style={{ fontSize: 18, margin: "8px 0" }}>{row.title}</h2>

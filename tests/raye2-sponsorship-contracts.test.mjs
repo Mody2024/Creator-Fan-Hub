@@ -98,9 +98,9 @@ test("resetting creator sponsor editor restores the default placement",async()=>
 
 test("Raye2 design tokens use the approved blue neutral palette",async()=>{
  const design=await read("../src/app/nhen-design-system.css");
- assert.ok(design.includes("--nhen-bg:#080b12"));
- assert.ok(design.includes("--nhen-accent:#79b1ff"));
- assert.ok(design.includes("--nhen-ink:#f3f6fb"));
+ assert.ok(design.includes("--nhen-bg:#0b0b0d"));
+ assert.ok(design.includes("--nhen-accent:#4d8df6"));
+ assert.ok(design.includes("--nhen-ink:#f4f4f6"));
  assert.ok(!design.startsWith("/* NHEN Design System"));
 });
 test("root metadata uses Raye2 identity rather than predecessor branding",async()=>{

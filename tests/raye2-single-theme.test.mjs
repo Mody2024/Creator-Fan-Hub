@@ -17,7 +17,7 @@ test("only one theme exists: no light or violet variant classes anywhere", () =>
 });
 
 test("the single theme carries the full semantic token set", () => {
-  assert.match(globals, /--accent:#80b4ff/);
+  assert.match(globals, /--accent:#4d8df6/);
   assert.match(globals, /--success:/);
   assert.match(globals, /--warning:/);
   assert.match(globals, /--error:/);

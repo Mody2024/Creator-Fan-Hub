@@ -2822,6 +2822,28 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 creator analytics **~65% to ~78%**; Wave 4 **~73% to ~78%**.
 
 ---
+
+## 2026-11-10 — Single-theme black/grey/blue palette consolidation (mega-batch, plan 1.1)
+- [x] **Owner decision honoured:** the plan text mentioned light/dark support, but the owner explicitly asked for
+  **one** theme using the plan's colours (black, white, grey, blue) with a professional, easy-on-the-eyes look.
+  This batch removes any theme-variant ambition and locks a single dark theme.
+- [x] **Palette consolidated:** 261 distinct colour literals were reduced to a single approved palette
+  (`#0b0b0d` bg, `#141416` panel, `#1c1c1f` raised, `#242427` soft, `#f4f4f6` ink, `#d6d6db` ink-soft,
+  `#a1a1aa` muted, `#4d8df6` accent, `#2f6fe0` accent-strong, `#9dc0ff` accent-light, plus `#5cc98f` success,
+  `#e0b878` warning, `#e87d85` error). Blue-tinted navy, legacy lime/olive and purple/violet remnants are gone.
+- [x] **Hue-preserving mapping:** greens collapsed to a single success token, ambers to warning, reds to error,
+  blues to the accent ramp and everything else to neutral greys — so status semantics survive the retheme.
+- [x] **Professional finish:** decorative accent glows were clamped and radial accent tints flattened, so surfaces
+  read as calm app chrome rather than neon. Tokens (globals, design system, brand system, creator workspace) and
+  the metadata `themeColor` all resolve to the same values; creator accent defaults updated to the new blue.
+- [x] **One theme only:** no `prefers-color-scheme`, `data-theme` or theme-toggle remains anywhere.
+- [x] **Guarded:** a validator assertion plus `tests/raye2-palette-purity.test.mjs` fail the build if any
+  stylesheet introduces a stray colour or theme-switching code; existing palette assertions were updated.
+- [x] Gates: validator 422 assertions; tests 832/832; tsc clean; lint 0 errors/24 warnings; build OK; all key
+  routes return 200 and the served CSS carries the new palette.
+- **Progress:** Wave 1 brand/theme **~78% to ~90%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2829,7 +2851,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~78% |
+| 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~72% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~78% |

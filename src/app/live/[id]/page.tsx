@@ -41,7 +41,7 @@ export default async function LiveStreamPage({ params }: { params: Promise<{ id:
       <Link href="/live">← {t.back}</Link>
       {unavailable || !stream ? <p style={{ marginTop: 24, opacity: 0.7 }}>{t.unavailable}</p> : (
         <section style={{ marginTop: 20 }}>
-          <span style={{ fontSize: 11, letterSpacing: 1.5, color: stream.status === "live" ? "#e5484d" : "inherit" }}>
+          <span style={{ fontSize: 11, letterSpacing: 1.5, color: stream.status === "live" ? "var(--error, #e87d85)" : "inherit" }}>
             {stream.status === "live" ? t.live.toUpperCase() : stream.status === "replay" ? t.replay.toUpperCase() : t.ended.toUpperCase()}
           </span>
           <h1 style={{ margin: "8px 0" }}>{stream.title}</h1>
