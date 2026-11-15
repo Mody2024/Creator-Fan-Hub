@@ -124,6 +124,12 @@ export default function Raye2Client() {
     if (match) setLocale(match[1] as Locale);
   }, []);
 
+  useEffect(() => {
+    if (!supabase) return;
+    // Best-effort maintenance sweep so Admin-configured message retention runs as people open their spaces.
+    void supabase.rpc("raye2_run_maintenance");
+  }, [supabase]);
+
   const loadData = useCallback(async (uid: string) => {
     if (!supabase) return;
     const [{ data: ownProfile }, { data: memberships }, { data: memberConversations }, { data: publicGroups }] = await Promise.all([

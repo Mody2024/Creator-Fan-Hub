@@ -2700,6 +2700,26 @@ One regression-test file was briefly created on the default `main` branch becaus
   clocks and delivery/read receipts.
 
 ---
+
+## 2026-11-10 — Automatic, Admin-configurable message retention (mega-batch, plan Wave 6/13.6)
+- [x] **Gap closed:** plan Wave 6 requires automatic cleanup of messages that follows independent
+  Admin-configurable retention clocks. The retention policies and the admin cleanup-job toolkit existed, but
+  nothing ever removed expired messages automatically — `raye2_run_maintenance` only expired
+  minis/moments/clips/memories, and the executor deleted only when a job was created and run by hand.
+- [x] **New migration** `20261110920000_raye2_message_retention.sql` adds `raye2_sweep_message_retention`, a
+  conservative automatic sweep driven by the enabled policies. Nothing is deleted unless the category is enabled
+  with an explicit `retention_days` and a `delete` action; messages backing a **preserved Shared Memory** are
+  never removed; messages in a **non-active group** are skipped so archived history is kept; direct and group
+  clocks stay independent. Each sweep that removes rows writes an audit record.
+- [x] The sweep is folded into `raye2_run_maintenance` (existing keys preserved) and driven once per session from
+  the Raye2 spaces client, matching how the community/Mini's read paths already drive maintenance.
+- [x] **Guarded:** a new test covers the sweep signature, the enabled/delete gate, the preserved-memory and
+  active-group protections, and the maintenance-runner folding; a validator assertion covers the same.
+- [x] Gates: validator 415 assertions; tests 809/809; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 6 message retention **~40% to ~80%**; Wave 6 **~88% to ~92%**. Remaining: delivery/read
+  receipts.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2712,7 +2732,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |
 | 5 | Social graph, communities and engagement | ~99% |
-| 6 | Messaging and chat | ~88% |
+| 6 | Messaging and chat | ~92% |
 | 7 | Voice, Watch Together and shared experiences | ~60% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |

@@ -691,6 +691,8 @@ check("the creator panel surfaces real quota/cooldown state", cooldownMigration.
 const groupLifecycleMigration = await read("../supabase/migrations/20261110910000_raye2_group_lifecycle.sql");
 const spacesClient = await read("../src/app/raye2/raye2-client.tsx");
 check("group lifecycle supports leave, ownership transfer and archive", groupLifecycleMigration.includes("raye2_leave_group") && groupLifecycleMigration.includes("raye2_transfer_group_ownership") && groupLifecycleMigration.includes("raye2_set_group_status") && spacesClient.includes('rpc("raye2_transfer_group_ownership"') && spacesClient.includes('rpc("raye2_set_group_status"'));
+const messageRetentionMigration = await read("../supabase/migrations/20261110920000_raye2_message_retention.sql");
+check("message retention sweeps enabled policies automatically", messageRetentionMigration.includes("raye2_sweep_message_retention") && messageRetentionMigration.includes("sm.retention_mode='preserved'") && messageRetentionMigration.includes("'group_messages_expired', v_group"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");
