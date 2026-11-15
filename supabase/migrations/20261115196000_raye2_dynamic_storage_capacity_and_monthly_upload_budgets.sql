@@ -6,11 +6,11 @@
 create table if not exists public.raye2_storage_global_policy (
   singleton boolean primary key default true check (singleton),
   target_total_capacity_bytes bigint not null default 10737418240
-    check (target_total_capacity_bytes between 1 and 10737418240),
+    check (target_total_capacity_bytes between 1 and 1125899906842624),
   monthly_upload_target_bytes bigint not null default 10737418240
-    check (monthly_upload_target_bytes between 1 and 10737418240),
+    check (monthly_upload_target_bytes between 1 and 1125899906842624),
   monthly_upload_hard_limit_bytes bigint not null default 10737418240
-    check (monthly_upload_hard_limit_bytes between 1 and 10737418240),
+    check (monthly_upload_hard_limit_bytes between 1 and 1125899906842624),
   free_only boolean not null default true check (free_only),
   updated_at timestamptz not null default now()
 );
@@ -130,8 +130,8 @@ begin
   v_tier:=public.raye2_creator_tier(p_user_id);
   v_role_cap:=case when v_tier in ('creator','streamer','combined')
     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),
-      case when v_tier='combined' then 10737418240 else 5368709120 end)::bigint
-    else 104857600 end;
+      case when v_tier='combined' then 32212254720 else 21474836480 end)::bigint
+    else 1073741824 end;
   select coalesce(q.quota_bytes,v_role_cap) into v_requested
   from (select 1) seed
   left join public.raye2_user_storage_quota_overrides q on q.user_id=p_user_id;
