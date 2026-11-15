@@ -138,3 +138,13 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   every cap count (`and not e.invalid`), or an invalidated impression still consumes the daily/lifetime cap.
 - Sponsor reporting must never fabricate figures: `raye2_creator_monetization_report` reports
   `payout_status='not_configured'` and `viewer_identity_data_exposed=false`.
+
+## Raye2 community clips — gotchas
+- Community clips are a distinct table from Mini's; the clip is an independent uploaded asset with preserved
+  source attribution so it survives source deletion for its own lifetime.
+- `media_items.allow_clipping` gates clipping; disabling it must both reject new publishing and mark existing
+  clips `removed`, and the public feed must re-check it so disabled clips disappear.
+- Reporting (`content_reports`) read-back after insert fails RLS for ordinary reporters (only moderators can
+  select). Insert without `.select()`; verify persistence with the service role.
+- When adding columns to the watch page's `video_catalog ... media_items!inner(...)` select, update the
+  `tests/raye2-watch-video-access.test.mjs` exact-string assertion too.

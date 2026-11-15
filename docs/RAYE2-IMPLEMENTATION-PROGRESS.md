@@ -2454,3 +2454,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 13/13 (fail-safe before capability; admin-only capability; eligible after capability; labelled placement; DVR-gated replay; exclusion; unhealthy fail-safe).
 - [x] Gates: validator 384 assertions; tests 757/757; tsc clean; lint 0 errors/24 warnings; build OK (203 migrations).
 - **Progress:** §18 (pre-beta blocker) **~93% to ~97%**; Wave 4 (streaming) **~+2%**; full ten-wave estimate **~92% to ~94%**.
+
+## 2026-11-10 — Community clips end-to-end (mega-batch, plan 13.5)
+- [x] **Distinct fan clip flow:** `raye2_community_clips` (independent asset) + `raye2_publish_community_clip` (source eligibility, length/range rules, attribution, daily rate limit, configurable lifetime).
+- [x] **Source permission control:** `media_items.allow_clipping` + `raye2_set_source_clipping`; disabling hides and removes existing clips.
+- [x] **Moderation/takedown/reporting:** `raye2_remove_community_clip` (source owner/admin, audited), `community_clip` report target, `raye2_expire_community_clips`, folded into `raye2_run_maintenance`.
+- [x] **Public feed:** `raye2_list_community_clips` with clipper + source attribution.
+- [x] **UI:** new `/clips` page (feed + create), owner clipping toggle on the watch page, Home rail link, EN+AR.
+- [x] **Matrix:** 15/15 (publish; attribution; length cap; range inside source; disabled source; removal on disable; feed hides disabled; re-enable; daily cap; feed; removal auth; expiry; maintenance keys; reporting).
+- [x] Gates: validator 387 assertions; tests 762/762; tsc clean; lint 0 errors/24 warnings; build OK (204 migrations).
+- **Progress:** §13.5 (Mini's/Moments/community clips) **~60% to ~90%**; Wave 3 **~88% to ~91%**; Wave 5 **~+2%**; full ten-wave estimate **~92% to ~94%**.
