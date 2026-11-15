@@ -3,7 +3,7 @@ import {useCallback,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 export type Notice={id:string;type:string;targetType:string;targetId:string;message:string;readAt:string|null;createdAt:string;actor:string;handle:string|null};
-function href(n:Notice){if(n.targetType==="video")return "/#videos";if(n.targetType==="profile")return n.handle?"/u/"+n.handle:"/community";return "/community#post-"+n.targetId}
+function href(n:Notice){if(n.targetType==="stream")return "/live/"+n.targetId;if(n.targetType==="group")return "/groups";if(n.targetType==="video")return "/#videos";if(n.targetType==="profile")return n.handle?"/u/"+n.handle:"/community";return "/community#post-"+n.targetId}
 type Summary={unreadTotal:number;followCount:number;reactionCount:number;commentCount:number;mentionCount:number};
 type Filter="all"|"unread"|"follow"|"reaction"|"comment"|"mention";
 type RawNotice={id:string;notification_type:string;target_type:string;target_id:string;message:string;read_at:string|null;created_at:string;actor_handle:string|null;actor_display_name:string|null};

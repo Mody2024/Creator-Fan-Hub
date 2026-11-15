@@ -583,6 +583,8 @@ check("live-start broadcast is public-only, capped and best-effort", liveInviteM
 const engPrefsMigration = await read("../supabase/migrations/20261110760000_raye2_engagement_notification_preferences.sql");
 check("engagement notifications have per-category mute and quiet hours", ["raye2_notification_category","raye2_in_quiet_hours","raye2_set_engagement_notification_preferences","raye2_get_my_engagement_notification_preferences","raye2_engagement_should_deliver"].every(name => engPrefsMigration.includes("function public." + name + "(")) && engPrefsMigration.includes("muted_categories <@ array['follow','reactions','comments','mentions','announcements','events','live','groups']"));
 check("the inbox and summary exclude muted categories", engPrefsMigration.includes("not (public.raye2_notification_category(n.notification_type) = any(m.cats))") && (engPrefsMigration.match(/not \(public\.raye2_notification_category\(n\.notification_type\) = any\(m\.cats\)\)/g) ?? []).length >= 2);
+const restrictionFixMigration = await read("../supabase/migrations/20261110770000_raye2_message_restriction_trigger_fix.sql");
+check("the restriction trigger resolves the per-table actor column", restrictionFixMigration.includes("new.sender_id") && restrictionFixMigration.includes("new.author_id") && restrictionFixMigration.includes("when 'raye2_messages' then 'message'") && restrictionFixMigration.includes("create trigger raye2_short_comments_restriction_guard"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");
