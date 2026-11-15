@@ -105,3 +105,22 @@ test("public URLs require an explicitly configured HTTPS delivery domain", () =>
   const privateOnly = createS3CompatibleProvider("backblaze_b2", config);
   assert.equal(privateOnly.capabilities.publicDelivery, false);
 });
+
+
+test("rejects incomplete or insecure provider configuration", () => {
+  assert.throws(() => createS3CompatibleProvider("cloudflare_r2", { ...config, endpoint: "http://example.com" }), /HTTPS origin/);
+  assert.throws(() => createS3CompatibleProvider("cloudflare_r2", { ...config, privateBucket: "Bad_Bucket" }), /bucket name/);
+  assert.throws(() => createS3CompatibleProvider("cloudflare_r2", { endpoint: config.endpoint }), /complete server-side/);
+});
+
+test("rejects invalid upload size and content type before signing", async () => {
+  const provider = createS3CompatibleProvider("cloudflare_r2", config);
+  await assert.rejects(() => provider.createSignedUpload({
+    bucket: config.privateBucket, key: "file.mp4", contentType: "video/mp4",
+    expectedBytes: 0, visibility: "private", expiresInSeconds: 60,
+  }), /Upload size and content type/);
+  await assert.rejects(() => provider.createSignedUpload({
+    bucket: config.privateBucket, key: "file.mp4", contentType: "",
+    expectedBytes: 10, visibility: "private", expiresInSeconds: 60,
+  }), /Upload size and content type/);
+});
