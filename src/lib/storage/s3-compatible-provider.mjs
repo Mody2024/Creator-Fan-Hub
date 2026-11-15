@@ -1,5 +1,3 @@
-import "server-only";
-
 import { createHash, createHmac } from "node:crypto";
 
 const ALGORITHM = "AWS4-HMAC-SHA256";
