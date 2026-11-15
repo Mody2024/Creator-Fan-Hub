@@ -3082,6 +3082,19 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 (Creator Studio) **~85% to ~87%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Retryable processing errors in the content library (mega-batch, plan 13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to include "processing/publishing status, retryable
+  errors, moderation/takedown state". Takedown state and processing status now appear in the content library,
+  but a failed asset had no retry action there.
+- [x] **Studio UI:** a failed processing row in `content-library.tsx` now offers "Retry processing", calling the
+  existing guarded `retry_raye2_media_processing` RPC and surfacing the queued/limit/refused outcomes
+  (bilingual).
+- [x] **Guarded:** the retry test asserts the RPC call, the failed-row condition and the limit message.
+- [x] Gates: validator 434 assertions; tests 876/876; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 (Creator Studio) **~87% to ~88%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3092,7 +3105,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
-| 4 | Creator Studio, exclusives and live streaming | ~87% |
+| 4 | Creator Studio, exclusives and live streaming | ~88% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |

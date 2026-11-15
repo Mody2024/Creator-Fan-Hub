@@ -50,7 +50,11 @@ const LABELS = {
     expires: "Expires",
     notLive: "Not live yet",
     loading: "Loading your content library…",
-    takenDownNote: "Taken down by moderation. Contact the platform team about reinstatement."
+    takenDownNote: "Taken down by moderation. Contact the platform team about reinstatement.",
+    retry: "Retry processing",
+    retryQueued: "The asset was queued again. It becomes ready after the worker succeeds.",
+    retryLimit: "This asset has reached its manual retry limit.",
+    retryFail: "This asset cannot be retried now."
   },
   ar: {
     eyebrow: "استوديو Raye2 / مكتبة المحتوى",
@@ -76,7 +80,11 @@ const LABELS = {
     expires: "ينتهي",
     notLive: "غير منشور بعد",
     loading: "جارٍ تحميل مكتبة المحتوى…",
-    takenDownNote: "أُزيل بواسطة الإشراف. تواصل مع فريق المنصة بشأن إعادة التفعيل."
+    takenDownNote: "أُزيل بواسطة الإشراف. تواصل مع فريق المنصة بشأن إعادة التفعيل.",
+    retry: "إعادة محاولة المعالجة",
+    retryQueued: "تمت إعادة الملف إلى قائمة المعالجة. سيظهر جاهزًا بعد نجاح العامل.",
+    retryLimit: "تم استنفاد محاولات الإعادة اليدوية لهذا الملف.",
+    retryFail: "لا يمكن إعادة هذا الملف الآن."
   }
 } as const;
 
@@ -109,6 +117,24 @@ export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar"
       setReady(true);
     }
   }, [supabase, t]);
+
+  const retry = useCallback(async (mediaId: string) => {
+    if (!supabase) return;
+    setStatus("");
+    try {
+      const { data, error } = await supabase.rpc("retry_raye2_media_processing", { p_media_id: mediaId });
+      if (error) throw error;
+      const result = Array.isArray(data) ? data[0] as { retried?: boolean; result_code?: string } : null;
+      if (!result?.retried) {
+        setStatus(result?.result_code === "retry_limit" ? t.retryLimit : t.retryFail);
+        return;
+      }
+      setStatus(t.retryQueued);
+      await load();
+    } catch {
+      setStatus(t.retryFail);
+    }
+  }, [supabase, t, load]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -154,6 +180,7 @@ export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar"
           <span><b>{toNumber(row.view_count)}</b> {t.views}</span>
           <span><b>{toNumber(row.reaction_count)}</b> {t.reactions}</span>
           <span><b>{toNumber(row.comment_count)}</b> {t.comments}</span>
+          {row.state === "processing" && row.processing_status === "failed" && <button type="button" className="nhen-action" onClick={() => void retry(row.media_id)}>{t.retry}</button>}
           <a className="nhen-action" href={`/watch/${row.slug}`}>{t.open}</a>
         </div>
       </li>)}

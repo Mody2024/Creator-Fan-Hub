@@ -36,3 +36,9 @@ test("the studio surface filters by state and shows per-state counts", () => {
   assert.match(component, /href=\{`\/watch\/\$\{row\.slug\}`\}/);
   assert.match(page, /<ContentLibrary locale=\{isArabic\?"ar":"en"\} \/>/);
 });
+
+test("failed processing is retryable from the library", () => {
+  assert.match(component, /retry_raye2_media_processing/);
+  assert.match(component, /row\.state === "processing" && row\.processing_status === "failed"/);
+  assert.match(component, /t\.retryLimit/);
+});
