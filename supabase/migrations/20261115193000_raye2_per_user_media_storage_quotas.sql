@@ -47,7 +47,7 @@ begin
   ),0)
   into v_used
   from storage.objects o
-  where o.bucket_id in ('creator-media-private','creator-media-public','nhen-community-shorts')
+  where o.bucket_id in ('creator-media-private','creator-media-public','raye2-community-shorts')
     and split_part(o.name,'/',1)=v_user::text;
 
   select coalesce(sum(r.expected_bytes),0)
@@ -128,7 +128,7 @@ begin
   if p_bytes is null or p_bytes<1 or p_bytes>52428800 then
     raise exception 'file must be between 1 byte and 50 MiB' using errcode='22023';
   end if;
-  if p_bucket not in ('creator-media-private','creator-media-public','nhen-community-shorts') then
+  if p_bucket not in ('creator-media-private','creator-media-public','raye2-community-shorts') then
     raise exception 'unsupported Raye2 media bucket' using errcode='22023';
   end if;
   if p_bucket in ('creator-media-private','creator-media-public') and not public.is_nhen_video_publisher() then
@@ -147,7 +147,7 @@ begin
     then (o.metadata->>'size')::bigint else 0 end),0)
   into v_user_used
   from storage.objects o
-  where o.bucket_id in ('creator-media-private','creator-media-public','nhen-community-shorts')
+  where o.bucket_id in ('creator-media-private','creator-media-public','raye2-community-shorts')
     and split_part(o.name,'/',1)=v_user::text;
 
   select coalesce(sum(r.expected_bytes),0) into v_user_reserved
@@ -163,7 +163,7 @@ begin
     then (o.metadata->>'size')::bigint else 0 end),0)
   into v_used
   from storage.objects o
-  where o.bucket_id in ('creator-media-private','creator-media-public','nhen-community-shorts');
+  where o.bucket_id in ('creator-media-private','creator-media-public','raye2-community-shorts');
 
   select coalesce(sum(r.expected_bytes),0) into v_reserved
   from public.nhen_media_upload_reservations r where r.expires_at>now();
@@ -221,7 +221,7 @@ begin
     then (o.metadata->>'size')::bigint else 0 end),0)
   into v_user_used
   from storage.objects o
-  where o.bucket_id in ('creator-media-private','creator-media-public','nhen-community-shorts')
+  where o.bucket_id in ('creator-media-private','creator-media-public','raye2-community-shorts')
     and split_part(o.name,'/',1)=p_owner_id::text;
 
   select coalesce(sum(r.expected_bytes),0) into v_user_reserved
@@ -235,7 +235,7 @@ begin
   select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$'
     then (o.metadata->>'size')::bigint else 0 end),0)
   into v_used from storage.objects o
-  where o.bucket_id in ('creator-media-private','creator-media-public','nhen-community-shorts');
+  where o.bucket_id in ('creator-media-private','creator-media-public','raye2-community-shorts');
 
   select coalesce(sum(r.expected_bytes),0) into v_reserved
   from public.nhen_media_upload_reservations r where r.expires_at>now();
