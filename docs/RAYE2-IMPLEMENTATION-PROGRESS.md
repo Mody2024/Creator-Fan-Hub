@@ -2464,3 +2464,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 15/15 (publish; attribution; length cap; range inside source; disabled source; removal on disable; feed hides disabled; re-enable; daily cap; feed; removal auth; expiry; maintenance keys; reporting).
 - [x] Gates: validator 387 assertions; tests 762/762; tsc clean; lint 0 errors/24 warnings; build OK (204 migrations).
 - **Progress:** §13.5 (Mini's/Moments/community clips) **~60% to ~90%**; Wave 3 **~88% to ~91%**; Wave 5 **~+2%**; full ten-wave estimate **~92% to ~94%**.
+
+## 2026-11-10 — Achievements depth (mega-batch, plan 13.7)
+- [x] **Published criteria:** `achievement_catalog` gains `metric`, `threshold`, `requires_trust`; nine new codes (ten_posts, twentyfive_follows, first_mini, ten_minis, first_clip, five_clips, poll_participant, group_joiner, five_video_comments).
+- [x] **Measured, never fabricated:** `raye2_achievement_metric` + `award_member_achievement` only awards once the measured value meets the threshold.
+- [x] **Anti-abuse:** `raye2_member_in_good_standing` gates trust achievements (active profile, not blocked, no open reports).
+- [x] **New signals:** triggers for Mini's, community clips, poll votes, group joins, plus higher post/follow/comment tiers.
+- [x] **Transparent progress:** `raye2_member_achievement_progress` (member-scoped) + profile progress UI.
+- [x] **Matrix:** 8/8 (poll vote; group joins; blocked member gated; tier honesty; good-standing award; progress; member-scoped; catalog criteria).
+- [x] Gates: validator 390 assertions; tests 767/767; tsc clean; lint 0 errors/24 warnings; build OK (205 migrations).
+- **Progress:** §13.7 (profiles/identity/achievements) **~70% to ~90%**; Wave 5 **~+2%**; full ten-wave estimate **~93% to ~95%**.

@@ -148,3 +148,10 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   select). Insert without `.select()`; verify persistence with the service role.
 - When adding columns to the watch page's `video_catalog ... media_items!inner(...)` select, update the
   `tests/raye2-watch-video-access.test.mjs` exact-string assertion too.
+
+## Raye2 achievements — gotchas
+- `position` is a reserved word and cannot be a bare `returns table` column name; use `sort_position`.
+- `achievement_catalog` rows with null metric/threshold keep the legacy unconditional award path; only
+  criteria-bearing codes are gated by measurement and good standing.
+- Anti-abuse (`raye2_member_in_good_standing`) checks active profile + not blocked by anyone + no open profile
+  reports; a blocked member must never receive a trust-gated achievement.
