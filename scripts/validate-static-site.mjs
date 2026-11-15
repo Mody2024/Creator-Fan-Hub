@@ -669,6 +669,10 @@ const applePng = existsSync(new URL("../src/app/apple-icon.png", import.meta.url
 const faviconIco = existsSync(new URL("../src/app/favicon.ico", import.meta.url));
 check("the brand mark integrates into favicon and app icons", iconPng && applePng && faviconIco && rootLayout.includes("/icon.png") && rootLayout.includes("/apple-icon.png") && rootLayout.includes("/favicon.ico"));
 check("a branded loading state stands in for streaming routes", loadingSource.includes("raye2-app-loading") && loadingSource.includes("aria-busy") && (await read("../src/app/nhen-design-system.css")).includes("raye2-app-loading-mark"));
+const designSystem = await read("../src/app/nhen-design-system.css");
+const notificationsCss = await read("../src/app/notifications/raye2-notifications.css");
+const seriesCss = await read("../src/app/series/raye2-series.css");
+check("page shells share one content-width token instead of per-route widths", designSystem.includes("--nhen-content:1320px") && designSystem.includes("--nhen-reading:900px") && !/min\(100%,(850px|900px|1050px|1100px|1360px)\)/.test(designSystem) && notificationsCss.includes("min(1320px,100%)") && seriesCss.includes("min(1320px,100%)") && !/min\((1100px|1360px)/.test(notificationsCss + seriesCss));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");

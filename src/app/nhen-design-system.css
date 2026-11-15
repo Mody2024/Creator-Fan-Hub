@@ -1,5 +1,5 @@
 /* Raye2 Design System — shared tokens. Legacy selector names are retained during the staged route migration. */
-:root{color-scheme:dark;--nhen-bg:#080b12;--nhen-surface:#101722;--nhen-surface-raised:#172334;--nhen-surface-soft:#202d3f;--nhen-ink:#f3f6fb;--nhen-muted:#a2afc1;--nhen-line:rgba(220,232,248,.11);--nhen-accent:#79b1ff;--nhen-accent-strong:#4d91f0;--nhen-violet:#9fb8d8;--nhen-teal:#9fb2c8;--nhen-warning:#e7bd75;--nhen-radius-sm:9px;--nhen-radius-md:14px;--nhen-radius-lg:20px;--nhen-radius-pill:999px;--nhen-success:#7fd6a6;--nhen-error:#f0a0a6;--nhen-info:#8fbaff;--nhen-bg-soft:#0d1219;--nhen-focus:rgba(121,177,255,.4);--nhen-state-hover:rgba(121,177,255,.12);--nhen-state-selected:rgba(121,177,255,.16);--nhen-state-disabled:rgba(255,255,255,.04);--nhen-shadow:0 18px 52px rgba(0,0,0,.28);--nhen-content:1320px;--bg:var(--nhen-bg);--panel:var(--nhen-surface);--ink:var(--nhen-ink);--muted:var(--nhen-muted);--line:var(--nhen-line);--accent:var(--nhen-accent);--font:Inter,Manrope,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+:root{color-scheme:dark;--nhen-bg:#080b12;--nhen-surface:#101722;--nhen-surface-raised:#172334;--nhen-surface-soft:#202d3f;--nhen-ink:#f3f6fb;--nhen-muted:#a2afc1;--nhen-line:rgba(220,232,248,.11);--nhen-accent:#79b1ff;--nhen-accent-strong:#4d91f0;--nhen-violet:#9fb8d8;--nhen-teal:#9fb2c8;--nhen-warning:#e7bd75;--nhen-radius-sm:9px;--nhen-radius-md:14px;--nhen-radius-lg:20px;--nhen-radius-pill:999px;--nhen-success:#7fd6a6;--nhen-error:#f0a0a6;--nhen-info:#8fbaff;--nhen-bg-soft:#0d1219;--nhen-focus:rgba(121,177,255,.4);--nhen-state-hover:rgba(121,177,255,.12);--nhen-state-selected:rgba(121,177,255,.16);--nhen-state-disabled:rgba(255,255,255,.04);--nhen-shadow:0 18px 52px rgba(0,0,0,.28);--nhen-content:1320px;--nhen-reading:900px;--bg:var(--nhen-bg);--panel:var(--nhen-surface);--ink:var(--nhen-ink);--muted:var(--nhen-muted);--line:var(--nhen-line);--accent:var(--nhen-accent);--font:Inter,Manrope,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{scrollbar-color:rgba(121,177,255,.38) transparent}body{background:var(--nhen-bg);color:var(--nhen-ink);font-family:var(--font);letter-spacing:-.012em}::selection{background:rgba(121,177,255,.28);color:var(--nhen-ink)}
 a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--nhen-accent);outline-offset:3px}
 .site{min-height:100vh;background:var(--bg)}
@@ -100,7 +100,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* NHEN Identity public profile */
 .nhen-profile-page{min-height:100vh;background:var(--nhen-bg);color:var(--nhen-ink)}
-.nhen-profile-wrap{width:min(100%,1050px);margin:34px auto;padding:0 22px 80px}
+.nhen-profile-wrap{width:min(100%,var(--nhen-content));margin:34px auto;padding:0 22px 80px}
 .nhen-profile-cover{height:250px;border-radius:26px;background:radial-gradient(circle at 80% 20%,rgba(128,180,255,.55),transparent 30%),linear-gradient(115deg,#21162b,#34264f 54%,#143b3a)}
 .nhen-profile-card{position:relative;margin:-55px 18px 28px;padding:0 24px 22px;border:1px solid var(--nhen-line);border-radius:22px;background:var(--nhen-surface)}
 .nhen-profile-heading{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:-45px;padding-bottom:14px}
@@ -121,7 +121,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 
 /* NHEN saved content library */
-.nhen-saved-wrap{width:min(100%,900px);margin:50px auto;padding:0 22px 90px}
+.nhen-saved-wrap{width:min(100%,var(--nhen-reading));margin:50px auto;padding:0 22px 90px}
 .nhen-saved-wrap>h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
 .nhen-saved-wrap>h1 em{color:var(--nhen-accent);font-style:normal}
 .nhen-saved-wrap>p{font-size:13px;margin-bottom:24px}
@@ -136,7 +136,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 
 /* NHEN Notifications inbox */
-.nhen-notifications-wrap{width:min(100%,850px);margin:50px auto;padding:0 22px 90px}
+.nhen-notifications-wrap{width:min(100%,var(--nhen-reading));margin:50px auto;padding:0 22px 90px}
 .nhen-notifications-wrap>h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
 .nhen-notifications-wrap>h1 em{color:var(--nhen-accent);font-style:normal}
 .nhen-notifications-wrap>p{font-size:13px;margin-bottom:24px}
@@ -154,7 +154,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* NHEN cross-platform discovery */
 .nhen-search-form{width:100%;min-width:0}
-.nhen-search-page,.nhen-search-results{width:min(100%,900px);margin:60px auto;padding:0 22px 90px}
+.nhen-search-page,.nhen-search-results{width:min(100%,var(--nhen-reading));margin:60px auto;padding:0 22px 90px}
 .nhen-search-page h1,.nhen-search-results h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0 24px}
 .nhen-search-page h1 em,.nhen-search-results h1 em{font-style:normal;color:var(--nhen-accent)}
 .nhen-search-page form,.nhen-search-results>form{display:flex;gap:10px;align-items:center}
@@ -193,7 +193,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 
 /* Public NHEN video collections */
-.nhen-series-wrap{width:min(100%,1100px);margin:50px auto;padding:0 22px 90px}
+.nhen-series-wrap{width:min(100%,var(--nhen-content));margin:50px auto;padding:0 22px 90px}
 .nhen-series-wrap>h1{font-size:clamp(34px,5vw,54px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
 .nhen-series-wrap>p{font-size:13px;margin-bottom:26px}
 .nhen-series-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:26px}
@@ -243,11 +243,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* NHEN Shorts vertical viewing mode */
 .nhen-shorts-page{min-height:100vh;background:var(--nhen-bg);color:var(--nhen-ink)}
-.nhen-shorts-heading{width:min(100%,1050px);margin:38px auto 22px;padding:0 22px}
+.nhen-shorts-heading{width:min(100%,var(--nhen-reading));margin:38px auto 22px;padding:0 22px}
 .nhen-shorts-heading h1{font-size:clamp(32px,5vw,48px);font-weight:900;letter-spacing:-.07em;margin:7px 0}
 .nhen-shorts-heading h1 em{font-style:normal;color:var(--nhen-accent)}
 .nhen-shorts-heading p{font-size:12px}
-.nhen-shorts-feed{width:min(100%,1050px);margin:auto;padding:0 22px 80px;display:grid;gap:20px}
+.nhen-shorts-feed{width:min(100%,var(--nhen-content));margin:auto;padding:0 22px 80px;display:grid;gap:20px}
 .nhen-short-card{display:grid;grid-template-columns:minmax(260px,390px) minmax(0,1fr);gap:24px;align-items:center;padding:20px;border:1px solid var(--nhen-line);border-radius:24px;background:var(--nhen-surface)}
 .nhen-short-player{width:100%;max-height:690px;aspect-ratio:9/16;overflow:hidden;border-radius:18px;background:#050508}
 .nhen-short-player video,.nhen-short-player iframe{width:100%;height:100%;border:0;object-fit:cover}

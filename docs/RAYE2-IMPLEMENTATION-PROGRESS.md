@@ -2582,6 +2582,20 @@ One regression-test file was briefly created on the default `main` branch becaus
   Remaining in Wave 1: page-level layout standardisation.
 
 ---
+
+## 2026-11-10 — Page-shell width standardisation (mega-batch, plan 1.2/1.4)
+- [x] **One content-width scale instead of per-route widths.** Added `--nhen-reading:900px` alongside the
+  existing `--nhen-content:1320px`, then replaced the ad-hoc literals: reading columns (saved, search, shorts
+  heading, notifications) now use `--nhen-reading`; wider columns (profile, series) use `--nhen-content`; the
+  per-route header overrides (notifications 1100, series 1360) now match the shared 1320 content width.
+- [x] Result: every primary route's header and body column share one scale, so moving between pages no longer
+  jumps the content edges (plan 1.4 "same tokens and shared components").
+- [x] **Guarded:** a validator assertion + test fail if per-route pixel widths creep back into the design system
+  or the notifications/series shells.
+- [x] Gates: validator 407 assertions; tests 794/794; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §1.2/1.4 (design-system consistency) **~70% to ~85%**; Wave 1 **~72% to ~78%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2589,7 +2603,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~72% |
+| 1 | Brand system and full product redesign | ~78% |
 | 2 | Core platform architecture, accounts and permissions | ~62% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |
