@@ -96,7 +96,7 @@ Official reference:
 
 ### Filebase — safer hard-cap overflow / archive candidate
 
-Filebase publishes a 5 GB pooled free object-storage tier with no credit card. The free tier includes 5 GB of monthly object bandwidth; when storage is exceeded, writes are refused, and when bandwidth is exceeded, reads return 403 until the next month or a deliberate plan upgrade. The free tier does not convert overages into charges. Its low monthly bandwidth makes it unsuitable as the primary high-traffic video CDN, but it is a strong candidate for low-traffic attachments or an archive pool after adapter tests.
+Filebase publishes a 5 GB pooled free object-storage tier with no credit card. Its documentation describes a 5 GB/month free-tier bandwidth cap and read-only/403 hard stops rather than free-tier overage charges. The current pricing page lists 100,000 Class A and 1 million Class B requests, while older documentation lists higher request allowances; Raye2 therefore records the lower current pricing-page values until account testing confirms the effective limits. Its low monthly bandwidth makes it unsuitable as the primary high-traffic video CDN, but it may suit low-traffic attachments or an archive pool after adapter tests.
 
 Official references:
 - https://filebase.com/free/
