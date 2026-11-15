@@ -9,8 +9,8 @@ const upload = await readFile(new URL("../src/lib/supabase/resumable-upload.ts",
 test("every authenticated account gets a logical owner-scoped storage allowance", () => {
   assert.match(migration, /get_raye2_user_storage_capacity/);
   assert.match(migration, /split_part\(o\.name,'\/',1\)=v_user::text/);
-  assert.match(migration, /104857600/);
-  assert.match(migration, /262144000/);
+  assert.match(migration, /1073741824/);
+  assert.match(migration, /2147483648/);
   assert.match(migration, /r\.user_id=v_user/);
 });
 
