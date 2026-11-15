@@ -1,11 +1,8 @@
 name: Supabase activity check
 
-# This workflow makes three small, read-only requests per day to a table
-# whose SELECT access is already public under the project's existing RLS.
-# GitHub scheduled workflows only run from the repository's default branch.
-# Keep this file on development until the owner approves adding this
-# infrastructure-only workflow to the default branch.
-
+# Lightweight read-only API health checks. Supabase documents that API
+# requests count toward database activity, but does not guarantee that any
+# fixed request volume will prevent inactivity pausing.
 on:
   schedule:
     - cron: "17 3,11,19 * * *"
@@ -20,7 +17,7 @@ concurrency:
 
 jobs:
   database-read-check:
-    name: Verify Supabase responds to a real database read
+    name: Verify Supabase responds to a database read
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -43,7 +40,7 @@ jobs:
             --header "Accept: application/json" \
             --max-time 20 \
             --retry 2 \
-            --retry-delay 3)
+            --retry-delay 3)"
           if [[ "$status_code" != "200" ]]; then
             echo "Supabase database read failed (HTTP $status_code)."
             cat "$response_file"
