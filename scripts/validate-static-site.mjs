@@ -781,6 +781,12 @@ check("account settings expose session/device management with ownership-scoped, 
 const videoSchedulingMigration = await read("../supabase/migrations/20261111050000_raye2_video_scheduling.sql");
 check("scheduled watch-page publication gates on processing/visibility and promotes due pages via maintenance", videoSchedulingMigration.includes("add column if not exists publish_at timestamptz") && videoSchedulingMigration.includes("raye2_publish_due_videos") && videoSchedulingMigration.includes("a scheduled go-live time must be in the future") && videoSchedulingMigration.includes("'scheduled_videos_published', v_videos"));
 
+const communityAuthClient = await read("../src/app/community/community-client.tsx");
+check("account recovery: password reset request and set-new-password flow are wired", communityAuthClient.includes("resetPasswordForEmail") && communityAuthClient.includes("PASSWORD_RECOVERY") && communityAuthClient.includes("auth.updateUser({ password })"));
+
+const siteMiddleware = await read("../middleware.ts");
+check("session refresh covers creator routes and member-aware public pages", siteMiddleware.includes('"/creator/:path*"') && siteMiddleware.includes('"/api/creator/:path*"') && siteMiddleware.includes('"/account/:path*"') && siteMiddleware.includes('"/saved/:path*"') && siteMiddleware.includes('"/notifications/:path*"') && siteMiddleware.includes('"/community/:path*"') && siteMiddleware.includes('"/groups/:path*"') && siteMiddleware.includes('"/watch/:path*"') && siteMiddleware.includes('"/raye2/home/:path*"'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

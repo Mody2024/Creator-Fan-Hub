@@ -3044,6 +3044,25 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 (Creator Studio) **~83% to ~85%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Password recovery + session-refresh coverage (mega-batch, plan 2.1 / 15)
+- [x] **Gap closed (password recovery):** plan 2.1 requires "secure sign-in, sign-out, session handling,
+  password recovery and account lifecycle". Sign-in, sign-out and session handling existed, but there was no
+  password recovery anywhere.
+- [x] **Password recovery UI** on the community auth surface (the app's public sign-in surface): a "Forgot
+  password?" action calls `resetPasswordForEmail` with a redirect back to `/community`; a `PASSWORD_RECOVERY`
+  event (or `#type=recovery` link) opens a set-new-password form backed by `auth.updateUser`. Bilingual.
+- [x] **Gap closed (session refresh coverage):** the middleware refreshed sessions only for `/creator/**` and
+  `/api/creator/**`, so member-aware public pages (`/account`, `/saved`, `/notifications`, `/community`,
+  `/groups`, `/watch`, `/raye2/home`) could show an expired access token as "signed out". The matcher now
+  covers those pages too; anonymous pages and static assets stay off it.
+- [x] **Guarded:** a test asserts the reset/set-new-password flow and the expanded matcher; the refresh still
+  validates with `getClaims` and never trusts unverified `getSession`.
+- [x] Gates: validator 433 assertions; tests 872/872; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/community`, `/account`, `/notifications`, `/saved` all 200.
+- **Progress:** Wave 2 (accounts/permissions) **~84% to ~86%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3052,7 +3071,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
-| 2 | Core platform architecture, accounts and permissions | ~84% |
+| 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
 | 4 | Creator Studio, exclusives and live streaming | ~85% |
 | 5 | Social graph, communities and engagement | ~99% |

@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 
-test("the single Next.js middleware refreshes sessions only for creator routes", async () => {
+test("the single Next.js middleware refreshes sessions for creator and member-aware routes", async () => {
   const [entrypoint, helper, serverClient] = await Promise.all([
     read("../middleware.ts"),
     read("../src/lib/supabase/middleware.ts"),
@@ -13,7 +13,9 @@ test("the single Next.js middleware refreshes sessions only for creator routes",
 
   assert.ok(entrypoint.includes('from "@/lib/supabase/middleware"'));
   assert.ok(entrypoint.includes("refreshSupabaseSession(request)"));
-  assert.ok(entrypoint.includes('matcher: ["/creator/:path*", "/api/creator/:path*"]'));
+  assert.ok(entrypoint.includes('"/creator/:path*"'));
+  assert.ok(entrypoint.includes('"/api/creator/:path*"'));
+  assert.ok(entrypoint.includes('"/account/:path*"'));
   await assert.rejects(read("../src/middleware.ts"), { code: "ENOENT" });
 
   assert.ok(helper.includes("createServerClient"));
