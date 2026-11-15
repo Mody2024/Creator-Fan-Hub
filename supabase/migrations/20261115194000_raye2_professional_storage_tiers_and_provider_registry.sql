@@ -60,6 +60,19 @@ insert into public.raye2_storage_providers(
  'Disabled until owner confirms no-payment/no-billable-overage setup and an end-to-end test.'
 ) on conflict(provider_key) do nothing;
 
+-- Candidate free-tier backends are registered disabled until adapters, live
+-- metering, and a hard $0 overage stop have been verified. Never auto-enable.
+insert into public.raye2_storage_providers(
+ provider_key,provider_kind,enabled,billing_mode,capacity_bytes,
+ monthly_write_ops_limit,monthly_read_ops_limit,monthly_egress_bytes_limit,
+ hard_stop_percent,priority,approval_note
+) values
+ ('backblaze_b2','s3_compatible',false,'free_only',0,0,0,0,85,30,
+  'Candidate: published 10 GB free storage and signup without billing method; remains disabled until adapter, daily zero-spend caps, and usage reconciliation are tested.'),
+ ('tigris','s3_compatible',false,'free_only',0,0,0,0,85,40,
+  'Candidate: published 5 GB free storage, no card to start, and zero egress; remains disabled until adapter and request/storage hard-stops are tested.')
+on conflict(provider_key) do nothing;
+
 -- 3. Expose non-secret policy for diagnostics. No provider credentials are stored here.
 create or replace function public.raye2_list_storage_provider_policy()
 returns table(
