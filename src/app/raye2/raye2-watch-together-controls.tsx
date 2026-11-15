@@ -48,6 +48,15 @@ type WatchQueueItem = {
   sort_order: number;
   votes: number;
 };
+type WatchReaction = {
+  id: string;
+  user_id: string;
+  reaction: string;
+  position_seconds: number | null;
+  created_at: string;
+  display_name: string | null;
+  handle: string | null;
+};
 type WatchProps = {
   supabase: SupabaseClient;
   conversationId: string;
@@ -56,6 +65,9 @@ type WatchProps = {
   groupVisibility: "public" | "private";
   locale: "en" | "ar";
 };
+
+const REACTION_GLYPHS: Record<string, string> = { spark: "✦", orbit: "◎", legend: "★", laugh: "☺", mindblown: "✳", support: "♡" };
+const reactionEmoji = (reaction: string) => REACTION_GLYPHS[reaction] ?? "✦";
 
 export default function Raye2WatchTogetherControls({ supabase, conversationId, groupId, groupName, groupVisibility, locale }: WatchProps) {
   const isAr = locale === "ar";
@@ -76,6 +88,7 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [needsPlaybackTap, setNeedsPlaybackTap] = useState(false);
+  const [reactions, setReactions] = useState<WatchReaction[]>([]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const sessionRef = useRef<string | null>(null);
   const syncingRef = useRef(false);
@@ -108,7 +121,9 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     decline: isAr ? "رفض" : "Decline",
     participants: isAr ? "المشاركون" : "Participants",
     remove: isAr ? "إزالة" : "Remove",
-    makeHost: isAr ? "اجعل المضيف" : "Make host"
+    makeHost: isAr ? "اجعل المضيف" : "Make host",
+    reactions: isAr ? "تفاعلات الغرفة" : "Room reactions",
+    reactError: isAr ? "تعذر إرسال التفاعل." : "Could not send the reaction."
   };
 
   const selectedVideo = useMemo(() => videos.find(video => video.id === selectedVideoId) ?? null, [selectedVideoId, videos]);
@@ -172,6 +187,21 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     } else setCurrentVideo(null);
     await loadSessions();
   }, [loadSessions, supabase]);
+
+  const loadReactions = useCallback(async (sessionId: string) => {
+    const { data } = await supabase.rpc("raye2_list_watch_reactions", { p_session_id: sessionId, p_limit: 30 });
+    setReactions((data ?? []) as WatchReaction[]);
+  }, [supabase]);
+
+  const sendReaction = async (reaction: string) => {
+    if (!session) return;
+    const position = videoRef.current ? Math.max(0, Math.floor(videoRef.current.currentTime)) : null;
+    const { error: reactionError } = await supabase.rpc("raye2_send_watch_reaction", {
+      p_session_id: session.id, p_reaction: reaction, p_position_seconds: position
+    });
+    if (reactionError) setError(copy.reactError);
+    else await loadReactions(session.id);
+  };
 
   const createSession = async () => {
     if (!selectedVideo) return;
@@ -325,9 +355,15 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_votes", filter: "session_id=eq." + id }, () => { void loadSession(id); })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_participants", filter: "session_id=eq." + id }, () => { void loadSession(id); })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_control_requests", filter: "session_id=eq." + id }, () => { void loadSession(id); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_reactions", filter: "session_id=eq." + id }, () => { void loadReactions(id); })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [loadSession, session?.id, supabase]);
+  }, [loadReactions, loadSession, session?.id, supabase]);
+
+  useEffect(() => {
+    if (!session?.id) return;
+    void loadReactions(session.id);
+  }, [loadReactions, session?.id]);
 
   useEffect(() => {
     if (!session?.id) return;
@@ -412,6 +448,7 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
                   onEnded={() => { if (isHost) void advanceQueue(); }}/>
               ) : <small>{copy.unsupported}</small>}
               {needsPlaybackTap && <button type="button" onClick={() => { if (videoRef.current) void videoRef.current.play().then(() => setNeedsPlaybackTap(false)); }}>{copy.tap}</button>}
+              <div className={styles.watchReactions}><b>{copy.reactions} · {reactions.length}</b><div className={styles.watchReactionBar}>{["spark","orbit","legend","laugh","mindblown","support"].map(reaction => <button type="button" key={reaction} aria-label={reaction} onClick={() => void sendReaction(reaction)}>{reactionEmoji(reaction)}</button>)}</div>{reactions.slice(0,8).map(item => <div className={styles.watchQueueItem} key={item.id}><span>{reactionEmoji(item.reaction)} {item.display_name ?? item.handle ?? item.user_id.slice(0,8)}{item.position_seconds != null ? " · " + item.position_seconds + "s" : ""}</span></div>)}</div>
               {!isHost && <button type="button" disabled={controlRequested} onClick={() => void requestControl()}>{controlRequested ? copy.controlRequested : copy.requestControl}</button>}
               {isHost && controlRequests.length > 0 && <div className={styles.watchControlRequests}><b>{copy.controlRequests} · {controlRequests.length}</b>{controlRequests.map(item => <div className={styles.watchQueueItem} key={item.id}><span>{item.user_id.slice(0, 8)}</span><button type="button" onClick={() => void resolveControlRequest(item.id, "approved")}>{copy.approve}</button><button type="button" onClick={() => void resolveControlRequest(item.id, "declined")}>{copy.decline}</button></div>)}</div>}
               <div className={styles.watchParticipants}><b>{copy.participants} · {participants.length}</b>{participants.map(person => <div className={styles.watchQueueItem} key={person.user_id}><span>{person.user_id.slice(0, 8)} · {person.role}{person.user_id === myUserId ? " (you)" : ""}</span>{isHost && person.user_id !== myUserId && <><button type="button" onClick={() => void transferHost(person.user_id)}>{copy.makeHost}</button>{person.role !== "host" && <button type="button" onClick={() => void removeParticipant(person.user_id)}>{copy.remove}</button>}</>}</div>)}</div>

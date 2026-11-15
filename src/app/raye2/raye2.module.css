@@ -227,3 +227,9 @@
 .receiptState{font-size:9px;color:var(--r-muted);font-weight:700;letter-spacing:.03em}
 .watchControlRequests,.watchParticipants{margin:6px 0;display:flex;flex-direction:column;gap:4px}
 .groupVoicePref{display:inline-flex;align-items:center;gap:4px;font-size:11px}
+
+/* Raye2 Wave 7 / plan 13.9: Watch Together in-room reactions. */
+.watchReactions{display:grid;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--r-line)}
+.watchReactions>b{font-size:10px;color:var(--r-muted)}
+.watchReactionBar{display:flex;gap:6px;flex-wrap:wrap}
+.watchReactionBar>button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);width:30px;height:30px;font-size:13px;cursor:pointer}

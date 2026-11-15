@@ -3175,6 +3175,23 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 8 (Admin Rules Engine and governance) **~100%**; overall stays **~93%**.
 
 ---
+
+## 2026-11-10 — Watch Together in-room reactions (mega-batch, plan 13.9 / Wave 7)
+- [x] **Gap closed:** plan 13.9 requires Watch Together to support "chat/reactions". A watch session is bound to
+  a conversation, so chat already existed through the room's messages; reactions did not. There was no way to
+  react to the moment being watched and no live reaction feed.
+- [x] **Migration** `20261111100000_raye2_watch_reactions.sql`: adds `raye2_watch_reactions` (RLS-gated to
+  session members), `raye2_send_watch_reaction` (joined participants only, custom Raye2 reaction set, 20/minute
+  rate limit, optional playback position) and `raye2_list_watch_reactions` (recent reactions with reactor
+  identity). The table is added to the realtime publication.
+- [x] **UI:** `raye2-watch-together-controls.tsx` shows a reaction bar and a live reaction feed, sends the
+  current playback position and updates over realtime (bilingual).
+- [x] **Guarded:** new test `tests/raye2-watch-reactions.test.mjs` plus a validator assertion.
+- [x] Gates: validator 440 assertions; tests 887/887; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/raye2/home` and `/community` 200.
+- **Progress:** Wave 7 (Voice, Watch Together) **~86% to ~88%**; overall stays **~93%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3188,7 +3205,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 4 | Creator Studio, exclusives and live streaming | ~90% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~86% |
+| 7 | Voice, Watch Together and shared experiences | ~88% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~92%** |

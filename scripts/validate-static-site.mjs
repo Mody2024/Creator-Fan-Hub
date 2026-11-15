@@ -805,6 +805,9 @@ check("creators can attach a community space to an event", eventSpaceAttachMigra
 const cleanupPreviewMigration = await read("../supabase/migrations/20261111090000_raye2_cleanup_preview_estimates.sql");
 check("cleanup previews compute affected records and estimated storage", cleanupPreviewMigration.includes("raye2_estimate_cleanup_scope(p_scope, coalesce(p_preserve_chat_history,true), coalesce(p_preserve_shared_memories,true))") && cleanupPreviewMigration.includes("estimated_items,estimated_bytes,result,reason") && cleanupPreviewMigration.includes("'exclusions',jsonb_build_object("));
 
+const watchReactionsMigration = await read("../supabase/migrations/20261111100000_raye2_watch_reactions.sql");
+check("Watch Together rooms support participant reactions with a rate limit", watchReactionsMigration.includes("create table if not exists public.raye2_watch_reactions") && watchReactionsMigration.includes("public.raye2_is_watch_participant(p_session_id)") && watchReactionsMigration.includes("interval '1 minute') >= 20") && watchReactionsMigration.includes("array['raye2_watch_reactions']"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
