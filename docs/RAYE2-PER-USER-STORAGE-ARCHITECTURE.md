@@ -9,11 +9,11 @@ A virtual library is not a new physical disk. Creating 1,000 user folders does n
 ## Implemented account quota defaults
 
 The migration `20261115193000_raye2_per_user_media_storage_quotas.sql` introduces:
-- Standard authenticated member: 100 MiB logical allowance.
-- Creator role: 2 GiB logical allowance.
-- Streamer role: 2 GiB logical allowance.
-- Combined Creator+Streamer / Owner / Admin: 3 GiB logical allowance (combined, not additive).
-- Platform admins can set or reset a member's quota through an audited RPC, capped at 10 GiB per account. Role-tier storage values are also admin-tunable but capped at 10 GiB.
+- Standard authenticated member: 1 GiB requested logical allowance.
+- Creator role: 20 GiB requested logical allowance.
+- Streamer role: 20 GiB requested logical allowance.
+- Combined Creator+Streamer / Owner / Admin: 30 GiB requested logical allowance (combined, not additive).
+- Platform admins can set or reset a member's quota through an audited RPC, capped at 1 TiB per account. Role-tier storage values are also admin-tunable but capped at 1 TiB.
 - Shared managed-storage ceiling: remains 750 MiB until a larger provider is explicitly configured and verified.
 - Both creator uploads and worker-generated thumbnails/HLS outputs are charged to the owner's allowance and the shared ceiling.
 - Capacity query: `get_raye2_user_storage_capacity()`.
@@ -25,12 +25,12 @@ The Creator Media Library shows personal usage and the shared project safety cei
 ## Professional tiers and multi-provider safeguards
 
 Migration `20261115194000_raye2_professional_storage_tiers_and_provider_registry.sql` connects storage allowances to the existing Creator / Streamer / Combined role model:
-- Member: 100 MiB.
-- Creator: 2 GiB.
-- Streamer: 2 GiB.
-- Combined Creator+Streamer: 3 GiB, never the sum of both role allowances.
+- Member: 1 GiB requested allowance.
+- Creator: 20 GiB requested allowance.
+- Streamer: 20 GiB requested allowance.
+- Combined Creator+Streamer: 30 GiB, never the sum of both role allowances.
 - Owner/Admin use the combined tier.
-- Admin quota overrides remain capped at 10 GiB per account.
+- Admin quota overrides remain capped at 1 TiB per account.
 - Existing content publishing quotas (long videos, streams, Mini's and Moments) remain governed by the separate existing `raye2_role_quotas` matrix.
 
 The same personal allowance is checked during browser upload reservation, capacity display and worker-generated derivatives. A larger personal allowance never bypasses the physical provider cap.
@@ -162,7 +162,7 @@ Migration `20261115196000_raye2_dynamic_storage_capacity_and_monthly_upload_budg
 - Global monthly upload target and absolute ingestion hard-stop: 10 GiB.
 - Both values are binary GiB (10 × 1,073,741,824 bytes).
 - Effective live capacity is the lesser of the 10 GiB target and the sum of enabled, adapter-ready, zero-cost-verified provider capacities after each provider's hard-stop safety margin.
-- Current verified provider: Supabase only, with a 750 MiB configured project ceiling and an 85% application stop. Therefore the current usable application capacity remains below 10 GiB. The 10 GiB target is a policy target, not provisioned storage.
+- Current verified provider: Supabase only, with a 750 MiB configured project ceiling and an 85% application stop. Therefore the current usable application capacity remains below 10 GiB. The 10 GiB target is a policy target, not provisioned storage. Admins can raise the global target and monthly upload hard stop up to 1 PiB in policy, but the effective quota always remains limited by verified provider capacity.
 - Cloudflare R2 remains disabled with zero accepted capacity. No payment method, subscription, or paid overage is enabled.
 
 ### Dynamic role allocation
@@ -173,7 +173,7 @@ The manager computes weighted shares from recently active accounts (signed in du
 - Streamer weight: 3.
 - Creator + Streamer / Owner / Admin weight: 5.
 
-The per-account logical quota is the lesser of the role/admin-requested allowance and the account's weighted share of verified physical capacity. Existing stored usage is grandfathered if the active-account denominator later changes; new uploads are denied until usage is below the recalculated share. Creator/Streamer/Combined role ceilings are 2 GiB / 2 GiB / 3 GiB, subject to real capacity. Admin overrides remain capped at 10 GiB, also subject to real capacity.
+The per-account logical quota is the lesser of the role/admin-requested allowance and the account's weighted share of verified physical capacity. Existing stored usage is grandfathered if the active-account denominator later changes; new uploads are denied until usage is below the recalculated share. Creator/Streamer/Combined requested allowances are 20 GiB / 20 GiB / 30 GiB, subject to real capacity. Admin overrides remain capped at 1 TiB, also subject to real capacity.
 
 The monthly upload target is dynamically split using the same role weights. Each upload is reserved before transfer and accounted atomically when Storage creates the object. Global, per-user, and provider write-operation budgets are hard stops.
 
