@@ -2742,6 +2742,22 @@ One regression-test file was briefly created on the default `main` branch becaus
   moderation, group lifecycle, retention, receipts).
 
 ---
+
+## 2026-11-10 — Repo-wide migration security invariants (mega-batch, plan Wave 2/9)
+- [x] **Gap closed:** plan Wave 2 requires permissions to be enforced server-side and Wave 9 requires the
+  security posture to be verifiable. The invariants were true but nothing guarded them, so a single new
+  migration could silently regress them.
+- [x] **New test** `tests/raye2-migration-security-invariants.test.mjs` reads every migration and asserts, across
+  the whole repository: (1) every SECURITY DEFINER function pins `set search_path`; (2) every public function is
+  fail-closed with an explicit `REVOKE`; (3) no admin/moderation/retention entry point is granted to `anon`;
+  (4) the admin cleanup entry points verify `raye2_is_platform_admin()`; (5) every Raye2 table enables RLS.
+- [x] **Verified true today:** 0 SECURITY DEFINER functions without `search_path`; 0 public functions without a
+  `REVOKE`; 65/65 Raye2 tables with RLS enabled. The test now locks this in.
+- [x] A validator assertion performs the same repository-wide scan so the invariant is checked on every build.
+- [x] Gates: validator 417 assertions; tests 817/817; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 2 server-side permission coverage **~65% to ~72%**; Wave 9 **~99%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

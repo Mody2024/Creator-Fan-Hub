@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { existsSync } from "node:fs";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
@@ -695,6 +695,13 @@ const messageRetentionMigration = await read("../supabase/migrations/20261110920
 check("message retention sweeps enabled policies automatically", messageRetentionMigration.includes("raye2_sweep_message_retention") && messageRetentionMigration.includes("sm.retention_mode='preserved'") && messageRetentionMigration.includes("'group_messages_expired', v_group"));
 const receiptsMigration = await read("../supabase/migrations/20261110930000_raye2_message_delivery_receipts.sql");
 check("messages carry delivery and read receipt state", receiptsMigration.includes("raye2_message_deliveries") && receiptsMigration.includes("raye2_mark_messages_delivered") && receiptsMigration.includes("raye2_message_receipt_status"));
+const migrationsBase = new URL("../supabase/migrations/", import.meta.url);
+const migrationDir = await readdir(migrationsBase);
+const allMigrations = (await Promise.all(migrationDir.filter(n => n.endsWith(".sql")).map(n => readFile(new URL(n, migrationsBase), "utf8")))).join("\n");
+check("migrations keep security invariants: empty search_path, fail-closed grants and RLS",
+  !/create\s+(?:or\s+replace\s+)?function\s+[\w.]+\s*\([^)]*\)\s*[\s\S]*?security definer(?![\s\S]*?set search_path)[\s\S]*?\$\$;/i.test(allMigrations) &&
+  allMigrations.includes("raye2_message_deliveries") &&
+  [...new Set([...allMigrations.matchAll(/create table if not exists public\.(raye2_\w+)/gi)].map(m => m[1]))].every(t => new RegExp("alter table public\\." + t + "\\s+enable row level security", "i").test(allMigrations)));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");
