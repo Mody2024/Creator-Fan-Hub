@@ -86,7 +86,7 @@ grant select,insert,update,delete on public.raye2_storage_provider_usage_snapsho
 -- reserve capacity. The current account is always included in the denominator.
 create or replace function public.raye2_storage_role_weight(p_user_id uuid)
 returns integer language sql stable security definer set search_path=''
-as $$$
+as $$
   select case public.raye2_creator_tier(p_user_id)
     when 'creator' then 3
     when 'streamer' then 3
@@ -99,7 +99,7 @@ grant execute on function public.raye2_storage_role_weight(uuid) to service_role
 
 create or replace function public.raye2_storage_effective_capacity_bytes()
 returns bigint language sql stable security definer set search_path=''
-as $$$
+as $$
   select least(
     (select p.target_total_capacity_bytes from public.raye2_storage_global_policy p where p.singleton=true),
     coalesce((
@@ -115,7 +115,7 @@ grant execute on function public.raye2_storage_effective_capacity_bytes() to aut
 
 create or replace function public.raye2_effective_user_storage_quota(p_user_id uuid)
 returns bigint language plpgsql stable security definer set search_path=''
-as $$$
+as $$
 declare
   v_tier text;
   v_role_cap bigint;
@@ -160,7 +160,7 @@ grant execute on function public.raye2_effective_user_storage_quota(uuid) to aut
 
 create or replace function public.raye2_effective_monthly_upload_quota(p_user_id uuid)
 returns bigint language plpgsql stable security definer set search_path=''
-as $$$
+as $$
 declare v_weight bigint; v_total_weight bigint; v_target bigint;
 begin
   if p_user_id is null then raise exception 'user id required' using errcode='22023'; end if;
@@ -181,7 +181,7 @@ grant execute on function public.raye2_effective_monthly_upload_quota(uuid) to a
 -- configuration, a working adapter, fresh capacity data and sufficient budgets.
 create or replace function public.raye2_choose_storage_provider(p_bytes bigint)
 returns text language plpgsql stable security definer set search_path=''
-as $$$
+as $$
 declare v_provider text;
 begin
   if p_bytes is null or p_bytes<1 then raise exception 'invalid upload size' using errcode='22023'; end if;
@@ -221,7 +221,7 @@ grant execute on function public.raye2_choose_storage_provider(bigint) to authen
 create or replace function public.get_raye2_user_storage_capacity()
 returns table(used_bytes bigint,reserved_bytes bigint,quota_bytes bigint,available_bytes bigint,usage_percent numeric)
 language plpgsql stable security definer set search_path=''
-as $$$
+as $$
 declare v_user uuid:=auth.uid(); v_used bigint; v_reserved bigint; v_quota bigint;
 begin
   if v_user is null then raise exception 'sign in required' using errcode='42501'; end if;
@@ -252,7 +252,7 @@ returns table(
  monthly_upload_remaining_bytes bigint
 )
 language plpgsql stable security definer set search_path=''
-as $$$
+as $$
 declare v_used bigint;v_reserved bigint;v_monthly bigint;v_target bigint;
 begin
   if auth.uid() is null then raise exception 'sign in required' using errcode='42501'; end if;
@@ -283,7 +283,7 @@ grant execute on function public.raye2_get_storage_system_capacity() to authenti
 create or replace function public.reserve_nhen_media_upload(p_bytes bigint,p_bucket text)
 returns table(reservation_id uuid,used_bytes bigint,reserved_bytes bigint,quota_bytes bigint,available_bytes bigint)
 language plpgsql security definer set search_path=''
-as $$$
+as $$
 declare
  v_user uuid:=auth.uid();v_used bigint;v_reserved bigint;v_user_used bigint;
  v_user_reserved bigint;v_user_quota bigint;v_physical bigint;v_id uuid;
@@ -376,7 +376,7 @@ grant execute on function public.reserve_nhen_media_upload(bigint,text) to authe
 -- The transaction rolls back both the usage counters and object insert on any limit.
 create or replace function public.enforce_nhen_storage_upload_reservation()
 returns trigger language plpgsql security definer set search_path=''
-as $$$
+as $$
 declare
  v_user uuid:=auth.uid();v_owner uuid;v_bytes bigint;v_reservation uuid;
  v_provider text;v_month date:=date_trunc('month',now())::date;
