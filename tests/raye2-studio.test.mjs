@@ -94,7 +94,7 @@ test("Raye2 media, video studio and team surfaces use the new platform identity"
     read("../src/app/creator/analytics/analytics-export.tsx"),
     read("../src/app/globals.css")
   ]);
-  assert.ok(media.includes("Raye2 free storage safety limit"));
+  assert.ok(media.includes("Raye2 project safety limit"));
   assert.ok(media.includes("Raye2 manages its watch page"));
   assert.ok(!media.includes("NHEN"));
   assert.ok(video.includes('className="raye2-studio-shell raye2-video-studio"'));
