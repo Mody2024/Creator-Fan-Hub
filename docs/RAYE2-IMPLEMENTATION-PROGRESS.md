@@ -2415,3 +2415,10 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 10/10 (publish; usage counts; clip cap; missing video rejected; ordinary role blocked; expiry hides from feed but keeps row; anon feed read).
 - [x] Gates: validator 372 assertions; tests 736/736; tsc clean; lint 0 errors/24 warnings; build OK (199 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~82% to ~86%**; Wave 4 (creator economy) **~+3%**; full ten-wave estimate **~84% to ~86%**.
+
+## 2026-11-10 — Maintenance runner for Mini/Moment expiry + AGENTS notes (mega-batch)
+- [x] `raye2_run_maintenance()` consolidates `raye2_expire_minis` + `raye2_expire_moments`; each job best-effort (failure reported as -1, never raises), callable by anon/authenticated and driven best-effort from `/community`, `/minis`, `/moments`.
+- [x] AGENTS.md records the session's schema gotchas and the expiry-needs-a-caller invariant.
+- [x] **Matrix:** 3/3 (anon runs maintenance; expired Mini → expired; expired Moment → removed).
+- [x] Gates: validator 373 assertions; tests 739/739; tsc clean; lint 0 errors/24 warnings; build OK (200 migrations).
+- **Progress:** Wave 3 (video/feed) **~86% to ~88%**; Wave 8 (moderation/reliability) **~95% to ~96%**; full ten-wave estimate **~86% to ~87%**.
