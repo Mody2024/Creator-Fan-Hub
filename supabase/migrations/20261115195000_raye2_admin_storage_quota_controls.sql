@@ -9,7 +9,7 @@ begin
    raise exception 'platform admin access required' using errcode='42501';
  end if;
  if p_user_id is null
-   or (p_quota_bytes is not null and p_quota_bytes not between 0 and 10737418240)
+   or (p_quota_bytes is not null and p_quota_bytes not between 0 and 1099511627776)
    or length(coalesce(p_reason,''))>500 then
    raise exception 'invalid user storage quota' using errcode='22023';
  end if;
@@ -40,7 +40,7 @@ grant execute on function public.raye2_admin_set_user_storage_quota(uuid,bigint,
 drop function if exists public.raye2_set_role_quota(text,text,bigint);
 
 -- Prevent a platform admin from configuring an individual role tier above the
--- same 10 GiB hard ceiling used by per-user overrides.
+-- same 1 TiB hard ceiling used by per-user overrides.
 create or replace function public.raye2_set_role_quota(p_tier text,p_metric text,p_limit bigint)
 returns void language plpgsql security definer set search_path=''
 as $$
@@ -51,8 +51,8 @@ begin
  if p_limit is null or p_limit<0 then
    raise exception 'limit must be zero or greater' using errcode='22023';
  end if;
- if p_metric='storage_bytes' and p_limit>10737418240 then
-   raise exception 'storage tier limit cannot exceed 10 GiB' using errcode='22023';
+ if p_metric='storage_bytes' and p_limit>1099511627776 then
+   raise exception 'storage tier limit cannot exceed 1 TiB' using errcode='22023';
  end if;
  update public.raye2_role_quotas
  set limit_value=p_limit,updated_at=now()
