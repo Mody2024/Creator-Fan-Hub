@@ -28,7 +28,7 @@ test("only free-only providers can be registered and new R2 is disabled", () => 
   assert.match(migration, /'cloudflare_r2','s3_compatible',false,'free_only',0,0,0,0/);
   assert.match(migration, /'backblaze_b2','s3_compatible',false,'free_only',0,0,0,0/);
   assert.match(migration, /'tigris','s3_compatible',false,'free_only',0,0,0,0/);
-  assert.match(migration, /'filebase','s3_compatible',false,'free_only',5368709120,1000000,10000000,5368709120/);
+  assert.match(migration, /'filebase','s3_compatible',false,'free_only',5368709120,100000,1000000,5368709120/);
   assert.match(migration, /hard_stop_percent numeric\(5,2\).*between 50 and 95/);
   assert.match(migration, /monthly_write_ops_limit bigint/);
   assert.match(migration, /monthly_read_ops_limit bigint/);
