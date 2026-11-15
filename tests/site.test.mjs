@@ -398,7 +398,7 @@ test("uploaded logo preview shows both themes while bilingual identity remains v
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.ok(page.includes('config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />'));
+  assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="Raye2" />'));
   assert.ok(page.includes('<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>'));
   assert.match(page, /<small lang="ar" dir="rtl">رايق<\/small>/);
   assert.match(studio, /DARK THEME/);
@@ -512,7 +512,7 @@ test("the bilingual Raye2 identity and uploaded logo remain theme-aware", async 
   const styles = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('<strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small>'));
-  assert.ok(page.includes('config.logoUrl && <img className="site-logo-image"'));
+  assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image"'));
   assert.ok(styles.includes(".site .nhen-wordmark .site-logo-image"));
   assert.ok(styles.includes(".nhen-logo-theme-dark"));
   assert.ok(styles.includes(".nhen-logo-theme-light"));

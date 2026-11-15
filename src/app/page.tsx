@@ -78,7 +78,7 @@ export default async function HomePage() {
   const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-motion={config.motion}>
     <header className="nhen-app-header">
-      <Link className="nhen-brand" href="/" aria-label="Raye2 home">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span></Link>
+      <Link className="nhen-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="Raye2" /> : <span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>}</Link>
       <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
       <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">{t.join}</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>

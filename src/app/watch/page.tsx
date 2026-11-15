@@ -8,7 +8,7 @@ import "./watch-library.css";
 export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
  const supabase=await createSupabaseServerClient();
- if(!supabase)return <main className="nhen-app-shell"><p>NHEN Watch is temporarily unavailable.</p></main>;
+ if(!supabase)return <main className="nhen-app-shell"><p>Raye2 Watch is temporarily unavailable.</p></main>;
  const {data}=await supabase.rpc("raye2_get_watch_library_page",{p_limit:24});
  const rows=(data??[]) as WatchRow[];
  const videos=rows.flatMap(row=>{const card=buildWatchCard(supabase,row);return card?[card]:[];});

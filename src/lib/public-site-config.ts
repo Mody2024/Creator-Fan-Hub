@@ -69,7 +69,6 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
   const allowedSections = ["hero","ideas","poll","events","community","socials","videos"];
 
-  const theme = appearance.theme;
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
   const mediaResult = mediaIds.length ? await supabase.from("media_items").select("id,media_type,storage_path").in("id", mediaIds).eq("is_published", true) : { data: [], error: null };
   const mediaById = new Map((mediaResult.data ?? []).map((item: { id: string; media_type: string; storage_path: string | null }) => [item.id, item]));

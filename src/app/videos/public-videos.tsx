@@ -26,9 +26,9 @@ export default async function PublicVideos() {
   const [supabase,cookieStore] = await Promise.all([createSupabaseServerClient(),cookies()]);
   const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
   const copy = isArabic ? {
-    eyebrow:"04 / NHEN WATCH", first:"أحدث فيديوهات", emphasis:"صنّاع المحتوى.", description:"فيديوهات رسمية منظمة في صفحات مشاهدة وسلاسل. افتح الفيديو للمشاهدة والحفظ والمشاركة في النقاش.", featured:"مميز", watch:"شاهد الآن ↗"
+    eyebrow:"04 / RAYE2 WATCH", first:"أحدث فيديوهات", emphasis:"صنّاع المحتوى.", description:"فيديوهات رسمية منظمة في صفحات مشاهدة وسلاسل. افتح الفيديو للمشاهدة والحفظ والمشاركة في النقاش.", featured:"مميز", watch:"شاهد الآن ↗"
   } : {
-    eyebrow:"04 / NHEN WATCH", first:"Fresh from", emphasis:"the creator.", description:"Official videos, organized into watch pages and series. Open a video to watch, save it and join its discussion.", featured:"✦ FEATURED", watch:"Watch now ↗"
+    eyebrow:"04 / RAYE2 WATCH", first:"Fresh from", emphasis:"the creator.", description:"Official videos, organized into watch pages and series. Open a video to watch, save it and join its discussion.", featured:"✦ FEATURED", watch:"Watch now ↗"
   };
   if (!supabase) return null;
 

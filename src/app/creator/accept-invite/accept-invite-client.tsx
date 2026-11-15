@@ -33,5 +33,5 @@ export default function AcceptInviteClient({token}:{token:string}){
    setStatus("We could not accept this invitation. Check that you are signed in with the invited email, then retry or ask the owner for a fresh invitation.");
   } finally {setBusy(false);}
  }
- return <div className="nhen-invite-accept-actions">{status&&<p role="status">{status}</p>}{ready?<button className="button button-primary" disabled={busy||!token} onClick={()=>void accept()}>{busy?"Accepting…":"Accept invitation ↗"}</button>:<Link className="button button-secondary" href="/community#join">Open Nhen? sign in / registration</Link>}</div>
+ return <div className="nhen-invite-accept-actions">{status&&<p role="status">{status}</p>}{ready?<button className="button button-primary" disabled={busy||!token} onClick={()=>void accept()}>{busy?"Accepting…":"Accept invitation ↗"}</button>:<Link className="button button-secondary" href="/community#join">Open Raye2 sign in / registration</Link>}</div>
 }

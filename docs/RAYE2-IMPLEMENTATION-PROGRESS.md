@@ -2551,6 +2551,23 @@ One regression-test file was briefly created on the default `main` branch becaus
   page-level layout standardisation and the logo-asset pipeline.
 
 ---
+
+## 2026-11-10 — Predecessor branding purge + logo-as-identity (mega-batch, plan 1.1/13.1)
+- [x] **Predecessor labels removed from product surfaces** (not just the landing page): the saved library
+  (brand, "YOUR NHEN LIBRARY", fallback author), notifications ("NHEN member"), Shorts ("NHEN Studio",
+  "Nhenbits"), the published-videos eyebrow ("NHEN WATCH"), Watch ("NHEN Watch"), the studio team invite copy and
+  the team-invitation page (brand + eyebrow + sign-in link). All now read Raye2 / رايق.
+- [x] **"Nhenbit" renamed to the plan term "Mini"** across the Shorts/community-shorts UI (EN + AR).
+- [x] **Logo is the identity:** the public header now renders the uploaded logo *instead of* the written
+  "Raye2 / رايق" wordmark, and uses the wordmark only as a fallback when no logo is uploaded (plan 1.1).
+- [x] **Guarded:** a new test + validator assertion fail if NHEN/Nhen?/Nhenbit/نهين reappear on a product surface,
+  and a test locks the logo-vs-wordmark fallback behavior.
+- [x] Fixed a latent lint error (unescaped apostrophe) and an unused variable uncovered by the change.
+- [x] Gates: validator 404 assertions; tests 792/792; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.1 (predecessor removal / logo identity) **~70% to ~85%**; Wave 1 **~62% to ~68%**. Remaining
+  in Wave 1: page-level layout standardisation and favicon/app-icon/loading logo integration.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2558,7 +2575,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~62% |
+| 1 | Brand system and full product redesign | ~68% |
 | 2 | Core platform architecture, accounts and permissions | ~62% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |

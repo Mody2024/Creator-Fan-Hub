@@ -122,7 +122,7 @@ check("published media resolves only through public storage paths", config.inclu
 check("media deletion verifies ownership and restores storage if metadata deletion fails", media.includes("backup=download") && media.includes("storage file could not be deleted, so its metadata was kept") && media.includes("the file could not be restored") && media.includes('path.split("/")[0]!==userData.user.id'));
 check("failed media publication checks temporary-copy cleanup and flags public exposure", media.includes("const {error:cleanupError}=await supabase.storage.from(nextBucket).remove([nextPath])") && media.includes("new public object could not be removed") && media.includes("stale private storage copy could not be removed"));
 check("failed media metadata insert reports orphan cleanup failure", media.includes("const {error:cleanupError}=await supabase.storage.from(\"creator-media-private\").remove([path])") && media.includes("uploaded private file could not be cleaned up") && media.includes("The uploaded file was removed."));
-check("published logo and hero assets bind to public page", config.includes('logoUrl: publicMediaUrl(logoItem, ["image"])') && config.includes('heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"])') && page.includes("config.logoUrl && <img") && page.includes("portal-wordmark") && page.includes("Raye2") && page.includes("رايق"));
+check("published logo and hero assets bind to public page", config.includes('logoUrl: publicMediaUrl(logoItem, ["image"])') && config.includes('heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"])') && page.includes("config.logoUrl ? <img") && page.includes("portal-wordmark") && page.includes("Raye2") && page.includes("رايق"));
 check("published mascot and narration assets respect their media types", config.includes('mascotUrl: publicMediaUrl(mascotItem, ["image"])') && config.includes('narrationUrl: publicMediaUrl(narrationItem, ["audio"])') && page.includes("<NarrationControl"));
 check("hero video honors muted and loop settings", page.includes("muted={config.heroMuted}") && page.includes("loop={config.heroLoop}") && page.includes("className=\"hero-media\""));
 check("poll display uses aggregate RPC", poll.includes('rpc("get_public_poll_results")'));
@@ -649,6 +649,19 @@ const publicConfigSrc = await read("../src/lib/public-site-config.ts");
 const creatorSettingsSrc = await read("../src/app/creator/creator-settings.tsx");
 const rootLayoutSrc = await read("../src/app/layout.tsx");
 check("the appearance system offers a single fixed theme with no color-mode or legacy options", /THEMES = new Set\(\["obsidian"\]\)/.test(siteConfigLib) && !/colorMode/.test(publicConfigSrc + creatorSettingsSrc) && !/d8ff75|c8ff4d/.test(publicConfigSrc + creatorSettingsSrc) && !/Nhen bilingual/.test(creatorSettingsSrc));
+const predecessorSurfaces = [
+  "../src/app/page.tsx", "../src/app/saved/page.tsx", "../src/app/notifications/page.tsx",
+  "../src/app/notifications/notifications-client.tsx", "../src/app/shorts/page.tsx",
+  "../src/app/shorts/community-shorts-client.tsx", "../src/app/videos/public-videos.tsx",
+  "../src/app/watch/page.tsx", "../src/app/creator/team/team-client.tsx",
+  "../src/app/creator/accept-invite/page.tsx", "../src/app/creator/accept-invite/accept-invite-client.tsx"
+];
+let predecessorFree = true;
+for (const surface of predecessorSurfaces) {
+  const source = await read(surface);
+  if (/\bNHEN\b|Nhen\?|Nhenbit|نهين/.test(source)) predecessorFree = false;
+}
+check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");
 const communityClientSrc = await read("../src/app/community/community-client.tsx");
