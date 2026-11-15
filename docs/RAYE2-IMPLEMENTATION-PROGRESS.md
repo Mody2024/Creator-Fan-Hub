@@ -3343,3 +3343,12 @@ Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcod
 - [ ] Multipart/resumable S3 upload and cryptographic object checksum verification remain unimplemented. The adapter explicitly does not advertise those capabilities.
 - **Progress accounting:** this is a real provider-adapter code addition, but it does not complete the upload pipeline or enable R2/B2 in production. Keep the overall historical platform estimate unchanged until the authenticated reservation → signed upload → server-side verification → metadata commit path and tests are complete.
 - **Latest adapter test commit:** `fc349f22e72d4ced51e53fdf07d3cba1fd293e62`; follow-up public-delivery test commit recorded after this entry.
+
+
+### Adapter hardening follow-up
+
+- [x] Added a `.server.ts` boundary that imports Next.js `server-only` and re-exports the S3 adapter, preventing accidental browser-side use while keeping the pure adapter directly testable under Node.
+- [x] Hardened adapter construction to reject incomplete/insecure endpoints, malformed bucket names, invalid upload byte counts and invalid content types before signing.
+- [x] Added regression cases for incomplete configuration, invalid upload parameters and public delivery configuration.
+- [ ] Current test suite contains nine S3 adapter tests, but execution is still pending. The Vercel status on the latest test commit remains a build-rate-limit failure, not a successful or code-failure result.
+- **Latest adapter test commit checked:** `07b8b4b980e320ee01182f185d3912cf4f43ea69`. Server-only boundary is committed immediately after it; verify new HEAD status in the next audit.
