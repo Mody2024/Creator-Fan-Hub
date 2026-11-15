@@ -10,14 +10,48 @@ A virtual library is not a new physical disk. Creating 1,000 user folders does n
 
 The migration `20261115193000_raye2_per_user_media_storage_quotas.sql` introduces:
 - Standard authenticated member: 100 MiB logical allowance.
-- Assigned creator: 250 MiB logical allowance.
-- Admin override: trusted service-role-only function; configurable up to 10 GiB per account, or reset to role default.
+- Creator role: 2 GiB logical allowance.
+- Streamer role: 2 GiB logical allowance.
+- Combined Creator+Streamer / Owner / Admin: 3 GiB logical allowance (combined, not additive).
+- Trusted service-role admin override: configurable up to 10 GiB per account, or reset to role default.
 - Shared managed-storage ceiling: remains 750 MiB until a larger provider is explicitly configured and verified.
 - Both creator uploads and worker-generated thumbnails/HLS outputs are charged to the owner's allowance and the shared ceiling.
 - Capacity query: `get_raye2_user_storage_capacity()`.
 - Admin quota function: `set_raye2_user_storage_quota(uuid,bigint,text)`; never expose this function to browser sessions.
 
 The Creator Media Library shows personal usage and the shared project safety ceiling separately. This avoids presenting an individual allowance as if it were additional physical capacity.
+
+
+## Professional tiers and multi-provider safeguards
+
+Migration `20261115194000_raye2_professional_storage_tiers_and_provider_registry.sql` connects storage allowances to the existing Creator / Streamer / Combined role model:
+- Member: 100 MiB.
+- Creator: 2 GiB.
+- Streamer: 2 GiB.
+- Combined Creator+Streamer: 3 GiB, never the sum of both role allowances.
+- Owner/Admin use the combined tier.
+- Admin quota overrides remain capped at 10 GiB per account.
+- Existing content publishing quotas (long videos, streams, Mini's and Moments) remain governed by the separate existing `raye2_role_quotas` matrix.
+
+The same personal allowance is checked during browser upload reservation, capacity display and worker-generated derivatives. A larger personal allowance never bypasses the physical provider cap.
+
+### Provider registry status
+
+A private provider registry now records provider kind, free-only billing mode, capacity, monthly read/write/egress budgets, hard-stop percentage and priority. It contains:
+- Supabase: enabled, 750 MiB application cap.
+- Cloudflare R2: registered but disabled with zero capacity until owner approval and a tested adapter.
+
+This registry is **not yet a multi-cloud router**. Current browser uploads and worker objects still use Supabase Storage. Provider selection, object migration, cross-provider playback, provider usage reconciliation, and automated budget counters must be implemented and tested before another backend can accept production media. No extra storage capacity is claimed yet.
+
+### Strict $0 safeguards
+
+- Only `billing_mode='free_only'` is allowed in the registry.
+- Provider records are private and contain no credentials.
+- Each enabled provider must have positive capacity and read/write budgets.
+- The application hard-stop is configured below provider free limits (default 85%, configurable between 50% and 95%).
+- The current Supabase upload RPC continues to enforce its independent 750 MiB shared cap.
+- The R2 entry remains disabled. Do not add a payment method, enable pay-as-you-go, or configure credentials until its account-specific activation and overage behavior are confirmed.
+- The registry's request/egress budgets are policy metadata until the storage adapter and runtime metering are connected; they must not be described as live-enforced yet.
 
 ## 10 GB per month target: provider comparison
 
