@@ -1,0 +1,15 @@
+.raye2-moments-page { max-width: 1120px; margin: 0 auto; padding: 24px 20px 64px; }
+.raye2-moments-heading { margin: 24px 0 16px; }
+.raye2-moments-heading h1 { font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 6px 0; }
+.raye2-moments-heading em { font-style: normal; color: var(--raye2-accent, #6c5ce7); }
+.raye2-moments-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.raye2-moment-card { position: relative; background: var(--surface-2, #14131c); border: 1px solid var(--border, #262433); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+.raye2-moment-card h2 { margin: 0; font-size: 1.05rem; }
+.raye2-moment-card small { color: var(--muted, #9a97a8); }
+.raye2-moment-badge { position: absolute; top: 14px; inset-inline-end: 14px; font-size: .7rem; letter-spacing: .04em; padding: 3px 8px; border-radius: 999px; background: var(--raye2-accent, #6c5ce7); color: #fff; }
+.raye2-moments-compose { background: var(--surface-2, #14131c); border: 1px solid var(--border, #262433); border-radius: 16px; padding: 20px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+.raye2-moments-compose h2 { margin: 0; font-size: 1.1rem; }
+.raye2-moments-compose label { display: flex; flex-direction: column; gap: 6px; font-size: .85rem; }
+.raye2-moments-compose input, .raye2-moments-compose select { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border, #262433); background: var(--surface-1, #0e0d14); color: inherit; }
+.raye2-moments-window { display: flex; gap: 12px; }
+.raye2-moments-window label { flex: 1; }

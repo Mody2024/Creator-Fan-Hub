@@ -94,6 +94,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
         <Link className={styles.railLink} href="/watch"><span className={styles.railIcon}>▶</span>{isArabic?"مشاهدة":"Watch"}</Link>
         <Link className={styles.railLink} href="/shorts"><span className={styles.railIcon}>▤</span>{isArabic?"مقاطع قصيرة":"Mini’s"}</Link>
         <Link className={styles.railLink} href="/minis"><span className={styles.railIcon}>▦</span>{isArabic?"مينيز":"Minis"}</Link>
+        <Link className={styles.railLink} href="/moments"><span className={styles.railIcon}>✦</span>{isArabic?"لحظات":"Moments"}</Link>
         <Link className={styles.railLink} href="/live"><span className={styles.railIcon}>●</span>{isArabic?"مباشر":"Live"}</Link>
         <Link className={styles.railLink} href="/search"><span className={styles.railIcon}>⌕</span>{isArabic?"استكشف":"Explore"}</Link>
         <Link className={styles.railLink} href="/series"><span className={styles.railIcon}>▥</span>{isArabic?"السلاسل":"Series"}</Link>
