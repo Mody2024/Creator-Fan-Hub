@@ -65,10 +65,12 @@ test("Raye2 watch library uses the new brand shell and responsive discovery card
 });
 test("watch library only lists processed native videos and validates public storage URLs",()=>{
  const page=readFileSync(new URL("../src/app/watch/page.tsx",import.meta.url),"utf8");
- assert.ok(page.includes("processing_status"));
- assert.ok(page.includes('media.processing_status!=="ready"'));
- assert.ok(page.includes("parts.slice(1).every"));
- assert.ok(page.includes('parsed.protocol!=="https:"'));
+ const media=readFileSync(new URL("../src/app/watch/watch-library-media.ts",import.meta.url),"utf8");
+ assert.ok(page.includes("buildWatchCard"));
+ assert.ok(media.includes("processing_status"));
+ assert.ok(media.includes('processing_status !== "ready"'));
+ assert.ok(media.includes("parts.slice(1).every"));
+ assert.ok(media.includes('parsed.protocol !== "https:"'));
 });
 
 test("Raye2 watch detail uses the player-first branded responsive layout",()=>{

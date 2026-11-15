@@ -501,6 +501,13 @@ check("temporary role grants honour expiry without a write", grantsMigration.inc
 check("account-specific capability overrides are admin-managed and audited", grantsMigration.includes("create table if not exists public.raye2_capability_overrides") && grantsMigration.includes("create or replace function public.raye2_effective_capability(") && grantsMigration.includes("raye2_set_capability_override") && grantsMigration.includes("capability_override_set"));
 check("members can see their own capability overrides", grantsMigration.includes("create or replace function public.raye2_get_my_capability_overrides()") && accountSettingsFile.includes('rpc("raye2_get_my_capability_overrides")'));
 check("the team UI sets and shows temporary grant expiry", teamClient.includes("set_creator_admin_expiry") && teamClient.includes("expiresAt"));
+const watchLibPageMigration = await read("../supabase/migrations/20261110680000_raye2_watch_library_pagination.sql");
+const watchLibMore = await read("../src/app/watch/watch-library-more.tsx");
+const watchLibMedia = await read("../src/app/watch/watch-library-media.ts");
+check("the watch library paginates by keyset cursor", watchLibPageMigration.includes("create or replace function public.raye2_get_watch_library_page(") && watchLibPageMigration.includes("(vc.published_at, vc.media_id) < (p_before,") && watchLibPageMigration.includes("order by vc.published_at desc, vc.media_id desc"));
+check("the watch library page respects exclusivity and expiry", watchLibPageMigration.includes("public.raye2_can_view_video(vc.media_id)"));
+check("the watch library exposes load-more with states", watchLibMore.includes('rpc("raye2_get_watch_library_page"') && watchLibMore.includes("Load more videos") && watchLibMore.includes("reached the end"));
+check("watch card media validation is shared and safe", watchLibMedia.includes("creator-media-public/") && watchLibMedia.includes("youtube-nocookie.com") && watchLibMedia.includes("processing_status"));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
