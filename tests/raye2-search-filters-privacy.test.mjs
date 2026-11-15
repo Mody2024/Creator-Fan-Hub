@@ -32,8 +32,19 @@ test("the dead Spaces tab is backed by real group rows, and Mini's are searchabl
   assert.match(migration, /g\.status in \('active','read_only'\)/);
   assert.match(migration, /'short'::text as kind/);
   assert.match(migration, /from public\.community_short_videos sv/);
-  assert.match(page, /kindMap:Record<string,string>=\{videos:"video",people:"person",posts:"post",tags:"tag",groups:"group",minis:"short"\}/);
+  assert.match(page, /kindMap:Record<string,string>=\{videos:"video",people:"person",posts:"post",tags:"tag",groups:"group",minis:"short",moments:"moment",events:"event"\}/);
   assert.match(page, /showMinis/);
+});
+
+test("search covers active Moments and public events and hides expired Moments", () => {
+  assert.match(migration, /'moment'::text as kind/);
+  assert.match(migration, /cp\.is_moment = true/);
+  assert.match(migration, /cp\.expires_at is null or cp\.expires_at > now\(\)/);
+  assert.match(migration, /'event'::text as kind/);
+  assert.match(migration, /from public\.events e/);
+  assert.match(migration, /e\.status = 'published'/);
+  assert.match(page, /showMoments/);
+  assert.match(page, /showEvents/);
 });
 
 test("the old unfiltered two-argument search is replaced", () => {

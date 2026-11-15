@@ -6,7 +6,8 @@
 -- tags, had no filters, and never returned a 'group' row even though the search page rendered a Spaces tab.
 --
 -- This migration replaces raye2_search with a filtered, block-aware version that also returns Mini's
--- (community_short_videos) and public spaces (raye2_groups), and adds a facet RPC for category chips.
+-- (community_short_videos), public spaces (raye2_groups), active public Moments and public events, and adds
+-- a facet RPC for category chips. Expired Moments are hidden immediately, per plan 4.5.
 
 -- The two-argument version is replaced by the filtered five-argument version; drop it so PostgREST has a
 -- single, unambiguous signature.
@@ -41,7 +42,7 @@ declare
   v_cat text := nullif(btrim(coalesce(p_category, '')), '');
   v_since timestamptz;
 begin
-  if v_kind <> '' and v_kind not in ('video','person','post','tag','group','short') then
+  if v_kind <> '' and v_kind not in ('video','person','post','tag','group','short','moment','event') then
     raise exception 'invalid search kind' using errcode='22023';
   end if;
   if p_recency is not null and lower(btrim(p_recency)) not in ('day','week','month','year') then
@@ -89,6 +90,7 @@ begin
     cross join q
     where cp.status = 'published'
       and not public.is_member_blocked(cp.author_id)
+      and (not cp.is_moment or cp.expires_at is null or cp.expires_at > now())
       and cp.body ilike q.pat escape '\'
   ),
   shorts as (
@@ -125,9 +127,32 @@ begin
       and (g.expires_at is null or g.expires_at > now())
       and (g.name ilike q.pat escape '\' or g.description ilike q.pat escape '\' or g.slug ilike q.pat escape '\')
   ),
+  moments as (
+    select 'moment'::text as kind, cp.id::text as ref, coalesce(mp.display_name, 'Raye2 member') as title,
+           '@' || coalesce(mp.handle, 'member') as subtitle, cp.body as snippet, 2 as rank, cp.created_at as at
+    from public.community_posts cp
+    left join public.member_profiles mp on mp.user_id = cp.author_id
+    cross join q
+    where cp.is_moment = true and cp.status = 'published'
+      and (cp.expires_at is null or cp.expires_at > now())
+      and not public.is_member_blocked(cp.author_id)
+      and cp.body ilike q.pat escape '\'
+  ),
+  events as (
+    select 'event'::text as kind, e.id::text as ref, e.title as title, coalesce(e.event_type, 'community') as subtitle,
+           e.description as snippet,
+           case when lower(e.title) = lower(q.raw) then 0 when e.title ilike q.raw || '%' then 1 else 2 end as rank,
+           coalesce(e.starts_at, e.created_at) as at
+    from public.events e
+    cross join q
+    where e.status = 'published'
+      and (e.ends_at is null or e.ends_at > now())
+      and (e.title ilike q.pat escape '\' or e.description ilike q.pat escape '\')
+  ),
   combined as (
     select * from videos union all select * from people union all select * from posts
     union all select * from shorts union all select * from tags union all select * from spaces
+    union all select * from moments union all select * from events
   )
   select c.kind, c.ref, c.title, c.subtitle, c.snippet, c.rank
   from combined c

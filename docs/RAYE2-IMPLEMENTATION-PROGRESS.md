@@ -2905,6 +2905,21 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 Creator Studio **~78% to ~82%**; overall **~91% to ~92%**.
 
 ---
+
+## 2026-11-10 — Search covers active Moments and public events (mega-batch, plan 3.2)
+- [x] **Gap closed:** plan 3.2 requires search over "public creators, users, videos, Mini's, public Moments while
+  active, public communities and events". Moments and events were not searchable.
+- [x] `raye2_search` now also returns `moment` rows (community posts flagged `is_moment` with an active
+  `expires_at`) and `event` rows (published events that have not ended), and the ordinary post branch hides
+  expired Moments immediately, per plan 4.5.
+- [x] The Explore page gains Moments and Events tabs, sections and links (events RSVP inline on `/events`).
+- [x] **Guarded:** the search test covers the new kinds and the expiry gate; the validator assertion now checks
+  all six result kinds.
+- [x] Gates: validator 425 assertions; tests 845/845; tsc clean; lint 0 errors/24 warnings; build OK; the
+  moments and events search routes return 200.
+- **Progress:** Wave 3 discovery **~94% to ~95%**; overall **~92%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2914,7 +2929,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~80% |
-| 3 | Video, feed and discovery ecosystem | ~94% |
+| 3 | Video, feed and discovery ecosystem | ~95% |
 | 4 | Creator Studio, exclusives and live streaming | ~82% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
