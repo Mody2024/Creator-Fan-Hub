@@ -1,0 +1,50 @@
+name: Supabase activity check
+
+# Lightweight read-only API health checks. Supabase documents that API
+# requests count toward database activity, but does not guarantee that any
+# fixed request volume will prevent inactivity pausing.
+on:
+  schedule:
+    - cron: "17 3,11,19 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-activity-check
+  cancel-in-progress: false
+
+jobs:
+  database-read-check:
+    name: Verify Supabase responds to a database read
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Read one public achievement catalog row
+        shell: bash
+        env:
+          SUPABASE_URL: https://scxkgybuodhuohcxpfat.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_OBnGQ_-Oc_NFjxqZNZjKjA_fn8DV1N_
+        run: |
+          set -euo pipefail
+          response_file="$(mktemp)"
+          status_code="$(curl --silent --show-error \
+            --output "$response_file" \
+            --write-out "%{http_code}" \
+            --get "$SUPABASE_URL/rest/v1/achievement_catalog" \
+            --data-urlencode "select=code" \
+            --data-urlencode "limit=1" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Authorization: Bearer $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Accept: application/json" \
+            --max-time 20 \
+            --retry 2 \
+            --retry-delay 3)
+          if [[ "$status_code" != "200" ]]; then
+            echo "Supabase database read failed (HTTP $status_code)."
+            cat "$response_file"
+            exit 1
+          fi
+          echo "Supabase answered a read-only database request successfully."
+          cat "$response_file"
