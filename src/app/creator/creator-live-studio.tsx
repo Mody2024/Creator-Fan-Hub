@@ -24,17 +24,18 @@ export default function CreatorLiveStudio({ locale }: { locale: "ar" | "en" }) {
   const [visibility, setVisibility] = useState("public");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [liveAd, setLiveAd] = useState<Record<string, { eligible: boolean; reasons: string[]; dvr_capable: boolean }>>({});
 
   const t = isAr
     ? {
         title: "استوديو البث", note: "ابدأ بثك وتابع حالته وأدر الإعادة. البث متاح لدور البث (Streamer) فقط.",
         streamTitle: "عنوان البث", visibility: "الظهور", start: "ابدأ البث", end: "إنهاء", replay: "الإعادة متاحة حتى",
-        health: "الحالة", none: "لا يوجد بث بعد.", started: "تم بدء البث.", ended: "تم إنهاء البث.", err: "تعذر تنفيذ العملية (تحقق من صلاحية البث والحصص)."
+        health: "الحالة", none: "لا يوجد بث بعد.", started: "تم بدء البث.", ended: "تم إنهاء البث.", err: "تعذر تنفيذ العملية (تحقق من صلاحية البث والحصص).", adReady: "الإعلان المباشر جاهز", adNotReady: "الإعلان المباشر غير جاهز", adReasons: "الأسباب", markBreak: "تسجيل فاصل", intermission: "فاصل", breakMarked: "تم تسجيل الفاصل.", dvr: "ذاكرة الإرجاع متاحة"
       }
     : {
         title: "Live studio", note: "Start a stream, report its health and manage the replay. Starting streams requires the Streamer role.",
         streamTitle: "Stream title", visibility: "Visibility", start: "Start stream", end: "End", replay: "Replay available until",
-        health: "Health", none: "No streams yet.", started: "Stream started.", ended: "Stream ended.", err: "The operation failed (check the Streamer role and quotas)."
+        health: "Health", none: "No streams yet.", started: "Stream started.", ended: "Stream ended.", err: "The operation failed (check the Streamer role and quotas).", adReady: "Live advertising ready", adNotReady: "Live advertising not ready", adReasons: "Reasons", markBreak: "Mark break", intermission: "Intermission", breakMarked: "Break marked.", dvr: "DVR buffer available"
       };
 
   const load = useCallback(async () => {
@@ -76,6 +77,23 @@ export default function CreatorLiveStudio({ locale }: { locale: "ar" | "en" }) {
     setBusy(false);
   }
 
+  async function loadReadiness(id: string) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    const { data } = await supabase.rpc("raye2_live_ad_readiness", { p_stream_id: id });
+    if (data) setLiveAd((current) => ({ ...current, [id]: data as { eligible: boolean; reasons: string[]; dvr_capable: boolean } }));
+  }
+
+  async function markBreak(id: string, kind: string) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || busy) return;
+    setBusy(true); setNotice("");
+    const { error } = await supabase.rpc("raye2_mark_live_break", { p_stream_id: id, p_kind: kind, p_note: "" });
+    if (error) setNotice(t.err);
+    else { setNotice(t.breakMarked); await loadReadiness(id); }
+    setBusy(false);
+  }
+
   return (
     <section className="module-block" id="creator-live-studio">
       <div className="module-heading"><div><h2>{t.title}</h2><p>{t.note}</p></div></div>
@@ -100,6 +118,16 @@ export default function CreatorLiveStudio({ locale }: { locale: "ar" | "en" }) {
                 <button key={state} className="module-arrow" disabled={busy || stream.health === state} onClick={() => void setHealth(stream.id, state)}>{state}</button>
               ))}
               <button className="module-arrow" disabled={busy} onClick={() => void end(stream.id)}>{t.end}</button>
+            </div>
+          ) : null}
+          {stream.status === "live" ? (
+            <div className="module-live-ads">
+              <button className="module-arrow" disabled={busy} onClick={() => void loadReadiness(stream.id)}>{liveAd[stream.id] ? (liveAd[stream.id].eligible ? t.adReady : t.adNotReady) : t.adNotReady}</button>
+              {liveAd[stream.id] ? <small>{liveAd[stream.id].dvr_capable ? t.dvr + " · " : ""}{liveAd[stream.id].eligible ? "" : `${t.adReasons}: ${liveAd[stream.id].reasons.join(", ") || "—"}`}</small> : null}
+              <div className="module-card-top">
+                <button className="module-arrow" disabled={busy} onClick={() => void markBreak(stream.id, "round_break")}>{t.markBreak}</button>
+                <button className="module-arrow" disabled={busy} onClick={() => void markBreak(stream.id, "intermission")}>{t.intermission}</button>
+              </div>
             </div>
           ) : null}
         </article>

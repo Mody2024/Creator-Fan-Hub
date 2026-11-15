@@ -1067,3 +1067,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .raye2-monetization-metrics>div{padding:10px 12px;border-radius:9px;background:rgba(255,255,255,.03)}
 .raye2-monetization-metrics dt{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#8ea6c4}
 .raye2-monetization-metrics dd{margin:4px 0 0;font-size:18px;font-variant-numeric:tabular-nums}
+
+/* Raye2 live advertising readiness controls */
+.module-live-ads{display:flex;flex-direction:column;gap:8px;margin-top:8px}
