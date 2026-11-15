@@ -633,6 +633,11 @@ const evPage = await read("../src/app/events/page.tsx");
 check("events support Q&A with host-only answers and author removal", evMigration.includes("create table if not exists public.event_qa") && evMigration.includes("function public.raye2_answer_event_question(") && evMigration.includes("host or creator access required") && evMigration.includes("function public.raye2_remove_event_question("));
 check("events attach a community space through the existing group conversation", evMigration.includes("add column if not exists conversation_id uuid references public.raye2_conversations") && evMigration.includes("function public.raye2_attach_event_space(") && evMigration.includes("you must belong to the room you attach"));
 check("the events UI surfaces Q&A and the attached space", evClient.includes("raye2_ask_event_question") && evClient.includes("raye2_list_event_questions") && evClient.includes("openSpace") && evPage.includes("space_group_slug"));
+const modMigration = await read("../supabase/migrations/20261110870000_raye2_admin_moderation_queue.sql");
+const adminClient = await read("../src/app/creator/raye2/admin-client.tsx");
+check("the admin console unifies the moderation queue with audited resolution", modMigration.includes("function public.raye2_get_moderation_queue(") && modMigration.includes("function public.raye2_admin_resolve_report(") && modMigration.includes("raye2_resolve_content_report") && modMigration.includes("raye2_resolve_safety_report"));
+check("the moderation queue is scoped to moderators and platform admins", modMigration.includes("moderator or platform admin access required") && modMigration.includes("private.can_moderate_community()"));
+check("the admin console renders the moderation queue", adminClient.includes("raye2_get_moderation_queue") && adminClient.includes("raye2_admin_resolve_report") && adminClient.includes("moderation"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");
