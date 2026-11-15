@@ -9,6 +9,9 @@ export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
  const supabase=await createSupabaseServerClient();
  if(!supabase)return <main className="nhen-app-shell"><p>Raye2 Watch is temporarily unavailable.</p></main>;
+ const {data:claims}=await supabase.auth.getClaims();const subject=claims?.claims?.sub;
+ const {data:me}=typeof subject==="string"?await supabase.from("member_profiles").select("handle").eq("user_id",subject).maybeSingle():{data:null};
+ const profileHref=me?.handle?"/u/"+me.handle:"/community#join";
  const {data}=await supabase.rpc("raye2_get_watch_library_page",{p_limit:24});
  const rows=(data??[]) as WatchRow[];
  const videos=rows.flatMap(row=>{const card=buildWatchCard(supabase,row);return card?[card]:[];});
@@ -16,7 +19,7 @@ export default async function WatchLibraryPage(){
   <header className="raye2-watch-header">
    <Link className="raye2-watch-brand" href="/raye2/home" aria-label="Raye2 home"><span aria-hidden="true">R</span><span className="raye2-watch-sr-only">Raye2</span></Link>
    <form className="raye2-watch-search" action="/search"><span aria-hidden="true">⌕</span><input name="q" placeholder="Search videos, creators and communities" aria-label="Search Raye2"/><kbd>↵</kbd></form>
-   <nav><Link href="/raye2/home">Home</Link><Link href="/community">Community</Link><Link href="/profile">My profile</Link></nav>
+   <nav><Link href="/raye2/home">Home</Link><Link href="/community">Community</Link><Link href={profileHref}>My profile</Link></nav>
   </header>
   <div className="raye2-watch-layout">
    <aside className="raye2-watch-rail"><span className="raye2-watch-label">YOUR SPACE</span><Link href="/raye2/home">⌂ <span>Home</span></Link><Link className="active" href="/watch">▶ <span>Watch</span></Link><Link href="/shorts">▤ <span>Mini’s</span></Link><Link href="/community">◉ <span>Communities</span></Link></aside>

@@ -2994,6 +2994,20 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 (accounts/permissions) **~80% to ~81%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Dead-link elimination + permanent link guard (mega-batch, plan 2.1 / 15 navigation)
+- [x] **Gap closed:** the acceptance matrix requires "every primary route reachable; no dead links or
+  disconnected shells". A repository-wide scan found real dead links: five `/profile` links (home page ×4,
+  Watch ×1) and two `/login` links (Mini's, Clips) — neither route exists.
+- [x] `/profile` now resolves to the viewer's own profile (`/u/<handle>`, fetched server-side) or falls back
+  to the public sign-in surface `/community#join` when signed out. `/login` now points to `/community#join`,
+  the app's real public sign-in surface (already used elsewhere).
+- [x] **Permanent guard:** a new test enumerates every App Router route (including dynamic segments) and fails
+  if any static internal `href="/..."` does not resolve, so dead links cannot silently return.
+- [x] Gates: validator 429 assertions; tests 859/859; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 2 (accounts/permissions) **~81% to ~82%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

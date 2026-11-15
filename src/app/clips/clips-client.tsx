@@ -189,7 +189,7 @@ export default function ClipsClient() {
             <button className="nhen-action" disabled={busy || !file || !title.trim() || !sourceId} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
           </>
         ) : (
-          <Link className="nhen-action" href="/login">{t.signIn}</Link>
+          <Link className="nhen-action" href="/community#join">{t.signIn}</Link>
         )}
         {status ? <p role="status" className="nhen-muted">{status}</p> : null}
       </article>
