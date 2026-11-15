@@ -615,6 +615,13 @@ const adLiveStudio = await read("../src/app/creator/creator-live-studio.tsx");
 check("live sponsor placement fails safe and uses streamer-declared breaks", liveAdMigration.includes("function public.raye2_live_ad_readiness(") && liveAdMigration.includes("function public.raye2_live_ad_schedule(") && liveAdMigration.includes("create table if not exists public.raye2_live_break_marks") && liveAdMigration.includes("if v_status <> 'live' or not v_insert or v_health in ('offline','reconnecting') then return; end if;"));
 check("live provider capability is admin-only and drives the context replay bridge", liveAdMigration.includes("function public.raye2_set_live_provider_capability(") && liveAdMigration.includes("provider does not support compliant live insertion") && liveAdMigration.includes("case when v_dvr then least(15, greatest(0, public.raye2_rule_int('ads.context_replay_seconds', 5))) else 0 end"));
 check("the live studio surfaces readiness and break marking", adLiveStudio.includes("raye2_live_ad_readiness") && adLiveStudio.includes("raye2_mark_live_break"));
+const clipsMigration = await read("../supabase/migrations/20261110840000_raye2_community_clips.sql");
+const clipsPage = await read("../src/app/clips/page.tsx");
+const clipsClient = await read("../src/app/clips/clips-client.tsx");
+const watchDetail = await read("../src/app/watch/[slug]/watch-detail-client.tsx");
+check("community clips enforce source permission, length and attribution", clipsMigration.includes("create table if not exists public.raye2_community_clips") && clipsMigration.includes("allow_clipping") && clipsMigration.includes("clipping is disabled for this source") && clipsMigration.includes("clip duration must be between 1 and % seconds") && clipsMigration.includes("attribution_text"));
+check("community clips support removal, expiry, reporting and maintenance", clipsMigration.includes("function public.raye2_remove_community_clip(") && clipsMigration.includes("function public.raye2_expire_community_clips(") && clipsMigration.includes("'community_clip'") && clipsMigration.includes("clips_expired"));
+check("the community clips flow is wired into the UI", clipsPage.includes("raye2_run_maintenance") && clipsClient.includes("raye2_publish_community_clip") && clipsClient.includes("raye2_list_community_clips") && watchDetail.includes("raye2_set_source_clipping"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");

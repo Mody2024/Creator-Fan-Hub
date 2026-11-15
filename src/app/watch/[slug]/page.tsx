@@ -13,7 +13,7 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  const supabase=await createSupabaseServerClient();
  if(!supabase)notFound();
  const {data,error}=await supabase.from("video_catalog")
-  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!video_catalog_media_id_fkey!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status,metadata)")
+  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!video_catalog_media_id_fkey!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status,metadata,owner_id,allow_clipping)")
   .eq("slug",slug).not("published_at","is",null).maybeSingle();
  if(error||!data)notFound();
  const media=Array.isArray(data.media_items)?data.media_items[0]:data.media_items;
@@ -61,5 +61,5 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  const related=(relatedResult.data??[]) as {slug:string;title:string;category:string;description:string;published_at:string}[];
  const contextResult=await supabase.rpc("raye2_get_watch_context",{p_slug:slug});
  const context=(Array.isArray(contextResult.data)?contextResult.data[0]:null) as WatchContext|null;
- return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context}/>;
+ return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context} ownerId={media.owner_id??null} allowClipping={media.allow_clipping!==false}/>;
 }

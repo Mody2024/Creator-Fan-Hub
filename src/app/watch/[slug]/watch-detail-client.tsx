@@ -7,7 +7,7 @@ import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import NhenReactionArt from "./nhen-reaction-art";
 
-type Props={startAt?:number;hlsSrc?:string|null;mediaId:string;title:string;description:string;src:string;poster?:string|null;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[];related?:RelatedVideo[];context?:WatchContext|null};
+type Props={startAt?:number;hlsSrc?:string|null;mediaId:string;title:string;description:string;src:string;poster?:string|null;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[];related?:RelatedVideo[];context?:WatchContext|null;ownerId?:string|null;allowClipping?:boolean};
 type WatchContext={creator_user_id:string;creator_handle:string|null;creator_display_name:string|null;creator_avatar_url:string|null;follower_count:number;is_following:boolean;series_slug:string|null;series_title:string|null;series_position:number|null;series_episode_count:number|null};
 type ThreadComment={comment_id:string;author_id:string;author_handle:string|null;author_display_name:string|null;author_avatar_url:string|null;body:string;created_at:string;reply_count:number;reaction_count:number;my_reaction:string|null};
 type ThreadReply={comment_id:string;author_id:string;author_handle:string|null;author_display_name:string|null;author_avatar_url:string|null;body:string;created_at:string;reaction_count:number;my_reaction:string|null};
@@ -31,6 +31,8 @@ export default function WatchDetailClient(props:Props){
  const [adSchedule,setAdSchedule]=useState<Array<{at_seconds:number;label:string;disclosure_text:string;replay_seconds:number}>>([]);
  const [actionBusy,setActionBusy]=useState(false);
  const [locale,setLocale]=useState<"en"|"ar">("en");
+ const [clippingAllowed,setClippingAllowed]=useState(props.allowClipping!==false);
+ const [clippingBusy,setClippingBusy]=useState(false);
  const [following,setFollowing]=useState(!!props.context?.is_following);
  const [followers,setFollowers]=useState(Number(props.context?.follower_count??0));
  const [followBusy,setFollowBusy]=useState(false);
@@ -208,6 +210,14 @@ export default function WatchDetailClient(props:Props){
   }catch{}
  }
 
+ async function toggleClipping(next:boolean){
+  if(!supabase||clippingBusy)return;
+  setClippingBusy(true);
+  const {error}=await supabase.rpc("raye2_set_source_clipping",{p_media_id:props.mediaId,p_allow:next});
+  if(!error)setClippingAllowed(next);
+  setClippingBusy(false);
+ }
+
  return <main className="raye2-detail-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <header className="raye2-detail-header"><Link className="raye2-detail-brand" href="/raye2/home">Raye2<span className="raye2-detail-brand-mark">.</span></Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/community">{t.community}</Link><Link href="/notifications">{t.notifications}</Link><Link href="/series">{t.series}</Link><Link href="/shorts">{t.shorts}</Link><Link href="/#videos">{t.videos}</Link></nav></header>
   <div className="raye2-detail-layout">
@@ -231,6 +241,7 @@ export default function WatchDetailClient(props:Props){
     <div className="raye2-detail-actions"><div className="raye2-detail-reaction"><button className={liked?"active":""} aria-expanded={reactionPicker} aria-haspopup="menu" onClick={()=>setReactionPicker(value=>!value)} disabled={actionBusy}>{myReaction?<NhenReactionArt reaction={myReaction} size={19}/>:<NhenReactionArt reaction="spark" size={19}/>} {myReaction?({spark:"Spark",orbit:"Orbit",legend:"Legend",laugh:"Laugh",mindblown:"Mind-blown",support:"Support"} as Record<string,string>)[myReaction]??t.react:t.react} · {likes}</button>{reactionPicker&&<div className="raye2-detail-picker" role="menu" aria-label={t.choose}>{[{id:"spark",icon:"✦",name:t.spark},{id:"orbit",icon:"◉",name:t.orbit},{id:"legend",icon:"♛",name:t.legend},{id:"laugh",icon:"≋",name:t.laugh},{id:"mindblown",icon:"✧",name:t.mindblown},{id:"support",icon:"♡",name:t.support}].map(item=><button type="button" role="menuitem" key={item.id} className={myReaction===item.id?"active":""} onClick={()=>void chooseReaction(item.id)} disabled={actionBusy}><NhenReactionArt reaction={item.id} size={25}/><span>{item.name}</span></button>)}</div>}</div><button className={saved?"active":""} onClick={()=>void toggleBookmark()} disabled={actionBusy}>▣ {saved?t.saved:t.save}</button><button onClick={()=>void shareVideo()}>↗ {t.share}</button></div>
     <section className="nhen-card nhen-card-pad raye2-detail-description"><h2>{t.about}</h2><p>{props.description||t.noDescription}</p>{props.tags.length>0&&<div className="raye2-detail-tags">{props.tags.map(tag=><Link key={tag} href={"/topics/"+encodeURIComponent(tag)}>#{tag}</Link>)}</div>}</section>
     {adSchedule.length>0&&<section className="nhen-card nhen-card-pad raye2-detail-sponsored" aria-label={isArabic?"المواضع المدعومة":"Sponsored placements"}><div className="nhen-card-heading"><h2>{isArabic?"المواضع المدعومة":"Sponsored placements"}</h2><span className="nhen-muted">{isArabic?"موسومة بوضوح":"Clearly labelled"}</span></div><ul className="raye2-detail-sponsored-list">{adSchedule.map((a,i)=><li key={i}><span className="raye2-detail-sponsored-at">{Math.floor(a.at_seconds/60)}:{String(a.at_seconds%60).padStart(2,"0")}</span><span className="raye2-detail-sponsored-label">{a.label}</span>{a.disclosure_text?<span className="nhen-muted">{a.disclosure_text}</span>:null}{a.replay_seconds>0?<span className="nhen-muted">{isArabic?"إعادة السياق":"Context replay"}: {a.replay_seconds}s</span>:null}</li>)}</ul></section>}
+    {props.ownerId&&member===props.ownerId&&<section className="nhen-card nhen-card-pad" aria-label={isArabic?"السماح بالمقاطع":"Community clips"}><div className="nhen-card-heading"><h2>{isArabic?"المقاطع المجتمعية":"Community clips"}</h2></div><p className="nhen-muted">{isArabic?"اسمح للجمهور بإنشاء مقاطع من هذا الفيديو مع الإشارة إليك. تعطيل الخيار يخفي المقاطع الحالية.":"Let fans make clips from this video with attribution. Disabling hides existing clips."}</p><button className="nhen-action" disabled={clippingBusy} onClick={()=>void toggleClipping(!clippingAllowed)}>{clippingAllowed?(isArabic?"تعطيل المقاطع":"Disable clipping"):(isArabic?"تفعيل المقاطع":"Enable clipping")}</button></section>}
     {(props.related??[]).length>0&&<section className="raye2-detail-related" aria-label={t.related}><div className="raye2-detail-related-head"><h2>{t.related}</h2><Link href={"/topics/"+encodeURIComponent(props.category.toLowerCase())}>{props.category} ↗</Link></div><div className="raye2-detail-related-grid">{props.related!.map(item=><article className="raye2-detail-related-card" key={item.slug}><Link href={"/watch/"+item.slug}><div className="raye2-detail-related-thumb">▶</div><div className="raye2-detail-related-copy"><span className="nhen-section-label">{item.category.toUpperCase()}</span><h3>{item.title}</h3><p>{item.description}</p></div></Link></article>)}</div></section>}
     {props.allowComments?<section className="nhen-card nhen-card-pad raye2-detail-comments"><div className="nhen-card-heading"><h2>{t.discussion}</h2><span className="nhen-muted">{comments.length} {t.comments}</span></div>
      {member?<div className="raye2-detail-compose"><textarea value={comment} onChange={e=>setComment(e.target.value)} rows={3} maxLength={1500} placeholder={t.commentPlaceholder}/><button className="button button-primary" onClick={()=>void sendComment()} disabled={!comment.trim()||actionBusy}>{actionBusy?t.sending:t.commentAction}</button></div>:<p className="nhen-muted">{t.signIn}</p>}
