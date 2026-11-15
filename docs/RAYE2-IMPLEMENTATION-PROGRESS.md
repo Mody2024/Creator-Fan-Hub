@@ -2505,6 +2505,17 @@ One regression-test file was briefly created on the default `main` branch becaus
 
 ---
 
+
+## 2026-11-10 — Single-theme consolidation to the plan palette (mega-batch, plan 1.1/1.2)
+- [x] **Owner decision recorded:** the product uses **one** theme — the plan's black/white/grey/blue — not a light+dark pair. There is no runtime theme toggle.
+- [x] Removed the two competing theme variants (`theme-paper` light, `theme-violet`) from `globals.css` and `nhen-design-system.css`, and deleted the `theme-custom` remnant.
+- [x] Purged legacy lime-green (`rgba(216,255,117,…)`) and stray neon pink/purple accents from the hero art and design system; on-accent text is now dark slate (`#071321`).
+- [x] Added the full semantic token set to the single root theme: `--accent`, `--accent-strong`, `--accent-soft`, `--success`, `--warning`, `--error`, `--focus`, `--state-hover`, `--state-selected`, `--state-disabled`, plus the `--nhen-*` mirrors.
+- [x] Removed the dark/light toggle, its state/effect and its CSS from the Raye2 chat client; the surface is one theme everywhere.
+- [x] Gates: validator 400 assertions; tests 787/787; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.1 (brand/visual system) **~40% to ~55%**; Wave 1 **~47% to ~52%** provisional. Global shell/layout rebuild and the logo-asset pipeline remain.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2512,7 +2523,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~47% |
+| 1 | Brand system and full product redesign | ~52% |
 | 2 | Core platform architecture, accounts and permissions | ~62% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |

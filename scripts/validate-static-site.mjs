@@ -640,6 +640,10 @@ check("the moderation queue is scoped to moderators and platform admins", modMig
 check("the admin console renders the moderation queue", adminClient.includes("raye2_get_moderation_queue") && adminClient.includes("raye2_admin_resolve_report") && adminClient.includes("moderation"));
 const memMigration = await read("../supabase/migrations/20261110880000_raye2_shared_memory_expiry.sql");
 const raye2MemoryClient = await read("../src/app/raye2/raye2-client.tsx");
+const singleThemeGlobals = await read("../src/app/globals.css");
+const singleThemeDesign = await read("../src/app/nhen-design-system.css");
+check("the product uses a single black/white/grey/blue theme with no legacy light/violet variants", !/theme-(paper|violet|custom)/.test(singleThemeGlobals + singleThemeDesign) && singleThemeGlobals.includes("--success:") && singleThemeGlobals.includes("--error:") && singleThemeGlobals.includes("--state-selected:"));
+check("legacy lime/neon colors are gone from the theme", !/216,255,117|255,100,124|165,139,255/.test(singleThemeGlobals + singleThemeDesign));
 check("temporary Shared Memories expire on their own clock and preserved ones never do", memMigration.includes("function public.raye2_expire_shared_memories()") && memMigration.includes("function public.raye2_guard_memory_expiry()") && memMigration.includes("a temporary Shared Memory requires an expiry"));
 check("memory expiry and preservation are guarded and folded into maintenance", memMigration.includes("function public.raye2_set_memory_expiry(") && memMigration.includes("function public.raye2_preserve_memory(") && memMigration.includes("shared_memories_expired") && raye2MemoryClient.includes("raye2_set_memory_expiry") && raye2MemoryClient.includes("raye2_preserve_memory"));
 
