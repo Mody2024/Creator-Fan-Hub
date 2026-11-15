@@ -2422,3 +2422,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 3/3 (anon runs maintenance; expired Mini → expired; expired Moment → removed).
 - [x] Gates: validator 373 assertions; tests 739/739; tsc clean; lint 0 errors/24 warnings; build OK (200 migrations).
 - **Progress:** Wave 3 (video/feed) **~86% to ~88%**; Wave 8 (moderation/reliability) **~95% to ~96%**; full ten-wave estimate **~86% to ~87%**.
+
+## 2026-11-10 — Smart Advertising Director end-to-end (mega-batch, plan 18.2/18.3/18.6)
+- [x] **Ads rules category + policy rules:** `ads.max_placements_per_video`, `ads.intensity_percent`, `ads.min_break_gap_seconds`, `ads.max_per_viewer_per_day`, `ads.frequency_window_hours`, `ads.context_replay_seconds`.
+- [x] **Reviewable natural breakpoints:** `raye2_media_breakpoints` + `raye2_propose_breakpoints` (deterministic structural fractions clamped away from opening/closing) + `raye2_set_media_breakpoint_excluded`.
+- [x] **Director decision engine:** `raye2_pick_ad_sponsor` / `raye2_ad_director_plan` / `raye2_public_ad_schedule` — a creator contract always outranks a platform campaign (only used when no contract applies and eligible by scope/region/category/priority/exclusivity); intensity policy + minimum gap bound placements; every placement carries its disclosure and the optional context-replay bridge.
+- [x] **Delivery integrity:** `raye2_record_ad_delivery` with per-viewer frequency caps, duplicate protection on (provider_key, provider_event_id) and per-source authorization (external-network + platform = admin-only).
+- [x] **Bug fixed:** creator sponsor campaigns could never be activated (validation trigger rejected the trusted service-role delivery gate the lifecycle guard anticipates).
+- [x] **UI:** creator Ad Director panel on `/creator` + labelled "Sponsored placements" section on the watch page, EN+AR.
+- [x] **Matrix:** 18/18 (breakpoints; creator contract wins; exclusions; platform fallback; exclusive capped contract never falls through; intensity 0 disables; huge gap → one; labelled viewer schedule; frequency cap; dedupe; admin-only sources).
+- [x] Gates: validator 377 assertions; tests 746/746; tsc clean; lint 0 errors/24 warnings; build OK (201 migrations).
+- **Progress:** §18 (pre-beta blocker) **~60% to ~85%**; Wave 4 (creator economy) **~+4%**; full ten-wave estimate **~87% to ~90%**.
