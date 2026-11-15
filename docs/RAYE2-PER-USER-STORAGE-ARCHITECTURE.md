@@ -13,7 +13,7 @@ The migration `20261115193000_raye2_per_user_media_storage_quotas.sql` introduce
 - Creator role: 2 GiB logical allowance.
 - Streamer role: 2 GiB logical allowance.
 - Combined Creator+Streamer / Owner / Admin: 3 GiB logical allowance (combined, not additive).
-- Trusted service-role admin override: configurable up to 10 GiB per account, or reset to role default.
+- Platform admins can set or reset a member's quota through an audited RPC, capped at 10 GiB per account. Role-tier storage values are also admin-tunable but capped at 10 GiB.
 - Shared managed-storage ceiling: remains 750 MiB until a larger provider is explicitly configured and verified.
 - Both creator uploads and worker-generated thumbnails/HLS outputs are charged to the owner's allowance and the shared ceiling.
 - Capacity query: `get_raye2_user_storage_capacity()`.
@@ -34,6 +34,16 @@ Migration `20261115194000_raye2_professional_storage_tiers_and_provider_registry
 - Existing content publishing quotas (long videos, streams, Mini's and Moments) remain governed by the separate existing `raye2_role_quotas` matrix.
 
 The same personal allowance is checked during browser upload reservation, capacity display and worker-generated derivatives. A larger personal allowance never bypasses the physical provider cap.
+
+
+### Admin controls
+
+Migration `20261115195000_raye2_admin_storage_quota_controls.sql` adds:
+- `raye2_admin_set_user_storage_quota(user_id, quota_bytes, reason)` for platform admins.
+- Passing NULL resets the account to its role default.
+- Every change is written to the platform admin audit log.
+- Both per-user and per-role storage limits are hard-capped at 10 GiB.
+- This RPC is ready for the admin UI to call; the dashboard control surface still needs wiring and end-to-end permission testing.
 
 ### Provider registry status
 
