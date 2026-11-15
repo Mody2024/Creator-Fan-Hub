@@ -2612,6 +2612,24 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** §2.1/13.4 (role gating) **~70% to ~76%**; Wave 2 **~62% to ~65%**.
 
 ---
+
+## 2026-11-10 — Voice recording consent UI with mandatory indicator (mega-batch, plan 7/13.9)
+- [x] **Gap closed:** the database fully supported recording consent (`raye2_request_voice_recording_consent`,
+  `raye2_respond_voice_recording_consent`, `recording_state`, `recording_consent`, an event log and the
+  `recording.enabled` rule defaulting to off), but the voice UI never surfaced any of it. Plan 13.9 makes a
+  visible recording indicator and elapsed time mandatory and forbids secret/background recording.
+- [x] **Added to the voice controls:** a live subscription to the session's `recording_state` and the caller's
+  `recording_consent`; a host-only "Request recording" action; an Allow/Decline prompt for the callee; a
+  "Withdraw consent" action; and a mandatory "● REC mm:ss" indicator with a live elapsed clock shown only while
+  consent is granted. Declining or withdrawing stops the session recording server-side (existing behaviour).
+- [x] **Guarded:** a test asserts the request/respond RPCs, the visible indicator, the elapsed clock, the
+  withdraw path, and that recording is host-initiated and off by default (DB default + `recording.enabled=false`);
+  a validator assertion covers the same.
+- [x] Gates: validator 410 assertions; tests 799/799; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.9 (recording consent) **~50% to ~85%**; Wave 7 **~60% to ~66%**. Remaining: group-room
+  consent surface (the private-call controls are wired; group rooms reuse the same RPCs and need the same panel).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

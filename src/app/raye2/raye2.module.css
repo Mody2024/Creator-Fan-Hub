@@ -221,3 +221,6 @@
 .ruleList li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid var(--c-line,rgba(220,232,248,.11));border-radius:10px;font-size:11px}
 .ruleList li span{color:var(--c-muted,#a2afc1);overflow-wrap:anywhere}
 .ruleList li b{color:var(--c-accent,#79b1ff);font-variant-numeric:tabular-nums}
+
+.voiceRecording{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid rgba(255,100,100,.35);border-radius:999px;background:rgba(255,100,100,.1);color:#ff9292;font-size:9px;font-weight:800;letter-spacing:.06em}
+.voiceConsent{display:inline-flex;align-items:center;gap:8px;padding:5px 9px;border:1px solid rgba(110,168,255,.3);border-radius:10px;background:rgba(110,168,255,.07);color:var(--r-text);font-size:9px}

@@ -48,6 +48,10 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
   const [inputDeviceId, setInputDeviceId] = useState("");
   const [outputDeviceId, setOutputDeviceId] = useState("");
   const [quality, setQuality] = useState<"unknown" | "good" | "fair" | "poor">("unknown");
+  const [recordingState, setRecordingState] = useState<"off" | "consent_pending" | "consent_granted" | "stopped">("off");
+  const [myConsent, setMyConsent] = useState<"not_requested" | "pending" | "accepted" | "declined" | "withdrawn">("not_requested");
+  const [recordingElapsed, setRecordingElapsed] = useState(0);
+  const [recordingBusy, setRecordingBusy] = useState(false);
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
   const channelRef = useRef<ReturnType<SupabaseClient["channel"]> | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
@@ -369,6 +373,52 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     return () => { active = false; window.clearInterval(timer); };
   }, [callState]);
 
+  useEffect(() => {
+    if (!session) return;
+    let active = true;
+    const sync = async () => {
+      const { data: row } = await supabase.from("raye2_voice_sessions").select("recording_state").eq("id", session.id).maybeSingle();
+      const { data: me } = await supabase.from("raye2_voice_participants").select("recording_consent").eq("session_id", session.id).eq("user_id", userId).maybeSingle();
+      if (!active) return;
+      if (row?.recording_state) setRecordingState(row.recording_state as typeof recordingState);
+      if (me?.recording_consent) setMyConsent(me.recording_consent as typeof myConsent);
+    };
+    void sync();
+    const channel = supabase.channel("raye2:voice-recording:" + session.id)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_sessions", filter: "id=eq." + session.id }, () => { void sync(); })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_participants", filter: "session_id=eq." + session.id }, () => { void sync(); })
+      .subscribe();
+    return () => { active = false; void supabase.removeChannel(channel); };
+  }, [session, supabase, userId]);
+
+  useEffect(() => {
+    if (recordingState !== "consent_granted") { setRecordingElapsed(0); return; }
+    const started = Date.now();
+    const timer = window.setInterval(() => setRecordingElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [recordingState]);
+
+  const requestRecordingConsent = async () => {
+    if (!session) return;
+    setRecordingBusy(true);
+    const { error: rpcError } = await supabase.rpc("raye2_request_voice_recording_consent", { p_session_id: session.id });
+    setRecordingBusy(false);
+    if (rpcError) setError(rpcError.message);
+    else { setRecordingState("consent_pending"); setMyConsent("pending"); }
+  };
+
+  const respondRecordingConsent = async (decision: "accepted" | "declined" | "withdrawn") => {
+    if (!session) return;
+    setRecordingBusy(true);
+    const { data, error: rpcError } = await supabase.rpc("raye2_respond_voice_recording_consent", { p_session_id: session.id, p_decision: decision });
+    setRecordingBusy(false);
+    if (rpcError) { setError(rpcError.message); return; }
+    setMyConsent(decision);
+    if (typeof data === "string") setRecordingState(data as typeof recordingState);
+  };
+
+  const recordingClock = `${String(Math.floor(recordingElapsed / 60)).padStart(2, "0")}:${String(recordingElapsed % 60).padStart(2, "0")}`;
+
   const toggleMute = () => {
     const next = !muted;
     localStreamRef.current?.getAudioTracks().forEach(track => { track.enabled = !next; });
@@ -392,6 +442,10 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
       {audioInputs.length > 1 && <select aria-label={isAr ? "الميكروفون" : "Microphone"} value={inputDeviceId} onChange={event => void changeInputDevice(event.target.value)}><option value="">{isAr ? "الميكروفون الافتراضي" : "Default mic"}</option>{audioInputs.map(device => <option key={device.deviceId} value={device.deviceId}>{device.label || (isAr ? "ميكروفون" : "Microphone")}</option>)}</select>}
       {audioOutputs.length > 1 && <select aria-label={isAr ? "مخرج الصوت" : "Audio output"} value={outputDeviceId} onChange={event => void changeOutputDevice(event.target.value)}><option value="">{isAr ? "مخرج الصوت الافتراضي" : "Default output"}</option>{audioOutputs.map(device => <option key={device.deviceId} value={device.deviceId}>{device.label || (isAr ? "مخرج صوت" : "Audio output")}</option>)}</select>}
       <button type="button" onClick={toggleMute} disabled={!localStreamRef.current}>{muted ? (isAr ? "إلغاء الكتم" : "Unmute") : (isAr ? "كتم" : "Mute")}</button>
+      {recordingState === "consent_granted" && <span className={styles.voiceRecording} role="status" aria-live="polite">{isAr ? "● تسجيل" : "● REC"} {recordingClock}</span>}
+      {recordingState === "consent_pending" && myConsent === "pending" && <span className={styles.voiceConsent}><span>{isAr ? "طلب تسجيل هذه المكالمة" : "This call is requesting recording consent"}</span><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("accepted")}>{isAr ? "أوافق" : "Allow"}</button><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("declined")}>{isAr ? "أرفض" : "Decline"}</button></span>}
+      {recordingState === "off" && role === "host" && <button type="button" disabled={recordingBusy} onClick={() => void requestRecordingConsent()}>{isAr ? "طلب تسجيل" : "Request recording"}</button>}
+      {recordingState === "consent_granted" && <button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("withdrawn")}>{isAr ? "سحب الموافقة" : "Withdraw consent"}</button>}
       <button type="button" className={styles.voiceEnd} onClick={() => void finishCall(false)}>{isAr ? "إنهاء" : "End"}</button>
       {error && <small className={styles.voiceError}>{error}</small>}
     </div>

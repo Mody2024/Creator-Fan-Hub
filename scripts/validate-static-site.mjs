@@ -678,6 +678,8 @@ const roleMigration = await read("../supabase/migrations/20261110590000_raye2_cr
 const assignableRoles = ["owner", "admin", "creator", "streamer", "editor", "moderator", "analyst"];
 check("the studio admits every assignable creator role (streamer included)", assignableRoles.every(role => studioPage.includes(`"${role}"`) && roleMigration.includes(`'${role}'`)));
 check("streamer-only gets live affordances distinct from creator-only uploads", /const canStream = \["owner", "admin", "streamer"\]\.includes\(role\)/.test(studioPage) && /\{canStream && <Link href="\/creator#creator-live-studio"/.test(studioPage));
+const voiceControlsSrc = await read("../src/app/raye2/raye2-voice-controls.tsx");
+check("voice recording requires consent with a visible indicator and elapsed time", voiceControlsSrc.includes("raye2_request_voice_recording_consent") && voiceControlsSrc.includes("raye2_respond_voice_recording_consent") && voiceControlsSrc.includes("styles.voiceRecording") && voiceControlsSrc.includes("recordingClock"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");
