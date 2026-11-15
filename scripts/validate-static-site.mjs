@@ -495,6 +495,12 @@ check("voice and watch restrictions are enforced server-side", restrMigration.in
 check("video comments enforce the comment restriction", restrMigration.includes("raye2_video_comments_restriction_guard") && restrMigration.includes("raye2_enforce_video_comment_restriction"));
 check("members can see their own restrictions and appeal", restrMigration.includes("create or replace function public.raye2_get_my_restrictions()") && accountSettingsFile.includes('rpc("raye2_get_my_restrictions")') && accountSettingsFile.includes('rpc("raye2_submit_moderation_appeal"'));
 check("the client joins guarded voice and watch sessions", voiceControls.includes("raye2_join_voice_session_guarded") && watchControls.includes("raye2_join_watch_session_guarded"));
+const grantsMigration = await read("../supabase/migrations/20261110670000_raye2_temporary_grants_overrides.sql");
+const teamClient = await read("../src/app/creator/team/team-client.tsx");
+check("temporary role grants honour expiry without a write", grantsMigration.includes("add column if not exists expires_at timestamptz") && grantsMigration.includes("a.expires_at is null or a.expires_at > now()") && grantsMigration.includes("create or replace function public.set_creator_admin_expiry("));
+check("account-specific capability overrides are admin-managed and audited", grantsMigration.includes("create table if not exists public.raye2_capability_overrides") && grantsMigration.includes("create or replace function public.raye2_effective_capability(") && grantsMigration.includes("raye2_set_capability_override") && grantsMigration.includes("capability_override_set"));
+check("members can see their own capability overrides", grantsMigration.includes("create or replace function public.raye2_get_my_capability_overrides()") && accountSettingsFile.includes('rpc("raye2_get_my_capability_overrides")'));
+check("the team UI sets and shows temporary grant expiry", teamClient.includes("set_creator_admin_expiry") && teamClient.includes("expiresAt"));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");

@@ -7,6 +7,7 @@ type Lifecycle = { state: string; scheduled_purge_at: string | null; reason: str
 type Preferences = { locale: string; reduced_motion: boolean; email_notifications: boolean; push_notifications: boolean };
 type ExportRow = { job_id: string; status: string; created_at: string };
 type Restriction = { id: string; action: string; feature: string | null; reason: string; expires_at: string | null; created_at: string; appeal_status: string | null };
+type Override = { id: string; capability: string; value: unknown; reason: string; expires_at: string | null };
 
 export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
   const isAr = locale === "ar";
@@ -15,6 +16,7 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
   const [exports, setExports] = useState<ExportRow[]>([]);
   const [restrictions, setRestrictions] = useState<Restriction[]>([]);
   const [appealText, setAppealText] = useState<Record<string, string>>({});
+  const [overrides, setOverrides] = useState<Override[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -28,7 +30,7 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
         cancelDelete: "إلغاء الحذف", purgeAt: "سيُحذف في", reason: "السبب (اختياري)",
         saved: "تم الحفظ.", err: "تعذر تنفيذ العملية.", deactivated: "تم إيقاف الحساب.", reactivated: "تمت إعادة التنشيط.",
         deleteRequested: "تم تسجيل طلب الحذف (قابل للإلغاء خلال المدة).", exportQueued: "تم تسجيل طلب التصدير.",
-        standing: "حالة الحساب", standingNone: "حسابك بحالة جيدة. لا توجد قيود نشطة.", appeal: "استئناف", appealPlaceholder: "اشرح سبب مراجعة القرار (١٠ أحرف على الأقل)…", appealSent: "تم إرسال الاستئناف للمراجعة.", appealPending: "استئناف قيد المراجعة", expires: "ينتهي"
+        standing: "حالة الحساب", standingNone: "حسابك بحالة جيدة. لا توجد قيود نشطة.", overrides: "صلاحيات خاصة بحسابك", overridesNone: "لا توجد صلاحيات خاصة.", overridesNote: "منحها مسؤول المنصة لحسابك، وقد تنتهي تلقائيًا.", appeal: "استئناف", appealPlaceholder: "اشرح سبب مراجعة القرار (١٠ أحرف على الأقل)…", appealSent: "تم إرسال الاستئناف للمراجعة.", appealPending: "استئناف قيد المراجعة", expires: "ينتهي"
       }
     : {
         title: "Account settings", note: "Manage your preferences and data rights: preferences, export, deactivation or a deletion request.",
@@ -39,22 +41,24 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
         cancelDelete: "Cancel deletion", purgeAt: "Purge scheduled", reason: "Reason (optional)",
         saved: "Saved.", err: "The operation failed.", deactivated: "Account deactivated.", reactivated: "Account reactivated.",
         deleteRequested: "Deletion requested (cancellable during the grace period).", exportQueued: "Export request recorded.",
-        standing: "Account standing", standingNone: "Your account is in good standing. No active restrictions.", appeal: "Appeal", appealPlaceholder: "Explain why this should be reviewed (at least 10 characters)…", appealSent: "Appeal submitted for review.", appealPending: "Appeal under review", expires: "Expires"
+        standing: "Account standing", standingNone: "Your account is in good standing. No active restrictions.", overrides: "Account-specific capabilities", overridesNone: "No account-specific capabilities.", overridesNote: "Granted to your account by a platform administrator; may expire automatically.", appeal: "Appeal", appealPlaceholder: "Explain why this should be reviewed (at least 10 characters)…", appealSent: "Appeal submitted for review.", appealPending: "Appeal under review", expires: "Expires"
       };
 
   const load = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
-    const [{ data: lc }, { data: pr }, { data: ex }, { data: rs }] = await Promise.all([
+    const [{ data: lc }, { data: pr }, { data: ex }, { data: rs }, { data: ov }] = await Promise.all([
       supabase.rpc("raye2_get_account_lifecycle"),
       supabase.rpc("raye2_get_my_preferences"),
       supabase.rpc("raye2_get_my_data_exports"),
-      supabase.rpc("raye2_get_my_restrictions")
+      supabase.rpc("raye2_get_my_restrictions"),
+      supabase.rpc("raye2_get_my_capability_overrides")
     ]);
     setLifecycle(((lc ?? []) as Lifecycle[])[0] ?? null);
     setPrefs(((pr ?? []) as Preferences[])[0] ?? null);
     setExports((ex ?? []) as ExportRow[]);
     setRestrictions((rs ?? []) as Restriction[]);
+    setOverrides((ov ?? []) as Override[]);
   }, []);
 
   useEffect(() => { void load(); }, [load]);
@@ -126,6 +130,19 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
           </div>
         ))}
       </article>
+
+      {overrides.length ? (
+        <article className="module-card">
+          <div className="module-card-top"><span>{t.overrides}</span><span className="module-state">{overrides.length}</span></div>
+          <p><small>{t.overridesNote}</small></p>
+          {overrides.map((o) => (
+            <div key={o.id}>
+              <strong>{o.capability}</strong>
+              <small>{JSON.stringify(o.value)}{o.expires_at ? ` · ${t.expires}: ${new Date(o.expires_at).toLocaleString(isAr ? "ar-EG" : "en")}` : ""}</small>
+            </div>
+          ))}
+        </article>
+      ) : null}
 
       <article className="module-card">
         <div className="module-card-top"><span>{t.export}</span></div>
