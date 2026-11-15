@@ -796,6 +796,9 @@ check("creator content library shows quota and cooldown before publishing", cont
 const sharedMomentMigration = await read("../supabase/migrations/20261111070000_raye2_community_feed_linked_slug.sql");
 check("community shared moments resolve a real watch-page slug and timestamp", sharedMomentMigration.includes("linked_video_slug text") && sharedMomentMigration.includes("public.raye2_can_view_video(vc.media_id) then vc.slug else null end") && sharedMomentMigration.includes("left join public.video_catalog vc on vc.media_id = s.linked_video_id"));
 
+const groupVoiceControls = await read("../src/app/raye2/raye2-group-voice-controls.tsx");
+check("group voice rooms report connection quality and reconnect state", groupVoiceControls.includes("RoomEvent.ConnectionQualityChanged") && groupVoiceControls.includes("RoomEvent.Reconnecting") && groupVoiceControls.includes("RoomEvent.Reconnected") && groupVoiceControls.includes("setReconnecting(false)"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

@@ -3127,6 +3127,20 @@ One regression-test file was briefly created on the default `main` branch becaus
   overall **~92% to ~93%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Group voice connection quality and reconnect state (mega-batch, plan 13.9 / Wave 7)
+- [x] **Gap closed:** plan 13.9 requires group voice rooms to include "reconnect/quality state". The private
+  one-to-one call already reported quality (RTT/packet loss) and a reconnect path, but the group voice room
+  (LiveKit) showed neither: a dropped connection or a poor link was invisible.
+- [x] **UI:** `raye2-group-voice-controls.tsx` now subscribes to `ConnectionQualityChanged`, `Reconnecting` and
+  `Reconnected`, shows the local quality (Good/Fair/Poor) in the connected status and a live "Reconnecting…"
+  notice that clears on reconnect or disconnect (bilingual).
+- [x] **Guarded:** new test `tests/raye2-voice-quality.test.mjs` plus a validator assertion cover the events,
+  the state and the reconnect notice.
+- [x] Gates: validator 437 assertions; tests 881/881; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 7 (Voice, Watch Together) **~82% to ~84%**; overall stays **~93%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3140,7 +3154,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 4 | Creator Studio, exclusives and live streaming | ~90% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~82% |
+| 7 | Voice, Watch Together and shared experiences | ~84% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~92%** |

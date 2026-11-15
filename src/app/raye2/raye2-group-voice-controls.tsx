@@ -35,6 +35,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   const [pushToTalk, setPushToTalk] = useState(false);
   const [noiseSuppression, setNoiseSuppression] = useState(true);
   const [audioPrefsBusy, setAudioPrefsBusy] = useState(false);
+  const [quality, setQuality] = useState<"unknown" | "good" | "fair" | "poor">("unknown");
+  const [reconnecting, setReconnecting] = useState(false);
   const [error, setError] = useState("");
   const roomRef = useRef<LiveKitRoom | null>(null);
   const sessionRef = useRef<string | null>(null);
@@ -56,7 +58,12 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     muteAll: isAr ? "كتم الجميع" : "Mute all",
     clearHands: isAr ? "خفض كل الأيدي" : "Clear hands",
     pushToTalk: isAr ? "اضغط للتحدث" : "Push to talk",
-    noiseSuppression: isAr ? "إخماد الضوضاء" : "Noise suppression"
+    noiseSuppression: isAr ? "إخماد الضوضاء" : "Noise suppression",
+    quality: isAr ? "الجودة" : "Quality",
+    qualityGood: isAr ? "جيدة" : "Good",
+    qualityFair: isAr ? "متوسطة" : "Fair",
+    qualityPoor: isAr ? "ضعيفة" : "Poor",
+    reconnecting: isAr ? "جارٍ إعادة الاتصال…" : "Reconnecting…"
   };
 
   const leaveRoom = async () => {
@@ -119,6 +126,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       if (!response.ok || !tokenData.url || !tokenData.token) throw new Error(tokenData.error || copy.failed);
 
       const { Room, RoomEvent, Track } = await import("livekit-client");
+      setQuality("unknown");
+      setReconnecting(false);
       const room = new Room({ adaptiveStream: true, dynacast: true });
       roomRef.current = room;
       room.on(RoomEvent.TrackSubscribed, (track, _publication, _participant) => {
@@ -144,8 +153,15 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         setActiveSpeakers(speakers.map(speaker => speaker.identity));
         refreshParticipants();
       });
+      room.on(RoomEvent.ConnectionQualityChanged, (qualityLevel, participant) => {
+        if (participant.identity !== room.localParticipant.identity) return;
+        setQuality(qualityLevel === "excellent" || qualityLevel === "good" ? "good" : qualityLevel === "poor" ? "poor" : "fair");
+      });
+      room.on(RoomEvent.Reconnecting, () => setReconnecting(true));
+      room.on(RoomEvent.Reconnected, () => setReconnecting(false));
       room.on(RoomEvent.Disconnected, () => {
         setConnected(false);
+        setReconnecting(false);
         if (roomRef.current === room) roomRef.current = null;
       });
 
@@ -296,7 +312,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         </button>
       ) : (
         <>
-          <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members}</span>
+          <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members} · {copy.quality}: {quality === "good" ? copy.qualityGood : quality === "fair" ? copy.qualityFair : quality === "poor" ? copy.qualityPoor : "—"}</span>
+          {reconnecting && <span className={styles.voiceConsent} role="status" aria-live="polite">{copy.reconnecting}</span>}
           <button type="button" onClick={() => void toggleMute()}>{muted ? copy.unmute : copy.mute}</button>
           <button type="button" aria-pressed={handRaised} onClick={() => void toggleHand()}>{handRaised ? copy.lowerHand : copy.raiseHand}</button>
           <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={pushToTalk} onChange={event => void saveAudioPreferences(event.target.checked, noiseSuppression)}/>{copy.pushToTalk}</label>
