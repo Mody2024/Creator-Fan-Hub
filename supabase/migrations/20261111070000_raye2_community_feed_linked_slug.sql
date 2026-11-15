@@ -5,6 +5,11 @@
 -- videos. For any other viewer that list does not contain the video, so the link rendered as "/watch/undefined".
 -- The feed now returns the linked video's slug directly, and only when the viewer may actually open it.
 
+-- The preceding migration defines the same three-argument RPC with a different
+-- RETURNS TABLE shape. PostgreSQL requires dropping that overload before replacing
+-- its result row type. This is safe during a fresh migration replay.
+drop function if exists public.raye2_get_community_feed(integer, text, boolean);
+
 create or replace function public.raye2_get_community_feed(
   p_limit integer default 40,
   p_sort text default 'latest',
