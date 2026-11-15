@@ -3063,6 +3063,25 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 (accounts/permissions) **~84% to ~86%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Unified creator content library (mega-batch, plan 4.2)
+- [x] **Gap closed:** plan 4.2 lists the content library with its states (draft, published, scheduled, expired,
+  taken down). Each state was computed somewhere else and no surface showed them together.
+- [x] **Migration** `20261111060000_raye2_creator_content_library.sql`: one owner-scoped, read-only RPC
+  (`raye2_creator_content_library`) derives the state of every owned long video (taken_down > processing >
+  scheduled > draft > expired > published) plus view/reaction/comment counts. A helper
+  `raye2_media_is_taken_down` exposes only a boolean, so creators never see another owner's moderation trail
+  or the claimant/evidence record.
+- [x] **Studio UI** `src/app/creator/content-library.tsx`: a filterable list with per-state counts, search,
+  state pills, scheduled/expiry dates, engagement counts and a link to each watch page (bilingual). Wired into
+  `/creator` with a quick-nav card.
+- [x] **Guarded:** tests assert the state derivation, the owner scoping and that no claimant/evidence leaks;
+  a validator assertion covers the migration. State colors stay inside the black/grey/blue palette.
+- [x] Gates: validator 434 assertions; tests 875/875; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/creator` 200.
+- **Progress:** Wave 4 (Creator Studio) **~85% to ~87%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3073,7 +3092,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
-| 4 | Creator Studio, exclusives and live streaming | ~85% |
+| 4 | Creator Studio, exclusives and live streaming | ~87% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |

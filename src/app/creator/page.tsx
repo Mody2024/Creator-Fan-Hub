@@ -12,6 +12,7 @@ import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
 import MediaLibrary from "./media-library";
+import ContentLibrary from "./content-library";
 import PublishingHistory from "./publishing-history";
 import VideoStudio from "./video-studio";
 import AchievementInsights from "./achievement-insights";
@@ -59,6 +60,7 @@ export default async function CreatorDashboardPage() {
         )}
         <a className="module-card" href="#creator-events-socials"><div className="module-card-top"><span>04 / CONTENT</span><span className="module-state">Events & links</span></div><h3>{t.events}</h3><p>{t.eventsDesc}</p><span className="module-arrow">↗</span></a>
         <a className="module-card" href="#creator-media"><div className="module-card-top"><span>05 / ASSETS</span><span className="module-state">Media</span></div><h3>{t.media}</h3><p>{t.mediaDesc}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-content-library"><div className="module-card-top"><span>05 / CONTENT</span><span className="module-state">Library</span></div><h3>{isArabic?"مكتبة المحتوى":"Content library"}</h3><p>{isArabic?"اعرض كل فيديوهاتك الطويلة وحالتها في قائمة واحدة.":"See every long video you own and its state in one list."}</p><span className="module-arrow">↗</span></a>
         <a className="module-card" href="/creator/analytics"><div className="module-card-top"><span>10 / INSIGHTS</span><span className="module-state">Analytics</span></div><h3>{t.analytics}</h3><p>{t.analyticsDesc}</p><span className="module-arrow">↗</span></a>
         {admin.role === "owner" && (
 <a className="module-card" href="/creator/team"><div className="module-card-top"><span>09 / ACCESS</span><span className="module-state">Owner only</span></div><h3>{t.team}</h3><p>{t.teamDesc}</p><span className="module-arrow">↗</span></a>
@@ -88,6 +90,7 @@ export default async function CreatorDashboardPage() {
       {["owner","admin"].includes(admin.role) && <IdeaModerationQueue />}
       <EventSocialManagement />
       <MediaLibrary />
+      <ContentLibrary locale={isArabic?"ar":"en"} />
       <VideoStudio />
       <CreatorNotifications locale={isArabic?"ar":"en"} />
       <AchievementInsights />

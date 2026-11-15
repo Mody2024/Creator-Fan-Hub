@@ -787,6 +787,9 @@ check("account recovery: password reset request and set-new-password flow are wi
 const siteMiddleware = await read("../middleware.ts");
 check("session refresh covers creator routes and member-aware public pages", siteMiddleware.includes('"/creator/:path*"') && siteMiddleware.includes('"/api/creator/:path*"') && siteMiddleware.includes('"/account/:path*"') && siteMiddleware.includes('"/saved/:path*"') && siteMiddleware.includes('"/notifications/:path*"') && siteMiddleware.includes('"/community/:path*"') && siteMiddleware.includes('"/groups/:path*"') && siteMiddleware.includes('"/watch/:path*"') && siteMiddleware.includes('"/raye2/home/:path*"'));
 
+const contentLibraryMigration = await read("../supabase/migrations/20261111060000_raye2_creator_content_library.sql");
+check("creator content library derives all publication states owner-scoped", contentLibraryMigration.includes("raye2_creator_content_library") && contentLibraryMigration.includes("when public.raye2_media_is_taken_down(m.media_id) then 'taken_down'") && contentLibraryMigration.includes("when m.published_at is null and m.publish_at is not null then 'scheduled'") && contentLibraryMigration.includes("when m.expires_at is not null and m.expires_at <= now() then 'expired'") && contentLibraryMigration.includes("where m.owner_id = auth.uid()"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
