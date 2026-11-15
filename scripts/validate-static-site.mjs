@@ -516,6 +516,8 @@ const adminClientFile = await read("../src/app/creator/raye2/admin-client.tsx");
 check("owner and super-admin powers are separated", ownerSepMigration.includes("create or replace function public.raye2_is_super_admin()") && ownerSepMigration.includes("create or replace function public.raye2_admin_capabilities()"));
 check("destructive cleanup and privilege overrides are owner-only", ownerSepMigration.includes("create or replace function public.raye2_run_cleanup_job(") && ownerSepMigration.includes("create or replace function public.raye2_set_capability_override(") && (ownerSepMigration.match(/raye2_is_super_admin\(\) then raise exception 'owner access required'/g) ?? []).length >= 3);
 check("the admin UI shows the capability matrix and gates destructive run", adminClientFile.includes('rpc("raye2_admin_capabilities")') === false && adminClientFile.includes("initialCaps") && adminClientFile.includes("canRunCleanup") && adminClientFile.includes("runOwnerOnly"));
+const accessExtMigration = await read("../supabase/migrations/20261110710000_raye2_creator_profile_watch_access.sql");
+check("creator, profile and watch-together reads apply the video access check", ["raye2_list_creators","raye2_get_profile_overview","raye2_validate_watch_source"].every(name => accessExtMigration.includes("create or replace function public." + name + "(")) && (accessExtMigration.match(/public\.raye2_can_view_video\(/g) ?? []).length >= 4);
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
