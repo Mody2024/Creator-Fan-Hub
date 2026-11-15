@@ -2801,6 +2801,27 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 7 voice depth **~60% to ~82%**; Wave 7 **~76% to ~82%**.
 
 ---
+
+## 2026-11-10 — Creator analytics depth and long-video expiry (mega-batch, plan Wave 4/13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to show real analytics (views, completion where
+  measurable, engagement, followers) and to never fabricate metrics, and requires a long-video user-selected
+  expiry of up to 14 days subject to Admin policy. The analytics RPC returned only raw view/reaction/comment
+  counts, and long videos had no expiry at all.
+- [x] **New migration** `20261110960000_raye2_creator_analytics_depth.sql`: a `video_catalog.expires_at` column
+  with `raye2_set_video_expiry` (owner-only, clamped to `raye2_creator_max_video_expiry_days`, audited) and
+  `raye2_expire_long_videos` (unpublishes expired videos, folded into `raye2_run_maintenance`);
+  `raye2_get_creator_analytics` returns real unique viewers, a windowed reach, completion counts (derived from
+  watch-progress), engagement and followers.
+- [x] **No fabrication:** the analytics response sets `watch_time_available=false` with a plain note, because no
+  watch-time instrumentation exists. The panel states this rather than showing an invented figure.
+- [x] **UI:** a new `CreatorAnalyticsPanel` on the analytics page shows followers, unique viewers and completion
+  with per-video expiry controls (set 14 days / clear), EN + AR.
+- [x] **Guarded:** a new test covers the metrics, the no-fabrication contract, expiry limits and the maintenance
+  sweep; a validator assertion covers the migration.
+- [x] Gates: validator 420 assertions; tests 829/829; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 creator analytics **~65% to ~78%**; Wave 4 **~73% to ~78%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2809,15 +2830,15 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~78% |
-| 2 | Core platform architecture, accounts and permissions | ~62% |
+| 2 | Core platform architecture, accounts and permissions | ~72% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
-| 4 | Creator Studio, exclusives and live streaming | ~70% |
+| 4 | Creator Studio, exclusives and live streaming | ~78% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~60% |
+| 7 | Voice, Watch Together and shared experiences | ~82% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~80%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~88%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps: Wave 1 (light/dark themes and the global redesign shell), Wave 2 (permission/RLS test coverage and identity consolidation), Wave 7 (recording consent UX, cross-device voice/watch verification), and §18.4 (external ad network — blocked on real provider approval/SDK).
+Largest remaining gaps: Wave 1 (light/dark themes and the global redesign shell), Wave 4 (Creator Studio depth), Wave 2 (identity consolidation), and §18.4 (external ad network — blocked on real provider approval/SDK).

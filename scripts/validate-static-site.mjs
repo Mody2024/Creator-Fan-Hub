@@ -706,6 +706,8 @@ const watchDepthMigration = await read("../supabase/migrations/20261110940000_ra
 check("watch together depth adds presence, moderation and control requests", watchDepthMigration.includes("raye2_watch_heartbeat") && watchDepthMigration.includes("raye2_remove_watch_participant") && watchDepthMigration.includes("raye2_request_watch_control") && watchDepthMigration.includes("raye2_expire_watch_sessions"));
 const voiceDepthMigration = await read("../supabase/migrations/20261110950000_raye2_voice_depth.sql");
 check("voice depth adds raise hand, audio preferences and idle-room expiry", voiceDepthMigration.includes("raye2_set_voice_hand") && voiceDepthMigration.includes("raye2_set_voice_audio_preferences") && voiceDepthMigration.includes("raye2_voice_bulk_moderation") && voiceDepthMigration.includes("raye2_expire_idle_voice_rooms"));
+const creatorAnalyticsMigration = await read("../supabase/migrations/20261110960000_raye2_creator_analytics_depth.sql");
+check("creator analytics depth reports real metrics and long-video expiry", creatorAnalyticsMigration.includes("raye2_get_creator_analytics") && creatorAnalyticsMigration.includes("'watch_time_available', false") && creatorAnalyticsMigration.includes("raye2_set_video_expiry") && creatorAnalyticsMigration.includes("raye2_expire_long_videos"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");
