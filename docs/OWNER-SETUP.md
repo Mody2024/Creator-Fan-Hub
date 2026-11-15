@@ -58,7 +58,34 @@ Never temporarily grant broad table access to make a test pass. Test using the e
 - Use Supabase's trusted dashboard process for password resets or account recovery; this app does not provide public registration or a self-service password-reset flow.
 - Enable multi-factor authentication for the owner where supported by the project's Auth settings.
 
-## 5. Final acceptance checklist
+## 5. Configure realtime voice providers (development only)
+
+Group voice uses LiveKit server-side token generation. The current development preview does not have the required provider variables, so the group-voice token route returns a controlled `503` until they are configured.
+
+After selecting and provisioning a LiveKit endpoint, configure these variables on the Vercel **Preview** target for the `development` branch:
+
+- `LIVEKIT_URL` — WebSocket endpoint for the LiveKit deployment.
+- `LIVEKIT_API_KEY` — server-side API key.
+- `LIVEKIT_API_SECRET` — server-side secret; never prefix it with `NEXT_PUBLIC_`.
+
+For reliable peer-to-peer private calls across restrictive networks, configure a TURN provider and set:
+
+- `RAYE2_TURN_URLS` — comma-separated TURN/TURNS URLs.
+- `RAYE2_TURN_SHARED_SECRET` — server-only shared secret used to mint short-lived credentials.
+
+Do not paste provider secrets into chat or commit them to Git. Enter them directly in the provider dashboard and Vercel environment settings. Confirm provider pricing/limits before enabling any service; no paid provider should be activated without owner approval. Do not configure Production until the development integration passes multi-device tests and production is explicitly approved.
+
+## 6. Configure the self-hosted media worker
+
+The worker is a separate long-running process; a Vercel deployment does not run it. It requires:
+
+- The development Supabase project URL.
+- `SUPABASE_SERVICE_ROLE_KEY` in the private worker environment only.
+- Node.js 22, FFmpeg/FFprobe, and the repository's worker image.
+
+Do not put the service-role key in Vercel's `NEXT_PUBLIC_*` variables, GitHub Actions, the repository, or chat. The development database must first receive the reviewed media-processing and worker-queue migrations. The worker should remain stopped until those migrations and the end-to-end upload/HLS test pass.
+
+## 7. Final acceptance checklist
 
 - [ ] Owner can sign in, refresh the dashboard, and sign out.
 - [ ] A non-allowlisted authenticated account is denied.
@@ -72,6 +99,9 @@ Never temporarily grant broad table access to make a test pass. Test using the e
 - [ ] Media upload, publish, unpublish and delete work for the owner.
 - [ ] Cross-owner media access is denied.
 - [ ] Event and social-link create, edit, publish, reorder and delete flows work.
+- [ ] Voice works through LiveKit and TURN on multiple real devices, including reconnect and moderator removal.
+- [ ] Media worker completes a real test upload, generates thumbnails and HLS, and records a successful lease completion.
+- [ ] Sponsorship review and delivery are tested with clearly disclosed test assets; no external ad network is claimed as connected until provider integration is verified.
 - [ ] Mobile and desktop layouts are checked in a real browser.
 - [ ] Supabase Security Advisor findings are reviewed after the final schema change.
 - [ ] GitHub validation and Free CI pass on the exact release commit.
