@@ -1093,3 +1093,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .library-state-processing{color:#9dc0ff}
 .library-state-taken_down{color:#e87d85}
 @media(max-width:760px){.library-row{grid-template-columns:1fr}.library-row-stats{justify-content:space-between}}
+
+/* Raye2 Wave 4 / plan 13.4: quota and cooldown display in the content library. */
+.library-quota{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:11px;letter-spacing:.03em;color:var(--muted)}
+.library-quota>strong{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink,inherit)}
+.library-quota b{color:var(--ink,inherit);font-family:var(--mono,monospace)}

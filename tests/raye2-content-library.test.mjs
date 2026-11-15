@@ -42,3 +42,10 @@ test("failed processing is retryable from the library", () => {
   assert.match(component, /row\.state === "processing" && row\.processing_status === "failed"/);
   assert.match(component, /t\.retryLimit/);
 });
+
+test("the library shows quota and cooldown so limits are visible before publishing", () => {
+  assert.match(component, /raye2_get_creator_capabilities/);
+  assert.match(component, /long_videos_per_month/);
+  assert.match(component, /can_publish_long_video_now/);
+  assert.match(component, /library-quota/);
+});

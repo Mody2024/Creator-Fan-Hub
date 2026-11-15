@@ -790,6 +790,9 @@ check("session refresh covers creator routes and member-aware public pages", sit
 const contentLibraryMigration = await read("../supabase/migrations/20261111060000_raye2_creator_content_library.sql");
 check("creator content library derives all publication states owner-scoped", contentLibraryMigration.includes("raye2_creator_content_library") && contentLibraryMigration.includes("when public.raye2_media_is_taken_down(m.media_id) then 'taken_down'") && contentLibraryMigration.includes("when m.published_at is null and m.publish_at is not null then 'scheduled'") && contentLibraryMigration.includes("when m.expires_at is not null and m.expires_at <= now() then 'expired'") && contentLibraryMigration.includes("where m.owner_id = auth.uid()"));
 
+const contentLibraryComponent = await read("../src/app/creator/content-library.tsx");
+check("creator content library shows quota and cooldown before publishing", contentLibraryComponent.includes("raye2_get_creator_capabilities") && contentLibraryComponent.includes("long_videos_per_month") && contentLibraryComponent.includes("can_publish_long_video_now") && contentLibraryComponent.includes("library-quota"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

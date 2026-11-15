@@ -54,7 +54,14 @@ const LABELS = {
     retry: "Retry processing",
     retryQueued: "The asset was queued again. It becomes ready after the worker succeeds.",
     retryLimit: "This asset has reached its manual retry limit.",
-    retryFail: "This asset cannot be retried now."
+    retryFail: "This asset cannot be retried now.",
+    quotaTitle: "Quota & cooldown",
+    longVideoQuota: "Long videos left this month",
+    cooldown: "Long-video cooldown",
+    cooldownReady: "You can publish a long video now.",
+    cooldownWait: "Next allowed",
+    cooldownDays: "days",
+    quotaUnavailable: "Quota details are unavailable."
   },
   ar: {
     eyebrow: "استوديو Raye2 / مكتبة المحتوى",
@@ -84,7 +91,14 @@ const LABELS = {
     retry: "إعادة محاولة المعالجة",
     retryQueued: "تمت إعادة الملف إلى قائمة المعالجة. سيظهر جاهزًا بعد نجاح العامل.",
     retryLimit: "تم استنفاد محاولات الإعادة اليدوية لهذا الملف.",
-    retryFail: "لا يمكن إعادة هذا الملف الآن."
+    retryFail: "لا يمكن إعادة هذا الملف الآن.",
+    quotaTitle: "الحصة وفترة الانتظار",
+    longVideoQuota: "الفيديوهات الطويلة المتبقية هذا الشهر",
+    cooldown: "فترة انتظار الفيديو الطويل",
+    cooldownReady: "يمكنك نشر فيديو طويل الآن.",
+    cooldownWait: "الموعد المسموح التالي",
+    cooldownDays: "يوم",
+    quotaUnavailable: "تفاصيل الحصة غير متاحة."
   }
 } as const;
 
@@ -92,6 +106,16 @@ function toNumber(value: number | string): number {
   const parsed = typeof value === "number" ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
+
+type Capabilities = {
+  quotas?: Record<string, number | null>;
+  usage?: Record<string, number | null>;
+  cooldown?: {
+    long_video_cooldown_days?: number | null;
+    next_allowed_at?: string | null;
+    can_publish_long_video_now?: boolean;
+  };
+};
 
 export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar" }) {
   const t = LABELS[locale];
@@ -101,12 +125,15 @@ export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar"
   const [status, setStatus] = useState<string>(t.loading);
   const [filter, setFilter] = useState<"all" | ContentState>("all");
   const [search, setSearch] = useState("");
+  const [caps, setCaps] = useState<Capabilities | null>(null);
 
   const load = useCallback(async () => {
     if (!supabase) { setReady(true); setStatus(t.loadFail); return; }
     try {
       const { data, error } = await supabase.rpc("raye2_creator_content_library");
       if (error) throw error;
+      const { data: capData } = await supabase.rpc("raye2_get_creator_capabilities");
+      setCaps((capData ?? null) as Capabilities | null);
       const list = Array.isArray(data) ? (data as ContentRow[]) : [];
       setRows(list);
       setStatus(list.length === 0 ? t.empty : "");
@@ -153,6 +180,15 @@ export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar"
     });
   }, [rows, filter, search]);
 
+  const quotaLeft = (() => {
+    const limit = caps?.quotas?.long_videos_per_month;
+    const used = caps?.usage?.long_videos_per_month;
+    if (typeof limit !== "number") return null;
+    return Math.max(0, limit - (typeof used === "number" ? used : 0));
+  })();
+  const cooldownDays = caps?.cooldown?.long_video_cooldown_days ?? null;
+  const cooldownReady = caps?.cooldown?.can_publish_long_video_now;
+
   const when = (iso: string | null) => iso ? new Date(iso).toLocaleString(locale === "ar" ? "ar-EG" : "en-US") : t.notLive;
 
   return <section id="creator-content-library" className="moderation-panel content-manager" aria-busy={!ready}>
@@ -160,6 +196,12 @@ export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar"
       <div><span className="eyebrow">{t.eyebrow}</span><h2>{t.title}<em>{t.emphasis}</em></h2><p>{t.intro}</p></div>
       <span className="module-count">{rows.length} {locale === "ar" ? "عنصر" : "ITEMS"}</span>
     </div>
+    {caps && <div className="library-quota" aria-label={t.quotaTitle}>
+      <strong>{t.quotaTitle}</strong>
+      <span>{t.longVideoQuota}: <b>{quotaLeft ?? "—"}</b></span>
+      <span>{t.cooldown}: <b>{typeof cooldownDays === "number" ? `${cooldownDays} ${t.cooldownDays}` : "—"}</b></span>
+      <span>{cooldownReady === false && caps.cooldown?.next_allowed_at ? `${t.cooldownWait} ${when(caps.cooldown.next_allowed_at)}` : t.cooldownReady}</span>
+    </div>}
     <div className="library-filters" role="group" aria-label={t.state}>
       <button type="button" className="nhen-action" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>{t.all} ({rows.length})</button>
       {STATES.map(state => <button key={state} type="button" className="nhen-action" aria-pressed={filter === state} onClick={() => setFilter(state)}>{t[state]} ({counts[state]})</button>)}

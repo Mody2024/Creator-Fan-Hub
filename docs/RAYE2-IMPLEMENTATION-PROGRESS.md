@@ -3095,6 +3095,19 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 (Creator Studio) **~87% to ~88%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Quota and cooldown display in the content library (mega-batch, plan 13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to include "quota/cooldown display" alongside the
+  library, processing/takedown state and real analytics. The library showed content state but not the remaining
+  long-video quota or the long-video cooldown.
+- [x] **Studio UI:** `content-library.tsx` now reads `raye2_get_creator_capabilities` and shows a compact strip
+  with long videos left this month, the cooldown length, and either "you can publish now" or the next allowed
+  time (bilingual). Figures are the server's; nothing is computed client-side as enforcement.
+- [x] **Guarded:** the content-library test asserts the capabilities call, the quota key and the cooldown flag.
+- [x] Gates: validator 435 assertions; tests 877/877; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 (Creator Studio) **~88% to ~89%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3105,7 +3118,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
-| 4 | Creator Studio, exclusives and live streaming | ~88% |
+| 4 | Creator Studio, exclusives and live streaming | ~89% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |
