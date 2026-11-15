@@ -2444,3 +2444,13 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 14/14 (daily cap; invalid frees cap; admin-only flag/detect; reconciliation states; non-fabricated creator report; admin overview).
 - [x] Gates: validator 381 assertions; tests 752/752; tsc clean; lint 0 errors/24 warnings; build OK (202 migrations).
 - **Progress:** §18 (pre-beta blocker) **~85% to ~93%**; Wave 8 (admin campaign control/accounting) **~+3%**; full ten-wave estimate **~90% to ~92%**.
+
+## 2026-11-10 — Live sponsor placement fail-safe (mega-batch, plan 18.2/18.3 live, 18.7)
+- [x] **Provider capability (admin-only, audited):** `live_insertion_capable`, `live_dvr_capable`, `raye2_set_live_provider_capability` — never invented.
+- [x] **Streamer-declared natural breaks:** `raye2_live_break_marks` + `raye2_mark_live_break` + `raye2_set_live_break_excluded` (round break / intermission / transition / streamer-declared).
+- [x] **Readiness:** `raye2_live_ad_readiness` with explicit reasons (not live / no compliant insertion / unhealthy).
+- [x] **Live selection + fail-safe schedule:** `raye2_pick_live_ad_sponsor` (platform campaigns only) + `raye2_live_ad_schedule` (declared breaks only; skip when unsafe; DVR-gated context replay bridge).
+- [x] **UI:** live studio readiness + break marking, EN+AR.
+- [x] **Matrix:** 13/13 (fail-safe before capability; admin-only capability; eligible after capability; labelled placement; DVR-gated replay; exclusion; unhealthy fail-safe).
+- [x] Gates: validator 384 assertions; tests 757/757; tsc clean; lint 0 errors/24 warnings; build OK (203 migrations).
+- **Progress:** §18 (pre-beta blocker) **~93% to ~97%**; Wave 4 (streaming) **~+2%**; full ten-wave estimate **~92% to ~94%**.
