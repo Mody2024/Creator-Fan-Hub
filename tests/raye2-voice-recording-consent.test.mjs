@@ -28,3 +28,13 @@ test("the elapsed recording time is displayed while consent is granted", async (
   assert.match(ui, /const recordingClock =/);
   assert.match(ui, /\{recordingClock\}/);
 });
+
+test("group voice rooms surface the same recording consent and indicator", async () => {
+  const group = await read("../src/app/raye2/raye2-group-voice-controls.tsx");
+  assert.match(group, /raye2_request_voice_recording_consent/);
+  assert.match(group, /raye2_respond_voice_recording_consent/);
+  assert.match(group, /recordingState === "consent_granted" && <span className=\{styles\.voiceRecording\}/);
+  assert.match(group, /recordingState === "off" && isVoiceHost && <button/);
+  assert.match(group, /respondRecordingConsent\("withdrawn"\)/);
+  assert.match(group, /const recordingClock =/);
+});

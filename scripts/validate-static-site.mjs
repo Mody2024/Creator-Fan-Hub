@@ -680,6 +680,8 @@ check("the studio admits every assignable creator role (streamer included)", ass
 check("streamer-only gets live affordances distinct from creator-only uploads", /const canStream = \["owner", "admin", "streamer"\]\.includes\(role\)/.test(studioPage) && /\{canStream && <Link href="\/creator#creator-live-studio"/.test(studioPage));
 const voiceControlsSrc = await read("../src/app/raye2/raye2-voice-controls.tsx");
 check("voice recording requires consent with a visible indicator and elapsed time", voiceControlsSrc.includes("raye2_request_voice_recording_consent") && voiceControlsSrc.includes("raye2_respond_voice_recording_consent") && voiceControlsSrc.includes("styles.voiceRecording") && voiceControlsSrc.includes("recordingClock"));
+const groupVoiceControlsSrc = await read("../src/app/raye2/raye2-group-voice-controls.tsx");
+check("group voice rooms surface the same recording consent and indicator", groupVoiceControlsSrc.includes("raye2_request_voice_recording_consent") && groupVoiceControlsSrc.includes("raye2_respond_voice_recording_consent") && groupVoiceControlsSrc.includes("styles.voiceRecording") && groupVoiceControlsSrc.includes("recordingClock") && groupVoiceControlsSrc.includes("isVoiceHost"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");

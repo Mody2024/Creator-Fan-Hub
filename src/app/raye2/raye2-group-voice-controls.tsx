@@ -26,6 +26,11 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   const [participants, setParticipants] = useState<VoiceParticipant[]>([]);
   const [canModerate, setCanModerate] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [isVoiceHost, setIsVoiceHost] = useState(false);
+  const [recordingState, setRecordingState] = useState<"off" | "consent_pending" | "consent_granted" | "stopped">("off");
+  const [myConsent, setMyConsent] = useState<"not_requested" | "pending" | "accepted" | "declined" | "withdrawn">("not_requested");
+  const [recordingElapsed, setRecordingElapsed] = useState(0);
+  const [recordingBusy, setRecordingBusy] = useState(false);
   const [error, setError] = useState("");
   const roomRef = useRef<LiveKitRoom | null>(null);
   const sessionRef = useRef<string | null>(null);
@@ -56,6 +61,10 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     setCanModerate(false);
     setLocked(false);
     setMuted(false);
+    setIsVoiceHost(false);
+    setRecordingState("off");
+    setMyConsent("not_requested");
+    setRecordingElapsed(0);
     if (room) await room.disconnect();
     if (sessionId) await supabase.rpc("raye2_leave_voice_session", { p_session_id: sessionId });
   };
@@ -87,6 +96,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         supabase.from("raye2_group_members").select("role").eq("group_id", groupId).eq("user_id", userId).eq("status", "active").maybeSingle(),
         supabase.from("raye2_voice_sessions").select("is_locked").eq("id", data).maybeSingle()
       ]);
+      setIsVoiceHost(["host","cohost"].includes(ownVoiceMembership?.role ?? ""));
       setCanModerate(["host","cohost","moderator"].includes(ownVoiceMembership?.role ?? "") || ["owner","admin","moderator"].includes(groupMembership?.role ?? ""));
       setLocked(Boolean(sessionInfo?.is_locked));
 
@@ -178,6 +188,56 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     }
   };
 
+  useEffect(() => {
+    if (!connected) return;
+    const sessionId = sessionRef.current;
+    if (!sessionId) return;
+    let active = true;
+    const sync = async () => {
+      const { data: row } = await supabase.from("raye2_voice_sessions").select("recording_state").eq("id", sessionId).maybeSingle();
+      const { data: me } = await supabase.from("raye2_voice_participants").select("recording_consent").eq("session_id", sessionId).eq("user_id", userId).maybeSingle();
+      if (!active) return;
+      if (row?.recording_state) setRecordingState(row.recording_state as typeof recordingState);
+      if (me?.recording_consent) setMyConsent(me.recording_consent as typeof myConsent);
+    };
+    void sync();
+    const channel = supabase.channel("raye2:group-voice-recording:" + sessionId)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_sessions", filter: "id=eq." + sessionId }, () => { void sync(); })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_participants", filter: "session_id=eq." + sessionId }, () => { void sync(); })
+      .subscribe();
+    return () => { active = false; void supabase.removeChannel(channel); };
+  }, [connected, supabase, userId]);
+
+  useEffect(() => {
+    if (recordingState !== "consent_granted") { setRecordingElapsed(0); return; }
+    const started = Date.now();
+    const timer = window.setInterval(() => setRecordingElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [recordingState]);
+
+  const requestRecordingConsent = async () => {
+    const sessionId = sessionRef.current;
+    if (!sessionId) return;
+    setRecordingBusy(true);
+    const { error: rpcError } = await supabase.rpc("raye2_request_voice_recording_consent", { p_session_id: sessionId });
+    setRecordingBusy(false);
+    if (rpcError) setError(rpcError.message);
+    else { setRecordingState("consent_pending"); setMyConsent("pending"); }
+  };
+
+  const respondRecordingConsent = async (decision: "accepted" | "declined" | "withdrawn") => {
+    const sessionId = sessionRef.current;
+    if (!sessionId) return;
+    setRecordingBusy(true);
+    const { data, error: rpcError } = await supabase.rpc("raye2_respond_voice_recording_consent", { p_session_id: sessionId, p_decision: decision });
+    setRecordingBusy(false);
+    if (rpcError) { setError(rpcError.message); return; }
+    setMyConsent(decision);
+    if (typeof data === "string") setRecordingState(data as typeof recordingState);
+  };
+
+  const recordingClock = `${String(Math.floor(recordingElapsed / 60)).padStart(2, "0")}:${String(recordingElapsed % 60).padStart(2, "0")}`;
+
   const toggleMute = async () => {
     const room = roomRef.current;
     if (!room) return;
@@ -201,6 +261,10 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         <>
           <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members}</span>
           <button type="button" onClick={() => void toggleMute()}>{muted ? copy.unmute : copy.mute}</button>
+          {recordingState === "consent_granted" && <span className={styles.voiceRecording} role="status" aria-live="polite">{isAr ? "● تسجيل" : "● REC"} {recordingClock}</span>}
+          {recordingState === "consent_pending" && myConsent === "pending" && <span className={styles.voiceConsent}><span>{isAr ? "طلب تسجيل هذه الغرفة" : "This room is requesting recording consent"}</span><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("accepted")}>{isAr ? "أوافق" : "Allow"}</button><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("declined")}>{isAr ? "أرفض" : "Decline"}</button></span>}
+          {recordingState === "off" && isVoiceHost && <button type="button" disabled={recordingBusy} onClick={() => void requestRecordingConsent()}>{isAr ? "طلب تسجيل" : "Request recording"}</button>}
+          {recordingState === "consent_granted" && <button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("withdrawn")}>{isAr ? "سحب الموافقة" : "Withdraw consent"}</button>}
           <button type="button" className={styles.voiceEnd} onClick={() => void leaveRoom()}>{copy.leave}</button>
           {canModerate && <button type="button" onClick={() => void toggleRoomLock()}>{locked ? (isAr ? "فتح الغرفة" : "Unlock room") : (isAr ? "قفل الغرفة" : "Lock room")}</button>}
           {activeSpeakers.length > 0 && <small>{copy.speaking}: {activeSpeakers.length}</small>}

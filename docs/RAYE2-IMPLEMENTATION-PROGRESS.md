@@ -2630,6 +2630,22 @@ One regression-test file was briefly created on the default `main` branch becaus
   consent surface (the private-call controls are wired; group rooms reuse the same RPCs and need the same panel).
 
 ---
+
+## 2026-11-10 — Group voice rooms get the recording consent panel (mega-batch, plan 7/13.9)
+- [x] **Parity with private calls:** group voice rooms now surface the same recording consent flow as private
+  calls — a live subscription to `recording_state`/`recording_consent`, a host-only "Request recording" action
+  (gated on the actual voice host/co-host membership, not just group moderation rights, since the server RPC
+  requires the host role), an Allow/Decline prompt, "Withdraw consent", and the mandatory "● REC mm:ss"
+  indicator with a live elapsed clock.
+- [x] Recording stays off by default and stops server-side on decline/withdrawal (existing RPC behaviour); no
+  secret/background recording path exists.
+- [x] **Guarded:** a test asserts the group panel wires the request/respond RPCs, the visible indicator, the
+  elapsed clock, the withdraw path and the host gate; a validator assertion covers the same.
+- [x] Gates: validator 411 assertions; tests 800/800; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.9 (recording consent) **~85% to ~95%**; Wave 7 **~66% to ~70%**. Remaining: Watch Together
+  recording parity and the join-time consent prompt for late joiners (currently prompted live via subscription).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
