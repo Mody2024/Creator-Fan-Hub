@@ -145,12 +145,21 @@ function readConfig(providerId, env = process.env) {
   const region = env[prefix + "_REGION"] || (providerId === "cloudflare_r2" ? "auto" : "us-west-004");
   const publicBucket = env[prefix + "_PUBLIC_BUCKET"] || "";
   const privateBucket = env[prefix + "_PRIVATE_BUCKET"] || "";
+  const publicBaseUrl = env[prefix + "_PUBLIC_BASE_URL"] || "";
   if (!endpoint || !accessKeyId || !secretAccessKey || !publicBucket || !privateBucket) return null;
   const parsed = new URL(endpoint);
   if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) {
     throw new Error(prefix + "_ENDPOINT must be a clean HTTPS S3 endpoint.");
   }
-  return { endpoint: parsed.origin, accessKeyId, secretAccessKey, region, publicBucket, privateBucket };
+  let normalizedPublicBaseUrl = null;
+  if (publicBaseUrl) {
+    const publicUrl = new URL(publicBaseUrl);
+    if (publicUrl.protocol !== "https:" || publicUrl.username || publicUrl.password || publicUrl.search || publicUrl.hash) {
+      throw new Error(prefix + "_PUBLIC_BASE_URL must be a clean HTTPS URL.");
+    }
+    normalizedPublicBaseUrl = publicUrl.toString().replace(/\\/$/, "");
+  }
+  return { endpoint: parsed.origin, accessKeyId, secretAccessKey, region, publicBucket, privateBucket, publicBaseUrl: normalizedPublicBaseUrl };
 }
 
 function responseError(response, providerId) {
@@ -171,7 +180,7 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
     signedDownloads: true,
     serverSideCopy: true,
     sha256Verification: false,
-    publicDelivery: true,
+    publicDelivery: Boolean(config.publicBaseUrl),
   });
 
   async function request(method, object, extraHeaders = {}) {
@@ -193,6 +202,14 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
     },
     async createSignedDownload(object, expiresInSeconds) {
       return presign(config, "GET", object, expiresInSeconds).toString();
+    },
+    getPublicUrl(object) {
+      if (!config.publicBaseUrl || object.bucket !== config.publicBucket) {
+        throw new Error("A public delivery domain is not configured for this object.");
+      }
+      const base = new URL(config.publicBaseUrl + "/");
+      base.pathname = base.pathname.replace(/\\/$/, "") + "/" + normalizeObjectKey(object.key);
+      return base.toString();
     },
     async headObject(object) {
       const response = await request("HEAD", object);
