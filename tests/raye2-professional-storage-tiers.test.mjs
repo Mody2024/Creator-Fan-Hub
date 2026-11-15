@@ -44,3 +44,14 @@ test("upload reservations and worker outputs use the same role-based personal qu
   assert.match(migration, /Raye2 creator storage allowance reached/);
   assert.match(migration, /get_raye2_user_storage_capacity/);
 });
+
+test("platform admins can set or reset user quotas with audit and a 10 GiB hard ceiling", async () => {
+  const adminMigration = await readFile(new URL("../supabase/migrations/20261115195000_raye2_admin_storage_quota_controls.sql", import.meta.url), "utf8");
+  assert.match(adminMigration, /raye2_admin_set_user_storage_quota/);
+  assert.match(adminMigration, /public\.raye2_is_platform_admin\(\)/);
+  assert.match(adminMigration, /10737418240/);
+  assert.match(adminMigration, /reset_to_role_default/);
+  assert.match(adminMigration, /raye2_admin_audit_log/);
+  assert.match(adminMigration, /storage tier limit cannot exceed 10 GiB/);
+  assert.match(adminMigration, /grant execute on function public\.raye2_admin_set_user_storage_quota\(uuid,bigint,text\) to authenticated/);
+});
