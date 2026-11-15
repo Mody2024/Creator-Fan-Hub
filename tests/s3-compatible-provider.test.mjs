@@ -61,7 +61,7 @@ test("delete and copy call the provider and copy verifies the destination", asyn
   const provider = createS3CompatibleProvider("backblaze_b2", config, async (url, options) => {
     calls.push({ url: String(url), method: options.method, headers: options.headers });
     if (options.method === "HEAD") return new Response(null, { status: 200, headers: { "content-length": "42" } });
-    return new Response("", { status: 200 });
+    return new Response(null, { status: 200 });
   });
   const copied = await provider.copyObject(
     { bucket: config.privateBucket, key: "source/file.bin" },
