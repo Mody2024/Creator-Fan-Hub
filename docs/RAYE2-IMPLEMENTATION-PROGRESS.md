@@ -2407,3 +2407,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 13/13 (publish within cap; 4th daily clip rejected; duration cap; creator count increments; foreign storage path rejected; expiry hides from feed but keeps row; anon feed read).
 - [x] Gates: validator 370 assertions; tests 731/731; tsc clean; lint 0 errors/24 warnings; build OK (198 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~78% to ~82%**; Wave 4 (creator economy) **~? to ~+3%**; full ten-wave estimate **~82% to ~84%**.
+
+## 2026-11-10 — Moments end-to-end (mega-batch)
+- [x] **Moments (§4.5) implemented:** `is_moment` + `expires_at` on `community_posts`; `raye2_publish_moment` (linked video required, clip window validated, cap from a rule with a 600s technical ceiling, creator-role monthly quota via `raye2_assert_creator_action`); `raye2_expire_moments` (marks removed, never deletes); public block-aware `raye2_list_moments` feed exposing the linked video slug. Rules `moments.lifetime_days` (7) and `moments.max_clip_seconds` (180).
+- [x] `raye2_creator_usage` extended with `moments_per_month` (completes the quota fix: streams/minis/moments all counted).
+- [x] **UI:** `/moments` page (public feed + creator compose widget), EN+AR, linked from the home rail.
+- [x] **Matrix:** 10/10 (publish; usage counts; clip cap; missing video rejected; ordinary role blocked; expiry hides from feed but keeps row; anon feed read).
+- [x] Gates: validator 372 assertions; tests 736/736; tsc clean; lint 0 errors/24 warnings; build OK (199 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~82% to ~86%**; Wave 4 (creator economy) **~+3%**; full ten-wave estimate **~84% to ~86%**.
