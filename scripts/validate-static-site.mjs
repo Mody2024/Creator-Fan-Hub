@@ -508,6 +508,9 @@ check("the watch library paginates by keyset cursor", watchLibPageMigration.incl
 check("the watch library page respects exclusivity and expiry", watchLibPageMigration.includes("public.raye2_can_view_video(vc.media_id)"));
 check("the watch library exposes load-more with states", watchLibMore.includes('rpc("raye2_get_watch_library_page"') && watchLibMore.includes("Load more videos") && watchLibMore.includes("reached the end"));
 check("watch card media validation is shared and safe", watchLibMedia.includes("creator-media-public/") && watchLibMedia.includes("youtube-nocookie.com") && watchLibMedia.includes("processing_status"));
+const discoveryEnforceMigration = await read("../supabase/migrations/20261110690000_raye2_discovery_exclusivity_enforcement.sql");
+check("discovery RPCs apply the video exclusivity and expiry check", ["raye2_get_related_videos","raye2_get_topic_videos","raye2_list_topics","raye2_get_trending_videos","raye2_get_trending_tags","raye2_search","raye2_get_watch_context","raye2_get_continue_watching"].every(name => discoveryEnforceMigration.includes("create or replace function public." + name + "(")));
+check("every recreated discovery RPC gates on raye2_can_view_video", (discoveryEnforceMigration.match(/public\.raye2_can_view_video\(vc\.media_id\)/g) ?? []).length >= 8);
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
