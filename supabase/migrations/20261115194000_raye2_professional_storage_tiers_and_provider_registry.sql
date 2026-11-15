@@ -70,7 +70,9 @@ insert into public.raye2_storage_providers(
  ('backblaze_b2','s3_compatible',false,'free_only',0,0,0,0,85,30,
   'Candidate: published 10 GB free storage and signup without billing method; remains disabled until adapter, daily zero-spend caps, and usage reconciliation are tested.'),
  ('tigris','s3_compatible',false,'free_only',0,0,0,0,85,40,
-  'Candidate: published 5 GB free storage, no card to start, and zero egress; remains disabled until adapter and request/storage hard-stops are tested.')
+  'Candidate: published 5 GB free storage, no card to start, and zero egress; remains disabled until adapter and request/storage hard-stops are tested.'),
+ ('filebase','s3_compatible',false,'free_only',5368709120,1000000,10000000,5368709120,85,50,
+  'Candidate: 5 GB pooled storage, 5 GB monthly object bandwidth, 1M Class A and 10M Class B requests; no card. Free tier hard-stops on exhaustion. Disabled until adapter and account tests pass.')
 on conflict(provider_key) do nothing;
 
 -- 3. Expose non-secret policy for diagnostics. No provider credentials are stored here.
