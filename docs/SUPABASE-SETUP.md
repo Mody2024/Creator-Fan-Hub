@@ -38,7 +38,7 @@ LiveKit and TURN variables are not configured in the development preview:
 - `RAYE2_TURN_URLS`
 - `RAYE2_TURN_SHARED_SECRET`
 
-The media worker's `SUPABASE_SERVICE_ROLE_KEY` belongs only in the private environment of its separately hosted worker process, never in a browser variable or public repository.
+The media worker's `SUPABASE_SERVICE_ROLE_KEY` belongs in its private worker environment. The same server-only key is also used as a restricted GitHub Actions secret by the dedicated encrypted-backup workflow; it must never appear in browser variables, repository files, workflow logs or chat.
 
 ## Database migration state — verified 2026-11-15
 
