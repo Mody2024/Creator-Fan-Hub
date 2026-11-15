@@ -12,6 +12,13 @@ The Creator Fan Hub uses a dedicated Supabase project:
 
 Do not reuse unrelated Supabase projects.
 
+## Availability and backup protection
+
+- The scheduled read-only activity check is a best-effort inactivity safeguard, not a guarantee that Supabase Free will never pause. Supabase controls project pausing and account lifecycle.
+- The repository now includes a daily encrypted backup workflow. Follow [SUPABASE-BACKUP-RESTORE.md](SUPABASE-BACKUP-RESTORE.md) to configure it after implementation is complete.
+- Encrypted GitHub Actions artifacts are retained for 90 days only. Keep the age private identity offline and periodically download important backups to storage you control.
+- No automation in this repository can prevent a provider from suspending or deleting a project. The owner must retain recovery copies and keep the Supabase account in good standing.
+
 ## Vercel environment
 
 The development Vercel project has these variables for Preview deployments on the `development` branch:
