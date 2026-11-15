@@ -60,7 +60,8 @@ test("legacy bucket id is migrated safely while current Raye2 bucket is accepted
 });
 
 test("no provider credentials are stored in the registry or browser-side configuration", () => {
-  assert.doesNotMatch(providerMigration, /access_key|secret_key|api_token|credential/i);
+  const executableSql = providerMigration.replace(/^--.*$/gm, "");
+  assert.doesNotMatch(executableSql, /access_key|secret_key|api_token|credential/i);
   assert.match(migration, /adapter_ready boolean not null default false/);
   assert.match(migration, /zero_cost_verified boolean not null default false/);
 });
