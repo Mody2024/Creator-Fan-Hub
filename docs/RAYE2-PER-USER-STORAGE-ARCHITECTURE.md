@@ -94,6 +94,14 @@ Tigris currently advertises 5 GiB of Standard storage, 10,000 Class A requests a
 Official reference:
 - https://www.tigrisdata.com/pricing/
 
+### Filebase — safer hard-cap overflow / archive candidate
+
+Filebase publishes a 5 GB pooled free object-storage tier with no credit card. The free tier includes 5 GB of monthly object bandwidth; when storage is exceeded, writes are refused, and when bandwidth is exceeded, reads return 403 until the next month or a deliberate plan upgrade. The free tier does not convert overages into charges. Its low monthly bandwidth makes it unsuitable as the primary high-traffic video CDN, but it is a strong candidate for low-traffic attachments or an archive pool after adapter tests.
+
+Official references:
+- https://filebase.com/free/
+- https://filebase.com/docs/account/pricing
+
 ### Cloudflare R2 — excluded under strict no-payment rules
 
 R2's 10 GB-month free Standard allowance and free egress are attractive, but Cloudflare requires a primary payment method to purchase usage-based products and R2 is billed by usage. It remains disabled because the project must not add a payment method or risk billable overage.
@@ -213,11 +221,12 @@ Keep one Raye2 library and one control plane:
 
 - **Backblaze B2** is the first candidate to test for a 10 GB free pool. Its published free allowance is 10 GB storage and up to 3x average monthly stored data in free egress. No payment method is listed in its account-creation guide. It is not yet approved for production: usage beyond free allowances is billable and the documented daily caps must be tested before the app can rely on them.
 - **Tigris** is the second candidate to test for a separate 5 GiB pool. Its published free tier includes 5 GiB Standard storage, monthly request allowances, zero egress and signup without a card. Overage is billable, so it also remains disabled until account-level behavior and application hard-stops are proven.
+- **Filebase** is the safer hard-cap candidate for a separate 5 GB pool. Its free tier requires no card, includes 5 GB object storage and 5 GB monthly object bandwidth, and switches to read-only / rejects downloads after free limits rather than charging free-tier overages. This makes it suitable for low-traffic archive or attachment classes, not unrestricted video playback.
 - **Supabase** remains the metadata/auth/permissions system and a small fallback pool under its existing conservative cap.
 - **Cloudflare R2** is excluded while the owner requires no payment method and no risk of paid overage.
 - These published free allowances are provider offers, not a permanent guarantee. Terms, availability and account-level eligibility can change. Keep a provider disabled unless the current account and live tests satisfy the zero-cost acceptance gate.
 
-The theoretical published storage pool from B2 + Tigris is approximately 15 GB before safety margins, but **Raye2 must not claim or expose that as live capacity until both adapters are connected, provider limits are reconciled, and upload/playback/delete tests pass**. Free tiers are not guaranteed permanent capacity.
+The theoretical published pool from Tigris + Filebase is approximately 10 GB before safety margins; adding B2 could bring the candidate total toward 20 GB. **Raye2 must not claim or expose any of this as live capacity until adapters are connected, provider limits are reconciled, and upload/playback/delete tests pass.** Filebase has a hard free-tier cutoff but only 5 GB monthly object bandwidth; Tigris and B2 have billable overage terms and therefore require stronger application-side controls. Free tiers are not guaranteed permanent capacity.
 
 ### Google Drive decision: do not use as Raye2's shared video backend
 
