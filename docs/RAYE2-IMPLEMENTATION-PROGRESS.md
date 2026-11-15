@@ -2886,6 +2886,25 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 3 discovery **~91% to ~94%**; overall **~88% to ~91%**.
 
 ---
+
+## 2026-11-10 — Captions and subtitles for native media (mega-batch, plan 4.1 / 2.3)
+- [x] **Gap closed:** plan 4.1 requires the player to expose captions, and plan 2.3 requires caption/subtitle
+  support with accessible media controls. Nothing in the repository stored or served captions at all.
+- [x] **New migration** `20261110990000_raye2_media_captions.sql`: a `raye2_media_captions` table (WebVTT in
+  `creator-media-public`, unique per media+language, no direct table access) with owner-only
+  `raye2_set_media_caption` / `raye2_remove_media_caption` (path constrained to the caller's own folder and
+  must end in `.vtt`), a public `raye2_get_media_captions` readable only for published, ready media, and
+  `raye2_get_my_media_captions` for the studio.
+- [x] **Player:** `PublicVideoPlayer` accepts a `captions` prop and renders native `<track kind="subtitles">`
+  elements with the correct `srcLang`, label and default language, so the browser exposes the caption control.
+- [x] **Watch page** resolves caption storage paths to public URLs and passes them through; the **Video Studio**
+  gains a bilingual captions card to add and remove English/Arabic tracks.
+- [x] **Guarded:** a new test covers the schema, owner-only management, the published-only read gate and the
+  player/watch wiring; a validator assertion covers the migration.
+- [x] Gates: validator 425 assertions; tests 844/844; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 Creator Studio **~78% to ~82%**; overall **~91% to ~92%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2896,13 +2915,13 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~80% |
 | 3 | Video, feed and discovery ecosystem | ~94% |
-| 4 | Creator Studio, exclusives and live streaming | ~78% |
+| 4 | Creator Studio, exclusives and live streaming | ~82% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~91%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~92%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
 Largest remaining gaps: Wave 4 (Creator Studio depth), Wave 2 (identity consolidation and route guards), Wave 7 (provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.

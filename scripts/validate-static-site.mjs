@@ -544,11 +544,11 @@ const searchMigration = await read("../supabase/migrations/20261110230000_raye2_
 const searchSurface = await read("../src/app/search/page.tsx");
 check("discovery exposes one pinned public unified-search RPC across videos, people, posts and tags", searchMigration.includes("create or replace function public.raye2_search(") && searchMigration.includes("'video'::text as kind") && searchMigration.includes("'person'::text as kind") && searchMigration.includes("'post'::text as kind") && searchMigration.includes("'tag'::text as kind") && searchMigration.includes("grant execute on function public.raye2_search(text,integer) to anon, authenticated") && searchMigration.includes("set search_path = ''"));
 check("unified search only surfaces published content and public members", searchMigration.includes("mi.is_published = true") && searchMigration.includes("mp.visibility = 'public'") && searchMigration.includes("cp.status = 'published'") && searchMigration.includes("length(btrim(tag)) between 1 and 40"));
-check("the discover page searches through the unified RPC and links tag results to topic pages", searchSurface.includes('rpc("raye2_search",{p_query:term,p_limit:40})') && searchSurface.includes('href={query("tags")}') && searchSurface.includes('href={"/topics/"+encodeURIComponent(tag.tag)}'));
+check("the discover page searches through the unified RPC and links tag results to topic pages", searchSurface.includes('rpc("raye2_search",{p_query:term,p_limit:40,p_kind:kindParam||null,p_category:selectedCat||null,p_recency:selectedRecency||null})') && searchSurface.includes('href={href("tags")}') && searchSurface.includes('href={"/topics/"+encodeURIComponent(tag.tag)}'));
 
 const searchGroupsMigration = await read("../supabase/migrations/20261110300000_raye2_search_groups.sql");
 check("search depth adds public groups and block-aware filtering in place", searchGroupsMigration.includes("create or replace function public.raye2_search(") && searchGroupsMigration.includes("'group'::text as kind") && searchGroupsMigration.includes("g.visibility = 'public'") && searchGroupsMigration.includes("not exists (select 1 from blocked bl where bl.uid = mp.user_id)") && searchGroupsMigration.includes("not exists (select 1 from blocked bl where bl.uid = cp.author_id)") && searchGroupsMigration.includes("grant execute on function public.raye2_search(text,integer) to anon, authenticated") && searchGroupsMigration.includes("set search_path = ''"));
-check("the discover page renders a spaces section linking to group pages", searchSurface.includes('groups=rows.filter(row=>row.kind==="group")') && searchSurface.includes('showGroups=selectedType==="all"||selectedType==="groups"') && searchSurface.includes('href={query("groups")}') && searchSurface.includes('href={"/groups/"+group.slug}'));
+check("the discover page renders a spaces section linking to group pages", searchSurface.includes('groups=rows.filter(row=>row.kind==="group")') && searchSurface.includes('showGroups=selectedType==="all"||selectedType==="groups"') && searchSurface.includes('href={href("groups")}') && searchSurface.includes('href={"/groups/"+group.slug}'));
 
 const creatorDirectoryMigration = await read("../supabase/migrations/20261110240000_raye2_creator_directory.sql");
 const creatorsSurface = await read("../src/app/creators/page.tsx");
@@ -759,6 +759,9 @@ check("profile identity depth adds cover/links/interests and fixes connection bl
 
 const searchFiltersMigration = await read("../supabase/migrations/20261110980000_raye2_search_filters_privacy.sql");
 check("search adds filters, privacy and the Spaces/Mini result kinds", searchFiltersMigration.includes("p_recency text default null") && searchFiltersMigration.includes("'group'::text as kind") && searchFiltersMigration.includes("'short'::text as kind") && searchFiltersMigration.includes("from public.raye2_groups g") && (searchFiltersMigration.match(/not public\.is_member_blocked\(/g) ?? []).length >= 4 && searchFiltersMigration.includes("raye2_get_search_facets"));
+
+const captionsMigration = await read("../supabase/migrations/20261110990000_raye2_media_captions.sql");
+check("native media captions are stored, owner-managed and publicly readable only for published media", captionsMigration.includes("create table if not exists public.raye2_media_captions") && captionsMigration.includes("raye2_set_media_caption") && captionsMigration.includes("raye2_get_media_captions") && captionsMigration.includes("v_path !~ ('^creator-media-public/' || v_uid::text || '/')") && captionsMigration.includes("m.processing_status = 'ready'"));
 
 if (failures.length) {
   console.error("Repository validation failed:");

@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type Hls from "hls.js";
 
-type Props = { src: string; hlsSrc?: string | null; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar"; onProgress?: (position: number, duration: number) => void };
+export type CaptionTrack = { src: string; language: string; label: string };
 
-export default function PublicVideoPlayer({ src, hlsSrc, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en", onProgress }: Props) {
+type Props = { src: string; hlsSrc?: string | null; title: string; description?: string | null; youtubeEmbedUrl?: string | null; poster?: string | null; startAt?: number; locale?: "en"|"ar"; captions?: CaptionTrack[]; onProgress?: (position: number, duration: number) => void };
+
+export default function PublicVideoPlayer({ src, hlsSrc, title, description, youtubeEmbedUrl, poster, startAt = 0, locale="en", captions, onProgress }: Props) {
   const video = useRef<HTMLVideoElement>(null);
   const lastReported = useRef(0);
   const [failed, setFailed] = useState(false);
@@ -100,7 +102,7 @@ export default function PublicVideoPlayer({ src, hlsSrc, title, description, you
       referrerPolicy="strict-origin-when-cross-origin"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
       allowFullScreen /> : <video ref={video} key={attempt} controls preload="metadata" playsInline poster={poster || undefined} aria-label={description || title}
-      onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} onTimeUpdate={reportProgress} onPause={reportProgress} onEnded={reportProgress} src={!hlsSrc || useFallback ? src : undefined}>
+      onLoadedData={() => setLoaded(true)} onError={() => setFailed(true)} onTimeUpdate={reportProgress} onPause={reportProgress} onEnded={reportProgress} src={!hlsSrc || useFallback ? src : undefined}>{captions?.map(track => <track key={track.language} kind="subtitles" src={track.src} srcLang={track.language} label={track.label || (track.language === "ar" ? "العربية" : "English")} default={track.language === (locale === "ar" ? "ar" : "en")} />)}
       Your browser does not support video playback.
     </video>}
   </div>;

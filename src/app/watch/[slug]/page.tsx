@@ -59,7 +59,15 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  }
  const relatedResult=await supabase.rpc("raye2_get_related_videos",{p_media_id:data.media_id,p_limit:6});
  const related=(relatedResult.data??[]) as {slug:string;title:string;category:string;description:string;published_at:string}[];
+ const captionsResult=await supabase.rpc("raye2_get_media_captions",{p_media_id:data.media_id});
+ const captions=((captionsResult.data??[]) as {language:string;label:string;storage_path:string}[]).flatMap(row=>{
+  if(!row.storage_path?.startsWith("creator-media-public/"))return[];
+  const parts=row.storage_path.split("/");
+  if(parts.length<2||!parts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part)))return[];
+  const candidate=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+  try{const parsed=new URL(candidate);if(parsed.protocol!=="https:")return[];return[{src:parsed.toString(),language:row.language,label:row.label}];}catch{return[];}
+ });
  const contextResult=await supabase.rpc("raye2_get_watch_context",{p_slug:slug});
  const context=(Array.isArray(contextResult.data)?contextResult.data[0]:null) as WatchContext|null;
- return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context} ownerId={media.owner_id??null} allowClipping={media.allow_clipping!==false}/>;
+ return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context} ownerId={media.owner_id??null} allowClipping={media.allow_clipping!==false} captions={captions}/>;
 }
