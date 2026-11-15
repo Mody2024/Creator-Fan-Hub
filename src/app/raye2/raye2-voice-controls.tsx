@@ -182,7 +182,7 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     setBusy(true);
     setError("");
     try {
-      const { error: joinError } = await supabase.rpc("raye2_join_voice_session", { p_session_id: call.id });
+      const { error: joinError } = await supabase.rpc("raye2_join_voice_session_guarded", { p_session_id: call.id });
       if (joinError) throw joinError;
       setIncoming(null);
       setSession(call);

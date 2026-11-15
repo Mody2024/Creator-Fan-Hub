@@ -80,7 +80,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       });
       if (startError || typeof data !== "string") throw startError ?? new Error("Voice room unavailable");
       createdSessionId = data;
-      const { error: joinError } = await supabase.rpc("raye2_join_voice_session", { p_session_id: data });
+      const { error: joinError } = await supabase.rpc("raye2_join_voice_session_guarded", { p_session_id: data });
       if (joinError) throw joinError;
       const [{ data: ownVoiceMembership }, { data: groupMembership }, { data: sessionInfo }] = await Promise.all([
         supabase.from("raye2_voice_participants").select("role").eq("session_id", data).eq("user_id", userId).maybeSingle(),

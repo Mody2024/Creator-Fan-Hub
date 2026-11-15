@@ -172,7 +172,7 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     setBusy(true);
     setError("");
     try {
-      const { error: joinError } = await supabase.rpc("raye2_join_watch_session", { p_session_id: sessionId });
+      const { error: joinError } = await supabase.rpc("raye2_join_watch_session_guarded", { p_session_id: sessionId });
       if (joinError) throw joinError;
       sessionRef.current = sessionId;
       await loadSession(sessionId);
