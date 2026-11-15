@@ -56,3 +56,26 @@ test("reservation idempotency keys reject unsafe identifiers", () => {
   assert.equal(buildStorageReservationKey({ userId: "user_1", assetId: "media_1", attemptId: "attempt_1" }), "raye2-storage:user_1:media_1:attempt_1");
   assert.throws(() => buildStorageReservationKey({ userId: "../admin", assetId: "media_1", attemptId: "attempt_1" }), TypeError);
 });
+
+
+test("unsupported visibility and asset classes fail closed", () => {
+  assert.throws(() => selectStorageProvider({ assetClass: "video", visibility: "unlisted", expectedBytes: 1, providers }), TypeError);
+  assert.throws(() => selectStorageProvider({ assetClass: "unknown", visibility: "private", expectedBytes: 1, providers }), TypeError);
+});
+
+test("duplicate provider capacity rows are rejected rather than ambiguously routed", () => {
+  assert.throws(() => selectStorageProvider({
+    assetClass: "video",
+    visibility: "public",
+    expectedBytes: 1,
+    providers: [providers[0], providers[0]],
+  }), TypeError);
+});
+
+test("unknown or malformed capacity never becomes free headroom", () => {
+  const malformed = [{ ...providers[0], usedBytes: Number.NaN }];
+  assert.throws(
+    () => selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 1, providers: malformed }),
+    StorageCapacityError,
+  );
+});
