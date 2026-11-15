@@ -1,0 +1,59 @@
+name: Supabase encrypted backup
+
+on:
+  schedule:
+    - cron: "41 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: raye2-supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  encrypted-database-backup:
+    name: Create encrypted rolling database backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      AGE_RECIPIENT: ${{ vars.RAYE2_BACKUP_AGE_RECIPIENT }}
+    steps:
+      - name: Check required owner configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SUPABASE_DB_URL" ]]; then
+            echo "::error::Add SUPABASE_DB_URL as a GitHub Actions secret before backups can run."
+            exit 1
+          fi
+          if [[ -z "$AGE_RECIPIENT" ]]; then
+            echo "::error::Add RAYE2_BACKUP_AGE_RECIPIENT as a GitHub Actions variable before backups can run."
+            exit 1
+          fi
+      - name: Install PostgreSQL client and age
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends postgresql-client age
+      - name: Dump and encrypt the database
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p backup
+          dump_file="$(mktemp)"
+          trap 'rm -f "$dump_file"' EXIT
+          pg_dump --format=custom --no-owner --no-acl "$SUPABASE_DB_URL" --file="$dump_file"
+          age --recipient "$AGE_RECIPIENT" --output "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age" "$dump_file"
+          printf 'created_at=%s\nrun_id=%s\ncommit=%s\n'             "$(date -u +%FT%TZ)" "$GITHUB_RUN_ID" "$GITHUB_SHA" > backup/backup-metadata.txt
+          test -s "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age"
+          echo "Encrypted backup created. The plaintext dump will be removed automatically."
+      - name: Store encrypted backup for 90 days
+        uses: actions/upload-artifact@v4
+        with:
+          name: raye2-supabase-backup-${{ github.run_id }}
+          path: backup/
+          if-no-files-found: error
+          retention-days: 90
