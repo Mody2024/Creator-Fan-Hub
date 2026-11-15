@@ -86,3 +86,22 @@ test("reads only fully configured server-side providers", () => {
   assert.equal(getStorageBucketForVisibility(config, "private"), config.privateBucket);
   assert.equal(getStorageBucketForVisibility(config, "public"), config.publicBucket);
 });
+
+
+test("public URLs require an explicitly configured HTTPS delivery domain", () => {
+  const provider = createS3CompatibleProvider("cloudflare_r2", {
+    ...config,
+    publicBaseUrl: "https://media.example.com",
+  });
+  assert.equal(provider.capabilities.publicDelivery, true);
+  assert.equal(
+    provider.getPublicUrl({ bucket: config.publicBucket, key: "creators/u1/video.mp4" }),
+    "https://media.example.com/creators/u1/video.mp4",
+  );
+  assert.throws(
+    () => provider.getPublicUrl({ bucket: config.privateBucket, key: "private/secret.mp4" }),
+    /public delivery domain/,
+  );
+  const privateOnly = createS3CompatibleProvider("backblaze_b2", config);
+  assert.equal(privateOnly.capabilities.publicDelivery, false);
+});
