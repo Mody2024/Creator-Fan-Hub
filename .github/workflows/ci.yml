@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   verify:
@@ -76,3 +76,13 @@ jobs:
           tags: raye2-media-worker:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Validate hardened worker Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co' \
+            'SUPABASE_SERVICE_ROLE_KEY=sb_secret_placeholder_for_config_validation_only' \
+            > .env.raye2-worker
+          docker compose --file compose.raye2-worker.yml config --quiet
+          rm -f .env.raye2-worker
