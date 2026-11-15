@@ -2352,3 +2352,10 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Grants/overrides matrix:** 19/19 (temporary grant works + listed + audited; expiry stops access with no write; future-expiry guardrail; owner-role guard; non-owner blocked; override resolve/visibility/audit/revoke/expiry; no self-grant; cross-member isolation).
 - [x] Gates: validator 348 assertions; tests 690/690 (+4); tsc clean; lint 0 errors/24 warnings; build OK (188 migrations).
 - **Progress:** Wave 2 (accounts/permissions) **~47% to ~55% provisional**; full ten-wave estimate **~73% to ~74%**.
+
+## 2026-11-10 — Watch-library keyset pagination + shared card builder (mega-batch)
+- [x] `raye2_get_watch_library_page`: keyset cursor `(published_at, media_id)` desc over `raye2_can_view_video` (never surfaces exclusive/expired), excluding unpublished and non-ready native videos.
+- [x] `watch-library-media.ts`: shared, safety-checked card builder (public storage prefix, https-origin check, youtube-nocookie embed, processing_status gate); watch page reads the page RPC and mounts a **Load more** control with loading/error+retry/end states.
+- [x] **Watch-library matrix:** 8/8 (page size + newest-first; exclusive/expired/unready/unpublished excluded; walk-all-exactly-once; stability under a new publish; empty cursor).
+- [x] Gates: validator 352 assertions; tests 694/694; tsc clean; lint 0 errors/24 warnings; build OK (189 migrations). Updated one test whose assertions moved with the refactor (behaviour unchanged).
+- **Progress:** Wave 3 (video/feed/discovery) **~58% to ~65% provisional**; full ten-wave estimate **~74% to ~75%**.
