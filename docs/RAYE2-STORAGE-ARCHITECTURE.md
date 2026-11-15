@@ -161,3 +161,18 @@ The live Supabase migration history currently ends at 20261102215604 (nhen_scope
 - Supabase storage pricing: https://supabase.com/docs/guides/storage/pricing
 
 Pricing and provider terms must be rechecked before launch. This document records the current design decision, not a guarantee that any provider will retain its free tier.
+
+
+## 11. S3-compatible adapter implementation update (2026-11-15)
+
+The development branch now contains a dependency-free Node.js S3-compatible adapter for Cloudflare R2 and Backblaze B2 using AWS Signature Version 4:
+- Presigned PUT upload URLs with content-type bound into the signature.
+- Presigned GET download URLs for private objects.
+- Signed HEAD, server-side COPY and DELETE operations.
+- Separate public/private bucket selection and optional HTTPS public custom-domain URLs.
+- HTTPS-only endpoint validation, safe object-key validation, bounded presigned URL expiry and server-side environment configuration.
+- No provider SDK dependency and no secrets in browser bundles or SQL.
+
+Current adapter limitations are explicit: multipart/resumable S3 uploads are not implemented yet; the adapter reports this capability as false. HEAD metadata currently verifies size/content type/ETag but does not claim SHA-256 verification. Public delivery is advertised only when a public base URL is configured. The signed upload endpoint must still reserve quota, enforce role/content policy, and verify the uploaded object before publishing metadata.
+
+Environment names are documented in `.env.example`. Real provider accounts, buckets, credentials, custom domains, live capacity polling, API route integration and isolated SQL validation remain required before production use.
