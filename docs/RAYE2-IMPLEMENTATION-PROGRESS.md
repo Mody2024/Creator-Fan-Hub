@@ -3192,6 +3192,22 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 7 (Voice, Watch Together) **~86% to ~88%**; overall stays **~93%**.
 
 ---
+
+## 2026-11-10 — Restore event-question reporting (mega-batch, regression fix / Wave 5 + 8)
+- [x] **Regression fixed:** the event Q&A migration (`20261110860000`) added `event_question` to
+  `content_reports` and to `raye2_report_community_content`. Two later migrations (community clips
+  `20261110890000`, Mini's `20261111000000`) each dropped and recreated the target-type constraint and
+  redefined the reporting RPC with their own target list, silently dropping `event_question`. Reporting an
+  event question therefore failed once those migrations applied.
+- [x] **Migration** `20261111110000_raye2_event_question_reporting.sql`: restores `event_question` in both the
+  constraint and the RPC (with a target-existence check against `event_qa`).
+- [x] **Regression guard:** new `tests/raye2-report-target-parity.test.mjs` asserts the final report-target
+  list and constraint are supersets of every list ever declared across migrations, so a future redefinition
+  cannot silently drop a target. Verified it fails when the fix is removed.
+- [x] Gates: validator 441 assertions; tests 888/888; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 5 stays **~100%** (reporting restored); overall stays **~93%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
