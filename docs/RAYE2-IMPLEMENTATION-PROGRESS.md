@@ -3052,9 +3052,9 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
-| 2 | Core platform architecture, accounts and permissions | ~80% |
+| 2 | Core platform architecture, accounts and permissions | ~84% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
-| 4 | Creator Studio, exclusives and live streaming | ~83% |
+| 4 | Creator Studio, exclusives and live streaming | ~85% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |
