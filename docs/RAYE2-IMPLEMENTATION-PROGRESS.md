@@ -3306,3 +3306,22 @@ Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcod
 - [ ] Then implement the R2 adapter and provider-aware reservation/usage ledger, followed by B2 placement/failover, Admin Storage Control Center, migration/recovery tooling and full community integration.
 - **Progress accounting:** this was a documentation/audit batch only; it adds no feature implementation credit. Keep the canonical ten-wave implementation estimates unchanged at the existing ~93% historical snapshot until code-level storage functionality is delivered. Test/release readiness remains separate; live provider acceptance and isolated migration/RLS verification are outstanding.
 - **Exact branch commit for this storage architecture document:** `813233189be0f932470895de84f21c5d4f23ee0a`. The progress-log handoff is committed immediately after it; verify the current branch HEAD and CI on the next session before claiming exact-HEAD validation.
+
+
+---
+
+## 2026-11-15 — Storage control-plane foundation implementation batch
+
+- [x] Added `src/lib/storage/provider-policy.mjs`: deterministic asset-class/visibility routing, R2/B2/Supabase priority, failover only to enabled + healthy + recently verified-capacity providers, safety-reserve-aware headroom, lifetime user quota checks and safe idempotency-key construction.
+- [x] Added `src/lib/storage/provider-contract.ts`: server-side provider contract covering signed upload/download, object verification, copy/delete capabilities and provider configuration. No provider secrets or browser-facing credentials are represented.
+- [x] Added `tests/storage-provider-policy.test.mjs`: covers R2 preference for public video, B2 preference for private assets, capacity failover, rejection of unverified capacity, safety reserves, lifetime quota accounting, malformed inputs and duplicate provider records.
+- [x] Added migration `20261115190000_raye2_multi_provider_storage_control_plane.sql`: extends provider constraints and creates private provider registry, object inventory, upload reservation, usage ledger and per-user quota tables. Provider credentials are deliberately not stored in SQL.
+- [x] Added migration `20261115193000_raye2_atomic_storage_reservations.sql`: service-role-only atomic reservation, verified-object commit and reservation release RPCs; serializes per-user and per-provider capacity checks and verifies destination bucket visibility configuration.
+- [x] Added migration `20261115200000_raye2_storage_reconciliation_and_deletion.sql`: service-role-only provider capacity reconciliation and idempotent object-deletion accounting.
+- [x] Tightened the provider contract to match the routing policy's explicit capacity-verification flag and optional managed ceiling.
+- [x] No package dependencies were added, no credentials were requested or stored, no production migration was applied, no existing objects were moved/deleted, and neither `main` nor production was changed.
+- [ ] Tests are authored but not executed in a checked-out CI/runtime in this session. The latest Vercel status for the migration batch is **failure due to build-rate-limit / upgrade page**, not a verified code-build failure. Re-run lint, Node tests, TypeScript and build when CI capacity is available.
+- [ ] SQL migrations require isolated Supabase validation before any live application. Review function locking, service-role claim behavior, migration ordering, RLS and role quota provisioning in that isolated project.
+- [ ] R2/B2 SDK-backed adapters, signed-upload API routes, provider secret configuration, real provider capacity polling, Admin Storage Control Center, migration workers and full upload-path integration are not yet implemented. The control-plane schema is groundwork, not a completed storage rollout.
+- **Progress accounting:** code foundations and regression tests were added, but no user-facing storage integration is complete. Do not increase the canonical overall ~93% historical platform estimate on the basis of schema/contracts alone. Track storage control-plane foundation as implemented-but-untested; provider integration and admin UI remain outstanding.
+- **Latest authored storage migration commit:** `df4c5dc6487eb9d4ed04653e99921fe586e6f2ca`. Vercel reports a build-rate-limit failure for that commit; verify exact branch HEAD and CI status before claiming successful validation.
