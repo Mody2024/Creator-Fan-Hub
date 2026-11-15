@@ -516,7 +516,7 @@ button:disabled { opacity: .52; }
   }
 }
 
-/* NHEN social home navigation — keep both responsive navigation systems available */
+/* Raye2 social home navigation — keep both responsive navigation systems available */
 @media(max-width:700px){
  .topbar .mobile-nav{display:flex;order:3;width:100%;gap:22px;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
  .topbar .mobile-nav::-webkit-scrollbar{display:none}
@@ -527,7 +527,7 @@ button:disabled { opacity: .52; }
 }
 
 
-/* NHEN community Shorts engagement */
+/* Raye2 community Shorts engagement */
 .raye2-community-short-engagement{display:grid;gap:12px;margin-top:14px}
 .raye2-community-short-reactions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .raye2-community-short-reactions .raye2-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface-soft);font-size:12px;cursor:pointer}

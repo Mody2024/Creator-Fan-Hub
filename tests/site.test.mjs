@@ -4,7 +4,11 @@ import { readFile, readdir } from "node:fs/promises";
 import { validateSiteConfig } from "../src/lib/site-config.mjs";
 import { publishSiteConfig } from "../src/lib/publish-site-config.mjs";
 
-const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const homePage = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+const appLayout = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+const designSystem = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
+const communityClient = await readFile(new URL("../src/app/community/community-client.tsx", import.meta.url), "utf8");
+const voteForm = await readFile(new URL("../src/app/vote/poll-vote-form.tsx", import.meta.url), "utf8");
 const memberProfileClient = await readFile(new URL("../src/app/u/[handle]/profile-client.tsx", import.meta.url), "utf8");
 const sql = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
 const schema = await readFile(new URL("../supabase/schema.sql", import.meta.url), "utf8");
@@ -21,25 +25,25 @@ const privateShortReactionsMigration = await readFile(new URL("../supabase/migra
 const excludeBlockedShortReactorsMigration = await readFile(new URL("../supabase/migrations/20261102200350_nhen_exclude_blocked_reactors_from_short_counts.sql", import.meta.url), "utf8");
 const communityShortClient = await readFile(new URL("../src/app/shorts/community-shorts-client.tsx", import.meta.url), "utf8");
 
-test("public page contains the expected primary sections", () => {
-  for (const id of ["home", "ideas", "vote", "community", "latest"]) {
-    assert.match(html, new RegExp(`id="${id}"`), `missing section: ${id}`);
+test("the public home page links to the primary product surfaces", () => {
+  for (const href of ["/watch", "/shorts", "/community", "/search"]) {
+    assert.match(homePage, new RegExp(`href="${href}"`), `home page is missing a link to ${href}`);
   }
+  assert.match(homePage, /id="hero"/);
 });
 
-test("demo interactions clearly disclose that data is not persisted", () => {
-  assert.match(html, /no vote is sent or stored/i);
-  assert.match(html, /does not send or save your idea/i);
-  assert.match(html, /not been sent or saved/i);
+test("public participation clearly discloses its privacy limits", () => {
+  assert.match(voteForm, /no account is required\. One vote per browser token, not identity verification\./);
+  assert.match(communityClient, /Share only content you have rights to\./);
 });
 
-test("creator signature exists in the shared footer", () => {
-  assert.match(html, /MADE BY ALMUDDATHTHIR/);
+test("the creator signature exists in the shared footer", () => {
+  assert.match(appLayout, /MADE BY ALMUDDATHTHIR/);
 });
 
-test("page supports responsive layout and reduced motion", () => {
-  assert.match(html, /@media\s*\(max-width:\s*520px\)/);
-  assert.match(html, /prefers-reduced-motion:\s*reduce/);
+test("the design system supports responsive layout and reduced motion", () => {
+  assert.match(designSystem, /@media\s*\(max-width:\s*520px\)/);
+  assert.match(designSystem, /prefers-reduced-motion:\s*reduce/);
 });
 
 test("database policies do not grant public write access", () => {

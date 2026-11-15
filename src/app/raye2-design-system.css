@@ -37,7 +37,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(prefers-reduced-motion:reduce){.raye2-skeleton{animation:none}}
 
 
-/* NHEN Community surfaces */
+/* Raye2 Community surfaces */
 .raye2-community-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center;padding:26px;border:1px solid var(--raye2-ds-line);border-radius:var(--raye2-ds-radius-lg);background:radial-gradient(circle at 90% 10%,rgba(161,161,170,.13),transparent 35%),var(--raye2-ds-surface)}
 .raye2-community-hero h1{font-size:clamp(28px,4vw,42px);font-weight:850;letter-spacing:-.07em;line-height:1.05;margin:8px 0}
 .raye2-community-compose textarea{width:100%;resize:vertical;border:1px solid var(--raye2-ds-line);border-radius:16px;background:var(--raye2-ds-bg);color:var(--raye2-ds-ink);padding:15px;font:inherit}
@@ -52,7 +52,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:700px){.raye2-community-hero{grid-template-columns:1fr;padding:20px}.raye2-community-auth{max-width:none}.raye2-post-actions{overflow-x:auto;white-space:nowrap}.raye2-post-actions .raye2-action{flex:0 0 auto}}
 
 
-/* NHEN Studio moderation workspace */
+/* Raye2 Studio moderation workspace */
 .raye2-mod-workspace{display:grid;gap:20px;margin-top:28px}
 .raye2-mod-tabs{display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--raye2-ds-line);padding-bottom:12px}
 .raye2-mod-tabs button{display:flex;align-items:center;gap:9px;border:1px solid var(--raye2-ds-line);border-radius:999px;padding:10px 15px;background:var(--raye2-ds-surface);color:var(--raye2-ds-muted);font-weight:700;font-size:12px}
@@ -71,7 +71,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:700px){.raye2-mod-item{padding:15px}.raye2-mod-actions button{flex:1 1 auto}}
 
 
-/* NHEN Watch public experience */
+/* Raye2 Watch public experience */
 .raye2-watch-page{min-height:100vh;background:var(--raye2-ds-bg);color:var(--raye2-ds-ink)}
 .raye2-watch-top{height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 max(22px,calc((100vw - 1320px)/2));border-bottom:1px solid var(--raye2-ds-line);background:var(--raye2-ds-surface)}
 .raye2-watch-top nav{display:flex;gap:20px;color:var(--raye2-ds-muted);font-size:12px;font-weight:700}
@@ -98,7 +98,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:600px){.raye2-watch-columns{padding:14px 12px}.raye2-watch-top{padding:0 16px}.raye2-watch-top nav{gap:12px}.raye2-watch-title-row{display:block}.raye2-watch-title-row>.raye2-pill{margin-top:8px}.raye2-watch-player{border-radius:14px}}
 
 
-/* NHEN Identity public profile */
+/* Raye2 Identity public profile */
 .raye2-profile-page{min-height:100vh;background:var(--raye2-ds-bg);color:var(--raye2-ds-ink)}
 .raye2-profile-wrap{width:min(100%,var(--raye2-ds-content));margin:34px auto;padding:0 22px 80px}
 .raye2-profile-cover{height:250px;border-radius:26px;background:radial-gradient(circle at 80% 20%,rgba(77,141,246,0.06),transparent 30%),linear-gradient(115deg,#1c1c1f,#2f6fe0 54%,#5cc98f)}
@@ -120,7 +120,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:600px){.raye2-profile-wrap{padding:0 12px 80px}.raye2-profile-cover{height:180px}.raye2-profile-card{margin-left:5px;margin-right:5px;padding:0 15px 18px}.raye2-profile-identity h1{font-size:23px}}
 
 
-/* NHEN saved content library */
+/* Raye2 saved content library */
 .raye2-saved-wrap{width:min(100%,var(--raye2-ds-reading));margin:50px auto;padding:0 22px 90px}
 .raye2-saved-wrap>h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
 .raye2-saved-wrap>h1 em{color:var(--raye2-ds-accent);font-style:normal}
@@ -135,7 +135,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:600px){.raye2-saved-wrap{margin:28px auto;padding:0 13px 80px}.raye2-saved-post{padding:15px}}
 
 
-/* NHEN Notifications inbox */
+/* Raye2 Notifications inbox */
 .raye2-notifications-wrap{width:min(100%,var(--raye2-ds-reading));margin:50px auto;padding:0 22px 90px}
 .raye2-notifications-wrap>h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
 .raye2-notifications-wrap>h1 em{color:var(--raye2-ds-accent);font-style:normal}
@@ -152,7 +152,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:600px){.raye2-notifications-wrap{margin:28px auto;padding:0 13px 80px}.raye2-notification-item{grid-template-columns:36px minmax(0,1fr);padding:13px}.raye2-notification-icon{width:34px;height:34px}.raye2-notification-read{grid-column:2;justify-self:start}}
 
 
-/* NHEN cross-platform discovery */
+/* Raye2 cross-platform discovery */
 .raye2-search-form{width:100%;min-width:0}
 .raye2-search-page,.raye2-search-results{width:min(100%,var(--raye2-ds-reading));margin:60px auto;padding:0 22px 90px}
 .raye2-search-page h1,.raye2-search-results h1{font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:-.07em;margin:8px 0 24px}
@@ -176,7 +176,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-feed-tabs a.active{background:var(--raye2-ds-surface-raised);color:var(--raye2-ds-accent)}
 
 
-/* Earned NHEN member milestones */
+/* Earned Raye2 member milestones */
 .raye2-achievement-section{margin:18px 0 4px;padding-top:16px;border-top:1px solid var(--raye2-ds-line)}
 .raye2-achievement-grid{display:flex;flex-wrap:wrap;gap:9px;margin-top:11px}
 .raye2-achievement-chip{display:flex;align-items:center;gap:9px;max-width:260px;padding:10px 12px;border:1px solid color-mix(in srgb,var(--raye2-ds-violet) 30%,var(--raye2-ds-line));border-radius:14px;background:color-mix(in srgb,var(--raye2-ds-violet) 7%,var(--raye2-ds-surface))}
@@ -192,7 +192,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:600px){.raye2-video-analytics-row{grid-template-columns:1fr 1fr}.raye2-video-analytics-row strong{grid-column:1/-1}}
 
 
-/* Public NHEN video collections */
+/* Public Raye2 video collections */
 .raye2-series-wrap{width:min(100%,var(--raye2-ds-content));margin:50px auto;padding:0 22px 90px}
 .raye2-series-wrap>h1{font-size:clamp(34px,5vw,54px);font-weight:900;letter-spacing:-.07em;margin:8px 0}
 .raye2-series-wrap>p{font-size:13px;margin-bottom:26px}
@@ -208,7 +208,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:550px){.raye2-series-wrap{margin:28px auto;padding:0 13px 80px}.raye2-series-grid{grid-template-columns:1fr}}
 
 
-/* NHEN Studio team access management */
+/* Raye2 Studio team access management */
 .raye2-team-workspace{display:grid;gap:18px;margin-top:28px}
 .raye2-team-workspace h2{font-size:22px;font-weight:850;letter-spacing:-.05em;margin:8px 0}
 .raye2-team-workspace p{font-size:12px;line-height:1.7}
@@ -241,7 +241,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-watch-player iframe{width:100%;height:100%;border:0;aspect-ratio:16/9}
 
 
-/* NHEN Shorts vertical viewing mode */
+/* Raye2 Shorts vertical viewing mode */
 .raye2-shorts-page{min-height:100vh;background:var(--raye2-ds-bg);color:var(--raye2-ds-ink)}
 .raye2-shorts-heading{width:min(100%,var(--raye2-ds-reading));margin:38px auto 22px;padding:0 22px}
 .raye2-shorts-heading h1{font-size:clamp(32px,5vw,48px);font-weight:900;letter-spacing:-.07em;margin:7px 0}
@@ -381,7 +381,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-dashboard-ar { font-family:"Noto Kufi Arabic","Noto Sans Arabic",Tahoma,sans-serif; color:var(--raye2-ds-accent); font-size:12px; margin-inline-start:8px; }
 
 
-/* Theme-aware Nhen? logo and accent integration. */
+/* Theme-aware Raye2 logo and accent integration. */
 .site, .maintenance {
   --raye2-ds-accent: var(--accent, #4d8df6);
   --raye2-ds-accent-strong: var(--raye2-ds-accent);
@@ -465,7 +465,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-analytics-tools button { flex:0 0 auto; }
 @media(max-width:600px){.raye2-analytics-tools{align-items:stretch;flex-direction:column}.raye2-analytics-tools button{width:100%}}
 
-/* NHEN reaction selector — compact, keyboard-accessible and touch friendly. */
+/* Raye2 reaction selector — compact, keyboard-accessible and touch friendly. */
 .raye2-reaction-picker{position:relative;display:inline-flex;align-items:center}
 .raye2-reaction-menu{display:none;position:absolute;z-index:30;left:0;bottom:calc(100% + 8px);min-width:210px;padding:8px;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;border:1px solid var(--raye2-ds-line);border-radius:16px;background:var(--raye2-ds-surface);box-shadow:var(--raye2-ds-shadow)}
 .raye2-reaction-picker:hover .raye2-reaction-menu,.raye2-reaction-picker:focus-within .raye2-reaction-menu{display:grid}
@@ -474,7 +474,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-reaction-menu .raye2-action[aria-pressed=true]{background:rgba(77,141,246,.14);color:var(--raye2-ds-accent)}
 .raye2-shorts-heading .raye2-section-label{letter-spacing:.16em}
 
-/* NHEN platform home feed */
+/* Raye2 platform home feed */
 .raye2-home-shell .raye2-app-header{position:sticky;top:0;z-index:60;backdrop-filter:blur(20px)}
 .raye2-home-shell .raye2-brand{display:flex;align-items:center;gap:8px}
 .raye2-home-shell .raye2-brand>span{display:grid;line-height:1}
@@ -498,7 +498,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-home-discovery-links a:hover{background:var(--raye2-ds-surface-raised)}
 @media(max-width:700px){.raye2-home-video-grid{grid-template-columns:1fr;gap:13px}.raye2-home-welcome{margin-bottom:10px}.raye2-home-quicklinks>*{flex:1;justify-content:center}}
 
-/* NHEN social video moments and branded home */
+/* Raye2 social video moments and branded home */
 .raye2-home-shell .hero-media{display:block;width:100%;max-height:300px;object-fit:cover;border-radius:16px;margin:16px 0}
 .raye2-home-shell .raye2-floating-mascot{position:fixed;right:22px;bottom:82px;z-index:35;width:76px;height:76px;object-fit:contain;pointer-events:none;filter:drop-shadow(0 8px 22px rgba(11,11,13,.22))}
 .raye2-moment-compose{display:grid;gap:10px;margin-top:12px;padding:12px;border:1px solid var(--raye2-ds-line);border-radius:14px;background:var(--raye2-ds-bg)}
@@ -519,7 +519,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-profile-video p{font-size:12px;color:var(--raye2-ds-muted);line-height:1.5}
 @media(max-width:600px){.raye2-profile-video-grid{grid-template-columns:1fr}}
 
-/* NHEN member Nhenbits */
+/* Raye2 member Mini's */
 .raye2-community-short-composer{max-width:1120px;margin:26px auto;padding:22px;border:1px solid var(--raye2-ds-line);border-radius:20px;background:var(--raye2-ds-surface);display:grid;gap:16px}
 .raye2-community-short-composer h2{font-size:20px;margin:7px 0}
 .raye2-community-short-composer p{font-size:13px;color:var(--raye2-ds-muted);line-height:1.55}
@@ -542,7 +542,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:900px){.raye2-community-shorts-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 14px}.raye2-community-short-composer,.raye2-official-shorts{margin-left:14px;margin-right:14px}}
 @media(max-width:560px){.raye2-community-shorts-grid{grid-template-columns:1fr}.raye2-community-short-card video{max-height:70vh}.raye2-community-short-controls{align-items:stretch}.raye2-community-short-controls .button{width:100%}}
 
-/* NHEN's own reaction language */
+/* Raye2's own reaction language */
 .raye2-reaction-control{position:relative;display:inline-flex}
 .raye2-reaction-picker{position:absolute;z-index:30;left:0;top:calc(100% + 9px);min-width:190px;padding:7px;border:1px solid var(--raye2-ds-line);border-radius:15px;background:var(--raye2-ds-surface);box-shadow:0 16px 45px #0003;display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .raye2-reaction-picker button{display:flex;align-items:center;gap:7px;padding:9px;border:0;border-radius:9px;background:transparent;color:var(--raye2-ds-ink);font:inherit;font-size:12px;text-align:left;cursor:pointer}
