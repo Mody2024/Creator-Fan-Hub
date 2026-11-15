@@ -188,3 +188,93 @@ A missing or stale provider snapshot means no routing to that provider. The exis
 - Supabase Storage egress is not measured directly by the new SQL ledger. The provider's own limits and project-level monitoring remain necessary; do not claim unlimited video playback.
 - Before increasing the current 750 MiB ceiling, configure and test an actual provider with verified no-payment and no-overage guarantees.
 - CI must replay the entire migration history against a clean local Supabase database and execute the quota contract tests before this PR is considered ready.
+
+## Permanent retention model and recommended provider combination
+
+The user-visible storage quota is a **persistent library allowance**, not a monthly allowance:
+- Stored bytes remain charged to the account until the object is deleted and provider deletion is confirmed.
+- The monthly upload budget is only an ingestion/rate guard. It resets monthly and never resets, replenishes, or erases the persistent storage library.
+- Monthly upload bytes, monthly provider requests, and monthly egress are tracked independently from persistent stored bytes.
+- A user cannot upload indefinitely just because the monthly counter resets: the persistent per-account quota and the real shared physical pool remain hard stops.
+- Deletion must be confirmed by the provider before quota is released. Failed deletes remain accounted and enter a cleanup queue.
+
+### Recommended logical architecture
+
+Keep one Raye2 library and one control plane:
+1. Supabase remains the source of truth for identity, ownership, roles, ACLs, metadata, quota ledger, upload reservations, moderation and admin audit. It should not be treated as the long-term video byte pool.
+2. Add S3-compatible object providers behind a server-side adapter interface. The database chooses a provider before upload; browser and worker code never hardcode provider credentials or expose service secrets.
+3. Use provider-aware object keys and an immutable object record containing owner, provider, bucket, object key, size, checksum, media class, retention class and lifecycle state.
+4. Keep each complete object on one provider. Distribute different objects across providers by capacity and policy; do not split one video into arbitrary pieces across free accounts.
+5. Use short-lived signed upload/download URLs, owner-bound authorization, checksum verification, deletion reconciliation, and a provider usage snapshot. If a provider snapshot is stale or the adapter is unhealthy, fail closed.
+6. Preserve a provider-independent playback resolver so moving a video between providers does not change its Raye2 media ID or public URL.
+7. Add provider-aware background jobs for migration, orphan cleanup, checksum verification, backup and restore.
+
+### Best candidate mix under the strict $0 rule
+
+- **Backblaze B2** is the first candidate to test for a 10 GB free pool. Its published free allowance is 10 GB storage and up to 3x average monthly stored data in free egress. No payment method is listed in its account-creation guide. It is not yet approved for production: usage beyond free allowances is billable and the documented daily caps must be tested before the app can rely on them.
+- **Tigris** is the second candidate to test for a separate 5 GiB pool. Its published free tier includes 5 GiB Standard storage, monthly request allowances, zero egress and signup without a card. Overage is billable, so it also remains disabled until account-level behavior and application hard-stops are proven.
+- **Supabase** remains the metadata/auth/permissions system and a small fallback pool under its existing conservative cap.
+- **Cloudflare R2** is excluded while the owner requires no payment method and no risk of paid overage.
+- These published free allowances are provider offers, not a permanent guarantee. Terms, availability and account-level eligibility can change. Keep a provider disabled unless the current account and live tests satisfy the zero-cost acceptance gate.
+
+The theoretical published storage pool from B2 + Tigris is approximately 15 GB before safety margins, but **Raye2 must not claim or expose that as live capacity until both adapters are connected, provider limits are reconciled, and upload/playback/delete tests pass**. Free tiers are not guaranteed permanent capacity.
+
+### Google Drive decision: do not use as Raye2's shared video backend
+
+Google Drive is not an acceptable storage shard or CDN for Raye2:
+- Google's Drive API Terms prohibit using Drive as a replacement for a large-scale content delivery network and prohibit file-cloning/sharding to circumvent storage limits.
+- The appDataFolder is private to the connected app, cannot be shared, and is deleted if the user uninstalls the app.
+- Service accounts do not have personal Drive storage and cannot own files without an eligible shared-drive or delegated-user arrangement.
+- Per-user and per-project API quotas apply; these are not a scalable shared media capacity pool.
+
+Official references:
+- https://developers.google.com/workspace/drive/api/terms
+- https://developers.google.com/workspace/drive/api/guides/appdata
+- https://developers.google.com/workspace/drive/api/guides/limits
+- https://developers.google.com/workspace/drive/api/guides/handle-errors
+
+A future opt-in **import/export** integration may let a user choose files in their own Drive, but Raye2 should not use private user drives to serve other members or pool them as hidden platform storage.
+
+### Storage classes: keep chat lightweight
+
+Use separate policy classes and accounting, while retaining one user-facing library:
+- **Creator originals:** highest priority; persistent until creator/admin deletion or a legally required removal. Count original, thumbnail and transcode derivatives against the same owner allowance.
+- **Streamer recordings/replays:** explicit retention policy and owner quota; never silently treat a temporary replay as permanent storage.
+- **Mini's and Moments:** apply the product's existing lifecycle rules; count every stored rendition until deletion is confirmed.
+- **Chat attachments:** separate, small per-user and per-conversation caps; reject oversized files before upload. Keep message text/metadata in the database, not in object storage. Use safe attachment types, short-lived signed access and admin-configured retention where the product policy permits. Do not silently delete conversation history to reclaim media space.
+- **Voice recordings:** off by default unless participants explicitly consent; store only when enabled, with a visible retention period and deletion path.
+- **Thumbnails and generated derivatives:** include in storage accounting and avoid generating multiple redundant variants.
+
+### Admin storage control room — required capabilities
+
+The admin panel should become the only place to change platform storage policy:
+- Global persistent capacity target and monthly ingestion hard-stop, with actual verified capacity shown separately.
+- Per-provider status: enabled/disabled, adapter readiness, zero-cost verification, free allowance, app safety cap, live usage, request usage, egress, snapshot age and last health check.
+- Per-role persistent storage defaults and monthly ingestion budgets.
+- Per-user persistent quota override, reset-to-role-default action, reason required, and full audit history.
+- Chat attachment size/count limits, per-conversation caps and retention rules.
+- Creator/streamer media class limits, derivative accounting and retention policies.
+- Alerts at warning/critical thresholds, automatic upload stop before the provider limit, and manual provider quarantine.
+- Migration/cleanup/restore job visibility, orphan counts, failed deletes, checksum mismatches and last successful backup.
+- Never expose provider credentials or allow the dashboard to mark an adapter ready merely by toggling a checkbox. Adapter readiness and zero-cost verification must be server-owned deployment/health facts.
+
+### Future subscription-ready entitlement design
+
+Keep storage entitlements separate from provider capacity:
+- Each account has a plan/role entitlement record (for example: member, creator, streamer, combined, future paid tier).
+- A plan sets a requested persistent quota and monthly ingestion allowance. The effective quota is always capped by actual shared provider capacity.
+- Future subscription changes may alter entitlements only after a verified payment event; never let a browser claim a paid plan.
+- Billing is not implemented in this patch. Do not add a paid provider, payment method, checkout, or subscription dependency until separately approved.
+- If a future paid plan is introduced, its cost must cover real storage, egress, transcoding and backups; do not sell capacity that the platform has not provisioned.
+
+### Required production gates before increasing quotas
+
+1. Latest CI passes, including clean replay of every migration from an empty database.
+2. Add the provider-neutral object adapter and object metadata mapping.
+3. Build and test B2 adapter with no payment method attached; confirm account-level caps and overage behavior before writing user media.
+4. Build and test Tigris adapter independently; verify free limits and safe stop behavior.
+5. Implement provider usage reconciliation for storage, writes, reads and egress; stale snapshots stop new placement and signed URL issuance.
+6. Test upload, resumable upload, playback, deletion, failed deletion, migration, restore, owner isolation and quota exhaustion on each provider.
+7. Add the admin storage control room and verify all mutations use admin-only RPCs and audit logs.
+8. Run a realistic playback/load test within free request and egress limits.
+9. Only then mark a provider enabled and increase effective quotas. If the provider cannot guarantee a safe $0 boundary, keep it disabled.
