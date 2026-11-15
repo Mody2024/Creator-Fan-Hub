@@ -620,3 +620,11 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .nhen-collection-detail-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border:1px solid var(--nhen-line);border-radius:14px;background:var(--nhen-raised)}
 .nhen-collection-detail-head .nhen-action{white-space:nowrap}
 @media(max-width:560px){.nhen-collection-detail-head{flex-direction:column;align-items:stretch}}
+
+
+/* Branded route loading state — the brand mark stands in while a route streams in. */
+.raye2-app-loading{min-height:70vh;display:grid;place-items:center;gap:16px;background:var(--nhen-bg);color:var(--nhen-muted)}
+.raye2-app-loading-mark{width:64px;height:64px;display:grid;place-items:center;border:1px solid rgba(128,180,255,.34);border-radius:18px;background:linear-gradient(145deg,#1b304b,#0b1420);color:#eaf3ff;font-size:30px;font-weight:950;animation:raye2-app-loading-pulse 1.6s ease-in-out infinite}
+.raye2-app-loading-text{font:600 12px var(--mono);letter-spacing:.14em;text-transform:uppercase}
+@keyframes raye2-app-loading-pulse{0%,100%{opacity:.55;transform:scale(.98)}50%{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.raye2-app-loading-mark{animation:none}}

@@ -32,3 +32,17 @@ test("the uploaded logo is the identity and the wordmark is only a fallback", as
   const home = await read("../src/app/page.tsx");
   assert.match(home, /config\.logoUrl \? <img className="site-logo-image" src=\{config\.logoUrl\} alt="Raye2" \/> : <span className="portal-wordmark">/);
 });
+
+test("the brand mark integrates into favicon, app icons and a branded loading state", async () => {
+  const { existsSync } = await import("node:fs");
+  const layout = await read("../src/app/layout.tsx");
+  const loading = await read("../src/app/loading.tsx");
+  assert.ok(existsSync(new URL("../src/app/icon.png", import.meta.url)));
+  assert.ok(existsSync(new URL("../src/app/apple-icon.png", import.meta.url)));
+  assert.ok(existsSync(new URL("../src/app/favicon.ico", import.meta.url)));
+  assert.match(layout, /\/icon\.png/);
+  assert.match(layout, /\/apple-icon\.png/);
+  assert.match(layout, /\/favicon\.ico/);
+  assert.match(loading, /raye2-app-loading/);
+  assert.match(loading, /aria-busy="true"/);
+});

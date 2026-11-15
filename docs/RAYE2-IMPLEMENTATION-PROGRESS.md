@@ -2568,6 +2568,20 @@ One regression-test file was briefly created on the default `main` branch becaus
   in Wave 1: page-level layout standardisation and favicon/app-icon/loading logo integration.
 
 ---
+
+## 2026-11-10 — Brand mark as favicon/app icon + branded loading state (mega-batch, plan 1.1/13.1)
+- [x] **Favicon and app icons added.** The product had none. Generated from the Raye2 brand mark (blue/grey
+  rounded tile with the R glyph, matching the community/Mini brand glyphs): `src/app/icon.png` (512),
+  `src/app/apple-icon.png` (180) and `src/app/favicon.ico` (32), plus explicit `icons` metadata in the root layout.
+- [x] **Branded loading state added** (`src/app/loading.tsx`): the brand mark pulses while a route streams in,
+  with an accessible `role="status"`/`aria-busy` wrapper and a reduced-motion fallback.
+- [x] **Guarded:** validator assertions and a test fail if the icon files, their metadata links or the branded
+  loading state disappear.
+- [x] Gates: validator 406 assertions; tests 793/793; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.1 (logo integration across navigation/loading/favicon) **~85% to ~92%**; Wave 1 **~68% to ~72%**.
+  Remaining in Wave 1: page-level layout standardisation.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2575,7 +2589,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~68% |
+| 1 | Brand system and full product redesign | ~72% |
 | 2 | Core platform architecture, accounts and permissions | ~62% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |
