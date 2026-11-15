@@ -793,6 +793,9 @@ check("creator content library derives all publication states owner-scoped", con
 const contentLibraryComponent = await read("../src/app/creator/content-library.tsx");
 check("creator content library shows quota and cooldown before publishing", contentLibraryComponent.includes("raye2_get_creator_capabilities") && contentLibraryComponent.includes("long_videos_per_month") && contentLibraryComponent.includes("can_publish_long_video_now") && contentLibraryComponent.includes("library-quota"));
 
+const sharedMomentMigration = await read("../supabase/migrations/20261111070000_raye2_community_feed_linked_slug.sql");
+check("community shared moments resolve a real watch-page slug and timestamp", sharedMomentMigration.includes("linked_video_slug text") && sharedMomentMigration.includes("public.raye2_can_view_video(vc.media_id) then vc.slug else null end") && sharedMomentMigration.includes("left join public.video_catalog vc on vc.media_id = s.linked_video_id"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

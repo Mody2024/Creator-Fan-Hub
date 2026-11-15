@@ -3108,6 +3108,25 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 (Creator Studio) **~88% to ~89%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Community shared moments link to a real watch page (mega-batch, plan 4.6)
+- [x] **Bug fixed:** plan 4.6 requires sharing a video or a timestamped moment. The community feed returned
+  only `linked_video_id`, and the client resolved it against a per-session list of moment-eligible videos.
+  For any other viewer that list does not contain the video, so the "shared moment" link rendered as
+  `/watch/undefined`. The link also dropped the moment timestamp.
+- [x] **Migration** `20261111070000_raye2_community_feed_linked_slug.sql`: the feed now returns
+  `linked_video_slug` and `moment_start_seconds`, and only exposes the slug when the viewer may open the video
+  (`raye2_can_view_video`), so no dead or access-gated links are rendered.
+- [x] **UI:** `community-client.tsx` links to `/watch/<slug>` (plus `?t=<seconds>` for a moment) using the feed
+  fields instead of the per-session lookup.
+- [x] **Guarded:** new test `tests/raye2-shared-moment-links.test.mjs` plus a validator assertion cover the feed
+  fields, the view gate and the removal of the buggy lookup.
+- [x] Gates: validator 436 assertions; tests 879/879; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/community` and `/creator` 200.
+- **Progress:** Wave 5 (Social graph and communities) **~99% to ~100%**; Wave 4 (Creator Studio) **~89% to ~90%**;
+  overall **~92% to ~93%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3118,8 +3137,8 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
-| 4 | Creator Studio, exclusives and live streaming | ~89% |
-| 5 | Social graph, communities and engagement | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~90% |
+| 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |

@@ -4,7 +4,7 @@ import CommunityClient, { type CommunityPost, type CommunityTopic } from "./comm
 export const dynamic = "force-dynamic";
 
 type SuggestedMember = { userId: string; handle: string; displayName: string };
-type FeedRow = { id: string; author_id: string; post_type: string; body: string; linked_video_id: string | null; created_at: string; pinned: boolean; topic_slug: string | null; topic_name: string | null; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null; reaction_count: number | string; comment_count: number | string; poll_id: string | null; poll_question: string | null; poll_options: Array<{ option: string; votes: number | string }> | null; poll_total: number | string | null; poll_closes_at: string | null; my_poll_vote: string | null };
+type FeedRow = { id: string; author_id: string; post_type: string; body: string; linked_video_id: string | null; linked_video_slug: string | null; moment_start_seconds: number | null; created_at: string; pinned: boolean; topic_slug: string | null; topic_name: string | null; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null; reaction_count: number | string; comment_count: number | string; poll_id: string | null; poll_question: string | null; poll_options: Array<{ option: string; votes: number | string }> | null; poll_total: number | string | null; poll_closes_at: string | null; my_poll_vote: string | null };
 
 export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ feed?: string; sort?: string }> }) {
   const { feed, sort } = await searchParams;
@@ -56,6 +56,8 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
         body: row.body,
         createdAt: row.created_at,
         linkedVideoId: row.linked_video_id,
+        linkedVideoSlug: row.linked_video_slug,
+        momentStart: row.moment_start_seconds,
         pinned: row.pinned,
         reactionCount: Number(row.reaction_count) || 0,
         commentCount: Number(row.comment_count) || 0,
