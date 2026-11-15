@@ -14,10 +14,12 @@ Do not reuse unrelated Supabase projects.
 
 ## Availability and backup protection
 
-- The scheduled read-only activity check is a best-effort inactivity safeguard, not a guarantee that Supabase Free will never pause. Supabase controls project pausing and account lifecycle.
-- The repository now includes a daily encrypted backup workflow. Follow [SUPABASE-BACKUP-RESTORE.md](SUPABASE-BACKUP-RESTORE.md) to configure it after implementation is complete.
-- Encrypted GitHub Actions artifacts are retained for 90 days only. Keep the age private identity offline and periodically download important backups to storage you control.
-- No automation in this repository can prevent a provider from suspending or deleting a project. The owner must retain recovery copies and keep the Supabase account in good standing.
+- Supabase Free projects can be paused after a week of low database activity. A few genuine database requests per day are usually enough, but Supabase explicitly does not guarantee that this will prevent pausing.
+- The existing workflow makes read-only database requests three times daily. This reduces inactivity risk; it cannot override Supabase's platform rules.
+- Supabase currently documents a one-year restore window for paused Free projects. This is not permanent protection against account loss or deliberate project deletion.
+- The repository includes a weekly encrypted database + Storage backup workflow. Follow [SUPABASE-BACKUP-RESTORE.md](SUPABASE-BACKUP-RESTORE.md) to configure it after implementation is complete.
+- GitHub Actions backup artifacts are retained for 14 days only. Download important backups to storage you control before expiry; keep the age private identity offline.
+- Supabase Free does not include managed automatic database backups. The owner must retain independent recovery copies and keep the Supabase account in good standing.
 
 ## Vercel environment
 
