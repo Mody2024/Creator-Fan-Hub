@@ -25,6 +25,15 @@ test("cleanup UI creates a review request and preserves selected data", () => {
   assert.match(client, /This page does not delete content/);
   assert.doesNotMatch(client, /\.delete\(/);
 });
+test("admin storage control room exposes permanent quotas and guarded provider management", () => {
+  assert.match(client, /raye2_admin_set_user_storage_quota/);
+  assert.match(client, /raye2_set_role_quota/);
+  assert.match(client, /raye2_admin_set_storage_policy/);
+  assert.match(client, /raye2_admin_list_storage_providers/);
+  assert.match(client, /raye2_admin_set_storage_provider_enabled/);
+  assert.match(client, /Persistent storage/);
+  assert.match(client, /Reset to role default/);
+});
 test("admin dashboard exposes storage measurements and append-only audit history", () => {
   assert.match(page, /raye2_storage_usage/);
   assert.match(page, /raye2_admin_audit_log/);
