@@ -51,7 +51,7 @@ test("storage byte quotas use bigint so 2 GiB and 3 GiB role allowances cannot o
   assert.match(roleMigration, /returns bigint language sql stable security definer/);
   assert.match(providerMigration, /'combined','storage_bytes',3221225472/);
   assert.match(adminMigration, /p_tier text,p_metric text,p_limit bigint/);
-  assert.match(adminMigration, /drop function if exists public\.raye2_set_role_quota\(text,text,integer\)/);
+  assert.match(adminMigration, /drop function if exists public\.raye2_set_role_quota\(text,text,bigint\)/);
 });
 
 test("legacy bucket id is migrated safely while current Raye2 bucket is accepted", () => {
