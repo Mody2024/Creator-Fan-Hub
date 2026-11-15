@@ -38,7 +38,7 @@ grant execute on function public.raye2_admin_set_user_storage_quota(uuid,bigint,
 
 -- Prevent a platform admin from configuring an individual role tier above the
 -- same 10 GiB hard ceiling used by per-user overrides.
-create or replace function public.raye2_set_role_quota(p_tier text,p_metric text,p_limit integer)
+create or replace function public.raye2_set_role_quota(p_tier text,p_metric text,p_limit bigint)
 returns void language plpgsql security definer set search_path=''
 as $$
 begin
