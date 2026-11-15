@@ -46,6 +46,14 @@ export function selectStorageProvider({
     throw new TypeError("expectedBytes must be a positive safe integer.");
   }
   if (!Array.isArray(providers)) throw new TypeError("providers must be an array.");
+  if (!["private", "public"].includes(visibility)) throw new TypeError("visibility must be private or public.");
+  if (!["video", "mini", "moment", "stream_replay", "thumbnail", "chat_attachment", "voice_recording", "memory", "other"].includes(assetClass)) {
+    throw new TypeError("assetClass is not supported.");
+  }
+  if (providers.some(provider => !provider || typeof provider.provider !== "string")
+    || new Set(providers.map(provider => provider.provider)).size !== providers.length) {
+    throw new TypeError("providers must contain unique provider identifiers.");
+  }
   const routeClass = visibility === "public" && ["video", "mini", "moment", "stream_replay"].includes(assetClass)
     ? "public_video"
     : assetClass === "thumbnail" ? "thumbnail"
