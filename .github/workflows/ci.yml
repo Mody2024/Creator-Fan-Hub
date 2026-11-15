@@ -30,6 +30,8 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Validate repository integration and automated tests
         run: npm run check && npm test
+      - name: Syntax-check operational backup and restore scripts
+        run: node --check scripts/raye2-storage-backup.mjs && node --check scripts/raye2-storage-restore.mjs
       - name: Type-check
         run: npx tsc --noEmit
       - name: Lint
