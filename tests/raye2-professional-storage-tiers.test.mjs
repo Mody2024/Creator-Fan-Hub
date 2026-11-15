@@ -49,7 +49,7 @@ test("upload reservations and worker outputs use the same role-based personal qu
   assert.match(migration, /get_raye2_user_storage_capacity/);
 });
 
-test("platform admins can set or reset user quotas with audit and a 10 GiB hard ceiling", async () => {
+test("platform admins can set or reset user quotas with audit and a 1 TiB hard ceiling", async () => {
   const adminMigration = await readFile(new URL("../supabase/migrations/20261115195000_raye2_admin_storage_quota_controls.sql", import.meta.url), "utf8");
   assert.match(adminMigration, /raye2_admin_set_user_storage_quota/);
   assert.match(adminMigration, /public\.raye2_is_platform_admin\(\)/);
