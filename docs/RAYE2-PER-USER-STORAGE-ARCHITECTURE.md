@@ -76,13 +76,36 @@ Official references:
 - https://developers.cloudflare.com/r2/get-started/
 - https://developers.cloudflare.com/billing/get-started/create-billing-profile/
 
-### Tigris — smaller allowance
+### Backblaze B2 — strongest no-card candidate, still disabled
 
-Tigris advertises a smaller free storage allowance than the 10 GB target. It does not solve the complete target on its own. Do not enable it until current terms, overage behavior and account requirements are confirmed.
+Backblaze's official onboarding guide says an account can be created with email verification and does not list a payment method as a signup requirement. Backblaze advertises the first 10 GB of storage free and free egress up to 3x average monthly stored data. However, usage beyond the free allowances is billable.
 
-### Backblaze B2 — possible secondary archive, not primary video delivery
+Backblaze also offers daily spend caps for storage, downloads and transaction categories. These caps limit daily charges, but the documentation does not establish that setting every cap to $0 guarantees a complete service-side hard stop before any charge in every scenario. Therefore B2 remains disabled until we validate the actual account controls, set zero-spend caps, test quota exhaustion, and confirm the application adapter can stop before paid usage.
 
-B2 advertises a small free storage allowance and limited free egress relative to stored data. That can be useful for a small backup archive, but it does not meet a 10 GB active video library target by itself.
+Official references:
+- https://www.backblaze.com/docs/en/cloud-storage-enable-backblaze-b2
+- https://www.backblaze.com/cloud-storage/pricing
+- https://help.backblaze.com/hc/en-us/articles/217931138-How-to-use-B2-data-caps-alerts
+
+### Tigris — useful 5 GB no-card candidate
+
+Tigris currently advertises 5 GiB of Standard storage, 10,000 Class A requests and 100,000 Class B requests each month, with zero egress fees. Its pricing page says no card is required to start. Overage storage and request usage is billable, so the Raye2 adapter must maintain conservative hard stops below those free limits and reconcile usage before enabling the pool.
+
+Official reference:
+- https://www.tigrisdata.com/pricing/
+
+### Cloudflare R2 — excluded under strict no-payment rules
+
+R2's 10 GB-month free Standard allowance and free egress are attractive, but Cloudflare requires a primary payment method to purchase usage-based products and R2 is billed by usage. It remains disabled because the project must not add a payment method or risk billable overage.
+
+Official references:
+- https://developers.cloudflare.com/r2/pricing/
+- https://developers.cloudflare.com/billing/get-started/create-billing-profile/
+- https://developers.cloudflare.com/billing/understand/billing-policy/
+
+### Supabase Free — keep as metadata/auth and a small media pool
+
+The current 750 MiB project cap remains in place. Supabase continues to handle auth, permissions, metadata, comments, roles, upload reservations and media state. It is not the sole 10 GiB video store.
 
 ### Supabase Free — keep as metadata/auth, not the 10 GB video store
 
