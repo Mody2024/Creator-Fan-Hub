@@ -1,0 +1,23 @@
+services:
+  raye2-media-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.raye2-media-worker
+    image: raye2-media-worker:local
+    container_name: raye2-media-worker
+    restart: unless-stopped
+    env_file:
+      - .env.raye2-worker
+    init: true
+    read_only: true
+    volumes:
+      - raye2-worker-tmp:/tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    stop_grace_period: 45s
+
+volumes:
+  raye2-worker-tmp:

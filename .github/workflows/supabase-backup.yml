@@ -1,0 +1,79 @@
+name: Supabase encrypted backup
+
+on:
+  schedule:
+    - cron: "41 4 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: raye2-supabase-backup
+  cancel-in-progress: false
+
+jobs:
+  encrypted-database-and-storage-backup:
+    name: Create encrypted rolling database and Storage backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: https://scxkgybuodhuohcxpfat.supabase.co
+      AGE_RECIPIENT: ${{ vars.RAYE2_BACKUP_AGE_RECIPIENT }}
+      RAYE2_BACKUP_MAX_STORAGE_BYTES: "1073741824"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Check whether owner backup credentials are configured
+        id: configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "$SUPABASE_DB_URL" && -n "$SUPABASE_SERVICE_ROLE_KEY" && -n "$AGE_RECIPIENT" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Encrypted backups are waiting for owner configuration. No secrets are printed or required to build the application."
+          fi
+      - name: Set up Node.js
+        if: steps.configuration.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        if: steps.configuration.outputs.ready == 'true'
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install PostgreSQL client and age
+        if: steps.configuration.outputs.ready == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends postgresql-client age
+      - name: Dump and encrypt PostgreSQL and every Storage bucket
+        if: steps.configuration.outputs.ready == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p backup
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "$work_dir"' EXIT
+          pg_dump --format=custom --no-owner --no-acl "$SUPABASE_DB_URL" --file="$work_dir/raye2-postgres.dump"
+          node scripts/raye2-storage-backup.mjs "$work_dir/storage"
+          tar --create --gzip --file="$work_dir/raye2-storage.tar.gz" --directory="$work_dir" storage
+          age --recipient "$AGE_RECIPIENT" --output "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age" "$work_dir/raye2-postgres.dump"
+          age --recipient "$AGE_RECIPIENT" --output "backup/raye2-storage-${GITHUB_RUN_ID}.tar.gz.age" "$work_dir/raye2-storage.tar.gz"
+          printf 'created_at=%s\nrun_id=%s\ncommit=%s\n' "$(date -u +%FT%TZ)" "$GITHUB_RUN_ID" "$GITHUB_SHA" > backup/backup-metadata.txt
+          test -s "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age"
+          test -s "backup/raye2-storage-${GITHUB_RUN_ID}.tar.gz.age"
+          echo "Encrypted database and Storage backups created. Plaintext working files will be removed."
+      - name: Store encrypted backup for 14 days
+        if: steps.configuration.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: raye2-supabase-backup-${{ github.run_id }}
+          path: backup/
+          if-no-files-found: error
+          retention-days: 14

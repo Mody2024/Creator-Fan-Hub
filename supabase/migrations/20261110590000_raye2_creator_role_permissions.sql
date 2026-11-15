@@ -99,7 +99,7 @@ grant execute on function public.raye2_creator_tier(uuid) to service_role;
 create table if not exists public.raye2_role_quotas (
   tier text not null check (tier in ('creator','streamer','combined')),
   metric text not null check (metric in ('long_videos_per_month','long_video_cooldown_days','streams_per_month','streams_per_week','minis_per_month','moments_per_month')),
-  limit_value integer not null check (limit_value >= 0),
+  limit_value bigint not null check (limit_value >= 0),
   description text not null default '' check (char_length(description) <= 200),
   updated_at timestamptz not null default now(),
   primary key (tier, metric)
@@ -127,7 +127,7 @@ insert into public.raye2_role_quotas(tier,metric,limit_value,description) values
 on conflict (tier,metric) do nothing;
 
 create or replace function public.raye2_role_quota(p_tier text, p_metric text)
-returns integer language sql stable security definer set search_path=''
+returns bigint language sql stable security definer set search_path=''
 as $$ select (select q.limit_value from public.raye2_role_quotas q where q.tier=p_tier and q.metric=p_metric); $$;
 revoke all on function public.raye2_role_quota(text,text) from public,anon;
 grant execute on function public.raye2_role_quota(text,text) to service_role;
@@ -282,7 +282,7 @@ revoke all on function public.raye2_get_creator_permission_matrix() from public,
 grant execute on function public.raye2_get_creator_permission_matrix() to authenticated;
 
 -- 8. Admin tuning of the quota matrix.
-create or replace function public.raye2_set_role_quota(p_tier text, p_metric text, p_limit integer)
+create or replace function public.raye2_set_role_quota(p_tier text, p_metric text, p_limit bigint)
 returns void language plpgsql security definer set search_path=''
 as $$
 begin
@@ -294,7 +294,7 @@ begin
   values(auth.uid(),'role_quota_set','role_quota',p_tier||'.'||p_metric,p_limit::text,jsonb_build_object('tier',p_tier,'metric',p_metric,'limit',p_limit));
 end;
 $$;
-revoke all on function public.raye2_set_role_quota(text,text,integer) from public,anon;
-grant execute on function public.raye2_set_role_quota(text,text,integer) to authenticated;
+revoke all on function public.raye2_set_role_quota(text,text,bigint) from public,anon;
+grant execute on function public.raye2_set_role_quota(text,text,bigint) to authenticated;
 
 notify pgrst, 'reload schema';

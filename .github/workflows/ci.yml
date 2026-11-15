@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   verify:
@@ -30,12 +30,36 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Validate repository integration and automated tests
         run: npm run check && npm test
+      - name: Syntax-check operational backup and restore scripts
+        run: node --check scripts/raye2-storage-backup.mjs && node --check scripts/raye2-storage-restore.mjs
       - name: Type-check
         run: npx tsc --noEmit
       - name: Lint
         run: npm run lint
       - name: Build Next.js app
         run: npm run build
+
+  verify-database-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+      - name: Start isolated local Supabase stack
+        run: supabase start
+      - name: Replay every migration from an empty local database
+        run: supabase db reset --local
+      - name: Verify local migration history
+        run: supabase migration list --local
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop --no-backup
 
   build-media-worker-image:
     runs-on: ubuntu-latest
@@ -54,3 +78,13 @@ jobs:
           tags: raye2-media-worker:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Validate hardened worker Compose configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co' \
+            'SUPABASE_SERVICE_ROLE_KEY=sb_secret_placeholder_for_config_validation_only' \
+            > .env.raye2-worker
+          docker compose --file compose.raye2-worker.yml config --quiet
+          rm -f .env.raye2-worker
