@@ -2937,6 +2937,25 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 4 Creator Studio **~82% to ~83%**; overall **~92%**.
 
 ---
+
+## 2026-11-10 — Profile Moments and playlists/collections surfaces (mega-batch, plan 2.1)
+- [x] **Gap closed:** plan 2.1 requires profile surfaces for "videos, Mini's, Moments, community activity,
+  playlists/collections and achievements". Videos, Mini's, community activity and achievements existed, but
+  there was no way to show a member's active Moments or their published playlists.
+- [x] **New migration** `20261111010000_raye2_profile_collections.sql`: one privacy-gated RPC
+  `raye2_get_profile_collections` returning active Moments (with reaction counts) and published playlists
+  (with item counts), honouring profile visibility and member blocks exactly like the profile overview.
+- [x] **Profile page** gains Moments and Playlists tabs/sections (bilingual).
+- [x] **New route** `/watch/playlists/[slug]` — the profile previously had no real playlist target, so linking
+  a playlist would have been a dead link (the same class of bug as the dead Spaces tab). The page renders a
+  published playlist's videos and 404s otherwise.
+- [x] **Guarded:** a new test covers the RPC's privacy gating, the tabs and the playlist route; a validator
+  assertion covers the migration; the palette-purity test caught and enforced the single-theme palette.
+- [x] Gates: validator 427 assertions; tests 852/852; tsc clean; lint 0 errors/24 warnings; build OK; the
+  playlist route returns the expected 404 for unknown slugs.
+- **Progress:** Wave 2 accounts/identity **~80% to ~81%**; overall **~92%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

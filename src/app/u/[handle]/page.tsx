@@ -1,7 +1,7 @@
 import {notFound} from "next/navigation";
 import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
-import MemberProfileClient,{type ProfilePost,type ProfileOverview} from "./profile-client";
+import MemberProfileClient,{type ProfilePost,type ProfileOverview,type ProfileMoment,type ProfilePlaylist} from "./profile-client";
 
 export const dynamic="force-dynamic";
 
@@ -26,5 +26,7 @@ export default async function MemberProfilePage({params}:{params:Promise<{handle
   if(!catalog?.slug)return[];
   return[{id:item.id,title:item.title,slug:catalog.slug,description:catalog.description||item.alt_text||"",category:catalog.category||"Video",src:supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl}];
  });
- return <MemberProfileClient profile={profile} posts={items} videos={videos} communityShorts={communityShorts} locale={locale} overview={overview}/>;
+ const {data:collections}=await supabase.rpc("raye2_get_profile_collections",{p_handle:handle,p_limit:24});
+ const coll=(collections??{}) as {moments?:ProfileMoment[];playlists?:ProfilePlaylist[]};
+ return <MemberProfileClient profile={profile} posts={items} videos={videos} communityShorts={communityShorts} moments={coll.moments??[]} playlists={coll.playlists??[]} locale={locale} overview={overview}/>;
 }

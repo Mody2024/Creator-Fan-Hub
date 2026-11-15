@@ -766,6 +766,9 @@ check("native media captions are stored, owner-managed and publicly readable onl
 const minisReportMigration = await read("../supabase/migrations/20261111000000_raye2_minis_reporting_takedown.sql");
 check("Mini's are reportable and covered by the takedown workflow and moderation queue", minisReportMigration.includes("'community_clip','mini'") && minisReportMigration.includes("'media_item','mini','community_clip'") && minisReportMigration.includes("when 'mini' then coalesce") && minisReportMigration.includes("update public.raye2_minis set status = 'removed'"));
 
+const profileCollectionsMigration = await read("../supabase/migrations/20261111010000_raye2_profile_collections.sql");
+check("profile collections add Moments and playlist surfaces", profileCollectionsMigration.includes("raye2_get_profile_collections") && profileCollectionsMigration.includes("cp.is_moment = true") && profileCollectionsMigration.includes("from public.video_playlists p") && profileCollectionsMigration.includes("'moments', coalesce") && profileCollectionsMigration.includes("'playlists', coalesce"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
