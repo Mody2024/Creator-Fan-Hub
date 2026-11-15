@@ -2371,3 +2371,9 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Creator/profile/watch access check**: recreated `raye2_list_creators`, `raye2_get_profile_overview`, `raye2_validate_watch_source` with `raye2_can_view_video`, so exclusive/expired videos no longer inflate creator counts or seed Watch Together. Matrix 6/6.
 - [x] Gates: validator 358 assertions; tests 705/705 (+3); tsc clean; lint 0 errors/24 warnings; build OK (192 migrations).
 - **Progress:** Wave 2 (accounts/permissions) **~55% to ~62% provisional**; Wave 3 (video/feed/discovery) **~70% to ~73%**; Wave 9 (security) **~98%**; full ten-wave estimate **~76% to ~77%**.
+
+## 2026-11-10 — Video access sweep completed (series/comments/collections/reactions/views)
+- [x] Recreated `raye2_list_series`, `raye2_get_series`, `raye2_get_video_comment_thread`, `raye2_get_video_comment_replies`, `raye2_get_collection` with `raye2_can_view_video` (matrix 6/6).
+- [x] Recreated `get_video_reaction_counts`, `record_video_view`, `raye2_video_comment_parent_visible` (matrix 4/4). The whole class of SECURITY DEFINER video reads now honours exclusivity/expiry; a re-run sweep leaves only role-scoped/self-scoped functions.
+- [x] Gates: validator 360 assertions; tests 710/710; tsc clean; lint 0 errors/24 warnings; build OK (193 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~73% to ~76%**; Wave 9 (security) **~98% to ~99%**; full ten-wave estimate **~77% to ~78%**.
