@@ -2,7 +2,7 @@ name: Supabase encrypted backup
 
 on:
   schedule:
-    - cron: "41 4 * * *"
+    - cron: "41 4 * * 0"
   workflow_dispatch:
 
 permissions:
@@ -13,47 +13,61 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  encrypted-database-backup:
-    name: Create encrypted rolling database backup
+  encrypted-database-and-storage-backup:
+    name: Create encrypted rolling database and Storage backup
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     env:
       SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: https://scxkgybuodhuohcxpfat.supabase.co
       AGE_RECIPIENT: ${{ vars.RAYE2_BACKUP_AGE_RECIPIENT }}
+      RAYE2_BACKUP_MAX_STORAGE_BYTES: "1073741824"
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
       - name: Check required owner configuration
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "$SUPABASE_DB_URL" ]]; then
-            echo "::error::Add SUPABASE_DB_URL as a GitHub Actions secret before backups can run."
-            exit 1
-          fi
-          if [[ -z "$AGE_RECIPIENT" ]]; then
-            echo "::error::Add RAYE2_BACKUP_AGE_RECIPIENT as a GitHub Actions variable before backups can run."
-            exit 1
-          fi
+          for name in SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY AGE_RECIPIENT; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing required GitHub Actions configuration: ${name}"
+              exit 1
+            fi
+          done
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install PostgreSQL client and age
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends postgresql-client age
-      - name: Dump and encrypt the database
+      - name: Dump and encrypt PostgreSQL and every Storage bucket
         shell: bash
         run: |
           set -euo pipefail
           umask 077
           mkdir -p backup
-          dump_file="$(mktemp)"
-          trap 'rm -f "$dump_file"' EXIT
-          pg_dump --format=custom --no-owner --no-acl "$SUPABASE_DB_URL" --file="$dump_file"
-          age --recipient "$AGE_RECIPIENT" --output "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age" "$dump_file"
-          printf 'created_at=%s\nrun_id=%s\ncommit=%s\n'             "$(date -u +%FT%TZ)" "$GITHUB_RUN_ID" "$GITHUB_SHA" > backup/backup-metadata.txt
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "$work_dir"' EXIT
+          pg_dump --format=custom --no-owner --no-acl "$SUPABASE_DB_URL" --file="$work_dir/raye2-postgres.dump"
+          node scripts/raye2-storage-backup.mjs "$work_dir/storage"
+          tar --create --gzip --file="$work_dir/raye2-storage.tar.gz" --directory="$work_dir" storage
+          age --recipient "$AGE_RECIPIENT" --output "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age" "$work_dir/raye2-postgres.dump"
+          age --recipient "$AGE_RECIPIENT" --output "backup/raye2-storage-${GITHUB_RUN_ID}.tar.gz.age" "$work_dir/raye2-storage.tar.gz"
+          printf 'created_at=%s\nrun_id=%s\ncommit=%s\n' "$(date -u +%FT%TZ)" "$GITHUB_RUN_ID" "$GITHUB_SHA" > backup/backup-metadata.txt
           test -s "backup/raye2-postgres-${GITHUB_RUN_ID}.dump.age"
-          echo "Encrypted backup created. The plaintext dump will be removed automatically."
-      - name: Store encrypted backup for 90 days
+          test -s "backup/raye2-storage-${GITHUB_RUN_ID}.tar.gz.age"
+          echo "Encrypted database and Storage backups created. Plaintext working files will be removed."
+      - name: Store encrypted backup for 14 days
         uses: actions/upload-artifact@v4
         with:
           name: raye2-supabase-backup-${{ github.run_id }}
           path: backup/
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 14
