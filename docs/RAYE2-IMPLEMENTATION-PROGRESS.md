@@ -2720,6 +2720,28 @@ One regression-test file was briefly created on the default `main` branch becaus
   receipts.
 
 ---
+
+## 2026-11-10 — Message delivery/read receipts (mega-batch, plan Wave 6)
+- [x] **Gap closed:** plan Wave 6 requires delivery/read/presence states. Read state existed
+  (`conversation_members.last_read_at`) but there was no delivery state and senders saw nothing, so "delivered"
+  was impossible to show.
+- [x] **New migration** `20261110930000_raye2_message_delivery_receipts.sql`: a `raye2_message_deliveries`
+  table (one row per recipient per message) with membership-scoped RLS; `raye2_mark_messages_delivered`
+  (idempotent, records delivery for all messages the caller can see except their own); a trigger that backfills
+  deliveries when a member joins a conversation; and `raye2_message_receipt_status` which returns the other
+  participant's delivery and read clocks for **direct** chats (group receipts stay private). Read state reuses
+  `last_read_at` rather than duplicating it, so it stays consistent with unread counts. The table is added to the
+  Realtime publication.
+- [x] **UI:** own messages in direct chats now show Sent / Delivered / Seen, driven by a live subscription to the
+  deliveries table plus the existing read clock, in EN and AR.
+- [x] **Guarded:** a new test covers the table/RLS, the delivery RPC, the direct-only receipt status and the
+  client wiring; a validator assertion covers the same.
+- [x] Gates: validator 416 assertions; tests 812/812; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 6 receipts **~30% to ~85%**; Wave 6 **~92% to ~95%**. Wave 6 core is now essentially
+  complete (DMs, groups, replies, reactions, edits/deletes, pins, bookmarks, search, requests, presence,
+  moderation, group lifecycle, retention, receipts).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2732,7 +2754,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |
 | 5 | Social graph, communities and engagement | ~99% |
-| 6 | Messaging and chat | ~92% |
+| 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~60% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |

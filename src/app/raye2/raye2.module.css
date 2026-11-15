@@ -224,3 +224,4 @@
 
 .voiceRecording{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border:1px solid rgba(255,100,100,.35);border-radius:999px;background:rgba(255,100,100,.1);color:#ff9292;font-size:9px;font-weight:800;letter-spacing:.06em}
 .voiceConsent{display:inline-flex;align-items:center;gap:8px;padding:5px 9px;border:1px solid rgba(110,168,255,.3);border-radius:10px;background:rgba(110,168,255,.07);color:var(--r-text);font-size:9px}
+.receiptState{font-size:9px;color:var(--r-muted);font-weight:700;letter-spacing:.03em}
