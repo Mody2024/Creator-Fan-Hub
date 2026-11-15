@@ -2377,3 +2377,9 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] Recreated `get_video_reaction_counts`, `record_video_view`, `raye2_video_comment_parent_visible` (matrix 4/4). The whole class of SECURITY DEFINER video reads now honours exclusivity/expiry; a re-run sweep leaves only role-scoped/self-scoped functions.
 - [x] Gates: validator 360 assertions; tests 710/710; tsc clean; lint 0 errors/24 warnings; build OK (193 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~73% to ~76%**; Wave 9 (security) **~98% to ~99%**; full ten-wave estimate **~77% to ~78%**.
+
+## 2026-11-10 — Notification completeness: mentions, live starts, group join requests (2 mega-batches)
+- [x] **@mention notifications** (`c3a2e5c`): new `mention` type; `raye2_mention_recipients(body, actor)` resolves `@handle` to real profiles; INSERT triggers on community posts, post comments, Shorts comments and native video comments; deduplicated per (recipient, actor, target); self-mentions, blocked pairs and unknown handles skipped. Inbox gains a Mentions filter/count/icon (EN+AR). Matrix 12/12.
+- [x] **Live-start + group join-request notifications** (`e4d9372`): `live_start`, `group_join_request`, `group_join_decision` types and `group`/`stream` target types; public-only, per-stream-capped follower broadcast on go-live; managers notified of a join request; requester notified on approve/decline. All helpers best-effort (never roll back the action). Matrix 8/8.
+- [x] Gates: validator 364 assertions; tests 718/718; tsc clean; lint 0 errors/24 warnings; build OK (195 migrations).
+- **Progress:** Wave 5 (social/communities/engagement) **~62% to ~68%**; Wave 6 (messaging/notifications) **~72% to ~78%**; Wave 3 (video/feed/discovery) **~76% to ~78%**; Wave 9 (security/reliability) **~99%**; full ten-wave estimate **~78% to ~80%**.
