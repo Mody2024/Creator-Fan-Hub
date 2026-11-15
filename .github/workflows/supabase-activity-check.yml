@@ -40,7 +40,7 @@ jobs:
             --header "Accept: application/json" \
             --max-time 20 \
             --retry 2 \
-            --retry-delay 3)
+            --retry-delay 3)"
           if [[ "$status_code" != "200" ]]; then
             echo "Supabase database read failed (HTTP $status_code)."
             cat "$response_file"
