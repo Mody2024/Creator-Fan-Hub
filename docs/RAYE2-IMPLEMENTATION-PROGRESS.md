@@ -2359,3 +2359,9 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Watch-library matrix:** 8/8 (page size + newest-first; exclusive/expired/unready/unpublished excluded; walk-all-exactly-once; stability under a new publish; empty cursor).
 - [x] Gates: validator 352 assertions; tests 694/694; tsc clean; lint 0 errors/24 warnings; build OK (189 migrations). Updated one test whose assertions moved with the refactor (behaviour unchanged).
 - **Progress:** Wave 3 (video/feed/discovery) **~58% to ~65% provisional**; full ten-wave estimate **~74% to ~75%**.
+
+## 2026-11-10 — Discovery exclusivity/expiry enforcement (security fix, mega-batch)
+- [x] Closed a real authorization leak: 8 SECURITY DEFINER discovery RPCs bypassed the catalog RLS policy and surfaced **exclusive or expired** videos. Recreated `raye2_get_related_videos`, `raye2_get_topic_videos`, `raye2_list_topics`, `raye2_get_trending_videos`, `raye2_get_trending_tags`, `raye2_search`, `raye2_get_watch_context`, `raye2_get_continue_watching` with the same `raye2_can_view_video` gate used by the catalog policy and recommendations. Signatures/return types unchanged.
+- [x] **Discovery matrix:** 18/18 (separate viewer hides exclusive+expired across topic hubs, related, trending, search, watch context; counts drop accordingly; continue-watching hides newly-exclusive; owner still sees own; anon parity).
+- [x] Gates: validator 354 assertions; tests 698/698 (+4); tsc clean; lint 0 errors/24 warnings; build OK (190 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~65% to ~70% provisional**; Wave 9 (security/reliability) **~97% to ~98%**; full ten-wave estimate **~75% to ~76%**.
