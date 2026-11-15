@@ -3325,3 +3325,21 @@ Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcod
 - [ ] R2/B2 SDK-backed adapters, signed-upload API routes, provider secret configuration, real provider capacity polling, Admin Storage Control Center, migration workers and full upload-path integration are not yet implemented. The control-plane schema is groundwork, not a completed storage rollout.
 - **Progress accounting:** code foundations and regression tests were added, but no user-facing storage integration is complete. Do not increase the canonical overall ~93% historical platform estimate on the basis of schema/contracts alone. Track storage control-plane foundation as implemented-but-untested; provider integration and admin UI remain outstanding.
 - **Latest authored storage migration commit:** `df4c5dc6487eb9d4ed04653e99921fe586e6f2ca`. Vercel reports a build-rate-limit failure for that commit; verify exact branch HEAD and CI status before claiming successful validation.
+
+
+---
+
+## 2026-11-15 — R2/B2 S3-compatible adapter implementation batch
+
+- [x] Added `src/lib/storage/s3-compatible-provider.mjs`, a dependency-free AWS Signature Version 4 adapter for Cloudflare R2 and Backblaze B2.
+- [x] Implemented presigned PUT URLs with signed Content-Type, presigned private GET URLs, signed HEAD metadata checks, server-side object copy, and object deletion.
+- [x] Added strict HTTPS endpoint checks, safe bucket/object-key validation, bounded signed URL expiry, separate public/private bucket selection, and server-only environment-based configuration.
+- [x] Added optional HTTPS public custom-domain URL support; public delivery is reported as available only when that domain is configured.
+- [x] Added `tests/s3-compatible-provider.test.mjs` for URL signing, expiry, invalid keys, HEAD, copy/delete, environment configuration and public delivery.
+- [x] Extended the provider contract and documented R2/B2 environment variables in `.env.example`.
+- [x] Updated `docs/RAYE2-STORAGE-ARCHITECTURE.md` with implemented adapter capabilities and explicit limitations.
+- [ ] Tests have not been executed in this session. Vercel's previous check was blocked by a build-rate-limit page; no passing CI claim is made.
+- [ ] Adapter is not yet wired to authenticated upload/download API routes or the database reservation/verification RPCs. Provider accounts, buckets, keys, public domains and live capacity reconciliation are not configured.
+- [ ] Multipart/resumable S3 upload and cryptographic object checksum verification remain unimplemented. The adapter explicitly does not advertise those capabilities.
+- **Progress accounting:** this is a real provider-adapter code addition, but it does not complete the upload pipeline or enable R2/B2 in production. Keep the overall historical platform estimate unchanged until the authenticated reservation → signed upload → server-side verification → metadata commit path and tests are complete.
+- **Latest adapter test commit:** `fc349f22e72d4ced51e53fdf07d3cba1fd293e62`; follow-up public-delivery test commit recorded after this entry.
