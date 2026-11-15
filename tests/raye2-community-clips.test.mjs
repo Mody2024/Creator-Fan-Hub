@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, page, client, watch] = await Promise.all([
+const [migration, reporting, page, client, watch] = await Promise.all([
   read("../supabase/migrations/20261110840000_raye2_community_clips.sql"),
+  read("../supabase/migrations/20261110890000_raye2_community_clip_reporting.sql"),
   read("../src/app/clips/page.tsx"),
   read("../src/app/clips/clips-client.tsx"),
   read("../src/app/watch/[slug]/watch-detail-client.tsx")
@@ -41,4 +42,18 @@ test("the community clips page and owner control are wired up", () => {
   assert.match(client, /raye2_publish_community_clip/);
   assert.match(client, /raye2_list_community_clips/);
   assert.match(watch, /raye2_set_source_clipping/);
+});
+
+test("clips support preview, visibility, owner removal and reporting", () => {
+  assert.match(client, /raye2-clip-preview/);
+  assert.match(client, /p_visibility: visibility/);
+  assert.match(client, /raye2_remove_community_clip/);
+  assert.match(client, /raye2_report_community_content/);
+  assert.match(client, /p_target_type: "community_clip"/);
+  assert.match(client, /userId === item\.clipper_id \|\| userId === item\.source_owner_id/);
+});
+
+test("the reporting RPC accepts community_clip and the feed exposes ownership", () => {
+  assert.match(reporting, /'post','comment','profile','community_clip'/);
+  assert.match(reporting, /c\.clipper_id, c\.source_owner_id/);
 });

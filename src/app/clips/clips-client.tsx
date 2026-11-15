@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 
-type ClipRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; attribution_text: string; source_media_id: string | null; source_slug: string | null; clipper_handle: string | null; clipper_display_name: string | null; clipper_avatar_url: string | null };
+type ClipRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; attribution_text: string; source_media_id: string | null; source_slug: string | null; clipper_handle: string | null; clipper_display_name: string | null; clipper_avatar_url: string | null; clipper_id: string | null; source_owner_id: string | null };
 type ClipCard = ClipRow & { src: string };
 type SourceRow = { media_id: string; slug: string | null; duration_seconds: number | null; media_items: { title: string; media_type: string } | { title: string; media_type: string }[] };
 const MAX_BYTES = 50 * 1024 * 1024;
@@ -25,13 +25,15 @@ export default function ClipsClient() {
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [visibility, setVisibility] = useState<"public" | "unlisted">("public");
+  const [previewUrl, setPreviewUrl] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [locale, setLocale] = useState<"en" | "ar">("en");
   const isArabic = locale === "ar";
   const t = isArabic
-    ? { heading: "شارك مقطعًا من فيديو", intro: "اختر فيديو منشورًا، حدّد البداية والنهاية (حتى ٣٠ ثانية)، وارفع المقطع. يظهر مع إشارة إلى المصدر.", source: "الفيديو المصدر", start: "البداية (ثانية)", end: "النهاية (ثانية)", title: "عنوان المقطع", caption: "وصف (اختياري)", choose: "＋ اختر ملف MP4/WebM", none: "لم يتم اختيار ملف", publish: "انشر المقطع ↗", publishing: "جارٍ النشر…", signIn: "سجّل الدخول لنشر مقطع ↗", loading: "جارٍ تحميل المقاطع…", empty: "لا توجد مقاطع مجتمع بعد. كن أول من يصنع واحدًا.", ready: "الملف جاهز. تحقق من النطاق والعنوان.", live: "أصبح مقطعك متاحًا.", invalid: "اختر ملف MP4 أو WebM.", tooLarge: "الحجم يتجاوز ٥٠ ميجابايت.", badRange: "يجب أن يكون النطاق بين ١ و٣٠ ثانية وداخل مدة المصدر.", videoRead: "تعذر قراءة الملف.", feedError: "تعذر تحميل المقاطع. حدّث الصفحة.", upload: "جارٍ الرفع", attribution: "المصدر", clipDuration: "المدة", expired: "منتهي", expires: "ينتهي", quota: "تم بلوغ الحد اليومي للمقاطع.", noSource: "اختر فيديو مصدرًا." }
-    : { heading: "Clip a published video", intro: "Pick a published video, set a start and end (up to 30 seconds) and upload the clip. It appears with source attribution.", source: "Source video", start: "Start (seconds)", end: "End (seconds)", title: "Clip title", caption: "Caption (optional)", choose: "＋ Choose MP4/WebM file", none: "No file selected", publish: "Publish clip ↗", publishing: "Publishing…", signIn: "Sign in to publish a clip ↗", loading: "Loading community clips…", empty: "No community clips yet. Be the first to make one.", ready: "File ready. Check the range and title.", live: "Your clip is live.", invalid: "Choose an MP4 or WebM file.", tooLarge: "This file exceeds the 50 MB limit.", badRange: "The range must be 1–30 seconds and inside the source duration.", videoRead: "This file could not be read.", feedError: "The clips feed could not load. Please refresh.", upload: "Uploading", attribution: "Source", clipDuration: "Duration", expired: "EXPIRED", expires: "Expires", quota: "Daily community clip limit reached.", noSource: "Choose a source video." };
+    ? { heading: "شارك مقطعًا من فيديو", intro: "اختر فيديو منشورًا، حدّد البداية والنهاية (حتى ٣٠ ثانية)، وارفع المقطع. يظهر مع إشارة إلى المصدر.", source: "الفيديو المصدر", start: "البداية (ثانية)", end: "النهاية (ثانية)", title: "عنوان المقطع", caption: "وصف (اختياري)", choose: "＋ اختر ملف MP4/WebM", none: "لم يتم اختيار ملف", publish: "انشر المقطع ↗", publishing: "جارٍ النشر…", signIn: "سجّل الدخول لنشر مقطع ↗", loading: "جارٍ تحميل المقاطع…", empty: "لا توجد مقاطع مجتمع بعد. كن أول من يصنع واحدًا.", ready: "الملف جاهز. تحقق من النطاق والعنوان.", live: "أصبح مقطعك متاحًا.", invalid: "اختر ملف MP4 أو WebM.", tooLarge: "الحجم يتجاوز ٥٠ ميجابايت.", badRange: "يجب أن يكون النطاق بين ١ و٣٠ ثانية وداخل مدة المصدر.", videoRead: "تعذر قراءة الملف.", feedError: "تعذر تحميل المقاطع. حدّث الصفحة.", upload: "جارٍ الرفع", attribution: "المصدر", clipDuration: "المدة", expired: "منتهي", expires: "ينتهي", quota: "تم بلوغ الحد اليومي للمقاطع.", noSource: "اختر فيديو مصدرًا.", preview: "معاينة المقطع", visibility: "الظهور", publicVis: "عام", unlistedVis: "غير مدرج", remove: "إزالة مقطعي", removeConfirm: "إزالة هذا المقطع؟", removeDone: "تمت إزالة المقطع.", removeFail: "تعذر إزالة المقطع.", report: "إبلاغ", reportReason: "سبب الإبلاغ", reportDone: "تم إرسال الإبلاغ للمراجعة.", reportFail: "تعذر إرسال الإبلاغ.", reportCopyright: "حقوق النشر", reportSpam: "محتوى مزعج", reportHarassment: "مضايقة", reportOther: "أخرى" }
+    : { heading: "Clip a published video", intro: "Pick a published video, set a start and end (up to 30 seconds) and upload the clip. It appears with source attribution.", source: "Source video", start: "Start (seconds)", end: "End (seconds)", title: "Clip title", caption: "Caption (optional)", choose: "＋ Choose MP4/WebM file", none: "No file selected", publish: "Publish clip ↗", publishing: "Publishing…", signIn: "Sign in to publish a clip ↗", loading: "Loading community clips…", empty: "No community clips yet. Be the first to make one.", ready: "File ready. Check the range and title.", live: "Your clip is live.", invalid: "Choose an MP4 or WebM file.", tooLarge: "This file exceeds the 50 MB limit.", badRange: "The range must be 1–30 seconds and inside the source duration.", videoRead: "This file could not be read.", feedError: "The clips feed could not load. Please refresh.", upload: "Uploading", attribution: "Source", clipDuration: "Duration", expired: "EXPIRED", expires: "Expires", quota: "Daily community clip limit reached.", noSource: "Choose a source video.", preview: "Clip preview", visibility: "Visibility", publicVis: "Public", unlistedVis: "Unlisted", remove: "Remove my clip", removeConfirm: "Remove this clip?", removeDone: "Clip removed.", removeFail: "Could not remove the clip.", report: "Report", reportReason: "Report reason", reportDone: "Report submitted for review.", reportFail: "Could not submit the report.", reportCopyright: "Copyright", reportSpam: "Spam", reportHarassment: "Harassment", reportOther: "Other" };
 
   useEffect(() => { const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
 
@@ -77,6 +79,32 @@ export default function ClipsClient() {
     setStatus(t.ready);
   }
 
+  useEffect(() => {
+    if (!file) { setPreviewUrl(""); return; }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const removeClip = async (id: string) => {
+    if (!supabase || busy) return;
+    if (typeof window !== "undefined" && !window.confirm(t.removeConfirm)) return;
+    setBusy(true);
+    const { error: removeError } = await supabase.rpc("raye2_remove_community_clip", { p_clip_id: id, p_reason: "owner removed" });
+    setBusy(false);
+    if (removeError) { setStatus(t.removeFail); return; }
+    setStatus(t.removeDone);
+    await load();
+  };
+
+  const reportClip = async (id: string, reason: string) => {
+    if (!supabase || busy) return;
+    setBusy(true);
+    const { error: reportError } = await supabase.rpc("raye2_report_community_content", { p_target_type: "community_clip", p_target_id: id, p_reason: reason, p_details: "" });
+    setBusy(false);
+    setStatus(reportError ? t.reportFail : t.reportDone);
+  };
+
   const clipDuration = Math.max(0, Math.round(end - start));
 
   async function publish() {
@@ -106,7 +134,7 @@ export default function ClipsClient() {
       uploaded = true;
       const { error: saveError } = await supabase.rpc("raye2_publish_community_clip", {
         p_title: title.trim(), p_caption: caption.trim(), p_storage_path: path, p_duration_seconds: clipDuration,
-        p_source_media_id: sourceId, p_clip_start_seconds: Math.round(start), p_clip_end_seconds: Math.round(end), p_visibility: "public"
+        p_source_media_id: sourceId, p_clip_start_seconds: Math.round(start), p_clip_end_seconds: Math.round(end), p_visibility: visibility
       });
       if (saveError) {
         const { error: cleanupError } = await supabase.storage.from("raye2-clips").remove([path]);
@@ -148,7 +176,14 @@ export default function ClipsClient() {
             </div>
             <label>{t.title}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} /></label>
             <label>{t.caption}<input value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={500} /></label>
+            <label>{t.visibility}
+              <select value={visibility} onChange={(e) => setVisibility(e.target.value as "public" | "unlisted")}>
+                <option value="public">{t.publicVis}</option>
+                <option value="unlisted">{t.unlistedVis}</option>
+              </select>
+            </label>
             <input ref={input} type="file" accept="video/mp4,video/webm" aria-label={t.choose} onChange={(e) => void chooseFile(e.target.files?.[0] ?? null)} />
+            {previewUrl ? <video className="raye2-clip-preview" src={`${previewUrl}#t=${Math.max(0, Math.round(start))},${Math.max(0, Math.round(end))}`} controls preload="metadata" playsInline aria-label={t.preview} /> : null}
             <small>{file ? file.name : t.none}</small>
             {uploadProgress !== null ? <progress aria-label={t.upload} max={100} value={uploadProgress} /> : null}
             <button className="nhen-action" disabled={busy || !file || !title.trim() || !sourceId} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
@@ -169,6 +204,10 @@ export default function ClipsClient() {
                 <p>{item.caption}</p>
                 <small className="raye2-clip-attribution">{t.attribution}: {item.source_slug ? <Link href={`/watch/${item.source_slug}`}>{item.attribution_text}</Link> : item.attribution_text}</small>
                 <small>{item.clipper_display_name ?? item.clipper_handle ?? "Member"} · {t.expires} {expiresLabel(item.expires_at)}</small>
+                <div className="raye2-clip-actions">
+                  {userId && (userId === item.clipper_id || userId === item.source_owner_id) && <button type="button" disabled={busy} onClick={() => void removeClip(item.id)}>{t.remove}</button>}
+                  {userId && <details className="raye2-clip-report"><summary>{t.report}</summary><div role="group" aria-label={t.reportReason}><button type="button" onClick={() => void reportClip(item.id, "copyright")}>{t.reportCopyright}</button><button type="button" onClick={() => void reportClip(item.id, "spam")}>{t.reportSpam}</button><button type="button" onClick={() => void reportClip(item.id, "harassment")}>{t.reportHarassment}</button><button type="button" onClick={() => void reportClip(item.id, "other")}>{t.reportOther}</button></div></details>}
+                </div>
               </div>
             </article>
           ))}

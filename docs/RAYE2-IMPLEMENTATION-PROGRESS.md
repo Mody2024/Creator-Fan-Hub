@@ -2646,6 +2646,25 @@ One regression-test file was briefly created on the default `main` branch becaus
   recording parity and the join-time consent prompt for late joiners (currently prompted live via subscription).
 
 ---
+
+## 2026-11-10 — Community clips: preview, visibility, removal and reporting (mega-batch, plan 13.5)
+- [x] **Gap closed:** the clips feed could publish and list clips but lacked the trim/preview, visibility,
+  remove/takedown and report behavior plan 13.5 requires. Also, the DB `content_reports` constraint allowed a
+  `community_clip` target but the reporting RPC only accepted post/comment/profile, so clip reports were rejected.
+- [x] **New migration** `20261110890000_raye2_community_clip_reporting.sql`: the reporting RPC now accepts
+  `community_clip` (existence-checked) and `raye2_list_community_clips` exposes `clipper_id`/`source_owner_id` so
+  the feed can offer owner-only removal.
+- [x] **Clips UI:** an inline preview of the selected file trimmed to the chosen range, a public/unlisted
+  visibility selector wired into the publish RPC, a "Remove my clip" action for the clipper or source owner (via
+  `raye2_remove_community_clip`), and a report control (copyright/spam/harassment/other) using the existing
+  moderation pipeline.
+- [x] **Guarded:** clips tests assert the preview element, visibility binding, owner-only removal, the report RPC
+  and target type, and the migration's `community_clip` acceptance + ownership columns; a validator assertion
+  covers the same.
+- [x] Gates: validator 412 assertions; tests 802/802; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.5 (community clips) **~70% to ~88%**; Wave 3 **~91% to ~93%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

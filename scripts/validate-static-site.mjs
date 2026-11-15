@@ -682,6 +682,9 @@ const voiceControlsSrc = await read("../src/app/raye2/raye2-voice-controls.tsx")
 check("voice recording requires consent with a visible indicator and elapsed time", voiceControlsSrc.includes("raye2_request_voice_recording_consent") && voiceControlsSrc.includes("raye2_respond_voice_recording_consent") && voiceControlsSrc.includes("styles.voiceRecording") && voiceControlsSrc.includes("recordingClock"));
 const groupVoiceControlsSrc = await read("../src/app/raye2/raye2-group-voice-controls.tsx");
 check("group voice rooms surface the same recording consent and indicator", groupVoiceControlsSrc.includes("raye2_request_voice_recording_consent") && groupVoiceControlsSrc.includes("raye2_respond_voice_recording_consent") && groupVoiceControlsSrc.includes("styles.voiceRecording") && groupVoiceControlsSrc.includes("recordingClock") && groupVoiceControlsSrc.includes("isVoiceHost"));
+const clipsFeedClient = await read("../src/app/clips/clips-client.tsx");
+const clipsReportingMigration = await read("../supabase/migrations/20261110890000_raye2_community_clip_reporting.sql");
+check("community clips support preview, visibility, owner removal and reporting", clipsFeedClient.includes("raye2-clip-preview") && clipsFeedClient.includes("p_visibility: visibility") && clipsFeedClient.includes("raye2_remove_community_clip") && clipsFeedClient.includes('p_target_type: "community_clip"') && clipsReportingMigration.includes("'post','comment','profile','community_clip'"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");
