@@ -2474,3 +2474,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 8/8 (poll vote; group joins; blocked member gated; tier honesty; good-standing award; progress; member-scoped; catalog criteria).
 - [x] Gates: validator 390 assertions; tests 767/767; tsc clean; lint 0 errors/24 warnings; build OK (205 migrations).
 - **Progress:** §13.7 (profiles/identity/achievements) **~70% to ~90%**; Wave 5 **~+2%**; full ten-wave estimate **~93% to ~95%**.
+
+## 2026-11-10 — Event Q&A + attached community spaces (mega-batch, plan 13.8)
+- [x] **Q&A:** `event_qa` with `raye2_ask_event_question` (published only), `raye2_answer_event_question` (host/creator only), `raye2_remove_event_question` (author/host), public `raye2_list_event_questions`.
+- [x] **Attached space:** `events.conversation_id` + `raye2_attach_event_space` (host/creator, must belong to the room) — chat/voice/Watch Together reuse the group conversation.
+- [x] **Feed:** `raye2_get_public_events` exposes `space_group_slug`; event questions are reportable.
+- [x] **UI:** expandable Q&A panel + "Open event space" link, EN+AR.
+- [x] **Matrix:** 12/12 (ask; non-host blocked; host answer; public read; draft refused; unrelated removal blocked; author removal; attach own room; slug in feed; non-host attach blocked; foreign room blocked; detach).
+- [x] Gates: validator 393 assertions; tests 773/773; tsc clean; lint 0 errors/24 warnings; build OK (206 migrations).
+- **Progress:** §13.8 (communities/events/Q&A/spaces) **~80% to ~92%**; Wave 5 **~+2%**; full ten-wave estimate **~94% to ~96%**.

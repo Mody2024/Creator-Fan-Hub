@@ -155,3 +155,12 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   criteria-bearing codes are gated by measurement and good standing.
 - Anti-abuse (`raye2_member_in_good_standing`) checks active profile + not blocked by anyone + no open profile
   reports; a blocked member must never receive a trust-gated achievement.
+
+## Raye2 events — gotchas
+- Event Q&A answers are restricted to an event host (`event_hosts`) or authorized creator
+  (`can_edit_creator_content`); the public read must expose the question, its author and the host answer.
+- The attached event space is the event's existing group conversation (`events.conversation_id`), so chat,
+  voice and Watch Together reuse `raye2_conversations`/`raye2_groups`; attaching requires membership in that
+  conversation. `raye2_get_public_events` returns the group slug via a join on `conversation_id -> group_id`.
+- Signup auto-creates `member_profiles` rows, so test fixtures must upsert (not insert) profiles to set a
+  display name.
