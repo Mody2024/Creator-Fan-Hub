@@ -31,6 +31,10 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   const [myConsent, setMyConsent] = useState<"not_requested" | "pending" | "accepted" | "declined" | "withdrawn">("not_requested");
   const [recordingElapsed, setRecordingElapsed] = useState(0);
   const [recordingBusy, setRecordingBusy] = useState(false);
+  const [handRaised, setHandRaised] = useState(false);
+  const [pushToTalk, setPushToTalk] = useState(false);
+  const [noiseSuppression, setNoiseSuppression] = useState(true);
+  const [audioPrefsBusy, setAudioPrefsBusy] = useState(false);
   const [error, setError] = useState("");
   const roomRef = useRef<LiveKitRoom | null>(null);
   const sessionRef = useRef<string | null>(null);
@@ -46,7 +50,13 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     unavailable: isAr ? "الغرفة الصوتية غير متاحة حاليًا." : "Group voice is not available right now.",
     failed: isAr ? "تعذر الاتصال بالغرفة الصوتية. حاول مرة أخرى." : "Could not connect to the voice room. Try again.",
     members: isAr ? "مشاركون" : "participants",
-    speaking: isAr ? "يتحدث الآن" : "Speaking"
+    speaking: isAr ? "يتحدث الآن" : "Speaking",
+    raiseHand: isAr ? "رفع اليد" : "Raise hand",
+    lowerHand: isAr ? "خفض اليد" : "Lower hand",
+    muteAll: isAr ? "كتم الجميع" : "Mute all",
+    clearHands: isAr ? "خفض كل الأيدي" : "Clear hands",
+    pushToTalk: isAr ? "اضغط للتحدث" : "Push to talk",
+    noiseSuppression: isAr ? "إخماد الضوضاء" : "Noise suppression"
   };
 
   const leaveRoom = async () => {
@@ -245,9 +255,36 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     try {
       await room.localParticipant.setMicrophoneEnabled(!next);
       setMuted(next);
+      const sessionId = sessionRef.current;
+      if (sessionId) void supabase.rpc("raye2_set_voice_mute", { p_session_id: sessionId, p_muted: next });
     } catch {
       setError(copy.failed);
     }
+  };
+
+  const toggleHand = async () => {
+    const sessionId = sessionRef.current;
+    if (!sessionId) return;
+    const next = !handRaised;
+    const { error: rpcError } = await supabase.rpc("raye2_set_voice_hand", { p_session_id: sessionId, p_raised: next });
+    if (rpcError) setError(copy.failed);
+    else setHandRaised(next);
+  };
+
+  const bulkModerate = async (action: "mute_all" | "clear_hands") => {
+    const sessionId = sessionRef.current;
+    if (!sessionId || !canModerate) return;
+    const { error: rpcError } = await supabase.rpc("raye2_voice_bulk_moderation", { p_session_id: sessionId, p_action: action });
+    if (rpcError) setError(copy.failed);
+  };
+
+  const saveAudioPreferences = async (nextPushToTalk: boolean, nextNoise: boolean) => {
+    setAudioPrefsBusy(true);
+    const { error: rpcError } = await supabase.rpc("raye2_set_voice_audio_preferences", { p_push_to_talk: nextPushToTalk, p_noise_suppression: nextNoise });
+    setAudioPrefsBusy(false);
+    if (rpcError) { setError(copy.failed); return; }
+    setPushToTalk(nextPushToTalk);
+    setNoiseSuppression(nextNoise);
   };
 
   return (
@@ -261,12 +298,17 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         <>
           <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members}</span>
           <button type="button" onClick={() => void toggleMute()}>{muted ? copy.unmute : copy.mute}</button>
+          <button type="button" aria-pressed={handRaised} onClick={() => void toggleHand()}>{handRaised ? copy.lowerHand : copy.raiseHand}</button>
+          <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={pushToTalk} onChange={event => void saveAudioPreferences(event.target.checked, noiseSuppression)}/>{copy.pushToTalk}</label>
+          <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={noiseSuppression} onChange={event => void saveAudioPreferences(pushToTalk, event.target.checked)}/>{copy.noiseSuppression}</label>
           {recordingState === "consent_granted" && <span className={styles.voiceRecording} role="status" aria-live="polite">{isAr ? "● تسجيل" : "● REC"} {recordingClock}</span>}
           {recordingState === "consent_pending" && myConsent === "pending" && <span className={styles.voiceConsent}><span>{isAr ? "طلب تسجيل هذه الغرفة" : "This room is requesting recording consent"}</span><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("accepted")}>{isAr ? "أوافق" : "Allow"}</button><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("declined")}>{isAr ? "أرفض" : "Decline"}</button></span>}
           {recordingState === "off" && isVoiceHost && <button type="button" disabled={recordingBusy} onClick={() => void requestRecordingConsent()}>{isAr ? "طلب تسجيل" : "Request recording"}</button>}
           {recordingState === "consent_granted" && <button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("withdrawn")}>{isAr ? "سحب الموافقة" : "Withdraw consent"}</button>}
           <button type="button" className={styles.voiceEnd} onClick={() => void leaveRoom()}>{copy.leave}</button>
           {canModerate && <button type="button" onClick={() => void toggleRoomLock()}>{locked ? (isAr ? "فتح الغرفة" : "Unlock room") : (isAr ? "قفل الغرفة" : "Lock room")}</button>}
+          {canModerate && <button type="button" onClick={() => void bulkModerate("mute_all")}>{copy.muteAll}</button>}
+          {canModerate && <button type="button" onClick={() => void bulkModerate("clear_hands")}>{copy.clearHands}</button>}
           {activeSpeakers.length > 0 && <small>{copy.speaking}: {activeSpeakers.length}</small>}
           <div className={styles.groupVoiceRoster}>{participants.map(participant => <div key={participant.identity}><span>{participant.name}{activeSpeakers.includes(participant.identity) ? " · " + copy.speaking : ""}</span>{canModerate && !participant.isSelf && <button type="button" onClick={() => void removeParticipant(participant.identity)}>{isAr ? "إزالة" : "Remove"}</button>}</div>)}</div>
         </>

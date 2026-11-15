@@ -2781,6 +2781,26 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 7 Watch Together **~55% to ~85%**; Wave 7 **~70% to ~76%**.
 
 ---
+
+## 2026-11-10 — Voice depth: raise hand, audio preferences, idle rooms (mega-batch, plan Wave 7)
+- [x] **Gap closed:** plan 4 requires raise hand, push-to-talk and noise suppression, configurable session
+  duration and idle-room timeout. Voice sessions, SFU rooms, moderation (lock/remove/promote) and recording
+  consent existed, but there was no raise-hand signal, audio preferences only covered private calls, rooms never
+  ended when empty, and a moderator had to mute participants one at a time.
+- [x] **New migration** `20261110950000_raye2_voice_depth.sql`: participant `hand_raised_at` + server-visible
+  `is_muted`; a `last_activity_at` session clock; `push_to_talk`/`noise_suppression` preference columns with
+  `raye2_set_voice_audio_preferences`; `raye2_set_voice_hand` and `raye2_set_voice_mute` (both refresh activity);
+  `raye2_voice_bulk_moderation` (mute-all / clear-hands, moderator-gated, audited);
+  `raye2_expire_idle_voice_rooms` (ends rooms that are empty of joined and invited participants past the idle
+  window) folded into `raye2_run_maintenance`; voice participants and sessions published to Realtime.
+- [x] **UI:** raise/lower hand, push-to-talk and noise-suppression toggles, and host/co-host mute-all and
+  clear-hands actions in the group voice controls (EN + AR).
+- [x] **Guarded:** a new test covers raise-hand, mute, audio preferences, bulk moderation and idle-room expiry;
+  a validator assertion covers the migration.
+- [x] Gates: validator 419 assertions; tests 825/825; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 7 voice depth **~60% to ~82%**; Wave 7 **~76% to ~82%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
