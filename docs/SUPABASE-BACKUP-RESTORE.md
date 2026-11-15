@@ -9,7 +9,7 @@ The scheduled workflow `.github/workflows/supabase-backup.yml` runs weekly. It c
 
 Only encrypted files and non-sensitive run metadata are uploaded to GitHub Actions. Plaintext dumps and Storage files live only in a temporary runner directory and are removed when the job exits. The artifact is retained for 14 days to limit free artifact-storage use.
 
-This is a **short rolling recovery copy**, not permanent archival. GitHub automatically expires workflow artifacts. Download important backups to storage you control before they expire. Free hosting and CI do not provide a contractual guarantee against provider suspension, deletion, quota changes or account loss.
+This is a **short rolling recovery copy**, not permanent archival. GitHub automatically expires workflow artifacts. Download important backups to storage you control before they expire. Supabase Free projects can be paused after a week of low database activity. Supabase currently documents a one-year restore window for paused Free projects, but this is not a permanent archive and does not protect against deliberate project deletion or account loss. Free projects do not receive Supabase-managed automatic database backups.
 
 PostgreSQL dumps and Storage object exports do not capture every Supabase project setting. Auth provider configuration, SMTP settings, Edge Function secrets, API keys, custom domains, project settings and external provider credentials must be documented/recreated separately. A restore into a new Supabase project needs a reviewed schema/auth migration process; do not assume a raw database dump can be blindly restored into managed system schemas.
 
