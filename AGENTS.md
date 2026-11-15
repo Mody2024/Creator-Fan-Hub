@@ -125,3 +125,16 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   `(provider_key, provider_event_id)` unique constraint collapse distinct impressions.
 - Any new `SECURITY DEFINER` function needs an explicit `grant execute` (the validator test in `tests/site.test.mjs`
   fails otherwise); `raye2_pick_ad_sponsor` is internal and is granted to `service_role` only.
+
+## Raye2 live advertising & sponsor integrity — gotchas
+- Live sponsor placement must **fail safe**: return nothing when the stream is not live, the provider cannot
+  support compliant insertion, or health is offline/reconnecting. Provider capability is admin-only and audited
+  (`raye2_set_live_provider_capability`); never invent it.
+- The context replay bridge is DVR-gated: live replay seconds are 0 unless `live_dvr_capable` is true.
+- Creator video contracts bind to a video, not a stream, so live uses platform campaigns only
+  (`raye2_pick_live_ad_sponsor`).
+- `v_reasons := v_reasons || 'x'` on a `text[]` is malformed in PL/pgSQL; use `array_append(v_reasons,'x')`.
+- Invalid delivery events (`invalid=true`, admin-only via `raye2_flag_invalid_traffic`) must be excluded from
+  every cap count (`and not e.invalid`), or an invalidated impression still consumes the daily/lifetime cap.
+- Sponsor reporting must never fabricate figures: `raye2_creator_monetization_report` reports
+  `payout_status='not_configured'` and `viewer_identity_data_exposed=false`.
