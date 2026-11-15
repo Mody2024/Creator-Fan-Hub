@@ -811,6 +811,9 @@ check("Watch Together rooms support participant reactions with a rate limit", wa
 const eventQuestionReportingMigration = await read("../supabase/migrations/20261111110000_raye2_event_question_reporting.sql");
 check("event-question reporting is restored alongside all report targets", eventQuestionReportingMigration.includes("target_type in ('post','comment','profile','community_clip','mini','event_question')") && eventQuestionReportingMigration.includes("from public.event_qa q where q.id::text = p_target_id"));
 
+const shareIntoChatMigration = await read("../supabase/migrations/20261111120000_raye2_share_into_chat.sql");
+check("videos can be shared into member conversations with a view gate", shareIntoChatMigration.includes("raye2_share_video_to_chat") && shareIntoChatMigration.includes("raye2_is_conversation_member(p_conversation_id)") && shareIntoChatMigration.includes("public.raye2_can_view_video(vc.media_id)") && shareIntoChatMigration.includes("raye2_list_shareable_conversations"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

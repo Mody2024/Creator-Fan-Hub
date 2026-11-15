@@ -69,5 +69,5 @@ export default async function WatchVideoPage({params,searchParams}:{params:Promi
  });
  const contextResult=await supabase.rpc("raye2_get_watch_context",{p_slug:slug});
  const context=(Array.isArray(contextResult.data)?contextResult.data[0]:null) as WatchContext|null;
- return <WatchDetailClient startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context} ownerId={media.owner_id??null} allowClipping={media.allow_clipping!==false} captions={captions}/>;
+ return <WatchDetailClient slug={slug} startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context} ownerId={media.owner_id??null} allowClipping={media.allow_clipping!==false} captions={captions}/>;
 }

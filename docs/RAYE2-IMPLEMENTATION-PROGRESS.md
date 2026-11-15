@@ -3208,6 +3208,24 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 5 stays **~100%** (reporting restored); overall stays **~93%**.
 
 ---
+
+## 2026-11-10 — Share a video or moment into DMs and groups (mega-batch, plan 13.3 / Wave 3)
+- [x] **Gap closed:** plan 13.3 requires sharing "a whole video, timestamp/moment, or an eligible clip into
+  DMs, groups, communities and Watch Together". Community sharing existed, but chat sharing did not: the watch
+  page could only copy a link.
+- [x] **Migration** `20261111120000_raye2_share_into_chat.sql`: `raye2_list_shareable_conversations` (active
+  direct/group conversations the viewer belongs to) and `raye2_share_video_to_chat` (posts a structured
+  `video_share` message into a conversation the sender belongs to; the body and link are server-derived and the
+  video must pass `raye2_can_view_video`, so the client cannot forge a link to an unavailable video; timestamp
+  bounded to 24h).
+- [x] **UI:** `watch-detail-client.tsx` gains a "Share to chat" action and conversation picker (bilingual);
+  the watch page passes the slug so the RPC references the canonical video.
+- [x] **Guarded:** new test `tests/raye2-share-into-chat.test.mjs` plus a validator assertion.
+- [x] Gates: validator 442 assertions; tests 890/890; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/watch` and `/raye2/home` 200.
+- **Progress:** Wave 3 (Video, feed, discovery) **~95% to ~96%**; overall **~93%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3217,7 +3235,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
-| 3 | Video, feed and discovery ecosystem | ~95% |
+| 3 | Video, feed and discovery ecosystem | ~96% |
 | 4 | Creator Studio, exclusives and live streaming | ~90% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
