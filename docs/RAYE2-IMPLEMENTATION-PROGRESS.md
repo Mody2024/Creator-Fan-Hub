@@ -3242,9 +3242,35 @@ One regression-test file was briefly created on the default `main` branch becaus
   9 ~99%; overall **~93%**; §18 ~97%.
 
 ---
+
+## 2026-11-10 — Repository professionalization (naming, hygiene, stale prototype)
+- [x] **Push audit:** all prior work was already on `origin/development`; the apparent "53 ahead" was a stale
+  local ref (after `fetch`, 0 ahead / 0 behind). `main` remains frozen at `f97847f`.
+- [x] **Naming:** renamed every predecessor `nhen-*` CSS class to `raye2-*`, `--nhen-*` tokens to `--raye2-ds-*`,
+  the `nhen_locale` cookie to `raye2_locale`, and `NhenReactionArt` to `Raye2ReactionArt` across `src/`,
+  `tests/`, `scripts/` and `AGENTS.md` (~2,100 references, 113 files). File renames:
+  `nhen-design-system.css` → `raye2-design-system.css`, `nhen-reaction-art.tsx` → `raye2-reaction-art.tsx`.
+  Collision-handled names: `raye2-studio-shell`, `raye2-studio-columns`, `raye2-studio-row`,
+  `raye2-watch-columns`, `raye2-watch-sidebar`, `raye2-loading-glyph`.
+- [x] **Latent bug fixed:** the player loading glyph now uses the class its stylesheet defines
+  (`raye2-loading-glyph`).
+- [x] **Hygiene:** committed `package-lock.json` (lockfileVersion 3) and switched CI to `npm ci` with npm cache;
+  ignored `*.tsbuildinfo`; rewrote the README product description to match the current platform; normalized flex
+  `end` → `flex-end`, clearing all autoprefixer warnings.
+- [x] **Cleanup:** removed the dead root `index.html` ("THE INNER CIRCLE") prototype (not served or built) and
+  migrated its four tests to the real surfaces (home links, participation privacy disclosure, creator
+  signature in the shared layout, design-system responsive/reduced-motion). Added
+  `tests/raye2-naming-hygiene.test.mjs` to block predecessor branding from returning to the product source.
+- [x] **Lint:** 0 errors / 19 warnings (down from 24); fixed the unused import, unused binding, and anonymous
+  default export, and ignore intentionally `_`-prefixed unused args.
+- [x] Gates: validator 442 assertions; tests 892/892; tsc clean; build OK; runtime 200 for `/`, `/watch`,
+  `/community`, `/shorts`, `/raye2/home`, `/creator`.
+- **Progress:** no feature delta this round; all ten waves unchanged. Overall **~93%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
-Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
+Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
 
 | Wave | Area | % |
 | --- | --- | --- |
@@ -3258,7 +3284,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 7 | Voice, Watch Together and shared experiences | ~88% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~92%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~93%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
 Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
