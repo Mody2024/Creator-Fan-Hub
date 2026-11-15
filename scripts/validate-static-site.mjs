@@ -802,6 +802,9 @@ check("group voice rooms report connection quality and reconnect state", groupVo
 const eventSpaceAttachMigration = await read("../supabase/migrations/20261111080000_raye2_creator_event_space_attach.sql");
 check("creators can attach a community space to an event", eventSpaceAttachMigration.includes("raye2_creator_attachable_spaces") && eventSpaceAttachMigration.includes("space_group_slug text") && eventSpaceAttachMigration.includes("join public.raye2_conversation_members m on m.conversation_id = c.id"));
 
+const cleanupPreviewMigration = await read("../supabase/migrations/20261111090000_raye2_cleanup_preview_estimates.sql");
+check("cleanup previews compute affected records and estimated storage", cleanupPreviewMigration.includes("raye2_estimate_cleanup_scope(p_scope, coalesce(p_preserve_chat_history,true), coalesce(p_preserve_shared_memories,true))") && cleanupPreviewMigration.includes("estimated_items,estimated_bytes,result,reason") && cleanupPreviewMigration.includes("'exclusions',jsonb_build_object("));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

@@ -3159,6 +3159,22 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 7 (Voice, Watch Together) **~84% to ~86%**; overall stays **~93%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Cleanup preview shows affected records and estimated storage (mega-batch, plan 13.10 / Wave 8)
+- [x] **Gap closed:** plan 13.10 requires a destructive bulk action to preview affected records, estimated
+  storage, exclusions, reason and recovery options before confirmation. `raye2_create_cleanup_preview`
+  recorded scope, preservation flags and reason, but never computed the affected-record count or estimated
+  storage; the admin UI showed "—" for both until a separate queue step.
+- [x] **Migration** `20261111090000_raye2_cleanup_preview_estimates.sql`: the preview now estimates the whole
+  scope (`raye2_estimate_cleanup_scope`), stores `estimated_items`/`estimated_bytes`, and records a per-category
+  breakdown plus the explicit chat-history/Shared-Memories exclusions in `result`.
+- [x] **UI:** `admin-client.tsx` re-reads the created preview row so the estimates and exclusions appear
+  immediately (bilingual copy corrected to match).
+- [x] **Guarded:** new test `tests/raye2-cleanup-preview-estimates.test.mjs` plus a validator assertion.
+- [x] Gates: validator 439 assertions; tests 885/885; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 8 (Admin Rules Engine and governance) **~100%**; overall stays **~93%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
