@@ -164,3 +164,11 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   conversation. `raye2_get_public_events` returns the group slug via a join on `conversation_id -> group_id`.
 - Signup auto-creates `member_profiles` rows, so test fixtures must upsert (not insert) profiles to set a
   display name.
+
+## Raye2 admin moderation — gotchas
+- The unified queue reads both `content_reports` (target_id is text) and `raye2_safety_reports` (target_id is
+  uuid); cast the uuid to text in the union so the columns line up.
+- Resolution must delegate to the existing audited RPCs (`raye2_resolve_content_report`,
+  `raye2_resolve_safety_report`) so audit entries and semantics stay identical; do not re-implement them.
+- A `with bounded as (...)` CTE referenced only in `limit` must not be cross-joined into a `select *` — the
+  extra `lim` column breaks the function's declared return type. Use `select q.*` from a subquery instead.

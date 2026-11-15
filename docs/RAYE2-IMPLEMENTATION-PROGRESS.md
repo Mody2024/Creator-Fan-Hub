@@ -2483,3 +2483,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 12/12 (ask; non-host blocked; host answer; public read; draft refused; unrelated removal blocked; author removal; attach own room; slug in feed; non-host attach blocked; foreign room blocked; detach).
 - [x] Gates: validator 393 assertions; tests 773/773; tsc clean; lint 0 errors/24 warnings; build OK (206 migrations).
 - **Progress:** §13.8 (communities/events/Q&A/spaces) **~80% to ~92%**; Wave 5 **~+2%**; full ten-wave estimate **~94% to ~96%**.
+
+## 2026-11-10 — Unified admin moderation queue (mega-batch, plan 13.10)
+- [x] **Unified queue:** `raye2_get_moderation_queue` reads content + safety reports with target previews (posts, comments, clips, event questions, profiles, messages, groups, users).
+- [x] **Audited resolution:** `raye2_admin_resolve_report` routes to the existing audited `raye2_resolve_content_report`/`raye2_resolve_safety_report`; unknown kinds rejected.
+- [x] **Scoped:** moderators and platform admins only.
+- [x] **UI:** "Moderation queue" tab (status filter, note, review/resolve/dismiss), EN+AR.
+- [x] **Matrix:** 10/10 (non-moderator refused; unified read; previews+reporter; content resolve routes+audited; audit entry; resolved leaves queue; safety resolve; non-moderator resolve refused; unknown kind rejected).
+- [x] Gates: validator 396 assertions; tests 778/778; tsc clean; lint 0 errors/24 warnings; build OK (207 migrations).
+- **Progress:** §13.10 (admin control centre) **~80% to ~90%**; Wave 8 **~+3%**; full ten-wave estimate **~95% to ~97%**.
