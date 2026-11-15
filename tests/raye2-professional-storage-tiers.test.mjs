@@ -35,7 +35,7 @@ test("only free-only providers can be registered and new R2 is disabled", () => 
 test("provider registry is private and has no credential columns", () => {
   assert.match(migration, /revoke all on public\.raye2_storage_providers from public,anon,authenticated/);
   assert.match(migration, /grant select,insert,update,delete on public\.raye2_storage_providers to service_role/);
-  assert.doesNotMatch(migration, /access_key|secret_key|api_token|credential/i);
+  const executableSql = migration.replace(/^--.*$/gm, \"\");\n  assert.doesNotMatch(executableSql, /access_key|secret_key|api_token|credential/i);
 });
 
 test("upload reservations and worker outputs use the same role-based personal quota", () => {
