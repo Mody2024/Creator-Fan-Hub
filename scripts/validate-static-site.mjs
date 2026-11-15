@@ -763,6 +763,9 @@ check("search adds filters, privacy and the Spaces/Mini/Moment/Event result kind
 const captionsMigration = await read("../supabase/migrations/20261110990000_raye2_media_captions.sql");
 check("native media captions are stored, owner-managed and publicly readable only for published media", captionsMigration.includes("create table if not exists public.raye2_media_captions") && captionsMigration.includes("raye2_set_media_caption") && captionsMigration.includes("raye2_get_media_captions") && captionsMigration.includes("v_path !~ ('^creator-media-public/' || v_uid::text || '/')") && captionsMigration.includes("m.processing_status = 'ready'"));
 
+const minisReportMigration = await read("../supabase/migrations/20261111000000_raye2_minis_reporting_takedown.sql");
+check("Mini's are reportable and covered by the takedown workflow and moderation queue", minisReportMigration.includes("'community_clip','mini'") && minisReportMigration.includes("'media_item','mini','community_clip'") && minisReportMigration.includes("when 'mini' then coalesce") && minisReportMigration.includes("update public.raye2_minis set status = 'removed'"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

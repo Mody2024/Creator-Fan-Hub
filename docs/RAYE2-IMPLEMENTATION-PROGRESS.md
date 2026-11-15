@@ -2920,6 +2920,23 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 3 discovery **~94% to ~95%**; overall **~92%**.
 
 ---
+
+## 2026-11-10 — Mini's reporting and takedown coverage (mega-batch, plan 4.4 / 13.5)
+- [x] **Gap closed:** plan 4.4 requires Mini's to support "reporting", and plan 13.5/13.11 require reported
+  content to be removable and auditable. Mini's could not be reported at all, and the takedown workflow only
+  covered community posts, comments and media items.
+- [x] **New migration** `20261111000000_raye2_minis_reporting_takedown.sql`: extends the content-report target
+  constraint and RPC to accept `mini`; extends `raye2_content_takedowns` and the apply/reinstate RPCs to cover
+  `mini` and `community_clip` (both already have a `removed` status); extends the admin moderation-queue
+  preview to render Mini targets; and exposes Mini ownership in the feed RPC.
+- [x] **UI:** the Mini's feed now offers Report (on other members' Mini's) and Remove (on your own), bilingual.
+- [x] **Guarded:** a new test covers the report target, the takedown apply/reinstate branches, the queue
+  preview and the client actions; a validator assertion covers the migration.
+- [x] Gates: validator 426 assertions; tests 849/849; tsc clean; lint 0 errors/24 warnings; build OK; /minis
+  returns 200.
+- **Progress:** Wave 4 Creator Studio **~82% to ~83%**; overall **~92%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2930,7 +2947,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~80% |
 | 3 | Video, feed and discovery ecosystem | ~95% |
-| 4 | Creator Studio, exclusives and live streaming | ~82% |
+| 4 | Creator Studio, exclusives and live streaming | ~83% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |

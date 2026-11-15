@@ -5,7 +5,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 
-type MiniRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null };
+type MiniRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; author_id: string | null; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null };
 type MiniCard = MiniRow & { src: string };
 const MAX_BYTES = 50 * 1024 * 1024;
 const MAX_SECONDS = 15;
@@ -27,10 +27,10 @@ export default function MinisClient() {
   const isArabic = locale === "ar";
   const t = isArabic
     ? {
-        share: "شارك مقطع ميني", limits: "مقاطع MP4 أو WebM حتى ١٥ ثانية و٥٠ ميجابايت. تنتهي صلاحيتها بعد ٣٠ يومًا.", title: "اكتب عنوانًا", caption: "أضف وصفًا (اختياري)", choose: "＋ اختر مقطعًا", none: "لم يتم اختيار مقطع", publish: "انشر الميني ↗", publishing: "جارٍ النشر…", signIn: "سجّل الدخول لنشر مقطع ↗", loading: "جارٍ تحميل المقاطع…", empty: "لا توجد مقاطع ميني بعد. كن أول من ينشر.", ready: "المقطع جاهز. أضف عنوانًا وانشره.", live: "أصبح مقطعك متاحًا.", invalid: "اختر مقطعًا بصيغة MP4 أو WebM.", tooLarge: "الحجم يتجاوز ٥٠ ميجابايت.", tooLong: "يجب ألا تتجاوز مدة الميني ١٥ ثانية.", videoRead: "تعذر قراءة المقطع.", genericRead: "تعذر قراءة المقطع.", uploadInterrupted: "توقف الرفع. اختر الملف نفسه للمتابعة.", uploadCleanup: "تعذر حفظ المنشور، ويحتاج الملف إلى مراجعة المسؤول.", expired: "منتهي", expires: "ينتهي", upload: "جارٍ الرفع", resume: "إذا توقف الرفع، اختر الملف نفسه مرة أخرى للاستكمال.", feedError: "تعذر تحميل المقاطع. حدّث الصفحة.", fileTitle: "عنوان المقطع", fileCaption: "وصف المقطع", uploadProgress: "تقدم رفع الميني", quota: "تم بلوغ الحد اليومي للمقاطع (٣ يوميًا للأعضاء)."
+        share: "شارك مقطع ميني", limits: "مقاطع MP4 أو WebM حتى ١٥ ثانية و٥٠ ميجابايت. تنتهي صلاحيتها بعد ٣٠ يومًا.", title: "اكتب عنوانًا", caption: "أضف وصفًا (اختياري)", choose: "＋ اختر مقطعًا", none: "لم يتم اختيار مقطع", publish: "انشر الميني ↗", publishing: "جارٍ النشر…", signIn: "سجّل الدخول لنشر مقطع ↗", loading: "جارٍ تحميل المقاطع…", empty: "لا توجد مقاطع ميني بعد. كن أول من ينشر.", ready: "المقطع جاهز. أضف عنوانًا وانشره.", live: "أصبح مقطعك متاحًا.", invalid: "اختر مقطعًا بصيغة MP4 أو WebM.", tooLarge: "الحجم يتجاوز ٥٠ ميجابايت.", tooLong: "يجب ألا تتجاوز مدة الميني ١٥ ثانية.", videoRead: "تعذر قراءة المقطع.", genericRead: "تعذر قراءة المقطع.", uploadInterrupted: "توقف الرفع. اختر الملف نفسه للمتابعة.", uploadCleanup: "تعذر حفظ المنشور، ويحتاج الملف إلى مراجعة المسؤول.", expired: "منتهي", expires: "ينتهي", upload: "جارٍ الرفع", resume: "إذا توقف الرفع، اختر الملف نفسه مرة أخرى للاستكمال.", feedError: "تعذر تحميل المقاطع. حدّث الصفحة.", fileTitle: "عنوان المقطع", fileCaption: "وصف المقطع", uploadProgress: "تقدم رفع الميني", quota: "تم بلوغ الحد اليومي للمقاطع (٣ يوميًا للأعضاء).", report: "إبلاغ", reported: "تم إرسال الإبلاغ.", reportFail: "تعذر إرسال الإبلاغ.", remove: "إزالة", removed: "تمت إزالة المقطع.", removeFail: "تعذر إزالة المقطع.", reportReason: "سبب الإبلاغ"
       }
     : {
-        share: "Share a Mini", limits: "MP4 or WebM · up to 15 seconds · 50 MB. Expires 30 days after publishing.", title: "Give your Mini a title", caption: "Add a caption (optional)", choose: "＋ Choose clip", none: "No clip selected", publish: "Publish Mini ↗", publishing: "Publishing…", signIn: "Sign in to publish a Mini ↗", loading: "Loading Mini's…", empty: "No Mini's yet. Be the first to share one.", ready: "Clip ready. Add a title and publish it.", live: "Your Mini is live.", invalid: "Choose an MP4 or WebM clip.", tooLarge: "This clip exceeds the 50 MB limit.", tooLong: "Mini's must be 15 seconds or shorter.", videoRead: "This clip could not be read.", genericRead: "Could not read this clip.", uploadInterrupted: "Upload interrupted. Choose the same file again to continue.", uploadCleanup: "The post could not be saved and its file needs administrator cleanup.", expired: "EXPIRED", expires: "Expires", upload: "Uploading", resume: "If interrupted, choose the same file again to resume.", feedError: "The Mini's feed could not load. Please refresh.", fileTitle: "Clip title", fileCaption: "Clip caption", uploadProgress: "Mini upload progress", quota: "Daily Mini limit reached (3 per day for members)."
+        share: "Share a Mini", limits: "MP4 or WebM · up to 15 seconds · 50 MB. Expires 30 days after publishing.", title: "Give your Mini a title", caption: "Add a caption (optional)", choose: "＋ Choose clip", none: "No clip selected", publish: "Publish Mini ↗", publishing: "Publishing…", signIn: "Sign in to publish a Mini ↗", loading: "Loading Mini's…", empty: "No Mini's yet. Be the first to share one.", ready: "Clip ready. Add a title and publish it.", live: "Your Mini is live.", invalid: "Choose an MP4 or WebM clip.", tooLarge: "This clip exceeds the 50 MB limit.", tooLong: "Mini's must be 15 seconds or shorter.", videoRead: "This clip could not be read.", genericRead: "Could not read this clip.", uploadInterrupted: "Upload interrupted. Choose the same file again to continue.", uploadCleanup: "The post could not be saved and its file needs administrator cleanup.", expired: "EXPIRED", expires: "Expires", upload: "Uploading", resume: "If interrupted, choose the same file again to resume.", feedError: "The Mini's feed could not load. Please refresh.", fileTitle: "Clip title", fileCaption: "Clip caption", uploadProgress: "Mini upload progress", quota: "Daily Mini limit reached (3 per day for members).", report: "Report", reported: "Report submitted.", reportFail: "Could not submit the report.", remove: "Remove", removed: "Mini removed.", removeFail: "Could not remove the Mini.", reportReason: "Report reason"
       };
 
   useEffect(() => { const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
@@ -113,6 +113,22 @@ export default function MinisClient() {
 
   const expiresLabel = (value: string) => new Date(value).toLocaleDateString(isArabic ? "ar-EG" : "en-US", { month: "short", day: "numeric" });
 
+  async function reportMini(id: string) {
+    if (!supabase || !userId) return;
+    setBusy(true);
+    const { error } = await supabase.rpc("raye2_report_community_content", { p_target_type: "mini", p_target_id: id, p_reason: "other", p_details: "" });
+    setStatus(error ? t.reportFail : t.reported);
+    setBusy(false);
+  }
+  async function removeMini(id: string, storagePath: string) {
+    if (!supabase || !userId) return;
+    setBusy(true);
+    const { error } = await supabase.from("raye2_minis").update({ status: "removed" }).eq("id", id).eq("author_id", userId);
+    if (!error) { try { await supabase.storage.from("raye2-minis").remove([storagePath]); } catch { /* row already hidden; storage cleanup is best-effort */ } }
+    setStatus(error ? t.removeFail : t.removed);
+    await load();
+    setBusy(false);
+  }
   return (
     <section className="raye2-minis-feed">
       <article className="raye2-minis-compose">
@@ -142,6 +158,8 @@ export default function MinisClient() {
                 <h3>{item.title}</h3>
                 <p>{item.caption}</p>
                 <small>{item.author_display_name ?? item.author_handle ?? "Member"} · {t.expires} {expiresLabel(item.expires_at)}</small>
+                {userId && item.author_id !== userId ? <button type="button" className="nhen-action" aria-label={t.report} disabled={busy} onClick={() => void reportMini(item.id)}>{t.report}</button> : null}
+                {userId && item.author_id === userId ? <button type="button" className="nhen-action" aria-label={t.remove} disabled={busy} onClick={() => void removeMini(item.id, item.storage_path)}>{t.remove}</button> : null}
               </div>
             </article>
           ))}
