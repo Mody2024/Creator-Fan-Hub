@@ -627,7 +627,9 @@ begin
  if auth.uid() is null or not public.raye2_is_platform_admin() then
    raise exception 'platform admin access required' using errcode='42501';
  end if;
- if p_target_total_capacity_bytes not between 1 and 1125899906842624
+ if p_target_total_capacity_bytes is null or p_monthly_upload_target_bytes is null
+   or p_monthly_upload_hard_limit_bytes is null
+   or p_target_total_capacity_bytes not between 1 and 1125899906842624
    or p_monthly_upload_target_bytes not between 1 and 1125899906842624
    or p_monthly_upload_hard_limit_bytes not between 1 and 1125899906842624
    or p_monthly_upload_target_bytes>p_monthly_upload_hard_limit_bytes
@@ -690,8 +692,9 @@ create or replace function public.raye2_admin_set_storage_provider_enabled(
 ) returns boolean
 language plpgsql security definer set search_path=''
 as $raye2$
-declare v_provider public.raye2_storage_providers%rowtype;
-declare v_snapshot public.raye2_storage_provider_usage_snapshots%rowtype;
+declare
+ v_provider public.raye2_storage_providers%rowtype;
+ v_snapshot public.raye2_storage_provider_usage_snapshots%rowtype;
 begin
  if auth.uid() is null or not public.raye2_is_platform_admin() then
    raise exception 'platform admin access required' using errcode='42501';
