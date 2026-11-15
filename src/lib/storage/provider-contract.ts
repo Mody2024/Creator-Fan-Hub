@@ -59,4 +59,9 @@ export type StorageProviderConfiguration = {
   reservedBytes: number;
   safetyReserveBytes: number;
   capacityVerifiedAt: string | null;
+  /** True only when the latest provider reconciliation is recent and complete. */
+  capacityVerified: boolean;
+  /** Optional stricter Raye2-managed ceiling below the provider allowance. */
+  maxBytes?: number | null;
+  bucketByVisibility?: Partial<Record<Raye2ObjectVisibility, string>>;
 };
