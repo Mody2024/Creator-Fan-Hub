@@ -2391,3 +2391,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 17/17 (mute hides exactly the category and drops its count; unmute restores; invalid category/timezone/identical-bounds rejected; quiet-hours wrap + delivery checks).
 - [x] Gates: validator 366 assertions; tests 722/722; tsc clean; lint 0 errors/24 warnings; build OK (196 migrations).
 - **Progress:** Wave 6 (messaging/notifications) **~78% to ~82%**; Wave 5 (social/engagement) **~68% to ~70%**; full ten-wave estimate **~80% to ~81%**.
+
+## 2026-11-10 — Critical fix: messaging restored + Shorts comment restriction (mega-batch)
+- [x] **Messaging was fully broken:** the shared restriction trigger `raye2_enforce_restrictions` read `new.author_id` on `raye2_messages` (which uses `sender_id`), so every message insert failed with `42703`. Recreated with per-table actor resolution — direct and group messaging work again.
+- [x] **Shorts comment restriction gap:** a comment-restricted member could still comment on `community_short_comments`; added the missing guard trigger.
+- [x] Notification deep links: stream→`/live/{id}`, group→`/groups`.
+- [x] **Matrix:** 5/5 (unrestricted send works + stored; message restriction blocks; Shorts comment restriction blocks; unrestricted Shorts comment allowed).
+- [x] Gates: validator 367 assertions; tests 726/726; tsc clean; lint 0 errors/24 warnings; build OK (197 migrations).
+- **Progress:** Wave 6 (messaging/notifications) **~82% to ~85%**; Wave 8 (moderation) **~93% to ~95%**; Wave 9 (security/reliability) **~99% to ~99.5%**; full ten-wave estimate **~81% to ~82%**.
