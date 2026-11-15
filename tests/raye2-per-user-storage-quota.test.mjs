@@ -38,6 +38,8 @@ test("Creator Media Library displays personal and shared storage capacity separa
   assert.match(library, /get_raye2_user_storage_capacity/);
   assert.match(library, /Your personal Raye2 storage/);
   assert.match(library, /Raye2 project safety limit/);
+  assert.match(library, /raye2_get_user_monthly_upload_capacity/);
+  assert.match(library, /Monthly upload allowance/);
 });
 
 test("media upload code does not expose provider credentials", () => {
