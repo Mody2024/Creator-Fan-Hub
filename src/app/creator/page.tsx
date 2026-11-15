@@ -7,6 +7,7 @@ import CreatorCapabilities from "./creator-capabilities";
 import CreatorLiveStudio from "./creator-live-studio";
 import CreatorVideoExclusivity from "./creator-video-exclusivity";
 import AdDirector from "./ad-director";
+import MonetizationReport from "./monetization-report";
 import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
@@ -81,6 +82,7 @@ export default async function CreatorDashboardPage() {
       {["streamer","admin","owner"].includes(admin.role) ? <CreatorLiveStudio locale={isArabic?"ar":"en"} /> : null}
       <CreatorVideoExclusivity locale={isArabic?"ar":"en"} />
       <AdDirector locale={isArabic?"ar":"en"} />
+      <MonetizationReport locale={isArabic?"ar":"en"} />
       <CreatorSettings />
       <PollManagement />
       {["owner","admin"].includes(admin.role) && <IdeaModerationQueue />}

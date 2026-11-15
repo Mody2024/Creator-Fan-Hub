@@ -1059,3 +1059,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .raye2-detail-sponsored-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px}
 .raye2-detail-sponsored-at{font-variant-numeric:tabular-nums;font-weight:600}
 .raye2-detail-sponsored-label{font-size:11px;letter-spacing:.03em;color:#cfe0f5}
+
+/* Raye2 sponsorship earnings report */
+.raye2-monetization-report{margin-top:16px;padding:19px;border:1px solid rgba(220,232,248,.1);border-radius:13px;background:linear-gradient(145deg,#111b29,#0e1520)}
+.raye2-monetization-report h2{margin:0 0 6px;font-size:15px}
+.raye2-monetization-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0 0;padding:0}
+.raye2-monetization-metrics>div{padding:10px 12px;border-radius:9px;background:rgba(255,255,255,.03)}
+.raye2-monetization-metrics dt{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#8ea6c4}
+.raye2-monetization-metrics dd{margin:4px 0 0;font-size:18px;font-variant-numeric:tabular-nums}

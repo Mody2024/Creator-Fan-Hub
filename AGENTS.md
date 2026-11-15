@@ -112,3 +112,16 @@ Any `SECURITY DEFINER` function that reads `public.video_catalog` must apply `pu
 
 ## Expiry jobs need a caller
 Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark rows expired; nothing runs them automatically. `raye2_run_maintenance()` consolidates them and is invoked best-effort from `/community` (and available to a scheduled job). Scheduled posts/polls already self-heal on their own read paths.
+
+## Raye2 Smart Advertising Director — gotchas
+- Sponsor campaigns are created as **drafts** and only activated by a **trusted (service-role) delivery gate**.
+  The lifecycle guard (`raye2_guard_creator_sponsor_campaign_lifecycle`) permits `auth.uid() is null`, but the
+  content validator (`raye2_validate_creator_sponsor_campaign`) originally rejected it — activation was impossible.
+  Both must allow the null-session gate while still validating content. Platform campaigns activate via an admin
+  client (`draft` → `active`); creator campaigns activate via service-role.
+- Ad placement caps must be a deterministic `union all` with an explicit priority column (`order by q.prio`),
+  otherwise a plain `union all … limit 1` may return the platform row over the creator contract.
+- Auto-generated `provider_event_id` must include `clock_timestamp()`/`random()`; a date-granular id makes the
+  `(provider_key, provider_event_id)` unique constraint collapse distinct impressions.
+- Any new `SECURITY DEFINER` function needs an explicit `grant execute` (the validator test in `tests/site.test.mjs`
+  fails otherwise); `raye2_pick_ad_sponsor` is internal and is granted to `service_role` only.
