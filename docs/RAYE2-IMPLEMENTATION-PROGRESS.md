@@ -2343,3 +2343,12 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Restriction matrix:** 19/19 (unrestricted comment on community+video; comment restriction blocks both, not posting; self-view scope + anon blocked; appeal; voice/watch blocks; lift restores).
 - [x] Gates: validator 344 assertions; tests 686/686 (+4); tsc clean; lint 0 errors/24 warnings; build OK (187 migrations).
 - **Progress:** Wave 2 (accounts/permissions) **~40% to ~47% provisional**; Wave 8 (moderation) **~90% to ~93%**; full ten-wave estimate **~72% to ~73%**.
+
+## 2026-11-10 — Temporary role grants, capability overrides and audit (mega-batch)
+- [x] `creator_admins` gains `expires_at`/`granted_by`/`reason`; role checks (`has_creator_role`, `is_creator_owner`, `raye2_is_platform_admin`) honour expiry — a temporary grant loses access **with no write**.
+- [x] `set_creator_admin_role` accepts an optional expiry; new `set_creator_admin_expiry`; `get_creator_team` returns expiry.
+- [x] `raye2_capability_overrides` (bounded, optionally-expiring per-account values) with `raye2_set/revoke/list_capability_override`, `raye2_effective_capability`, owner-scoped `raye2_get_my_capability_overrides`; all audited.
+- [x] Team roster shows/sets access duration (permanent / 7 / 30 / 90 days); `/account` shows the member their own account-specific capabilities.
+- [x] **Grants/overrides matrix:** 19/19 (temporary grant works + listed + audited; expiry stops access with no write; future-expiry guardrail; owner-role guard; non-owner blocked; override resolve/visibility/audit/revoke/expiry; no self-grant; cross-member isolation).
+- [x] Gates: validator 348 assertions; tests 690/690 (+4); tsc clean; lint 0 errors/24 warnings; build OK (188 migrations).
+- **Progress:** Wave 2 (accounts/permissions) **~47% to ~55% provisional**; full ten-wave estimate **~73% to ~74%**.
