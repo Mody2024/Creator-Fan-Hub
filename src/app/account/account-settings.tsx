@@ -9,6 +9,7 @@ type ExportRow = { job_id: string; status: string; created_at: string };
 type Restriction = { id: string; action: string; feature: string | null; reason: string; expires_at: string | null; created_at: string; appeal_status: string | null };
 type Override = { id: string; capability: string; value: unknown; reason: string; expires_at: string | null };
 type EngPrefs = { muted_categories: string[]; quiet_hours_enabled: boolean; quiet_hours_start: string; quiet_hours_end: string; quiet_hours_timezone: string };
+type SessionRow = { session_id: string; created_at: string; updated_at: string | null; aal: string | null; not_after: string | null; user_agent: string | null; is_current: boolean };
 
 export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
   const isAr = locale === "ar";
@@ -19,6 +20,7 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
   const [appealText, setAppealText] = useState<Record<string, string>>({});
   const [overrides, setOverrides] = useState<Override[]>([]);
   const [eng, setEng] = useState<EngPrefs | null>(null);
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -32,7 +34,7 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
         cancelDelete: "إلغاء الحذف", purgeAt: "سيُحذف في", reason: "السبب (اختياري)",
         saved: "تم الحفظ.", err: "تعذر تنفيذ العملية.", deactivated: "تم إيقاف الحساب.", reactivated: "تمت إعادة التنشيط.",
         deleteRequested: "تم تسجيل طلب الحذف (قابل للإلغاء خلال المدة).", exportQueued: "تم تسجيل طلب التصدير.",
-        standing: "حالة الحساب", standingNone: "حسابك بحالة جيدة. لا توجد قيود نشطة.", overrides: "صلاحيات خاصة بحسابك", overridesNone: "لا توجد صلاحيات خاصة.", overridesNote: "منحها مسؤول المنصة لحسابك، وقد تنتهي تلقائيًا.", appeal: "استئناف", appealPlaceholder: "اشرح سبب مراجعة القرار (١٠ أحرف على الأقل)…", appealSent: "تم إرسال الاستئناف للمراجعة.", appealPending: "استئناف قيد المراجعة", expires: "ينتهي", notifPrefs: "تفضيلات الإشعارات", notifPrefsNote: "اختر ما لا تريد رؤيته في صندوق الإشعارات، وحدد ساعات الهدوء.", quietHours: "تفعيل ساعات الهدوء", quietStart: "تبدأ", quietEnd: "تنتهي", quietTz: "المنطقة الزمنية", muteHint: "اكتم (لن تظهر في الصندوق)", cat_follow: "المتابعات", cat_reactions: "التفاعلات", cat_comments: "التعليقات", cat_mentions: "الإشارات", cat_announcements: "الإعلانات", cat_events: "الفعاليات", cat_live: "البث المباشر", cat_groups: "المجموعات"
+        standing: "حالة الحساب", standingNone: "حسابك بحالة جيدة. لا توجد قيود نشطة.", overrides: "صلاحيات خاصة بحسابك", overridesNone: "لا توجد صلاحيات خاصة.", overridesNote: "منحها مسؤول المنصة لحسابك، وقد تنتهي تلقائيًا.", appeal: "استئناف", appealPlaceholder: "اشرح سبب مراجعة القرار (١٠ أحرف على الأقل)…", appealSent: "تم إرسال الاستئناف للمراجعة.", appealPending: "استئناف قيد المراجعة", expires: "ينتهي", notifPrefs: "تفضيلات الإشعارات", notifPrefsNote: "اختر ما لا تريد رؤيته في صندوق الإشعارات، وحدد ساعات الهدوء.", quietHours: "تفعيل ساعات الهدوء", quietStart: "تبدأ", quietEnd: "تنتهي", quietTz: "المنطقة الزمنية", muteHint: "اكتم (لن تظهر في الصندوق)", cat_follow: "المتابعات", cat_reactions: "التفاعلات", cat_comments: "التعليقات", cat_mentions: "الإشارات", cat_announcements: "الإعلانات", cat_events: "الفعاليات", cat_live: "البث المباشر", cat_groups: "المجموعات", sessions: "الأجهزة والجلسات", sessionsNote: "الأماكن التي سجّلت الدخول منها. أنهِ أي جلسة لا تخصك.", current: "هذه الجلسة", endSession: "إنهاء الجلسة", endOthers: "إنهاء الجلسات الأخرى", noSessions: "لا توجد جلسات.", unknownDevice: "جهاز غير معروف", sessionEnded: "تم إنهاء الجلسة.", sessionsEnded: "تم إنهاء الجلسات الأخرى.", sessionError: "تعذر تحديث الجلسات."
       }
     : {
         title: "Account settings", note: "Manage your preferences and data rights: preferences, export, deactivation or a deletion request.",
@@ -43,19 +45,20 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
         cancelDelete: "Cancel deletion", purgeAt: "Purge scheduled", reason: "Reason (optional)",
         saved: "Saved.", err: "The operation failed.", deactivated: "Account deactivated.", reactivated: "Account reactivated.",
         deleteRequested: "Deletion requested (cancellable during the grace period).", exportQueued: "Export request recorded.",
-        standing: "Account standing", standingNone: "Your account is in good standing. No active restrictions.", overrides: "Account-specific capabilities", overridesNone: "No account-specific capabilities.", overridesNote: "Granted to your account by a platform administrator; may expire automatically.", appeal: "Appeal", appealPlaceholder: "Explain why this should be reviewed (at least 10 characters)…", appealSent: "Appeal submitted for review.", appealPending: "Appeal under review", expires: "Expires", notifPrefs: "Notification preferences", notifPrefsNote: "Choose what to hide from your inbox, and set quiet hours.", quietHours: "Enable quiet hours", quietStart: "Start", quietEnd: "End", quietTz: "Timezone", muteHint: "Mute (hidden from the inbox)", cat_follow: "Follows", cat_reactions: "Reactions", cat_comments: "Comments", cat_mentions: "Mentions", cat_announcements: "Announcements", cat_events: "Events", cat_live: "Live", cat_groups: "Groups"
+        standing: "Account standing", standingNone: "Your account is in good standing. No active restrictions.", overrides: "Account-specific capabilities", overridesNone: "No account-specific capabilities.", overridesNote: "Granted to your account by a platform administrator; may expire automatically.", appeal: "Appeal", appealPlaceholder: "Explain why this should be reviewed (at least 10 characters)…", appealSent: "Appeal submitted for review.", appealPending: "Appeal under review", expires: "Expires", notifPrefs: "Notification preferences", notifPrefsNote: "Choose what to hide from your inbox, and set quiet hours.", quietHours: "Enable quiet hours", quietStart: "Start", quietEnd: "End", quietTz: "Timezone", muteHint: "Mute (hidden from the inbox)", cat_follow: "Follows", cat_reactions: "Reactions", cat_comments: "Comments", cat_mentions: "Mentions", cat_announcements: "Announcements", cat_events: "Events", cat_live: "Live", cat_groups: "Groups", sessions: "Devices & sessions", sessionsNote: "Where you are signed in. End any session that is not yours.", current: "This session", endSession: "End session", endOthers: "End other sessions", noSessions: "No sessions.", unknownDevice: "Unknown device", sessionEnded: "Session ended.", sessionsEnded: "Other sessions ended.", sessionError: "Could not update sessions."
       };
 
   const load = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
-    const [{ data: lc }, { data: pr }, { data: ex }, { data: rs }, { data: ov }, { data: ep }] = await Promise.all([
+    const [{ data: lc }, { data: pr }, { data: ex }, { data: rs }, { data: ov }, { data: ep }, { data: se }] = await Promise.all([
       supabase.rpc("raye2_get_account_lifecycle"),
       supabase.rpc("raye2_get_my_preferences"),
       supabase.rpc("raye2_get_my_data_exports"),
       supabase.rpc("raye2_get_my_restrictions"),
       supabase.rpc("raye2_get_my_capability_overrides"),
-      supabase.rpc("raye2_get_my_engagement_notification_preferences")
+      supabase.rpc("raye2_get_my_engagement_notification_preferences"),
+      supabase.rpc("raye2_my_sessions")
     ]);
     setLifecycle(((lc ?? []) as Lifecycle[])[0] ?? null);
     setPrefs(((pr ?? []) as Preferences[])[0] ?? null);
@@ -63,9 +66,26 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
     setRestrictions((rs ?? []) as Restriction[]);
     setOverrides((ov ?? []) as Override[]);
     setEng(((ep ?? []) as EngPrefs[])[0] ?? null);
+    setSessions((se ?? []) as SessionRow[]);
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  async function endSession(sessionId: string) {
+    const sb = supabase(); if (!sb) return;
+    setBusy(true); setNotice("");
+    const { error } = await sb.rpc("raye2_revoke_my_session", { p_session_id: sessionId });
+    if (error) setNotice(t.sessionError); else { setNotice(t.sessionEnded); await load(); }
+    setBusy(false);
+  }
+
+  async function endOtherSessions() {
+    const sb = supabase(); if (!sb) return;
+    setBusy(true); setNotice("");
+    const { error } = await sb.rpc("raye2_revoke_other_sessions");
+    if (error) setNotice(t.sessionError); else { setNotice(t.sessionsEnded); await load(); }
+    setBusy(false);
+  }
 
   async function run(action: () => Promise<{ error: unknown }>, message: string) {
     if (busy) return;
@@ -166,6 +186,19 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
           ))}
         </article>
       ) : null}
+
+      <article className="module-card">
+        <div className="module-card-top"><span>{t.sessions}</span></div>
+        <p><small>{t.sessionsNote}</small></p>
+        {sessions.length === 0 ? <p>{t.noSessions}</p> : sessions.map((row) => (
+          <div key={row.session_id}>
+            <strong>{row.user_agent || t.unknownDevice}{row.is_current ? ` · ${t.current}` : ""}</strong>
+            <small>{new Date(row.updated_at || row.created_at).toLocaleString(isAr ? "ar-EG" : "en")}{row.aal ? ` · ${row.aal.toUpperCase()}` : ""}</small>
+            {!row.is_current ? <button className="module-arrow" disabled={busy} onClick={() => void endSession(row.session_id)}>{t.endSession}</button> : null}
+          </div>
+        ))}
+        {sessions.some((row) => !row.is_current) ? <button className="module-arrow" disabled={busy} onClick={() => void endOtherSessions()}>{t.endOthers}</button> : null}
+      </article>
 
       <article className="module-card">
         <div className="module-card-top"><span>{t.export}</span></div>

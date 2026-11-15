@@ -775,6 +775,9 @@ check("expired temporary media queues physical deletion as a retried, observable
 const profileClipsCommunitiesMigration = await read("../supabase/migrations/20261111030000_raye2_profile_clips_communities.sql");
 check("profile collections surface community clips and public communities with visibility and expiry gating", profileClipsCommunitiesMigration.includes("from public.raye2_community_clips c") && profileClipsCommunitiesMigration.includes("from public.raye2_group_members gm") && profileClipsCommunitiesMigration.includes("g.visibility = 'public' and g.status = 'active'") && profileClipsCommunitiesMigration.includes("'clips', coalesce") && profileClipsCommunitiesMigration.includes("'communities', coalesce"));
 
+const accountSessionsMigration = await read("../supabase/migrations/20261111040000_raye2_account_sessions.sql");
+check("account settings expose session/device management with ownership-scoped, audited revocation", accountSessionsMigration.includes("raye2_my_sessions") && accountSessionsMigration.includes("raye2_revoke_my_session") && accountSessionsMigration.includes("raye2_revoke_other_sessions") && accountSessionsMigration.includes("delete from auth.sessions where id = p_session_id and user_id = v_uid") && accountSessionsMigration.includes("'user_session_revoked'"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

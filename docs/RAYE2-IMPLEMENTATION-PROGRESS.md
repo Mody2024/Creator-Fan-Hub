@@ -3008,6 +3008,24 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 (accounts/permissions) **~81% to ~82%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Account sessions and devices (mega-batch, plan 2.1)
+- [x] **Gap closed:** plan 2.1 requires user settings for "privacy, notifications, accessibility, language,
+  theme, sessions/devices and data export/deletion". Everything existed except sessions/devices: a member could
+  not see where they were signed in or end a session on a device they no longer control.
+- [x] **Migration** `20261111040000_raye2_account_sessions.sql`: `raye2_my_sessions` lists the caller's own
+  GoTrue sessions (marking the current one and never returning the network address);
+  `raye2_revoke_my_session` ends one owned session; `raye2_revoke_other_sessions` ends every other session.
+  Revocations are ownership-scoped and written to the audit log.
+- [x] **Account settings UI** gains a Devices & sessions card (bilingual) listing each session with its device
+  and time, an "End session" action per other session, and "End other sessions".
+- [x] **Guarded:** a test covers the ownership scoping, the audit entries, the grants and the absence of IP
+  exposure; a validator assertion covers the migration.
+- [x] Gates: validator 430 assertions; tests 862/862; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/account` returns 200.
+- **Progress:** Wave 2 (accounts/permissions) **~82% to ~84%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
