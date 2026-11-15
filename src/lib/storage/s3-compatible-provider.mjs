@@ -173,7 +173,22 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
   if (!["cloudflare_r2", "backblaze_b2"].includes(providerId)) {
     throw new TypeError("Only R2 and B2 S3-compatible providers are supported here.");
   }
-  const bucketFor = visibility => visibility === "public" ? config.publicBucket : config.privateBucket;
+  if (!config || typeof config !== "object" || !config.endpoint || !config.accessKeyId ||
+      !config.secretAccessKey || !config.region) {
+    throw new TypeError("A complete server-side S3 provider configuration is required.");
+  }
+  const endpoint = new URL(config.endpoint);
+  if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password ||
+      endpoint.search || endpoint.hash || endpoint.pathname !== "/") {
+    throw new TypeError("S3 provider endpoint must be an HTTPS origin.");
+  }
+  normalizeBucket(config.publicBucket);
+  normalizeBucket(config.privateBucket);
+  if (typeof fetchImpl !== "function") throw new TypeError("A valid fetch implementation is required.");
+  const bucketFor = visibility => {
+    if (visibility !== "public" && visibility !== "private") throw new TypeError("Invalid object visibility.");
+    return visibility === "public" ? config.publicBucket : config.privateBucket;
+  };
   const capabilities = Object.freeze({
     resumableUploads: false,
     multipartUploads: false,
@@ -195,7 +210,13 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
     id: providerId,
     capabilities,
     async createSignedUpload(requestOptions) {
+      if (!requestOptions || !Number.isSafeInteger(requestOptions.expectedBytes) ||
+          requestOptions.expectedBytes < 1 || typeof requestOptions.contentType !== "string" ||
+          requestOptions.contentType.length < 3 || requestOptions.contentType.length > 128) {
+        throw new TypeError("Upload size and content type must be valid.");
+      }
       const bucket = requestOptions.bucket || bucketFor(requestOptions.visibility);
+      normalizeBucket(bucket);
       const headers = { "content-type": requestOptions.contentType };
       const url = presign(config, "PUT", { bucket, key: requestOptions.key }, requestOptions.expiresInSeconds, headers);
       return { url: url.toString(), headers };
