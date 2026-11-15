@@ -638,6 +638,10 @@ const adminClient = await read("../src/app/creator/raye2/admin-client.tsx");
 check("the admin console unifies the moderation queue with audited resolution", modMigration.includes("function public.raye2_get_moderation_queue(") && modMigration.includes("function public.raye2_admin_resolve_report(") && modMigration.includes("raye2_resolve_content_report") && modMigration.includes("raye2_resolve_safety_report"));
 check("the moderation queue is scoped to moderators and platform admins", modMigration.includes("moderator or platform admin access required") && modMigration.includes("private.can_moderate_community()"));
 check("the admin console renders the moderation queue", adminClient.includes("raye2_get_moderation_queue") && adminClient.includes("raye2_admin_resolve_report") && adminClient.includes("moderation"));
+const memMigration = await read("../supabase/migrations/20261110880000_raye2_shared_memory_expiry.sql");
+const raye2MemoryClient = await read("../src/app/raye2/raye2-client.tsx");
+check("temporary Shared Memories expire on their own clock and preserved ones never do", memMigration.includes("function public.raye2_expire_shared_memories()") && memMigration.includes("function public.raye2_guard_memory_expiry()") && memMigration.includes("a temporary Shared Memory requires an expiry"));
+check("memory expiry and preservation are guarded and folded into maintenance", memMigration.includes("function public.raye2_set_memory_expiry(") && memMigration.includes("function public.raye2_preserve_memory(") && memMigration.includes("shared_memories_expired") && raye2MemoryClient.includes("raye2_set_memory_expiry") && raye2MemoryClient.includes("raye2_preserve_memory"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");

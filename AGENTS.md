@@ -172,3 +172,11 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   `raye2_resolve_safety_report`) so audit entries and semantics stay identical; do not re-implement them.
 - A `with bounded as (...)` CTE referenced only in `limit` must not be cross-joined into a `select *` — the
   extra `lim` column breaks the function's declared return type. Use `select q.*` from a subquery instead.
+
+## Raye2 Shared Memories — gotchas
+- Temporary memories must carry an expiry and preserved memories must never carry one; enforce this in a
+  BEFORE INSERT/UPDATE trigger, not only in the UI.
+- The expiry clock (`raye2_expire_shared_memories`) must delete only `retention_mode='temporary'` rows so
+  Shared Memories stay out of ordinary chat retention.
+- Report the ten-wave percentage table (canonical, in docs/RAYE2-IMPLEMENTATION-PROGRESS.md) on every batch;
+  the per-wave acceptance-criteria figures are the source of truth, not a single blended number.

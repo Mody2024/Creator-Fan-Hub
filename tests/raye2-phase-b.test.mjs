@@ -104,7 +104,7 @@ test("group managers can review requests and moderate members through guarded RP
 });
 test("Shared Memories expose expiry warnings, preservation and manager pin controls", () => {
   assert.match(client, /expirySoon/);
-  assert.match(client, /retention_mode: "preserved"/);
+  assert.match(client, /raye2_preserve_memory/);
   assert.match(client, /pinned: !memory\.pinned/);
 });
 test("Shared Memories are idempotent and only capture a member-visible group message", () => {

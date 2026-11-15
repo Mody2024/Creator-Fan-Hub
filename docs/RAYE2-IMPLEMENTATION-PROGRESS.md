@@ -2492,3 +2492,36 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 10/10 (non-moderator refused; unified read; previews+reporter; content resolve routes+audited; audit entry; resolved leaves queue; safety resolve; non-moderator resolve refused; unknown kind rejected).
 - [x] Gates: validator 396 assertions; tests 778/778; tsc clean; lint 0 errors/24 warnings; build OK (207 migrations).
 - **Progress:** §13.10 (admin control centre) **~80% to ~90%**; Wave 8 **~+3%**; full ten-wave estimate **~95% to ~97%**.
+
+## 2026-11-10 — Shared Memories expiry clock + guarded lifecycle (mega-batch, plan 13.9)
+- [x] **Expiry clock:** `raye2_expire_shared_memories` deletes only due temporary memories; preserved/group-lifetime memories are never touched (Shared Memories stay out of ordinary chat retention by construction).
+- [x] **Lifecycle invariant:** `raye2_guard_memory_expiry` trigger — preserved memories can never carry an expiry; temporary ones must.
+- [x] **Guarded controls:** `raye2_set_memory_expiry` (author or group manager, 1–3650 days) and `raye2_preserve_memory`.
+- [x] **Maintenance:** `raye2_run_maintenance` now reports `shared_memories_expired`.
+- [x] **UI:** "Expire in 30 days" + "Preserve permanently" now route through the guarded RPCs, EN+AR.
+- [x] **Matrix:** 9/9 (default group-lifetime; author sets expiry; non-member refused; invalid days refused; preserve clears expiry; preserved untouched by clock; due temporary deleted; runner reports it; manager can set expiry on another's memory).
+- [x] Gates: validator 398 assertions; tests 783/783; tsc clean; lint 0 errors/24 warnings; build OK (208 migrations).
+- **Progress:** §13.9 (chat/voice/Watch Together/Shared Memories) **~70% to ~78%**; Wave 7 **~+4%**.
+
+---
+
+## Progress percentages — canonical table (all ten waves)
+
+Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
+
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~47% |
+| 2 | Core platform architecture, accounts and permissions | ~62% |
+| 3 | Video, feed and discovery ecosystem | ~91% |
+| 4 | Creator Studio, exclusives and live streaming | ~70% |
+| 5 | Social graph, communities and engagement | ~99% |
+| 6 | Messaging and chat | ~85% |
+| 7 | Voice, Watch Together and shared experiences | ~60% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~80%** |
+| §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
+
+Largest remaining gaps: Wave 1 (light/dark themes and the global redesign shell), Wave 2 (permission/RLS test coverage and identity consolidation), Wave 7 (recording consent UX, cross-device voice/watch verification), and §18.4 (external ad network — blocked on real provider approval/SDK).
