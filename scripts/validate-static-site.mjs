@@ -688,6 +688,9 @@ check("community clips support preview, visibility, owner removal and reporting"
 const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
 const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
 check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));
+const groupLifecycleMigration = await read("../supabase/migrations/20261110910000_raye2_group_lifecycle.sql");
+const spacesClient = await read("../src/app/raye2/raye2-client.tsx");
+check("group lifecycle supports leave, ownership transfer and archive", groupLifecycleMigration.includes("raye2_leave_group") && groupLifecycleMigration.includes("raye2_transfer_group_ownership") && groupLifecycleMigration.includes("raye2_set_group_status") && spacesClient.includes('rpc("raye2_transfer_group_ownership"') && spacesClient.includes('rpc("raye2_set_group_status"'));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");

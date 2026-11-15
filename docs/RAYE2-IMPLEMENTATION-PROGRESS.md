@@ -2681,6 +2681,25 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** §13.4 (Creator Panel quota/cooldown display) **~70% to ~82%**; Wave 4 **~70% to ~73%**.
 
 ---
+
+## 2026-11-10 — Group lifecycle: leave, ownership transfer, archive (mega-batch, plan Wave 6)
+- [x] **Gap closed:** plan Wave 6 requires a complete group lifecycle. Members could join, be approved and be
+  removed, but there was no way to *leave* a group, no *ownership transfer* (the owner guard forbade any
+  `owner_id` change) and no archive/reactivate path.
+- [x] **New migration** `20261110910000_raye2_group_lifecycle.sql` adds three audited, owner-checked RPCs:
+  `raye2_leave_group` (owners must transfer first), `raye2_transfer_group_ownership` (flips the new owner to
+  `owner` and the outgoing owner to `admin`, guarded by a transaction-scoped `raye2.allow_owner_change` flag) and
+  `raye2_set_group_status` (active/read_only/archived; archived groups already stop accepting messages via the
+  message insert policy).
+- [x] **UI:** a "Leave group" action for non-owner members, an owner-only group lifecycle section (read-only /
+  archive / reactivate) in the manage modal, and a per-member "Transfer ownership" action, all EN + AR.
+- [x] **Guarded:** a new test covers the leave/transfer/status RPCs, the transfer guard flag and the role flips;
+  a validator assertion covers the migration and the client wiring.
+- [x] Gates: validator 414 assertions; tests 806/806; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 6 group lifecycle **~55% to ~85%**; Wave 6 **~85% to ~88%**. Remaining: message retention
+  clocks and delivery/read receipts.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2693,7 +2712,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |
 | 5 | Social graph, communities and engagement | ~99% |
-| 6 | Messaging and chat | ~85% |
+| 6 | Messaging and chat | ~88% |
 | 7 | Voice, Watch Together and shared experiences | ~60% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
