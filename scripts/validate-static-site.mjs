@@ -622,6 +622,11 @@ const watchDetail = await read("../src/app/watch/[slug]/watch-detail-client.tsx"
 check("community clips enforce source permission, length and attribution", clipsMigration.includes("create table if not exists public.raye2_community_clips") && clipsMigration.includes("allow_clipping") && clipsMigration.includes("clipping is disabled for this source") && clipsMigration.includes("clip duration must be between 1 and % seconds") && clipsMigration.includes("attribution_text"));
 check("community clips support removal, expiry, reporting and maintenance", clipsMigration.includes("function public.raye2_remove_community_clip(") && clipsMigration.includes("function public.raye2_expire_community_clips(") && clipsMigration.includes("'community_clip'") && clipsMigration.includes("clips_expired"));
 check("the community clips flow is wired into the UI", clipsPage.includes("raye2_run_maintenance") && clipsClient.includes("raye2_publish_community_clip") && clipsClient.includes("raye2_list_community_clips") && watchDetail.includes("raye2_set_source_clipping"));
+const achMigration = await read("../supabase/migrations/20261110850000_raye2_achievements_depth.sql");
+const achProfile = await read("../src/app/u/[handle]/profile-client.tsx");
+check("achievements publish explicit criteria and only award when measured", achMigration.includes("add column if not exists metric text") && achMigration.includes("add column if not exists threshold integer") && achMigration.includes("if v_value < v_threshold then return; end if;") && achMigration.includes("raye2_achievement_metric"));
+check("achievements enforce anti-abuse and expose transparent progress", achMigration.includes("function public.raye2_member_in_good_standing(") && achMigration.includes("not public.raye2_member_in_good_standing(p_user_id) then") && achMigration.includes("function public.raye2_member_achievement_progress("));
+check("the profile surfaces transparent achievement progress", achProfile.includes("raye2_member_achievement_progress") && achProfile.includes("role=\"progressbar\""));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");

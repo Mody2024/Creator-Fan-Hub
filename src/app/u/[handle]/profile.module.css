@@ -94,3 +94,7 @@
 /* Raye2 profile depth — creator badge, privacy tag and honest stat labels */
 .creatorBadge{display:inline-flex;align-items:center;gap:5px;vertical-align:middle;margin-inline-start:11px;padding:4px 10px;border:1px solid rgba(120,173,255,.32);border-radius:999px;background:rgba(120,173,255,.12);color:#bcd8ff;font:800 10px var(--mono,monospace);letter-spacing:.08em;text-transform:uppercase}
 .privateTag{display:inline-block;margin-inline-start:9px;padding:2px 8px;border:1px solid rgba(248,200,140,.3);border-radius:999px;background:rgba(248,200,140,.1);color:#f0cf9a;font-size:9px;font-weight:800}
+
+/* Raye2 achievements depth — transparent progress toward published criteria */
+.achBar{margin:7px 0 3px;height:6px;border-radius:999px;background:rgba(220,232,248,.12);overflow:hidden}
+.achBar>span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#78adff,#4f7fd6)}
