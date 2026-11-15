@@ -2864,6 +2864,28 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 accounts/identity **~72% to ~80%**.
 
 ---
+
+## 2026-11-10 — Search filters, privacy and the dead Spaces tab (mega-batch, plan 3.2)
+- [x] **Gap closed:** plan 3.2 requires search with filters for content type, category and recency, and strict
+  respect for privacy, blocks, visibility and expiry. The old search had no filters, ignored blocks, and never
+  searched Mini's.
+- [x] **Dead feature revived:** the search page rendered a Spaces tab and section, but `raye2_search` never
+  returned a `group` row — the tab was always empty. The RPC now returns public, active spaces
+  (`raye2_groups`), so the tab links to real group pages.
+- [x] **New migration** `20261110980000_raye2_search_filters_privacy.sql`: replaces `raye2_search` with a
+  filtered, block-aware five-argument version (`p_kind`, `p_category`, `p_recency`) that also searches Mini's
+  (`community_short_videos`) and public spaces; every source excludes members blocked in either direction, and
+  only published/visible content is surfaced. Adds `raye2_get_search_facets` for category chips.
+- [x] **UI:** the Explore page gains category and recency filter chips (fed by the facet RPC), a Mini's tab, and
+  a Mini's results section, all bilingual.
+- [x] **Guarded:** a new test covers the filters, the block/privacy exclusions, the Spaces/Mini kinds and the
+  RPC replacement; a validator assertion covers the migration. Two stale tests that asserted the old
+  unfiltered call were updated.
+- [x] Gates: validator 424 assertions; tests 840/840; tsc clean; lint 0 errors/24 warnings; build OK; search
+  routes return 200 and render the filter bar.
+- **Progress:** Wave 3 discovery **~91% to ~94%**; overall **~88% to ~91%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2872,15 +2894,15 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
-| 2 | Core platform architecture, accounts and permissions | ~72% |
-| 3 | Video, feed and discovery ecosystem | ~91% |
+| 2 | Core platform architecture, accounts and permissions | ~80% |
+| 3 | Video, feed and discovery ecosystem | ~94% |
 | 4 | Creator Studio, exclusives and live streaming | ~78% |
 | 5 | Social graph, communities and engagement | ~99% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~82% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~88%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~91%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps: Wave 1 (light/dark themes and the global redesign shell), Wave 4 (Creator Studio depth), Wave 2 (identity consolidation), and §18.4 (external ad network — blocked on real provider approval/SDK).
+Largest remaining gaps: Wave 4 (Creator Studio depth), Wave 2 (identity consolidation and route guards), Wave 7 (provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.

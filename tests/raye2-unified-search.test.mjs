@@ -54,12 +54,12 @@ test("unified search ranks exact and prefix matches first and escapes wildcards"
 });
 
 test("the discover page searches through the unified RPC and renders a tags section", () => {
-  assert.match(searchPage, /rpc\("raye2_search",\{p_query:term,p_limit:40\}\)/);
+  assert.match(searchPage, /rpc\("raye2_search",\{p_query:term,p_limit:40,p_kind:kindParam\|\|null,p_category:selectedCat\|\|null,p_recency:selectedRecency\|\|null\}\)/);
   assert.match(searchPage, /row\.kind==="video"/);
   assert.match(searchPage, /row\.kind==="person"/);
   assert.match(searchPage, /row\.kind==="post"/);
   assert.match(searchPage, /row\.kind==="tag"/);
   assert.match(searchPage, /showTags/);
-  assert.match(searchPage, /href=\{query\("tags"\)\}/);
+  assert.match(searchPage, /href=\{href\("tags"\)\}/);
   assert.match(searchPage, /href=\{"\/topics\/"\+encodeURIComponent\(tag\.tag\)\}/);
 });

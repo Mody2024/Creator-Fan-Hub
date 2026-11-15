@@ -757,6 +757,9 @@ check("Raye2 ships one theme with no light/dark switching", themeSwitchRefs === 
 const profileIdentityMigration = await read("../supabase/migrations/20261110970000_raye2_profile_identity_depth.sql");
 check("profile identity depth adds cover/links/interests and fixes connection block exclusion", profileIdentityMigration.includes("raye2_update_my_profile") && profileIdentityMigration.includes("add column if not exists cover_url") && profileIdentityMigration.includes("add column if not exists interests") && profileIdentityMigration.includes("(b.blocker_id = v_me and b.blocked_id = p.user_id)") && !profileIdentityMigration.includes("b.blocker_id = p_user_id and b.blocked_id = p_user_id") && profileIdentityMigration.includes("set search_path=''"));
 
+const searchFiltersMigration = await read("../supabase/migrations/20261110980000_raye2_search_filters_privacy.sql");
+check("search adds filters, privacy and the Spaces/Mini result kinds", searchFiltersMigration.includes("p_recency text default null") && searchFiltersMigration.includes("'group'::text as kind") && searchFiltersMigration.includes("'short'::text as kind") && searchFiltersMigration.includes("from public.raye2_groups g") && (searchFiltersMigration.match(/not public\.is_member_blocked\(/g) ?? []).length >= 4 && searchFiltersMigration.includes("raye2_get_search_facets"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
