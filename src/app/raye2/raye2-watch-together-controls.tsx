@@ -26,6 +26,17 @@ type WatchSession = {
   playback_version: number;
   max_participants: number;
 };
+type WatchParticipant = {
+  user_id: string;
+  role: "host" | "moderator" | "participant";
+  status: string;
+  last_seen_at: string | null;
+};
+type WatchControlRequest = {
+  id: string;
+  user_id: string;
+  status: "pending" | "approved" | "declined" | "expired";
+};
 type WatchQueueItem = {
   id: string;
   session_id: string;
@@ -57,6 +68,11 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   const [queue, setQueue] = useState<WatchQueueItem[]>([]);
   const [currentVideo, setCurrentVideo] = useState<WatchVideo | null>(null);
   const [isHost, setIsHost] = useState(false);
+  const [myRole, setMyRole] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<WatchParticipant[]>([]);
+  const [controlRequests, setControlRequests] = useState<WatchControlRequest[]>([]);
+  const [controlRequested, setControlRequested] = useState(false);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [needsPlaybackTap, setNeedsPlaybackTap] = useState(false);
@@ -84,7 +100,15 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     tap: isAr ? "اضغط لتشغيل الفيديو المتزامن" : "Tap to start synchronized playback",
     unsupported: isAr ? "المزامنة متاحة حاليًا لفيديوهات Raye2 المنشورة والمستضافة هنا فقط." : "Synchronized playback currently supports published Raye2-hosted videos only.",
     unavailable: isAr ? "تعذر تنفيذ العملية." : "Could not complete that action.",
-    noSessions: isAr ? "لا توجد جلسات مشاهدة نشطة." : "No active watch sessions."
+    noSessions: isAr ? "لا توجد جلسات مشاهدة نشطة." : "No active watch sessions.",
+    requestControl: isAr ? "اطلب التحكم" : "Request control",
+    controlRequested: isAr ? "تم إرسال الطلب" : "Control requested",
+    controlRequests: isAr ? "طلبات التحكم" : "Control requests",
+    approve: isAr ? "قبول" : "Approve",
+    decline: isAr ? "رفض" : "Decline",
+    participants: isAr ? "المشاركون" : "Participants",
+    remove: isAr ? "إزالة" : "Remove",
+    makeHost: isAr ? "اجعل المضيف" : "Make host"
   };
 
   const selectedVideo = useMemo(() => videos.find(video => video.id === selectedVideoId) ?? null, [selectedVideoId, videos]);
@@ -120,11 +144,13 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   }, [conversationId, groupId, supabase]);
 
   const loadSession = useCallback(async (sessionId: string) => {
-    const [{ data: sessionRow }, { data: queueRows }, { data: voteRows }, { data: membership }] = await Promise.all([
+    const [{ data: sessionRow }, { data: queueRows }, { data: voteRows }, { data: membership }, { data: participantRows }, { data: requestRows }] = await Promise.all([
       supabase.from("raye2_watch_sessions").select("*").eq("id", sessionId).maybeSingle(),
       supabase.from("raye2_watch_queue").select("*").eq("session_id", sessionId).order("sort_order", { ascending: true }),
       supabase.from("raye2_watch_votes").select("queue_item_id").eq("session_id", sessionId),
-      supabase.from("raye2_watch_participants").select("role").eq("session_id", sessionId).eq("status", "joined").maybeSingle()
+      supabase.from("raye2_watch_participants").select("role").eq("session_id", sessionId).eq("status", "joined").maybeSingle(),
+      supabase.from("raye2_watch_participants").select("user_id,role,status,last_seen_at").eq("session_id", sessionId).eq("status", "joined"),
+      supabase.from("raye2_watch_control_requests").select("id,user_id,status").eq("session_id", sessionId).eq("status", "pending")
     ]);
     if (!sessionRow) return;
     const voteCounts: Record<string, number> = {};
@@ -133,6 +159,9 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     setSession(sessionRow as WatchSession);
     setQueue(nextQueue);
     setIsHost(membership?.role === "host" || membership?.role === "moderator");
+    setMyRole(membership?.role ?? null);
+    setParticipants((participantRows ?? []) as WatchParticipant[]);
+    setControlRequests((requestRows ?? []) as WatchControlRequest[]);
     const current = nextQueue.find(item => item.id === sessionRow.current_queue_item_id) ?? null;
     if (current?.source_kind === "native" && current.source_media_id) {
       const { data: media } = await supabase.from("media_items")
@@ -190,8 +219,44 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     setQueue([]);
     setCurrentVideo(null);
     setIsHost(false);
+    setMyRole(null);
+    setParticipants([]);
+    setControlRequests([]);
+    setControlRequested(false);
     if (id) await supabase.rpc("raye2_leave_watch_session", { p_session_id: id });
     await loadSessions();
+  };
+
+  const requestControl = async () => {
+    const id = sessionRef.current;
+    if (!id || isHost || controlRequested) return;
+    const { error: requestError } = await supabase.rpc("raye2_request_watch_control", { p_session_id: id });
+    if (requestError) setError(copy.unavailable);
+    else { setControlRequested(true); await loadSession(id); }
+  };
+
+  const resolveControlRequest = async (requestId: string, decision: "approved" | "declined") => {
+    const id = sessionRef.current;
+    if (!id || !isHost) return;
+    const { error: resolveError } = await supabase.rpc("raye2_resolve_watch_control_request", { p_request_id: requestId, p_decision: decision });
+    if (resolveError) setError(copy.unavailable);
+    else await loadSession(id);
+  };
+
+  const removeParticipant = async (targetUserId: string) => {
+    const id = sessionRef.current;
+    if (!id || !isHost) return;
+    const { error: removeError } = await supabase.rpc("raye2_remove_watch_participant", { p_session_id: id, p_user_id: targetUserId });
+    if (removeError) setError(copy.unavailable);
+    else await loadSession(id);
+  };
+
+  const transferHost = async (targetUserId: string) => {
+    const id = sessionRef.current;
+    if (!id || myRole !== "host") return;
+    const { error: transferError } = await supabase.rpc("raye2_transfer_watch_host", { p_session_id: id, p_user_id: targetUserId });
+    if (transferError) setError(copy.unavailable);
+    else await loadSession(id);
   };
 
   const updatePlayback = async (playing: boolean) => {
@@ -246,15 +311,32 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   }, [loadSessions, loadVideos, open]);
 
   useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => { if (active) setMyUserId(data.user?.id ?? null); });
+    return () => { active = false; };
+  }, [supabase]);
+
+  useEffect(() => {
     if (!session?.id) return;
     const id = session.id;
     const channel = supabase.channel("raye2:watch:" + id)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_watch_sessions", filter: "id=eq." + id }, () => { void loadSession(id); })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_queue", filter: "session_id=eq." + id }, () => { void loadSession(id); })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_votes", filter: "session_id=eq." + id }, () => { void loadSession(id); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_participants", filter: "session_id=eq." + id }, () => { void loadSession(id); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_watch_control_requests", filter: "session_id=eq." + id }, () => { void loadSession(id); })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
   }, [loadSession, session?.id, supabase]);
+
+  useEffect(() => {
+    if (!session?.id) return;
+    const id = session.id;
+    const beat = () => { void supabase.rpc("raye2_watch_heartbeat", { p_session_id: id }); };
+    beat();
+    const timer = window.setInterval(beat, 30000);
+    return () => window.clearInterval(timer);
+  }, [session?.id, supabase]);
 
   useEffect(() => {
     if (!session || !currentVideo || isHost || !videoRef.current) return;
@@ -330,6 +412,9 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
                   onEnded={() => { if (isHost) void advanceQueue(); }}/>
               ) : <small>{copy.unsupported}</small>}
               {needsPlaybackTap && <button type="button" onClick={() => { if (videoRef.current) void videoRef.current.play().then(() => setNeedsPlaybackTap(false)); }}>{copy.tap}</button>}
+              {!isHost && <button type="button" disabled={controlRequested} onClick={() => void requestControl()}>{controlRequested ? copy.controlRequested : copy.requestControl}</button>}
+              {isHost && controlRequests.length > 0 && <div className={styles.watchControlRequests}><b>{copy.controlRequests} · {controlRequests.length}</b>{controlRequests.map(item => <div className={styles.watchQueueItem} key={item.id}><span>{item.user_id.slice(0, 8)}</span><button type="button" onClick={() => void resolveControlRequest(item.id, "approved")}>{copy.approve}</button><button type="button" onClick={() => void resolveControlRequest(item.id, "declined")}>{copy.decline}</button></div>)}</div>}
+              <div className={styles.watchParticipants}><b>{copy.participants} · {participants.length}</b>{participants.map(person => <div className={styles.watchQueueItem} key={person.user_id}><span>{person.user_id.slice(0, 8)} · {person.role}{person.user_id === myUserId ? " (you)" : ""}</span>{isHost && person.user_id !== myUserId && <><button type="button" onClick={() => void transferHost(person.user_id)}>{copy.makeHost}</button>{person.role !== "host" && <button type="button" onClick={() => void removeParticipant(person.user_id)}>{copy.remove}</button>}</>}</div>)}</div>
               <div className={styles.watchQueueHead}><b>{copy.queue}</b>{isHost && <button type="button" onClick={() => void advanceQueue()}>{copy.next}</button>}</div>
               {queue.filter(item => item.status === "queued").map(item => <div className={styles.watchQueueItem} key={item.id}><span>{item.title} · {item.votes}</span><button type="button" onClick={() => void voteForItem(item.id)}>{copy.vote}</button></div>)}
               <div className={styles.watchCreateRow}>

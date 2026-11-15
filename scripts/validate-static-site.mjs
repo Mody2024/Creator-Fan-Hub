@@ -702,6 +702,8 @@ check("migrations keep security invariants: empty search_path, fail-closed grant
   !/create\s+(?:or\s+replace\s+)?function\s+[\w.]+\s*\([^)]*\)\s*[\s\S]*?security definer(?![\s\S]*?set search_path)[\s\S]*?\$\$;/i.test(allMigrations) &&
   allMigrations.includes("raye2_message_deliveries") &&
   [...new Set([...allMigrations.matchAll(/create table if not exists public\.(raye2_\w+)/gi)].map(m => m[1]))].every(t => new RegExp("alter table public\\." + t + "\\s+enable row level security", "i").test(allMigrations)));
+const watchDepthMigration = await read("../supabase/migrations/20261110940000_raye2_watch_together_depth.sql");
+check("watch together depth adds presence, moderation and control requests", watchDepthMigration.includes("raye2_watch_heartbeat") && watchDepthMigration.includes("raye2_remove_watch_participant") && watchDepthMigration.includes("raye2_request_watch_control") && watchDepthMigration.includes("raye2_expire_watch_sessions"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");

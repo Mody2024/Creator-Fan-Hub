@@ -2758,6 +2758,29 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 server-side permission coverage **~65% to ~72%**; Wave 9 **~99%**.
 
 ---
+
+## 2026-11-10 — Watch Together depth: presence, moderation, control requests (mega-batch, plan Wave 7)
+- [x] **Gap closed:** plan 4 requires Watch Together to cover host moderation, optional playback-control
+  requests and reconnection/resynchronization. Sync, queue, voting and host control existed, but participants
+  never refreshed presence, a host could not remove anyone, control could not be handed over or requested, and
+  active sessions were never expired.
+- [x] **New migration** `20261110940000_raye2_watch_together_depth.sql`:
+  `raye2_watch_heartbeat` (refreshes presence and prunes participants silent for 90s, with host failover to a
+  moderator or the longest-joined participant, ending the session when nobody remains);
+  `raye2_remove_watch_participant` (host/moderator moderation, never removable host, audited);
+  `raye2_transfer_watch_host` (host only; outgoing host becomes moderator, audited);
+  a `raye2_watch_control_requests` table (membership-scoped RLS, Realtime) with `raye2_request_watch_control`
+  and `raye2_resolve_watch_control_request` (approval grants the moderator role = playback control);
+  `raye2_expire_watch_sessions` folded into `raye2_run_maintenance`.
+- [x] **UI:** a participants list with roles and presence, host-only make-host/remove actions, a
+  request-control button for participants, and a host-only pending-requests panel, plus a 30s heartbeat and
+  live subscriptions to participants and control requests (EN + AR).
+- [x] **Guarded:** a new test covers presence/pruning/failover, moderation, transfer, control requests and
+  session expiry; a validator assertion covers the migration.
+- [x] Gates: validator 418 assertions; tests 821/821; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 7 Watch Together **~55% to ~85%**; Wave 7 **~70% to ~76%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
