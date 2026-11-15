@@ -8,7 +8,7 @@ const roleMigration = await readFile(new URL("../supabase/migrations/20261110590
 
 test("storage tiers follow Creator, Streamer and combined roles without additive combined quotas", () => {
   assert.match(migration, /'creator','storage_bytes',21474836480/);
-  assert.match(migration, /'streamer','storage_bytes',2147483648/);
+  assert.match(migration, /'streamer','storage_bytes',21474836480/);
   assert.match(migration, /'combined','storage_bytes',32212254720/);
   assert.match(migration, /else 1073741824 end/);
   assert.match(migration, /raye2_creator_tier\(v_user\)/);
