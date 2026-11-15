@@ -36,7 +36,9 @@ The repository includes a dedicated worker image, separate from the Next.js app 
 
 ```sh
 docker build -f Dockerfile.raye2-media-worker -t raye2-media-worker .
-docker run --restart unless-stopped --env-file .env.raye2-worker raye2-media-worker
+docker compose -f compose.raye2-worker.yml up -d --build
+docker compose -f compose.raye2-worker.yml logs -f
+docker compose -f compose.raye2-worker.yml down
 ```
 
 Create `.env.raye2-worker` on the private host only; include the Supabase URL and server-only service-role key. Never commit this file or pass the secret as a public build argument. The image runs as the unprivileged `node` user and includes FFmpeg/FFprobe.
