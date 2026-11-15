@@ -485,6 +485,47 @@ function startLeaseHeartbeat(job) {
   };
 }
 
+async function drainStorageCleanup() {
+  const { data: promoted, error: promoteError } = await supabase.rpc("raye2_enqueue_storage_cleanup", { p_limit: 25 });
+  if (promoteError) throw promoteError;
+  let handled = 0;
+  for (let i = 0; i < 25; i += 1) {
+    const { data: jobs, error } = await supabase.rpc("raye2_claim_background_job", { p_kind: "storage.delete" });
+    if (error) throw error;
+    const job = jobs?.[0];
+    if (!job) break;
+    if (job.kind !== "storage.delete") break;
+    const cleanupId = job.payload?.cleanup_id;
+    const bucket = job.payload?.bucket;
+    const path = job.payload?.path;
+    let ok = false;
+    let message = null;
+    try {
+      if (typeof bucket !== "string" || typeof path !== "string" || !bucket || !path) throw new Error("storage cleanup job is missing its bucket or path");
+      const { error: removeError } = await supabase.storage.from(bucket).remove([path]);
+      if (removeError) throw removeError;
+      ok = true;
+    } catch (error) {
+      message = error instanceof Error ? error.message.slice(0, 1000) : "storage deletion failed";
+    }
+    if (typeof cleanupId === "string") {
+      await supabase.rpc("raye2_record_storage_cleanup", { p_cleanup_id: cleanupId, p_success: ok, p_error: message });
+    }
+    const { error: completeError } = await supabase.rpc("raye2_complete_background_job", {
+      p_job_id: job.job_id,
+      p_lease_token: job.lease_token,
+      p_success: ok,
+      p_result: ok ? { deleted: path } : {},
+      p_error: message,
+    });
+    if (completeError) throw completeError;
+    if (ok) console.info(`[raye2-worker] deleted expired object ${bucket}/${path}`);
+    else console.error(`[raye2-worker] storage deletion failed for ${bucket}/${path}: ${message}`);
+    handled += 1;
+  }
+  return handled + (promoted ?? 0);
+}
+
 async function handleOne() {
   const { data: jobs, error } = await supabase.rpc("claim_raye2_media_processing_job");
   if (error) throw error;
@@ -564,6 +605,7 @@ while (!shuttingDown) {
   try {
     const processed = await handleOne();
     consecutiveQueueErrors = 0;
+    try { await drainStorageCleanup(); } catch (cleanupError) { console.error("[raye2-worker] storage cleanup drain failed", cleanupError instanceof Error ? cleanupError.message : String(cleanupError)); }
     if (!processed && !shuttingDown) {
       const jitter = Math.floor(Math.random() * Math.min(1500, POLL_MS * 0.2));
       await waitForNextPoll(POLL_MS + jitter);

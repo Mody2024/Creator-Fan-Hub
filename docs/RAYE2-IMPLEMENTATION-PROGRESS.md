@@ -2956,6 +2956,26 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 accounts/identity **~80% to ~81%**; overall **~92%**.
 
 ---
+
+## 2026-11-10 — Queue physical deletion of expired temporary media (mega-batch, plan 11.3 / 9)
+- [x] **Gap closed:** plan 11.3 requires that for every temporary content type "physical deletion is queued,
+  retried and observable", separate from metadata. Mini's and community clips became inaccessible on expiry,
+  but their storage objects were never queued for deletion — they lingered forever in the public buckets.
+- [x] **New migration** `20261111020000_raye2_media_expiry_cleanup.sql`: an observable
+  `raye2_media_storage_cleanup` queue; `raye2_expire_minis`/`raye2_expire_community_clips` now record the
+  binary (metadata status still flips immediately, so content hides at once); `raye2_enqueue_storage_cleanup`
+  promotes rows into retried `storage.delete` background jobs; `raye2_record_storage_cleanup` records the
+  outcome; `raye2_get_storage_cleanup_stats` exposes pending/failed/deleted for the admin centre.
+- [x] **Worker:** the media worker drains the cleanup queue against Storage and reports success/failure; the
+  background-job claim RPC now accepts a kind filter so a storage worker never steals an account-purge job.
+- [x] **Admin UI:** the Jobs tab surfaces cleanup pending/failed/deleted counts.
+- [x] **Guarded:** a new test covers the queue, the promotion/idempotency, the trusted-worker guards, the kind
+  filter and the worker drain; a validator assertion covers the migration.
+- [x] Gates: validator 428 assertions; tests 857/857; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 9 (security/reliability/ops) remains **~99%**; this closes a specific plan-11.3
+  sub-item (queued, retried, observable physical deletion). Overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

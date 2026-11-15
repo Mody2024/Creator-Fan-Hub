@@ -769,6 +769,9 @@ check("Mini's are reportable and covered by the takedown workflow and moderation
 const profileCollectionsMigration = await read("../supabase/migrations/20261111010000_raye2_profile_collections.sql");
 check("profile collections add Moments and playlist surfaces", profileCollectionsMigration.includes("raye2_get_profile_collections") && profileCollectionsMigration.includes("cp.is_moment = true") && profileCollectionsMigration.includes("from public.video_playlists p") && profileCollectionsMigration.includes("'moments', coalesce") && profileCollectionsMigration.includes("'playlists', coalesce"));
 
+const mediaExpiryCleanupMigration = await read("../supabase/migrations/20261111020000_raye2_media_expiry_cleanup.sql");
+check("expired temporary media queues physical deletion as a retried, observable background job", mediaExpiryCleanupMigration.includes("create table if not exists public.raye2_media_storage_cleanup") && mediaExpiryCleanupMigration.includes("'storage.delete'") && mediaExpiryCleanupMigration.includes("raye2_enqueue_storage_cleanup") && mediaExpiryCleanupMigration.includes("raye2_record_storage_cleanup") && mediaExpiryCleanupMigration.includes("raye2_get_storage_cleanup_stats") && mediaExpiryCleanupMigration.includes("raye2_claim_background_job(p_kind text default null)"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
