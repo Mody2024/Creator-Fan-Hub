@@ -36,6 +36,9 @@ $$;
 revoke all on function public.raye2_admin_set_user_storage_quota(uuid,bigint,text) from public,anon;
 grant execute on function public.raye2_admin_set_user_storage_quota(uuid,bigint,text) to authenticated;
 
+-- Remove the legacy 32-bit overload so PostgREST has one unambiguous admin RPC.
+drop function if exists public.raye2_set_role_quota(text,text,integer);
+
 -- Prevent a platform admin from configuring an individual role tier above the
 -- same 10 GiB hard ceiling used by per-user overrides.
 create or replace function public.raye2_set_role_quota(p_tier text,p_metric text,p_limit bigint)
