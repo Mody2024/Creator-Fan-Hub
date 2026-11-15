@@ -122,7 +122,7 @@ export default function Raye2Client() {
   ,topics:"Channels",topicAll:"All messages",topicGeneral:"General",newTopic:"New channel",topicName:"Channel name",createTopic:"Create",deleteTopic:"Delete",manageTopics:"Manage channels",noTopics:"No channels yet.",topicCreated:"Channel created.",topicDeleted:"Channel deleted.",topicError:"Could not update the channel.",postInTopic:"Posted in"};
 
   useEffect(() => {
-    const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);
+    const match = document.cookie.match(/(?:^|; )raye2_locale=(en|ar)(?:;|$)/);
     if (match) setLocale(match[1] as Locale);
   }, []);
 
@@ -944,7 +944,7 @@ export default function Raye2Client() {
   const switchLocale = () => {
     const next: Locale = locale === "en" ? "ar" : "en";
     setLocale(next);
-    document.cookie = `nhen_locale=${next}; path=/; max-age=31536000; samesite=lax`;
+    document.cookie = `raye2_locale=${next}; path=/; max-age=31536000; samesite=lax`;
   };
   const reactionOptions = ["❤️", "👍", "😂", "✨", "🔥"];
   if (!supabase) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link></main>;

@@ -25,8 +25,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install dependencies without paid services
-        run: npm install --no-audit --no-fund
+          cache: npm
+      - name: Install dependencies from the committed lockfile
+        run: npm ci --no-audit --no-fund
       - name: Validate repository integration and automated tests
         run: npm run check && npm test
       - name: Type-check

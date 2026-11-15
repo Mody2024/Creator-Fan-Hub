@@ -59,21 +59,21 @@ export default function CreatorAnalyticsPanel({ locale }: { locale: "en" | "ar" 
     await load();
   }
 
-  if (error) return <section className="nhen-card nhen-card-pad"><p className="nhen-muted">{error}</p></section>;
+  if (error) return <section className="raye2-card raye2-card-pad"><p className="raye2-muted">{error}</p></section>;
   if (!data) return null;
 
   const totals = data.totals ?? {};
   const maxDays = num(data.max_video_expiry_days) || 14;
 
-  return <section className="nhen-card nhen-card-pad">
-    <div className="nhen-card-heading"><h2>{t.title}</h2><span className="nhen-pill">{t.window} {num(data.window_days) || 30} {t.days}</span></div>
+  return <section className="raye2-card raye2-card-pad">
+    <div className="raye2-card-heading"><h2>{t.title}</h2><span className="raye2-pill">{t.window} {num(data.window_days) || 30} {t.days}</span></div>
     <div className="dashboard-stats">
       <article><span>{t.followers}</span><strong>{num(data.followers).toLocaleString()}</strong></article>
       <article><span>{t.uniqueViewers}</span><strong>{num(totals.unique_viewers).toLocaleString()}</strong></article>
       <article><span>{t.completed}</span><strong>{num(totals.completed_viewers).toLocaleString()}</strong></article>
     </div>
-    <p className="nhen-muted">{t.note}{data.watch_time_available === false && data.watch_time_note ? " " + data.watch_time_note : ""}</p>
-    <div className="nhen-analytics-table">
+    <p className="raye2-muted">{t.note}{data.watch_time_available === false && data.watch_time_note ? " " + data.watch_time_note : ""}</p>
+    <div className="raye2-analytics-table">
       {(data.videos ?? []).map(video => <article key={video.media_id}>
         <div><strong>{video.title}</strong><small>{video.expires_at ? t.expiresOn + " " + new Date(video.expires_at).toLocaleDateString(isAr ? "ar-EG" : "en-US") : t.noExpiry}</small></div>
         <span><b>{num(video.unique_viewers)}</b> {t.uniqueViewers}</span>

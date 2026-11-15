@@ -10,7 +10,7 @@ type TopicVideo={slug:string;title:string;category:string;description:string;pub
 export default async function TopicPage({params}:{params:Promise<{tag:string}>}){
  const [{tag},cookieStore]=await Promise.all([params,cookies()]);
  const clean=decodeURIComponent(tag).trim().toLowerCase().slice(0,40);
- const isArabic=cookieStore.get("nhen_locale")?.value==="ar";
+ const isArabic=cookieStore.get("raye2_locale")?.value==="ar";
  const locale=isArabic?"ar":"en";
  const t=isArabic?{
   eyebrow:"موضوع",heading:"فيديوهات بوسم",empty:"لا توجد فيديوهات بهذا الموضوع بعد.",back:"كل المواضيع",watch:"شاهد",home:"الرئيسية",community:"المجتمع",discover:"اكتشف",count:"فيديو"

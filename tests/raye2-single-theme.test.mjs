@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 const read = p => readFile(new URL(p, import.meta.url), "utf8");
 const [globals, designSystem, client, module] = await Promise.all([
   read("../src/app/globals.css"),
-  read("../src/app/nhen-design-system.css"),
+  read("../src/app/raye2-design-system.css"),
   read("../src/app/raye2/raye2-client.tsx"),
   read("../src/app/raye2/raye2.module.css")
 ]);

@@ -49,7 +49,7 @@ export default function CreatorNotifications({locale}:{locale:"en"|"ar"}){
   }catch(e){setStatus(e instanceof Error?e.message:(ar?"تعذر تحديث الإشعارات.":"Could not update notifications."));}
   finally{setBusy(false)}
  }
- return <section id="creator-notifications" className="nhen-card nhen-card-pad" aria-busy={busy} aria-label={ar?"إشعارات المبدع":"Creator notifications"}>
+ return <section id="creator-notifications" className="raye2-card raye2-card-pad" aria-busy={busy} aria-label={ar?"إشعارات المبدع":"Creator notifications"}>
   <div className="editor-topline"><span className="eyebrow">{ar?"مركز المبدع / الإشعارات":"CREATOR CENTER / NOTIFICATIONS"}</span><button className="editor-reload" type="button" disabled={busy} onClick={()=>void load()}>{ar?"تحديث ↻":"Refresh ↻"}</button></div>
   <div className="module-heading"><div><h2>{ar?"الإشعارات":"Notifications"}{unread>0?" ("+unread+")":""}</h2><p>{ar?"تابع قرارات مراجعة حملات الرعاية والتنبيهات المرتبطة بها.":"Follow sponsorship review decisions and related creator updates."}</p></div><button className="button button-secondary" type="button" disabled={busy||unread===0} onClick={()=>void markAllRead()}>{ar?"تحديد الكل كمقروء":"Mark all as read"}</button></div>
   <div className="editor-topline" role="group" aria-label={ar?"تصفية الإشعارات":"Filter notifications"}><button className={filter==="all"?"button":"button button-secondary"} type="button" aria-pressed={filter==="all"} onClick={()=>setFilter("all")}>{ar?"الكل":"All"} ({items.length})</button><button className={filter==="unread"?"button":"button button-secondary"} type="button" aria-pressed={filter==="unread"} onClick={()=>setFilter("unread")}>{ar?"غير المقروء":"Unread"} ({unread})</button></div>

@@ -15,7 +15,7 @@ type MomentRow = {
 
 export default async function MomentsPage() {
   const cookieStore = await cookies();
-  const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
+  const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
   const labels = isArabic
     ? { watch: "شاهد", community: "المجتمع", eyebrow: "RAYE2 / لحظات", intro: "مقاطع مختارة من فيديوهات الصنّاع، تبقى في المجتمع ٧ أيام.", open: "شاهد الفيديو ↗", empty: "لا توجد لحظات حالية.", expires: "تنتهي" }
@@ -30,14 +30,14 @@ export default async function MomentsPage() {
   const clip = (m: MomentRow) => (m.moment_start_seconds != null && m.moment_end_seconds != null ? `${m.moment_start_seconds}s – ${m.moment_end_seconds}s` : "");
   return (
     <main className="raye2-moments-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-      <header className="nhen-watch-top">
-        <Link className="nhen-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
+      <header className="raye2-watch-top">
+        <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
         <nav><Link href="/watch">{labels.watch}</Link><Link href="/community">{labels.community}</Link></nav>
       </header>
       <div className="raye2-moments-heading">
-        <span className="nhen-section-label">{labels.eyebrow}</span>
+        <span className="raye2-section-label">{labels.eyebrow}</span>
         <h1>{isArabic ? <>لحظات <em>مميزة.</em></> : <>Featured <em>Moments.</em></>}</h1>
-        <p className="nhen-muted">{labels.intro}</p>
+        <p className="raye2-muted">{labels.intro}</p>
       </div>
       <MomentsClient />
       {moments.length ? (
@@ -47,11 +47,11 @@ export default async function MomentsPage() {
               <span className="raye2-moment-badge">{clip(m)}</span>
               <h2>{m.body}</h2>
               <small>{m.author_display_name ?? m.author_handle ?? "Member"}{m.expires_at ? ` · ${labels.expires} ${new Date(m.expires_at).toLocaleDateString(isArabic ? "ar-EG" : "en-US", { month: "short", day: "numeric" })}` : ""}</small>
-              {m.video_slug ? <Link className="nhen-action" href={`/watch/${m.video_slug}`}>{labels.open}</Link> : null}
+              {m.video_slug ? <Link className="raye2-action" href={`/watch/${m.video_slug}`}>{labels.open}</Link> : null}
             </article>
           ))}
         </div>
-      ) : <div className="nhen-card nhen-empty-state">{labels.empty}</div>}
+      ) : <div className="raye2-card raye2-empty-state">{labels.empty}</div>}
     </main>
   );
 }

@@ -22,7 +22,7 @@ type LiveDetail = {
 
 export default async function LiveStreamPage({ params }: { params: Promise<{ id: string }> }) {
   const [{ id }, cookieStore] = await Promise.all([params, cookies()]);
-  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   const supabase = await createSupabaseServerClient();
   let stream: LiveDetail | null = null;
   let unavailable = false;

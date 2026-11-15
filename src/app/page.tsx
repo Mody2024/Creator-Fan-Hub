@@ -19,7 +19,7 @@ type EventCard = { id:string; title:string; description:string; starts_at:string
 
 export default async function HomePage() {
   const [config,supabase,cookieStore] = await Promise.all([getPublicSiteConfig(),createSupabaseServerClient(),cookies()]);
-  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   const t = isArabic ? {
     search:"ابحث عن الفيديوهات والمبدعين والمجتمع", join:"انضم إلى Raye2", home:"الرئيسية", watch:"شاهد", shorts:"قصاصات", community:"المجتمع", explore:"استكشف", profile:"ملفك الشخصي", saved:"المحفوظات", notifications:"الإشعارات", studio:"استوديو المبدعين", hero:"شاهد ما يهمك.", heroLine:"كن جزءًا منه.", heroBody:"فيديوهات المبدعين ومقاطع المجتمع والنقاشات — كلها في مكان واحد.", exploreVideos:"استكشف الفيديوهات ↗", joinCommunity:"انضم إلى المجتمع", forYou:"لك", videos:"الفيديوهات", nhenbits:"مقاطع قصيرة", latest:"أحدث فيديوهات المبدعين", seeAll:"عرض الكل ↗", fromCommunity:"من المجتمع", openCommunity:"افتح المجتمع ↗", joinConversation:"شارك في النقاش ↗", discover:"اكتشف Raye2", everyFormat:"كل أنواع المحتوى. مجتمع واحد.", watchVideos:"شاهد الفيديوهات", findCreators:"ابحث عن المبدعين", creatorAccess:"دخول المبدعين", haveChannel:"لديك قناة؟", openStudio:"افتح استوديو المبدعين ↗", vote:"تصويت المجتمع", haveSay:"شارك برأيك"
   } : {
@@ -76,46 +76,46 @@ export default async function HomePage() {
   const primaryKeys = videoSectionVisible ? PLATFORM_NAV_PRIMARY : PLATFORM_NAV_PRIMARY.filter(key => key !== "videos" && key !== "shorts");
   const primaryNav = platformNavItems(primaryKeys, navLabels);
   const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
-  return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-motion={config.motion}>
-    <header className="nhen-app-header">
-      <Link className="nhen-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="Raye2" /> : <span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>}</Link>
-      <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
-      <div className="nhen-header-actions"><Link className="nhen-pill" href="/community#join">{t.join}</Link><Link className="nhen-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
+  return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="raye2-app-shell raye2-home-shell" data-motion={config.motion}>
+    <header className="raye2-app-header">
+      <Link className="raye2-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="Raye2" /> : <span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>}</Link>
+      <form className="raye2-search-form" action="/search"><input className="raye2-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
+      <div className="raye2-header-actions"><Link className="raye2-pill" href="/community#join">{t.join}</Link><Link className="raye2-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
-    <div className="nhen-platform-grid">
+    <div className="raye2-platform-grid">
       <aside className="desktop-nav" aria-label="Main navigation">
-        {primaryNav.map(item => <Link className="nhen-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
-        <span className="nhen-section-label">{isArabic ? "مساحتك في Raye2" : "YOUR RAYE2"}</span>
-        {accountNav.map(item => <Link className="nhen-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
+        {primaryNav.map(item => <Link className="raye2-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
+        <span className="raye2-section-label">{isArabic ? "مساحتك في Raye2" : "YOUR RAYE2"}</span>
+        {accountNav.map(item => <Link className="raye2-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
       </aside>
-      <section className="nhen-feed-column">
-        <section className="nhen-home-welcome nhen-card nhen-card-pad" id="hero">
-          <span className="nhen-section-label">{config.tagline}</span>
+      <section className="raye2-feed-column">
+        <section className="raye2-home-welcome raye2-card raye2-card-pad" id="hero">
+          <span className="raye2-section-label">{config.tagline}</span>
           <h1>{config.heroTitle || t.hero}<br/><em>{t.heroLine}</em></h1>
-          <p className="nhen-muted">{config.heroBody || t.heroBody}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
-          <div className="nhen-home-quicklinks"><Link className="button button-primary" href="/watch">{t.exploreVideos}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
+          <p className="raye2-muted">{config.heroBody || t.heroBody}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
+          <div className="raye2-home-quicklinks"><Link className="button button-primary" href="/watch">{t.exploreVideos}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
         </section>
         {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents initialEvents={events} locale={isArabic?"ar":"en"} />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
-        <div className="nhen-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/#videos">{t.videos}</Link><Link href="/community">{t.community}</Link><Link href="/shorts">{t.nhenbits}</Link></div>
-        {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="nhen-card nhen-card-pad nhen-home-polls" id="poll" aria-labelledby="nhen-home-polls-title">
-          <div className="nhen-card-heading"><div><span className="nhen-section-label">{t.vote}</span><h2 className="nhen-card-title" id="nhen-home-polls-title" style={{marginTop:6}}>{isArabic ? "صوّت وشارك في اختيار القادم." : "Your voice shapes what comes next."}</h2></div><span className="nhen-pill">{t.haveSay}</span></div>
+        <div className="raye2-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/#videos">{t.videos}</Link><Link href="/community">{t.community}</Link><Link href="/shorts">{t.nhenbits}</Link></div>
+        {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="raye2-card raye2-card-pad raye2-home-polls" id="poll" aria-labelledby="raye2-home-polls-title">
+          <div className="raye2-card-heading"><div><span className="raye2-section-label">{t.vote}</span><h2 className="raye2-card-title" id="raye2-home-polls-title" style={{marginTop:6}}>{isArabic ? "صوّت وشارك في اختيار القادم." : "Your voice shapes what comes next."}</h2></div><span className="raye2-pill">{t.haveSay}</span></div>
           <PublishedPolls locale={isArabic?"ar":"en"} />
         </section>}
         {config.visibleSections.includes("videos") && <PublicVideos />}
-        <div className="nhen-card-heading"><h2 className="nhen-card-title">{t.latest}</h2><Link className="nhen-muted" href="/watch">{t.seeAll}</Link></div>
-        {videos.length?<div className="nhen-home-video-grid">{videos.slice(0,8).map(video=><article className="nhen-home-video-card" key={video.id}>
-          <Link className="nhen-home-video-player" href={"/watch/"+video.slug}><PublicVideoPlayer locale={isArabic?"ar":"en"} src={video.src} title={video.title} description={video.description} youtubeEmbedUrl={video.youtubeEmbedUrl}/></Link>
-          <div className="nhen-home-video-meta"><span className="nhen-section-label">{video.category.toUpperCase()} · OFFICIAL</span><h3><Link href={"/watch/"+video.slug}>{video.title}</Link></h3><p>{video.description}</p><small>{new Date(video.publishedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")}</small></div>
-        </article>)}</div>:<div className="nhen-card nhen-empty-state"><strong>{isArabic?"مساحة المشاهدة تستعد لاستقبال الفيديوهات.":"Your watch feed is getting ready."}</strong><p className="nhen-muted">{isArabic?"ستظهر هنا فيديوهات المبدعين الرسمية الجديدة.":"New official creator videos will appear here."}</p></div>}
-        <div className="nhen-card-heading"><h2 className="nhen-card-title">{t.fromCommunity}</h2><Link className="nhen-muted" href="/community">{t.openCommunity}</Link></div>
-        {posts.length?posts.map(post=><article className="nhen-card nhen-home-post" key={post.id}><div className="nhen-post-header"><div className="nhen-avatar">{post.avatarUrl?<img src={post.avatarUrl} alt=""/>:post.displayName.slice(0,1).toUpperCase()}</div><div><strong>{post.displayName}</strong><div className="nhen-muted">@{post.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div></div><p className="nhen-post-body">{post.body}</p><Link className="nhen-action" href="/community">{t.joinConversation}</Link></article>):<div className="nhen-card nhen-empty-state"><p className="nhen-muted">{isArabic?"ستظهر هنا نقاشات المجتمع ومشاركاته الجديدة.":"Community conversations will appear here as people share."}</p><Link href="/community">{isArabic?"زيارة المجتمع ↗":"Visit community ↗"}</Link></div>}
+        <div className="raye2-card-heading"><h2 className="raye2-card-title">{t.latest}</h2><Link className="raye2-muted" href="/watch">{t.seeAll}</Link></div>
+        {videos.length?<div className="raye2-home-video-grid">{videos.slice(0,8).map(video=><article className="raye2-home-video-card" key={video.id}>
+          <Link className="raye2-home-video-player" href={"/watch/"+video.slug}><PublicVideoPlayer locale={isArabic?"ar":"en"} src={video.src} title={video.title} description={video.description} youtubeEmbedUrl={video.youtubeEmbedUrl}/></Link>
+          <div className="raye2-home-video-meta"><span className="raye2-section-label">{video.category.toUpperCase()} · OFFICIAL</span><h3><Link href={"/watch/"+video.slug}>{video.title}</Link></h3><p>{video.description}</p><small>{new Date(video.publishedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")}</small></div>
+        </article>)}</div>:<div className="raye2-card raye2-empty-state"><strong>{isArabic?"مساحة المشاهدة تستعد لاستقبال الفيديوهات.":"Your watch feed is getting ready."}</strong><p className="raye2-muted">{isArabic?"ستظهر هنا فيديوهات المبدعين الرسمية الجديدة.":"New official creator videos will appear here."}</p></div>}
+        <div className="raye2-card-heading"><h2 className="raye2-card-title">{t.fromCommunity}</h2><Link className="raye2-muted" href="/community">{t.openCommunity}</Link></div>
+        {posts.length?posts.map(post=><article className="raye2-card raye2-home-post" key={post.id}><div className="raye2-post-header"><div className="raye2-avatar">{post.avatarUrl?<img src={post.avatarUrl} alt=""/>:post.displayName.slice(0,1).toUpperCase()}</div><div><strong>{post.displayName}</strong><div className="raye2-muted">@{post.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div></div><p className="raye2-post-body">{post.body}</p><Link className="raye2-action" href="/community">{t.joinConversation}</Link></article>):<div className="raye2-card raye2-empty-state"><p className="raye2-muted">{isArabic?"ستظهر هنا نقاشات المجتمع ومشاركاته الجديدة.":"Community conversations will appear here as people share."}</p><Link href="/community">{isArabic?"زيارة المجتمع ↗":"Visit community ↗"}</Link></div>}
 
       </section>
-      <aside className="nhen-discovery-column">
-        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.discover}</span><h2 className="nhen-card-title">{t.everyFormat}</h2><p className="nhen-muted">{isArabic ? "فيديوهات المبدعين، ومقاطع المجتمع، واللحظات المشتركة والنقاشات." : "Long-form creator uploads, short community videos, shared moments and conversations."}</p><div className="nhen-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ {t.nhenbits}</Link><Link href="/community">◉ {t.community}</Link><Link href="/search">{t.findCreators}</Link></div></section>
-        <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو Raye2." : "Approved creators can publish official videos and manage their channel from Raye2 Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
+      <aside className="raye2-discovery-column">
+        <section className="raye2-card raye2-card-pad"><span className="raye2-section-label">{t.discover}</span><h2 className="raye2-card-title">{t.everyFormat}</h2><p className="raye2-muted">{isArabic ? "فيديوهات المبدعين، ومقاطع المجتمع، واللحظات المشتركة والنقاشات." : "Long-form creator uploads, short community videos, shared moments and conversations."}</p><div className="raye2-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ {t.nhenbits}</Link><Link href="/community">◉ {t.community}</Link><Link href="/search">{t.findCreators}</Link></div></section>
+        <section className="raye2-card raye2-card-pad"><span className="raye2-section-label">{t.creatorAccess}</span><h2 className="raye2-card-title">{t.haveChannel}</h2><p className="raye2-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو Raye2." : "Approved creators can publish official videos and manage their channel from Raye2 Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
       </aside>
     </div>
-    <nav className="mobile-nav" aria-label="Mobile navigation">{primaryNav.map(item => <Link href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span><span>{item.label}</span></Link>)}</nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label="Mobile navigation">{primaryNav.map(item => <Link href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span><span>{item.label}</span></Link>)}</nav>{config.mascotUrl && config.featureFlags.mascot && <img className="raye2-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }

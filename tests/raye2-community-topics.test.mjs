@@ -48,6 +48,6 @@ test("the community surfaces wire topic channels end to end", () => {
   assert.match(communityClient, /topics\?: CommunityTopic\[\]/);
   assert.match(communityClient, /rpc\("raye2_set_post_topic"/);
   assert.match(communityClient, /topicFilter==="all"\|\|post\.topicSlug===topicFilter/);
-  assert.match(communityClient, /nhen-topic-compose/);
+  assert.match(communityClient, /raye2-topic-compose/);
   assert.match(communityClient, /#\{post\.topicName\}/);
 });

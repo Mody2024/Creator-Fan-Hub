@@ -8,7 +8,7 @@ import "./watch-library.css";
 export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
  const supabase=await createSupabaseServerClient();
- if(!supabase)return <main className="nhen-app-shell"><p>Raye2 Watch is temporarily unavailable.</p></main>;
+ if(!supabase)return <main className="raye2-app-shell"><p>Raye2 Watch is temporarily unavailable.</p></main>;
  const {data:claims}=await supabase.auth.getClaims();const subject=claims?.claims?.sub;
  const {data:me}=typeof subject==="string"?await supabase.from("member_profiles").select("handle").eq("user_id",subject).maybeSingle():{data:null};
  const profileHref=me?.handle?"/u/"+me.handle:"/community#join";

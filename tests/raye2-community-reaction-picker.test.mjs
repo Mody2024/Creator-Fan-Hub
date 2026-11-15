@@ -11,7 +11,7 @@ test("community reaction picker has an explicit controlled open state for touch 
   assert.ok(client.includes("reactionMenuFor"));
   assert.ok(client.includes('aria-expanded={reactionMenuFor===post.id}'));
   assert.ok(client.includes('onClick={()=>setReactionMenuFor(current=>current===post.id?null:post.id)}'));
-  assert.ok(styles.includes(".nhen-reaction-picker.is-open .nhen-reaction-menu"));
+  assert.ok(styles.includes(".raye2-reaction-picker.is-open .raye2-reaction-menu"));
 });
 
 test("community reaction picker supports Escape and closes when focus leaves", () => {

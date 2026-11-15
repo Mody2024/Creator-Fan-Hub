@@ -12,7 +12,7 @@ type Member={user_id:string;role:string;status:string;joined_at:string;handle:st
 
 export default async function GroupDetailPage({params}:{params:Promise<{slug:string}>}){
  const [{slug},cookieStore]=await Promise.all([params,cookies()]);
- const isArabic=cookieStore.get("nhen_locale")?.value==="ar";
+ const isArabic=cookieStore.get("raye2_locale")?.value==="ar";
  const locale=isArabic?"ar":"en";
  const t=isArabic?{label:"RAYE2 / مساحة",members:"عضو",messages:"رسالة",owner:"المالك",created:"أُنشئت",activity:"آخر نشاط",rules:"القواعد",roster:"الأعضاء",noRoster:"لا يوجد أعضاء لعرضهم.",privateNotice:"هذه المساحة خاصة وتظهر لأعضائها فقط.",joinNotice:"للانضمام، افتح المساحات في Raye2.",back:"كل المساحات",home:"الرئيسية",publicLabel:"عامة",privateLabel:"خاصة",memberLabel:"عضو",roleOwner:"المالك",roleAdmin:"مشرف",roleModerator:"منسق",roleMember:"عضو",empty:"لا يوجد وصف بعد."}:{label:"RAYE2 / SPACE",members:"members",messages:"messages",owner:"Owner",created:"Created",activity:"Last active",rules:"Rules",roster:"Members",noRoster:"No members to show.",privateNotice:"This space is private and only visible to its members.",joinNotice:"To join, open Spaces in Raye2.",back:"All spaces",home:"Home",publicLabel:"Public",privateLabel:"Private",memberLabel:"member",roleOwner:"Owner",roleAdmin:"Admin",roleModerator:"Moderator",roleMember:"Member",empty:"No description yet."};
  const supabase=await createSupabaseServerClient();

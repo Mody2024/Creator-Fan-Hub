@@ -145,10 +145,10 @@ export default function PlatformSponsorManagement(){
   finally{setBusy(false)}
  }
 
- return <section className="nhen-card nhen-card-pad raye2-platform-sponsor-management">
+ return <section className="raye2-card raye2-card-pad raye2-platform-sponsor-management">
   <span className="eyebrow">RAYE2 / PLATFORM SPONSOR CAMPAIGNS</span>
   <h2>Platform-wide sponsor director setup</h2>
-  <p className="nhen-muted">These campaigns belong to Raye2, not individual creators. Choose your own published image/video creative, eligible inventory, disclosure, category restrictions, priority, regions and frequency cap.</p>
+  <p className="raye2-muted">These campaigns belong to Raye2, not individual creators. Choose your own published image/video creative, eligible inventory, disclosure, category restrictions, priority, regions and frequency cap.</p>
   <div className="poll-create-form">
    <label>Sponsor / brand name<input value={name} onChange={e=>setName(e.target.value)} maxLength={120}/></label>
    <label>Published creative<select value={assetId} onChange={e=>setAssetId(e.target.value)}><option value="">Choose a published image or video…</option>{assets.map(a=><option key={a.media_id} value={a.media_id}>{a.title}</option>)}</select></label>
@@ -160,14 +160,14 @@ export default function PlatformSponsorManagement(){
    <label>Allowed regions (comma-separated country codes)<input value={regions} onChange={e=>setRegions(e.target.value)} placeholder="EG, SA, AE"/></label>
    <label>Campaign starts<input type="date" value={starts} onChange={e=>setStarts(e.target.value)}/></label>
    <label>Campaign ends<input type="date" value={ends} onChange={e=>setEnds(e.target.value)}/></label>
-   <label className="nhen-video-check"><input type="checkbox" checked={videos} onChange={e=>setVideos(e.target.checked)}/> Eligible for video inventory</label>
-   <label className="nhen-video-check"><input type="checkbox" checked={live} onChange={e=>setLive(e.target.checked)}/> Eligible for live inventory (provider support required)</label>
-   <label className="nhen-video-check"><input type="checkbox" checked={exclusive} onChange={e=>setExclusive(e.target.checked)}/> Exclusive within this sponsor category</label>
-   <div className="nhen-inline-actions"><button className="button button-primary" type="button" disabled={busy||!assets.length} onClick={()=>void create()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save platform campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
+   <label className="raye2-video-check"><input type="checkbox" checked={videos} onChange={e=>setVideos(e.target.checked)}/> Eligible for video inventory</label>
+   <label className="raye2-video-check"><input type="checkbox" checked={live} onChange={e=>setLive(e.target.checked)}/> Eligible for live inventory (provider support required)</label>
+   <label className="raye2-video-check"><input type="checkbox" checked={exclusive} onChange={e=>setExclusive(e.target.checked)}/> Exclusive within this sponsor category</label>
+   <div className="raye2-inline-actions"><button className="button button-primary" type="button" disabled={busy||!assets.length} onClick={()=>void create()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save platform campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
   </div>
-  <div className="nhen-playlist-list">{campaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
+  <div className="raye2-playlist-list">{campaigns.map(row=><article className="raye2-playlist-row" key={row.id}>
    <span><strong>{row.sponsor_name}</strong><small>{row.category_key} · priority {row.priority} · {row.placement} · {row.status}{row.category_exclusive?" · exclusive":""}</small></span>
-   <div className="nhen-inline-actions">{row.status==="draft"&&<><button type="button" disabled={busy} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy} onClick={()=>void deleteDraft(row)}>Delete draft</button></>}{(row.status==="draft"||row.status==="paused")&&<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>Activate configuration</button>}{row.status==="active"&&<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>Pause</button>}</div>
+   <div className="raye2-inline-actions">{row.status==="draft"&&<><button type="button" disabled={busy} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy} onClick={()=>void deleteDraft(row)}>Delete draft</button></>}{(row.status==="draft"||row.status==="paused")&&<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>Activate configuration</button>}{row.status==="active"&&<button type="button" disabled={busy} onClick={()=>void setStatus(row)}>Pause</button>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="platform" assets={assets}/>
   </article>)}</div>
   <p className="editor-status" role="status" aria-live="polite">{notice}</p>

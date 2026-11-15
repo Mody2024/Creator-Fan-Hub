@@ -48,7 +48,7 @@ export default function SponsorCreativeVariants({campaignId,campaignType,assets}
    <label>Version<select value={variant} onChange={e=>setVariant(e.target.value)}><option value="short_5s">Short · 5 seconds</option><option value="standard_10s">Standard · 10 seconds</option><option value="extended">Extended</option><option value="alternate">Alternate</option></select></label>
    <button className="button button-secondary" type="button" disabled={busy||!mediaId} onClick={()=>void save()}>{busy?"Saving…":"Save creative version"}</button>
   </div>
-  <div className="nhen-playlist-list">{rows.map(row=><article className="nhen-playlist-row" key={row.id}>
+  <div className="raye2-playlist-list">{rows.map(row=><article className="raye2-playlist-row" key={row.id}>
    <span><strong>{row.variant_key.replaceAll("_"," ")}</strong><small>{eligible.find(a=>a.media_id===row.media_id)?.title??row.media_id} · {row.active?"enabled":"disabled"}</small></span>
    <button type="button" disabled={busy} onClick={()=>void toggle(row)}>{row.active?"Disable":"Enable"}</button>
   </article>)}</div>

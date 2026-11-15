@@ -56,7 +56,7 @@ test("notification surfaces use the inbox and summary RPCs with filters and pagi
   assert.match(page, /rpc\("raye2_get_notifications",\{p_limit:40,p_before:null,p_only_unread:false,p_filter:"all"\}\)/);
   assert.match(client, /rpc\("raye2_get_notification_summary"\)/);
   assert.match(client, /rpc\("raye2_get_notifications",\{p_limit:40,p_before:oldest,p_only_unread:false,p_filter:filter\}\)/);
-  assert.match(client, /nhen-notification-filters/);
+  assert.match(client, /raye2-notification-filters/);
   assert.match(client, /matchesFilter/);
-  assert.match(css, /nhen-notification-filters button\.active/);
+  assert.match(css, /raye2-notification-filters button\.active/);
 });

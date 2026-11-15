@@ -62,5 +62,5 @@ test("both series surfaces are bilingual, RTL-aware and use the RPCs", () => {
   assert.match(detailPage, /rpc\("raye2_get_series",\{p_slug:slug,p_limit:200\}\)/);
   assert.match(detailPage, /dir=\{isArabic\?"rtl":"ltr"\}/);
   assert.match(detailPage, /episode\.media_type==="youtube"/);
-  assert.match(css, /nhen-series-cover/);
+  assert.match(css, /raye2-series-cover/);
 });

@@ -36,6 +36,6 @@ test("the community client wires reporting and the moderation workspace", () => 
   assert.match(client, /rpc\("raye2_get_community_moderation_queue"/);
   assert.match(client, /rpc\("raye2_moderate_community_post"/);
   assert.match(client, /rpc\("raye2_resolve_content_report"/);
-  assert.match(client, /nhen-moderation-list/);
-  assert.match(client, /nhen-report-modal/);
+  assert.match(client, /raye2-moderation-list/);
+  assert.match(client, /raye2-report-modal/);
 });

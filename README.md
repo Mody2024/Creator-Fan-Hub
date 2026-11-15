@@ -1,6 +1,6 @@
-# Creator Fan Hub
+# Raye2 Creator-Fan-Hub
 
-A creator-community website with a public fan experience and a private Creator Panel.
+A creator-community platform with a public fan experience and a private Creator Panel.
 
 ## Project status
 
@@ -11,7 +11,13 @@ A creator-community website with a public fan experience and a private Creator P
 - Runtime: Next.js 15 / React 19 / Node.js 22
 - Cost target: use the free GitHub, Vercel and Supabase tiers; no paid AI API is required.
 
-The current development build includes public voting with nickname-only participation (no visitor account), idea submission, configurable site identity and appearance, a private Creator Panel, poll and idea moderation, media management, events, social links, publishing history and draft restoration. Voter nicknames are visible only to the authorized creator; public results expose aggregate counts only.
+The current development build is a full Raye2 platform: a video and Shorts ("Mini's") experience with
+watch pages, playlists, series, captions and scheduled publication; a community with posts, polls,
+topics, clips, reactions, comments and a unified moderation queue; direct and group messaging with
+retention and receipts; group voice and Watch Together with recording consent; Moments and Shared
+Memories; events with Q&A and attached spaces; achievements, creator analytics, sponsorship/ad
+delivery and monetization reporting; and account sessions and devices. The interface is bilingual
+(English/Arabic) with a single black/grey/blue theme.
 
 A passing build or READY preview is not the same as owner acceptance. Do not merge to `main` or deploy production until the launch gates below are completed.
 
@@ -20,7 +26,7 @@ A passing build or READY preview is not the same as owner acceptance. Do not mer
 1. Use Node.js 22.
 2. Copy `.env.example` to `.env.local`.
 3. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from the dedicated Supabase project.
-4. Install dependencies with `npm install`.
+4. Install dependencies with `npm ci` (uses the committed `package-lock.json`) or `npm install`.
 5. Run `npm run dev`.
 
 Useful checks:

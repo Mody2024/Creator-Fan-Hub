@@ -9,7 +9,7 @@ type Group={id:string;slug:string;name:string;description:string;topics:string[]
 
 export default async function GroupsPage({searchParams}:{searchParams:Promise<{q?:string}>}){
  const [{q=""},cookieStore]=await Promise.all([searchParams,cookies()]);
- const isArabic=cookieStore.get("nhen_locale")?.value==="ar";
+ const isArabic=cookieStore.get("raye2_locale")?.value==="ar";
  const locale=isArabic?"ar":"en";
  const search=q.trim();
  const t=isArabic?{label:"RAYE2 / المساحات",headline:"انضم إلى",accent:"المساحات العامة.",intro:"اكتشف مجموعات Raye2 العامة، اطّلع على أعضائها ونشاطها، وانضم إلى ما يناسبك.",searchLabel:"ابحث في المساحات",searchPlaceholder:"ابحث بالاسم أو الوصف…",search:"بحث",members:"عضو",messages:"رسالة",owner:"المالك",activity:"آخر نشاط",empty:"لا توجد مساحات عامة مطابقة.",none:"لم تُنشأ أي مساحات عامة بعد.",open:"افتح المساحة",home:"الرئيسية",watch:"مشاهدة",community:"المجتمع",series:"السلاسل",creators:"الصُنّاع",discover:"استكشف",joined:"عضو بالفعل",join:"انضم",publicLabel:"عامة"}:{label:"RAYE2 / SPACES",headline:"Join the",accent:"public spaces.",intro:"Discover Raye2 public groups, see who's in them and how active they are, and join what fits.",searchLabel:"Search spaces",searchPlaceholder:"Search by name or description…",search:"Search",members:"members",messages:"messages",owner:"Owner",activity:"Last active",empty:"No public spaces match your search.",none:"No public spaces have been created yet.",open:"Open space",home:"Home",watch:"Watch",community:"Community",series:"Series",creators:"Creators",discover:"Discover",joined:"Joined",join:"Join",publicLabel:"Public"};

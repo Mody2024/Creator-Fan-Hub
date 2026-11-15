@@ -8,7 +8,7 @@ export const metadata = { title: "Raye2 Admin — Platform Rules & Retention" };
 
 export default async function Raye2AdminPage() {
   const [supabase, cookieStore] = await Promise.all([createSupabaseServerClient(), cookies()]);
-  const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
+  const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   if (!supabase) redirect("/creator/login?setup=required");
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;

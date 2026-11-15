@@ -127,21 +127,21 @@ export default function CreatorRewardsCenter(){
    <article><span>Earned awards</span><strong>{busy?"—":Number(summary?.earned_awards??0).toLocaleString()}</strong><small>Recorded reward grants</small></article>
    <article><span>Available milestones</span><strong>{busy?"—":Number(summary?.available_rules??0).toLocaleString()}</strong><small>Enabled reward rules</small></article>
   </div>
-  <div className="nhen-card" aria-label="Creator level progression">
-   <div className="nhen-card-heading"><div><span className="eyebrow">CREATOR LEVEL</span><h3>{progression ? "Level " + progression.level + " · " + progression.level_name : "Your creator level"}</h3><p>{progression && progression.points_to_next ? progression.points_to_next.toLocaleString() + " points to " + progression.next_level_name : "Your progression is up to date."}</p></div></div>
+  <div className="raye2-card" aria-label="Creator level progression">
+   <div className="raye2-card-heading"><div><span className="eyebrow">CREATOR LEVEL</span><h3>{progression ? "Level " + progression.level + " · " + progression.level_name : "Your creator level"}</h3><p>{progression && progression.points_to_next ? progression.points_to_next.toLocaleString() + " points to " + progression.next_level_name : "Your progression is up to date."}</p></div></div>
    <div className="dashboard-stats"><article><span>Current level</span><strong>{progression?.level ?? "—"}</strong><small>{progression?.level_name ?? "Loading"}</small></article><article><span>Progress</span><strong>{progression ? progression.progress_percent + "%" : "—"}</strong><small>{progression ? progression.points.toLocaleString() + " / " + progression.next_level_points.toLocaleString() + " points" : "Recognition points"}</small></article></div>
    <div role="progressbar" aria-label="Progress to next creator level" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progression?.progress_percent ?? 0} style={{height:10,borderRadius:999,background:"var(--raised, #1c1c1f)",overflow:"hidden"}}><div style={{height:"100%",width:(progression?.progress_percent ?? 0) + "%",background:"var(--accent, #4d8df6)"}}/></div>
   </div>
-  <div className="nhen-card">
-   <div className="nhen-card-heading"><div><span className="eyebrow">VERIFIED ACHIEVEMENTS</span><h3>Your earned milestones</h3><p>Only achievements recorded by Raye2 are shown here.</p></div><strong>{achievements.length}</strong></div>
+  <div className="raye2-card">
+   <div className="raye2-card-heading"><div><span className="eyebrow">VERIFIED ACHIEVEMENTS</span><h3>Your earned milestones</h3><p>Only achievements recorded by Raye2 are shown here.</p></div><strong>{achievements.length}</strong></div>
    {achievements.length?<div className="creator-achievement-list">{achievements.map(item=><article className="creator-achievement-row" key={item.code}><span aria-hidden="true">{item.icon}</span><div><strong>{item.title}</strong><p>{item.description} · {Number.isFinite(new Date(item.earned_at).getTime())?new Date(item.earned_at).toLocaleDateString():"Date unavailable"}</p></div><span className="module-state">Earned</span></article>)}</div>:<p className="editor-status">Your verified milestones will appear here when earned.</p>}
   </div>
-  <div className="nhen-card">
-   <div className="nhen-card-heading"><div><span className="eyebrow">REWARD CATALOGUE</span><h3>Available recognition</h3></div></div>
+  <div className="raye2-card">
+   <div className="raye2-card-heading"><div><span className="eyebrow">REWARD CATALOGUE</span><h3>Available recognition</h3></div></div>
    {rules.length?<div className="creator-achievement-list">{rules.map(rule=><article className="creator-achievement-row" key={rule.code}><span aria-hidden="true">✦</span><div><strong>{rule.title}</strong><p>{rule.description}</p></div><div><strong>{Number(rule.points).toLocaleString()}</strong><small>points</small></div></article>)}</div>:<p className="editor-status">No reward milestones have been configured yet.</p>}
   </div>
-  <div className="nhen-card">
-   <div className="nhen-card-heading"><div><span className="eyebrow">YOUR RECORD</span><h3>Reward history</h3></div></div>
+  <div className="raye2-card">
+   <div className="raye2-card-heading"><div><span className="eyebrow">YOUR RECORD</span><h3>Reward history</h3></div></div>
    {history.length?<div className="creator-achievement-list">{history.map(item=><article className="creator-achievement-row" key={item.id}><span aria-hidden="true">{item.status==="awarded"?"✦":"↶"}</span><div><strong>{item.reward_code.replace(/[-_]/g," ")}</strong><p>{item.note||"Creator recognition award"} · {Number.isFinite(new Date(item.created_at).getTime())?new Date(item.created_at).toLocaleDateString():"Date unavailable"}</p></div><div><strong>{item.status==="revoked"?"−": "+"}{Number(item.points).toLocaleString()}</strong><small>{item.status}</small></div></article>)}</div>:<p className="editor-status">No reward awards have been recorded yet.</p>}
   </div>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>

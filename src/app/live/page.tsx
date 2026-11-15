@@ -20,7 +20,7 @@ type LiveRow = {
 
 export default async function LivePage() {
   const cookieStore = await cookies();
-  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   const supabase = await createSupabaseServerClient();
   let rows: LiveRow[] = [];
   if (supabase) {

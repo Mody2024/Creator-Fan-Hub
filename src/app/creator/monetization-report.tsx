@@ -40,7 +40,7 @@ export default function MonetizationReport({ locale }: { locale: "en" | "ar" }) 
   return (
     <section className="raye2-monetization-report">
       <h2>{t.title}</h2>
-      <p className="nhen-muted">{notice}</p>
+      <p className="raye2-muted">{notice}</p>
       {report && (
         <dl className="raye2-monetization-metrics">
           <div><dt>{t.eligible}</dt><dd>{report.eligible_campaigns}</dd></div>

@@ -56,7 +56,7 @@ test("the community client renders threads, replies and comment reactions", () =
   assert.match(client, /raye2_toggle_post_comment_reaction/);
   assert.match(client, /async function submitReply\(/);
   assert.match(client, /async function reactToComment\(/);
-  assert.match(client, /className="nhen-comment-replies"/);
-  assert.match(css, /\.nhen-comment-actions \.nhen-action\.is-active\{/);
-  assert.match(css, /\.nhen-comment-replies\{/);
+  assert.match(client, /className="raye2-comment-replies"/);
+  assert.match(css, /\.raye2-comment-actions \.raye2-action\.is-active\{/);
+  assert.match(css, /\.raye2-comment-replies\{/);
 });

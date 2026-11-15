@@ -81,8 +81,8 @@ export default function PublicEvents({initialEvents,locale="en",heading=true}:{i
    <div className="public-event-qa">
     <button type="button" className="event-qa-toggle" aria-expanded={qaOpen===event.id} onClick={()=>qaOpen===event.id?setQaOpen(null):void openQa(event.id)}>{t.qa}{qa[event.id]?.length?` · ${qa[event.id].length}`:""}</button>
     {qaOpen===event.id&&<div className="event-qa-body">
-     {signedIn?<div className="event-qa-ask"><input value={qaDraft} onChange={e=>setQaDraft(e.target.value)} maxLength={1000} placeholder={t.askPlaceholder} aria-label={t.askPlaceholder}/><button type="button" disabled={qaBusy||!qaDraft.trim()} onClick={()=>void askQuestion(event.id)}>{t.ask}</button></div>:<p className="nhen-muted">{t.signInQa}</p>}
-     {(qa[event.id]??[]).length?<ul className="event-qa-list">{(qa[event.id]??[]).map(q=><li key={q.id}><p className="event-qa-q"><strong>{q.author_display_name??q.author_handle??"Member"}</strong> {q.body}</p>{q.answer_body?<p className="event-qa-a"><span>{t.hostAnswer}</span> {q.answer_body}</p>:null}</li>)}</ul>:<p className="nhen-muted">{t.noQuestions}</p>}
+     {signedIn?<div className="event-qa-ask"><input value={qaDraft} onChange={e=>setQaDraft(e.target.value)} maxLength={1000} placeholder={t.askPlaceholder} aria-label={t.askPlaceholder}/><button type="button" disabled={qaBusy||!qaDraft.trim()} onClick={()=>void askQuestion(event.id)}>{t.ask}</button></div>:<p className="raye2-muted">{t.signInQa}</p>}
+     {(qa[event.id]??[]).length?<ul className="event-qa-list">{(qa[event.id]??[]).map(q=><li key={q.id}><p className="event-qa-q"><strong>{q.author_display_name??q.author_handle??"Member"}</strong> {q.body}</p>{q.answer_body?<p className="event-qa-a"><span>{t.hostAnswer}</span> {q.answer_body}</p>:null}</li>)}</ul>:<p className="raye2-muted">{t.noQuestions}</p>}
     </div>}
    </div>
   </article>)}</div>

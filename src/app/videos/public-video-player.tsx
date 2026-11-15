@@ -91,9 +91,9 @@ export default function PublicVideoPlayer({ src, hlsSrc, title, description, you
     </div>;
   }
 
-  return <div className={`nhen-player-shell ${loaded ? "is-loaded" : "is-loading"}`}>
-    {!loaded && <div className="nhen-player-loading" role="status" aria-live="polite">
-      <span className="raye2-player-loading-mark" aria-hidden="true">R</span>
+  return <div className={`raye2-player-shell ${loaded ? "is-loaded" : "is-loading"}`}>
+    {!loaded && <div className="raye2-player-loading" role="status" aria-live="polite">
+      <span className="raye2-loading-glyph" aria-hidden="true">R</span>
       <span>{locale==="ar"?"جارٍ تجهيز الفيديو":"Preparing your video"}</span>
       <i aria-hidden="true" />
     </div>}

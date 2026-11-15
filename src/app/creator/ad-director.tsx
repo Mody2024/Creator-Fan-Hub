@@ -81,40 +81,40 @@ export default function AdDirector({ locale }: { locale: "en" | "ar" }) {
   return (
     <section className="raye2-ad-director">
       <h2>{t.title}</h2>
-      <p className="nhen-muted">{t.intro}</p>
+      <p className="raye2-muted">{t.intro}</p>
       <label>{t.pick}
         <select value={videoId} onChange={(e) => setVideoId(e.target.value)} disabled={busy}>
           {media.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
         </select>
       </label>
       <div className="raye2-ad-director-actions">
-        <button className="nhen-action" disabled={busy || !videoId} onClick={() => void propose()}>{t.propose}</button>
-        <button className="nhen-action" disabled={busy || !videoId} onClick={() => void preview()}>{t.preview}</button>
+        <button className="raye2-action" disabled={busy || !videoId} onClick={() => void propose()}>{t.propose}</button>
+        <button className="raye2-action" disabled={busy || !videoId} onClick={() => void preview()}>{t.preview}</button>
       </div>
-      {notice ? <p role="status" className="nhen-muted">{notice}</p> : null}
+      {notice ? <p role="status" className="raye2-muted">{notice}</p> : null}
 
       <h3>{t.proposals}</h3>
-      {breakpoints.length === 0 ? <p className="nhen-muted">{t.none}</p> : (
+      {breakpoints.length === 0 ? <p className="raye2-muted">{t.none}</p> : (
         <ul className="raye2-ad-breakpoints">
           {breakpoints.map((b) => (
             <li key={b.id} className={b.excluded ? "is-excluded" : ""}>
               <span>{fmt(b.at_seconds)}</span>
-              <span className="nhen-muted">{b.source}</span>
-              <button className="nhen-action" disabled={busy} onClick={() => void toggle(b)}>{b.excluded ? t.approve : t.exclude}</button>
+              <span className="raye2-muted">{b.source}</span>
+              <button className="raye2-action" disabled={busy} onClick={() => void toggle(b)}>{b.excluded ? t.approve : t.exclude}</button>
             </li>
           ))}
         </ul>
       )}
 
       <h3>{t.planned}</h3>
-      {plan.length === 0 ? <p className="nhen-muted">{t.empty}</p> : (
+      {plan.length === 0 ? <p className="raye2-muted">{t.empty}</p> : (
         <ul className="raye2-ad-plan">
           {plan.map((p, i) => (
             <li key={`${p.at_seconds}-${i}`}>
               <span className="raye2-ad-plan-at">{fmt(p.at_seconds)}</span>
               <span className="raye2-ad-plan-src">{sourceLabel(p)}</span>
               {p.sponsor_name ? <span>{t.sponsor}: {p.sponsor_name}</span> : null}
-              <span className="nhen-muted">{t.replay}: {p.replay_seconds}s · {p.reason}</span>
+              <span className="raye2-muted">{t.replay}: {p.replay_seconds}s · {p.reason}</span>
             </li>
           ))}
         </ul>

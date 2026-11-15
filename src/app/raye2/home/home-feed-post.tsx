@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import NhenReactionArt from "@/app/watch/[slug]/nhen-reaction-art";
+import Raye2ReactionArt from "@/app/watch/[slug]/raye2-reaction-art";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./home.module.css";
 
@@ -131,8 +131,8 @@ export default function HomeFeedPost({post,author,isArabic,currentUserId,initial
     <p className={styles.body}>{post.body}</p>
     <div className={styles.postActions}>
       <div className={styles.reactionWrap}>
-        <button className={styles.actionButton} type="button" aria-expanded={picker} onClick={()=>setPicker(v=>!v)}><NhenReactionArt reaction={selected?.art??"spark"} size={19}/>{selected?(isArabic?selected.labelAr:selected.labelEn):labels.react} <span className={styles.actionCount}>{count}</span></button>
-        {picker&&<div className={styles.reactionMenu} role="group" aria-label={labels.react}>{reactions.map(r=><button key={r.key} type="button" onClick={()=>void react(r.key)} aria-pressed={mine===r.key}><NhenReactionArt reaction={r.art} size={22}/><span>{isArabic?r.labelAr:r.labelEn}</span></button>)}</div>}
+        <button className={styles.actionButton} type="button" aria-expanded={picker} onClick={()=>setPicker(v=>!v)}><Raye2ReactionArt reaction={selected?.art??"spark"} size={19}/>{selected?(isArabic?selected.labelAr:selected.labelEn):labels.react} <span className={styles.actionCount}>{count}</span></button>
+        {picker&&<div className={styles.reactionMenu} role="group" aria-label={labels.react}>{reactions.map(r=><button key={r.key} type="button" onClick={()=>void react(r.key)} aria-pressed={mine===r.key}><Raye2ReactionArt reaction={r.art} size={22}/><span>{isArabic?r.labelAr:r.labelEn}</span></button>)}</div>}
       </div>
       <button className={styles.actionButton} type="button" onClick={()=>void loadComments()}>◷ {labels.comments}</button>
       <button className={styles.actionButton} type="button" onClick={()=>void toggleSave()} aria-pressed={saved}>{saved?"▣":"▢"} {saved?labels.saved:labels.save}</button>

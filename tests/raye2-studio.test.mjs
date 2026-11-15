@@ -97,13 +97,13 @@ test("Raye2 media, video studio and team surfaces use the new platform identity"
   assert.ok(media.includes("Raye2 free storage safety limit"));
   assert.ok(media.includes("Raye2 manages its watch page"));
   assert.ok(!media.includes("NHEN"));
-  assert.ok(video.includes('className="nhen-video-studio raye2-video-studio"'));
+  assert.ok(video.includes('className="raye2-studio-shell raye2-video-studio"'));
   assert.ok(video.includes("Mini's"));
   assert.ok(team.includes('className="dashboard-shell raye2-creator-shell"'));
   assert.ok(team.includes("Raye2"));
   assert.ok(!team.includes("Nhen?"));
   assert.ok(analyticsExport.includes("raye2-video-analytics.csv"));
-  assert.ok(css.includes(".raye2-creator-shell .nhen-team-workspace"));
+  assert.ok(css.includes(".raye2-creator-shell .raye2-team-workspace"));
 });
 
 

@@ -359,7 +359,7 @@ test("Nhen bilingual identity and logo studio are wired into public and creator 
   const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
-  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.match(page, /Raye2/);
   assert.match(page, /رايق/);
   assert.match(page, /portal-wordmark/);
@@ -369,17 +369,17 @@ test("Nhen bilingual identity and logo studio are wired into public and creator 
   assert.match(studio, /backgroundRemoved/);
   assert.match(studio, /creator-media-private/);
   assert.match(studio, /removeBackground/);
-  assert.match(design, /nhen-wordmark-copy/);
-  assert.match(design, /nhen-logo-preview/);
+  assert.match(design, /raye2-wordmark-copy/);
+  assert.match(design, /raye2-logo-preview/);
 });
 
 
 test("Raye2 theme accent reaches the bilingual brand and creator defaults", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
-  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.match(settings, /accent: "#4d8df6"/);
-  assert.match(design, /\.site, \.maintenance\s*\{\s*--nhen-accent: var\(--accent, #4d8df6\)/);
-  assert.match(design, /site \.nhen-wordmark \.site-logo-image/);
+  assert.match(design, /\.site, \.maintenance\s*\{\s*--raye2-ds-accent: var\(--accent, #4d8df6\)/);
+  assert.match(design, /site \.raye2-wordmark \.site-logo-image/);
   assert.match(design, /Noto Kufi Arabic/);
 });
 
@@ -397,13 +397,13 @@ test("deleting a prepared logo also cleans up its private original backup safely
 test("uploaded logo preview shows both themes while bilingual identity remains visible in the hero portal", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
-  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="Raye2" />'));
   assert.ok(page.includes('<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>'));
   assert.match(page, /<small lang="ar" dir="rtl">رايق<\/small>/);
   assert.match(studio, /DARK THEME/);
   assert.match(studio, /LIGHT THEME/);
-  assert.match(design, /nhen-logo-theme-previews/);
+  assert.match(design, /raye2-logo-theme-previews/);
 });
 
 
@@ -411,7 +411,7 @@ test("the public surface uses the single fixed theme while motion preferences st
   const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
-  const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.match(config, /theme: "obsidian"/);
   assert.doesNotMatch(config, /colorMode/);
   assert.match(config, /motion: "full" \| "reduced" \| "off"/);
@@ -509,13 +509,13 @@ test("trigger-only SECURITY DEFINER functions cannot be called as public RPCs", 
 
 test("the bilingual Raye2 identity and uploaded logo remain theme-aware", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-  const styles = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
+  const styles = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('<strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small>'));
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image"'));
-  assert.ok(styles.includes(".site .nhen-wordmark .site-logo-image"));
-  assert.ok(styles.includes(".nhen-logo-theme-dark"));
-  assert.ok(styles.includes(".nhen-logo-theme-light"));
+  assert.ok(styles.includes(".site .raye2-wordmark .site-logo-image"));
+  assert.ok(styles.includes(".raye2-logo-theme-dark"));
+  assert.ok(styles.includes(".raye2-logo-theme-light"));
   assert.ok(settings.includes('siteName: "Raye2"'));
 });
 

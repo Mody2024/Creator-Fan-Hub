@@ -11,7 +11,7 @@ type SortKey="published"|"followers"|"views";
 
 export default async function CreatorsPage({searchParams}:{searchParams:Promise<{sort?:string}>}){
  const [{sort=""},cookieStore]=await Promise.all([searchParams,cookies()]);
- const isArabic=cookieStore.get("nhen_locale")?.value==="ar";
+ const isArabic=cookieStore.get("raye2_locale")?.value==="ar";
  const locale=isArabic?"ar":"en";
  const selected:SortKey=sort==="followers"||sort==="views"?sort:"published";
  const t=isArabic?{label:"RAYE2 / صُنّاع المحتوى",headline:"تعرّف على",accent:"صُنّاع المحتوى.",intro:"اكتشف الأشخاص الذين ينشرون على Raye2، تابعهم وشاهد أعمالهم.",sortBy:"ترتيب حسب",published:"الأكثر نشرًا",followers:"الأكثر متابعة",views:"الأكثر مشاهدة",videos:"فيديو",followersCount:"متابع",viewsCount:"مشاهدة",empty:"لم ينشر أي صُنّاع محتوى علنيًا بعد.",browse:"تصفح Raye2",home:"الرئيسية",watch:"مشاهدة",community:"المجتمع",series:"السلاسل",discover:"استكشف",open:"افتح الملف الشخصي",member:"صانع محتوى"}

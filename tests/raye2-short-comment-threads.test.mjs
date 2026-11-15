@@ -50,7 +50,7 @@ test("the shorts client renders threads, replies and comment reactions", () => {
   assert.match(shortsClient, /raye2_toggle_short_comment_reaction/);
   assert.match(shortsClient, /async function sendReply\(/);
   assert.match(shortsClient, /async function reactToComment\(/);
-  assert.match(shortsClient, /className="nhen-short-replies"/);
-  assert.match(css, /\.nhen-short-comment-actions button\.is-active\{/);
-  assert.match(css, /\.nhen-short-replies\{/);
+  assert.match(shortsClient, /className="raye2-short-replies"/);
+  assert.match(css, /\.raye2-short-comment-actions button\.is-active\{/);
+  assert.match(css, /\.raye2-short-replies\{/);
 });

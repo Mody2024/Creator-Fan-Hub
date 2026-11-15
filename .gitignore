@@ -5,6 +5,7 @@ out/
 dist/
 build/
 .vercel/
+*.tsbuildinfo
 
 # Local environment and secrets
 .env

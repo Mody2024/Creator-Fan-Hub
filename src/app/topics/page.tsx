@@ -9,7 +9,7 @@ type Topic={tag:string;video_count:number|string;total_views:number|string;recen
 
 export default async function TopicsIndexPage({searchParams}:{searchParams:Promise<{min?:string}>}){
  const [{min=""},cookieStore]=await Promise.all([searchParams,cookies()]);
- const isArabic=cookieStore.get("nhen_locale")?.value==="ar";
+ const isArabic=cookieStore.get("raye2_locale")?.value==="ar";
  const locale=isArabic?"ar":"en";
  const minCount=min==="2"?2:1;
  const t=isArabic?{eyebrow:"RAYE2 / المواضيع",heading:"تصفّح",accent:"المواضيع.",intro:"كل الوسوم التي يحملها المحتوى المنشور على Raye2، مرتّبة حسب عدد الفيديوهات.",all:"كل المواضيع",popular:"المواضيع النشطة",videos:"فيديو",views:"مشاهدة",recent:"حديث",empty:"لا توجد مواضيع بعد.",home:"الرئيسية",watch:"مشاهدة",community:"المجتمع",search:"استكشف"}:{eyebrow:"RAYE2 / TOPICS",heading:"Browse the",accent:"topics.",intro:"Every tag carried by published Raye2 content, ordered by how many videos use it.",all:"All topics",popular:"Active topics",videos:"videos",views:"views",recent:"recent",empty:"No topics yet.",home:"Home",watch:"Watch",community:"Community",search:"Discover"};

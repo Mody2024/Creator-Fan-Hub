@@ -18,7 +18,7 @@ export default function ContinueWatching(){
  const isArabic=locale==="ar";
  const t=isArabic?{heading:"متابعة المشاهدة",resume:"أكمل المشاهدة",watched:"شوهد"}:{heading:"Continue watching",resume:"Resume",watched:"watched"};
 
- useEffect(()=>{const match=document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
+ useEffect(()=>{const match=document.cookie.match(/(?:^|; )raye2_locale=(en|ar)(?:;|$)/);if(match)setLocale(match[1] as "en"|"ar");},[]);
 
  useEffect(()=>{
   if(!supabase)return;

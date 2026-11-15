@@ -33,7 +33,7 @@ export default function MinisClient() {
         share: "Share a Mini", limits: "MP4 or WebM · up to 15 seconds · 50 MB. Expires 30 days after publishing.", title: "Give your Mini a title", caption: "Add a caption (optional)", choose: "＋ Choose clip", none: "No clip selected", publish: "Publish Mini ↗", publishing: "Publishing…", signIn: "Sign in to publish a Mini ↗", loading: "Loading Mini's…", empty: "No Mini's yet. Be the first to share one.", ready: "Clip ready. Add a title and publish it.", live: "Your Mini is live.", invalid: "Choose an MP4 or WebM clip.", tooLarge: "This clip exceeds the 50 MB limit.", tooLong: "Mini's must be 15 seconds or shorter.", videoRead: "This clip could not be read.", genericRead: "Could not read this clip.", uploadInterrupted: "Upload interrupted. Choose the same file again to continue.", uploadCleanup: "The post could not be saved and its file needs administrator cleanup.", expired: "EXPIRED", expires: "Expires", upload: "Uploading", resume: "If interrupted, choose the same file again to resume.", feedError: "The Mini's feed could not load. Please refresh.", fileTitle: "Clip title", fileCaption: "Clip caption", uploadProgress: "Mini upload progress", quota: "Daily Mini limit reached (3 per day for members).", report: "Report", reported: "Report submitted.", reportFail: "Could not submit the report.", remove: "Remove", removed: "Mini removed.", removeFail: "Could not remove the Mini.", reportReason: "Report reason"
       };
 
-  useEffect(() => { const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
+  useEffect(() => { const match = document.cookie.match(/(?:^|; )raye2_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
 
   const load = useCallback(async () => {
     if (!supabase) { setLoading(false); return; }
@@ -133,7 +133,7 @@ export default function MinisClient() {
     <section className="raye2-minis-feed">
       <article className="raye2-minis-compose">
         <h2>{t.share}</h2>
-        <p className="nhen-muted">{t.limits}</p>
+        <p className="raye2-muted">{t.limits}</p>
         {userId ? (
           <>
             <label>{t.fileTitle}<input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={100} /></label>
@@ -141,15 +141,15 @@ export default function MinisClient() {
             <input ref={input} type="file" accept="video/mp4,video/webm" aria-label={t.fileTitle} onChange={(e) => void chooseFile(e.target.files?.[0] ?? null)} />
             <small>{file ? `${file.name} · ${duration}s` : t.none}</small>
             {uploadProgress !== null ? <progress aria-label={t.uploadProgress} max={100} value={uploadProgress} /> : null}
-            <button className="nhen-action" disabled={busy || !file || !title.trim()} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
+            <button className="raye2-action" disabled={busy || !file || !title.trim()} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
           </>
         ) : (
-          <Link className="nhen-action" href="/community#join">{t.signIn}</Link>
+          <Link className="raye2-action" href="/community#join">{t.signIn}</Link>
         )}
-        {status ? <p role="status" className="nhen-muted">{status}</p> : null}
+        {status ? <p role="status" className="raye2-muted">{status}</p> : null}
       </article>
 
-      {loading ? <div className="nhen-card nhen-empty-state">{t.loading}</div> : items.length ? (
+      {loading ? <div className="raye2-card raye2-empty-state">{t.loading}</div> : items.length ? (
         <div className="raye2-minis-grid">
           {items.map((item) => (
             <article className="raye2-mini-card" key={item.id}>
@@ -158,13 +158,13 @@ export default function MinisClient() {
                 <h3>{item.title}</h3>
                 <p>{item.caption}</p>
                 <small>{item.author_display_name ?? item.author_handle ?? "Member"} · {t.expires} {expiresLabel(item.expires_at)}</small>
-                {userId && item.author_id !== userId ? <button type="button" className="nhen-action" aria-label={t.report} disabled={busy} onClick={() => void reportMini(item.id)}>{t.report}</button> : null}
-                {userId && item.author_id === userId ? <button type="button" className="nhen-action" aria-label={t.remove} disabled={busy} onClick={() => void removeMini(item.id, item.storage_path)}>{t.remove}</button> : null}
+                {userId && item.author_id !== userId ? <button type="button" className="raye2-action" aria-label={t.report} disabled={busy} onClick={() => void reportMini(item.id)}>{t.report}</button> : null}
+                {userId && item.author_id === userId ? <button type="button" className="raye2-action" aria-label={t.remove} disabled={busy} onClick={() => void removeMini(item.id, item.storage_path)}>{t.remove}</button> : null}
               </div>
             </article>
           ))}
         </div>
-      ) : <div className="nhen-card nhen-empty-state">{t.empty}</div>}
+      ) : <div className="raye2-card raye2-empty-state">{t.empty}</div>}
     </section>
   );
 }

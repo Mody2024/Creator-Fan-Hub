@@ -203,27 +203,27 @@ export default function ContentLibrary({ locale = "en" }: { locale?: "en" | "ar"
       <span>{cooldownReady === false && caps.cooldown?.next_allowed_at ? `${t.cooldownWait} ${when(caps.cooldown.next_allowed_at)}` : t.cooldownReady}</span>
     </div>}
     <div className="library-filters" role="group" aria-label={t.state}>
-      <button type="button" className="nhen-action" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>{t.all} ({rows.length})</button>
-      {STATES.map(state => <button key={state} type="button" className="nhen-action" aria-pressed={filter === state} onClick={() => setFilter(state)}>{t[state]} ({counts[state]})</button>)}
+      <button type="button" className="raye2-action" aria-pressed={filter === "all"} onClick={() => setFilter("all")}>{t.all} ({rows.length})</button>
+      {STATES.map(state => <button key={state} type="button" className="raye2-action" aria-pressed={filter === state} onClick={() => setFilter(state)}>{t[state]} ({counts[state]})</button>)}
     </div>
-    <input className="nhen-search" style={{ width: "100%", marginTop: 12 }} value={search} onChange={event => setSearch(event.target.value)} placeholder={t.search} aria-label={t.search} />
+    <input className="raye2-search" style={{ width: "100%", marginTop: 12 }} value={search} onChange={event => setSearch(event.target.value)} placeholder={t.search} aria-label={t.search} />
     {!ready && <p className="editor-status" role="status" aria-live="polite">{t.loading}</p>}
     {ready && status && <p className="editor-status" role="status" aria-live="polite">{status}</p>}
     {ready && !status && visible.length === 0 && <div className="moderation-empty" role="status"><h3>{t.empty}</h3></div>}
     {ready && visible.length > 0 && <ul className="library-list">
       {visible.map(row => <li key={row.media_id} className="library-row">
         <div className="library-row-main">
-          <div className="library-row-head"><span className={`nhen-pill library-state library-state-${row.state}`}>{t[row.state]}</span><strong>{row.title}</strong></div>
-          <small className="nhen-muted">/{row.slug} · {row.category}</small>
-          <small className="nhen-muted">{row.state === "scheduled" ? `${t.goLive} ${when(row.publish_at)}` : row.expires_at ? `${t.expires} ${when(row.expires_at)}` : `${t.published} ${when(row.published_at)}`}</small>
-          {row.taken_down && <small className="nhen-muted">{t.takenDownNote}</small>}
+          <div className="library-row-head"><span className={`raye2-pill library-state library-state-${row.state}`}>{t[row.state]}</span><strong>{row.title}</strong></div>
+          <small className="raye2-muted">/{row.slug} · {row.category}</small>
+          <small className="raye2-muted">{row.state === "scheduled" ? `${t.goLive} ${when(row.publish_at)}` : row.expires_at ? `${t.expires} ${when(row.expires_at)}` : `${t.published} ${when(row.published_at)}`}</small>
+          {row.taken_down && <small className="raye2-muted">{t.takenDownNote}</small>}
         </div>
         <div className="library-row-stats">
           <span><b>{toNumber(row.view_count)}</b> {t.views}</span>
           <span><b>{toNumber(row.reaction_count)}</b> {t.reactions}</span>
           <span><b>{toNumber(row.comment_count)}</b> {t.comments}</span>
-          {row.state === "processing" && row.processing_status === "failed" && <button type="button" className="nhen-action" onClick={() => void retry(row.media_id)}>{t.retry}</button>}
-          <a className="nhen-action" href={`/watch/${row.slug}`}>{t.open}</a>
+          {row.state === "processing" && row.processing_status === "failed" && <button type="button" className="raye2-action" onClick={() => void retry(row.media_id)}>{t.retry}</button>}
+          <a className="raye2-action" href={`/watch/${row.slug}`}>{t.open}</a>
         </div>
       </li>)}
     </ul>}

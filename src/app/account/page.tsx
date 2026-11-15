@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AccountPage() {
   const [supabase, cookieStore] = await Promise.all([createSupabaseServerClient(), cookies()]);
-  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   if (!supabase) redirect("/creator/login?setup=required");
   const { data: claims, error } = await supabase.auth.getClaims();
   if (error || typeof claims?.claims?.sub !== "string") redirect("/creator/login");

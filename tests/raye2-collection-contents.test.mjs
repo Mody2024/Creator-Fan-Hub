@@ -6,7 +6,7 @@ const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [migration, client, css] = await Promise.all([
   read("../supabase/migrations/20261110290000_raye2_collection_contents.sql"),
   read("../src/app/saved/saved-client.tsx"),
-  read("../src/app/nhen-design-system.css")
+  read("../src/app/raye2-design-system.css")
 ]);
 
 function functionBody(sql, name) {
@@ -53,5 +53,5 @@ test("saved client opens, renames, deletes and empties collections", () => {
   assert.match(client, /rpc\("raye2_update_collection",\{p_collection_id:open\.id,p_name:renameValue\.trim\(\),p_description:open\.description\}\)/);
   assert.match(client, /rpc\("raye2_delete_collection",\{p_collection_id:open\.id\}\)/);
   assert.match(client, /rpc\("raye2_remove_from_collection",\{p_collection_id:open\.id,p_kind:item\.item_kind,p_item_id:item\.item_id\}\)/);
-  assert.match(css, /\.nhen-collection-detail-head/);
+  assert.match(css, /\.raye2-collection-detail-head/);
 });

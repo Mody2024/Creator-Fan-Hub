@@ -5,7 +5,7 @@ Persistent, repository-specific knowledge for agents working in this repo.
 ## Project shape
 
 - Next.js (App Router) + Supabase (Postgres, RLS, `SECURITY DEFINER` RPCs) + TypeScript.
-- UI is bilingual EN/AR. Locale comes from the `nhen_locale` cookie; components read it in a
+- UI is bilingual EN/AR. Locale comes from the `raye2_locale` cookie; components read it in a
   `useEffect` and pick a `t = isArabic ? {...} : {...}` string table. Add both languages together.
 - All DB changes are forward-only SQL migrations in `supabase/migrations/` named
   `YYYYMMDDHHMMSS_description.sql`. Never edit an applied migration; add a new one.

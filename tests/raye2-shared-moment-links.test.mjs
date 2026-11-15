@@ -21,7 +21,7 @@ test("the shared-moment link uses the feed slug and timestamp, not a per-session
   assert.match(page, /linkedVideoSlug: row\.linked_video_slug/);
   assert.match(page, /momentStart: row\.moment_start_seconds/);
   assert.match(client, /linkedVideoSlug\?: string \| null/);
-  assert.match(client, /post\.linkedVideoSlug && <Link className="nhen-action" href=\{"\/watch\/"\+post\.linkedVideoSlug\+\(post\.momentStart \? "\?t="\+post\.momentStart : ""\)\}/);
+  assert.match(client, /post\.linkedVideoSlug && <Link className="raye2-action" href=\{"\/watch\/"\+post\.linkedVideoSlug\+\(post\.momentStart \? "\?t="\+post\.momentStart : ""\)\}/);
   // The old buggy lookup that produced /watch/undefined must be gone.
   assert.doesNotMatch(client, /\/watch\/"\+momentVideos\.find/);
 });

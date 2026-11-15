@@ -179,10 +179,10 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
   finally{setBusy(false)}
  }
 
- return <section className="nhen-card nhen-card-pad raye2-sponsor-setup" aria-label="Creator sponsorship setup">
+ return <section className="raye2-card raye2-card-pad raye2-sponsor-setup" aria-label="Creator sponsorship setup">
   <span className="eyebrow">CREATOR DEALS / SPONSOR SETUP</span>
   <h3>Attach your own sponsor to this video</h3>
-  <p className="nhen-muted">Add the sponsor you contracted with, choose its approved video creative and set placement preferences. Your sponsor settings stay separate from Raye2 platform campaigns.</p>
+  <p className="raye2-muted">Add the sponsor you contracted with, choose its approved video creative and set placement preferences. Your sponsor settings stay separate from Raye2 platform campaigns.</p>
   <div className="poll-create-form">
    <label>Sponsor / brand name<input value={sponsorName} onChange={event=>setSponsorName(event.target.value)} maxLength={120} placeholder="Brand name"/></label>
    <label>Published sponsor image or video<select value={creativeId} onChange={event=>setCreativeId(event.target.value)}><option value="">Choose a published sponsor image/video…</option>{eligibleAssets.map(asset=><option key={asset.media_id} value={asset.media_id}>{asset.title}</option>)}</select></label>
@@ -191,17 +191,17 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
    <label>Campaign starts<input type="date" value={starts} onChange={event=>setStarts(event.target.value)}/></label>
    <label>Campaign ends<input type="date" value={ends} onChange={event=>setEnds(event.target.value)}/></label>
    <label>Contract category key<input value={category} onChange={event=>setCategory(event.target.value)} maxLength={40} placeholder="e.g. games"/></label>
-   <label className="nhen-video-check"><input type="checkbox" checked={exclusive} onChange={event=>setExclusive(event.target.checked)}/> This sponsor has category exclusivity for this video</label>
+   <label className="raye2-video-check"><input type="checkbox" checked={exclusive} onChange={event=>setExclusive(event.target.checked)}/> This sponsor has category exclusivity for this video</label>
    <label>Maximum planned exposures per viewer<select value={frequency} onChange={event=>setFrequency(event.target.value)}>{[1,2,3,4,5].map(value=><option key={value} value={value}>{value}</option>)}</select></label>
-   <label className="nhen-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor&apos;s name, logo and video creative.</label>
-   <div className="nhen-inline-actions"><button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save sponsor campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
+   <label className="raye2-video-check"><input type="checkbox" checked={confirmed} onChange={event=>setConfirmed(event.target.checked)}/> I have permission to use this sponsor&apos;s name, logo and video creative.</label>
+   <div className="raye2-inline-actions"><button className="button button-secondary" type="button" disabled={busy||!mediaId||!eligibleAssets.length} onClick={()=>void createCampaign()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save sponsor campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
   </div>
   <div className="dashboard-stats raye2-sponsor-status-summary" aria-label="Sponsorship campaign status summary">
    <article><span>Draft campaigns</span><strong>{campaignCounts.draft}</strong><small>Saved privately; not delivered</small></article>
    <article><span>Active campaigns</span><strong>{campaignCounts.active}</strong><small>Requires verified activation</small></article>
    <article><span>Paused / other</span><strong>{campaignCounts.paused+campaignCounts.other}</strong><small>Not currently eligible for delivery</small></article>
   </div>
-  <div className="nhen-inline-actions raye2-sponsor-filters">
+  <div className="raye2-inline-actions raye2-sponsor-filters">
    <label>Search campaigns<input type="search" value={campaignSearch} onChange={event=>setCampaignSearch(event.target.value)} placeholder="Sponsor, category, placement or disclosure"/></label>
    <label>Campaign status<select value={campaignFilter} onChange={event=>setCampaignFilter(event.target.value)}>
     <option value="all">All statuses ({rows.length})</option>
@@ -210,12 +210,12 @@ export default function CreatorVideoSponsorship({mediaId,assets}:{mediaId:string
     <option value="paused">Paused ({campaignCounts.paused})</option>
    </select></label>
   </div>
-  <div className="nhen-playlist-list" aria-live="polite">
-   {visibleCampaigns.map(row=><article className="nhen-playlist-row" key={row.id}>
+  <div className="raye2-playlist-list" aria-live="polite">
+   {visibleCampaigns.map(row=><article className="raye2-playlist-row" key={row.id}>
     <span><strong>{row.sponsor_name}</strong><small>{row.placement} · {row.status} · {row.category_key}{row.category_exclusive?" · exclusive":""} · max {row.max_per_viewer} planned exposures</small><small>{campaignWindow(row)}</small><small>Disclosure: {row.disclosure_text}</small><small>Review: {row.approval_status.replaceAll("_"," ")}{row.approval_reviewed_at?` · reviewed ${new Date(row.approval_reviewed_at).toLocaleDateString()}`:""}</small>{row.approval_note&&<small>Reviewer note: {row.approval_note}</small>}{reviewEvents.some(event=>event.campaign_id===row.id)&&<div className="raye2-sponsor-review-history"><small><strong>Review history</strong></small>{reviewEvents.filter(event=>event.campaign_id===row.id).map(event=><small key={event.id}>{event.event_type.replaceAll("_"," ")} · {new Date(event.created_at).toLocaleString()}{event.note?` · ${event.note}`:""}</small>)}</div>}</span>
-    <div className="nhen-inline-actions">{row.status==="active"?<button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>Pause</button>:<><button type="button" disabled={busy||row.status!=="draft"||row.approval_status==="pending"||row.approval_status==="approved"} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy||row.status!=="draft"||row.approval_status==="pending"||row.approval_status==="approved"} onClick={()=>void deleteDraft(row)}>Delete unused draft</button>{["not_submitted","rejected"].includes(row.approval_status)&&<button type="button" disabled={busy} onClick={()=>void requestReview(row)}>Request review</button>}</>}</div>
+    <div className="raye2-inline-actions">{row.status==="active"?<button type="button" disabled={busy} onClick={()=>void changeStatus(row)}>Pause</button>:<><button type="button" disabled={busy||row.status!=="draft"||row.approval_status==="pending"||row.approval_status==="approved"} onClick={()=>editDraft(row)}>Edit draft</button><button type="button" disabled={busy||row.status!=="draft"||row.approval_status==="pending"||row.approval_status==="approved"} onClick={()=>void deleteDraft(row)}>Delete unused draft</button>{["not_submitted","rejected"].includes(row.approval_status)&&<button type="button" disabled={busy} onClick={()=>void requestReview(row)}>Request review</button>}</>}</div>
    <SponsorCreativeVariants campaignId={row.id} campaignType="creator" assets={assets}/><SponsorBreakpointReview campaignId={row.id}/><SponsorBreakpointPreview campaignId={row.id}/></article>)}
-   {!rows.length&&<p className="nhen-muted">No sponsor campaigns are attached to this video yet.</p>}{rows.length>0&&!visibleCampaigns.length&&<p className="nhen-muted">No campaigns match these filters. Change the search or status filter.</p>}
+   {!rows.length&&<p className="raye2-muted">No sponsor campaigns are attached to this video yet.</p>}{rows.length>0&&!visibleCampaigns.length&&<p className="raye2-muted">No campaigns match these filters. Change the search or status filter.</p>}
   </div>
   <SponsorAnalytics mediaId={mediaId}/>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>

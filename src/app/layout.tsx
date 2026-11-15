@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import "./nhen-design-system.css";
+import "./raye2-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import LanguageSwitch from "./language-switch";
@@ -32,7 +32,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
-  const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
+  const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>

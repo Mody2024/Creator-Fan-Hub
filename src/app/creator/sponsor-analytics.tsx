@@ -47,20 +47,20 @@ export default function SponsorAnalytics({mediaId}:{mediaId:string}){
   setStatus("Aggregate sponsorship report exported. No viewer identities were included.");
  },[report]);
  useEffect(()=>{void load()},[load]);
- return <section className="nhen-card nhen-card-pad raye2-sponsor-analytics" aria-label="Sponsorship analytics">
-  <div className="nhen-card-heading"><div><span className="eyebrow">RAYE2 / SPONSOR INSIGHTS</span><h3>Sponsorship performance</h3></div><div className="nhen-inline-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void load()}>Refresh</button><button type="button" className="button button-secondary" disabled={!report} onClick={exportReport}>Export CSV</button></div></div>
+ return <section className="raye2-card raye2-card-pad raye2-sponsor-analytics" aria-label="Sponsorship analytics">
+  <div className="raye2-card-heading"><div><span className="eyebrow">RAYE2 / SPONSOR INSIGHTS</span><h3>Sponsorship performance</h3></div><div className="raye2-inline-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void load()}>Refresh</button><button type="button" className="button button-secondary" disabled={!report} onClick={exportReport}>Export CSV</button></div></div>
   {report&&<>
    <div className="dashboard-stats">
     <article><span>CAMPAIGNS</span><strong>{report.campaigns.total}</strong><small>{report.campaigns.active} active · {report.campaigns.paused} paused · {report.campaigns.drafts} drafts</small></article>
     <article><span>DELIVERY EVENTS</span><strong>{report.delivery.reduce((sum,item)=>sum+Number(item.event_count),0).toLocaleString()}</strong><small>Recorded events, not unique viewers</small></article>
    </div>
    <h4>Delivery activity</h4>
-   {report.delivery.length?<div className="nhen-playlist-list">{report.delivery.map((item,index)=><article className="nhen-playlist-row" key={item.source_type+item.event_type+item.provider_key+index}><span><strong>{item.event_type.replaceAll("_"," ")}</strong><small>{item.source_type.replaceAll("_"," ")} · {item.provider_key}</small></span><b>{Number(item.event_count).toLocaleString()}</b></article>)}</div>:<p className="nhen-muted">No delivery events have been recorded.</p>}
+   {report.delivery.length?<div className="raye2-playlist-list">{report.delivery.map((item,index)=><article className="raye2-playlist-row" key={item.source_type+item.event_type+item.provider_key+index}><span><strong>{item.event_type.replaceAll("_"," ")}</strong><small>{item.source_type.replaceAll("_"," ")} · {item.provider_key}</small></span><b>{Number(item.event_count).toLocaleString()}</b></article>)}</div>:<p className="raye2-muted">No delivery events have been recorded.</p>}
    <h4>External-network revenue</h4>
-   {report.external_network_revenue.length?report.external_network_revenue.map((item,index)=><article className="nhen-playlist-row" key={item.currency+item.status+item.provider_key+index}>
+   {report.external_network_revenue.length?report.external_network_revenue.map((item,index)=><article className="raye2-playlist-row" key={item.currency+item.status+item.provider_key+index}>
     <span><strong>{item.currency} · {item.status.replaceAll("_"," ")}</strong><small>{item.provider_key} · {item.records} ledger records · net {money(item.net_received,item.currency)}</small><small>Creator share received: {money(item.creator_share_received,item.currency)} · Unconfirmed: {money(item.creator_share_unconfirmed,item.currency)}</small></span>
-   </article>):<p className="nhen-muted">No external-network revenue records. No earnings are assumed.</p>}
-   <p className="nhen-muted">Creator-contracted sponsors show delivery activity only, not attributed payouts. Raye2 platform-wide campaigns are excluded. Estimated and provider-reported values are not money received.</p>
+   </article>):<p className="raye2-muted">No external-network revenue records. No earnings are assumed.</p>}
+   <p className="raye2-muted">Creator-contracted sponsors show delivery activity only, not attributed payouts. Raye2 platform-wide campaigns are excluded. Estimated and provider-reported values are not money received.</p>
   </>}
   <p className="editor-status" role="status" aria-live="polite">{status}</p>
  </section>

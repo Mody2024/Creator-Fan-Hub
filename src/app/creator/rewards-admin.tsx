@@ -51,7 +51,7 @@ export default function CreatorRewardsAdmin(){
  return <section className="creator-editor" id="creator-rewards-admin" aria-busy={busy}>
   <div className="editor-topline"><span className="eyebrow">RAYE2 / ADMIN REWARDS</span><button className="editor-reload" type="button" disabled={busy} onClick={()=>void load()}>Refresh ↻</button></div>
   <div className="module-heading"><div><span className="eyebrow">OWNER & ADMIN CONTROLS</span><h2>Configure creator recognition.</h2><p>Create reward rules, issue verified awards and preserve a revocation trail.</p></div></div>
-  <div className="nhen-card"><h3>Create or update a reward rule</h3>
+  <div className="raye2-card"><h3>Create or update a reward rule</h3>
    <div className="creator-form-grid">
     <label>Rule code<input value={code} onChange={e=>setCode(e.target.value)} placeholder="community_milestone"/></label>
     <label>Reward title<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Community milestone"/></label>
@@ -61,7 +61,7 @@ export default function CreatorRewardsAdmin(){
    <label className="creator-check"><input type="checkbox" checked={enabled} onChange={e=>setEnabled(e.target.checked)}/> Rule enabled for new grants</label>
    <button type="button" className="button button-secondary" disabled={busy||!code.trim()||!title.trim()||!Number.isInteger(Number(points))||Number(points)<1} onClick={()=>void saveRule()}>Save reward rule</button>
   </div>
-  <div className="nhen-card"><h3>Grant a creator reward</h3>
+  <div className="raye2-card"><h3>Grant a creator reward</h3>
    <div className="creator-form-grid">
     <label>Creator account<select value={creatorId} onChange={e=>setCreatorId(e.target.value)}><option value="">Select creator</option>{creators.map(c=><option key={c.creator_id} value={c.creator_id}>{c.workspace_role} · {c.creator_id}</option>)}</select></label>
     <label>Reward rule<select value={rewardCode} onChange={e=>setRewardCode(e.target.value)}><option value="">Select reward</option>{rules.filter(r=>r.enabled).map(r=><option key={r.code} value={r.code}>{r.title} · {r.points} points</option>)}</select></label>
@@ -70,7 +70,7 @@ export default function CreatorRewardsAdmin(){
    </div>
    <button type="button" className="button button-secondary" disabled={busy||!creatorId||!rewardCode} onClick={()=>void grant()}>Issue reward</button>
   </div>
-  <div className="nhen-card"><h3>Recent reward ledger</h3>
+  <div className="raye2-card"><h3>Recent reward ledger</h3>
    {ledger.length?<div className="creator-achievement-list">{ledger.map(row=><article className="creator-achievement-row" key={row.id}><div><strong>{row.reward_code}</strong><p>{row.creator_id} · {row.note||"No note"} · {new Date(row.created_at).toLocaleDateString()}</p></div><div><strong>{row.points.toLocaleString()}</strong><small>{row.status}</small></div>{row.status==="awarded"&&<button type="button" className="button button-secondary" disabled={busy} onClick={()=>void revoke(row.id)}>Revoke</button>}</article>)}</div>:<p className="editor-status">No reward records yet.</p>}
   </div>
   <p className="editor-status" role="status" aria-live="polite">{status}</p>

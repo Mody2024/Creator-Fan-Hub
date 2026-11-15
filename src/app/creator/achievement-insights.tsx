@@ -34,8 +34,8 @@ export default function AchievementInsights(){
    <article><span>Member awards</span><strong>{busy?"—":members.toLocaleString()}</strong><small>Distinct members across milestones</small></article>
    <article><span>Milestones</span><strong>{busy?"—":rows.length}</strong><small>Configured community achievements</small></article>
   </div>
-  <div className="nhen-card">
-   <div className="nhen-card-heading"><div><span className="eyebrow">MILESTONE PERFORMANCE</span><h3>Community achievements</h3></div></div>
+  <div className="raye2-card">
+   <div className="raye2-card-heading"><div><span className="eyebrow">MILESTONE PERFORMANCE</span><h3>Community achievements</h3></div></div>
    {rows.length? <div className="creator-achievement-list">{rows.map(row=><article className="creator-achievement-row" key={row.achievement_code}><span aria-hidden="true">{row.icon}</span><div><strong>{row.title}</strong><p>{row.description}</p></div><div><strong>{Number(row.earned_count).toLocaleString()}</strong><small>awards</small></div><div><strong>{Number(row.member_count).toLocaleString()}</strong><small>members</small></div></article>)}</div>:<p className="editor-status" role="status">{status}</p>}
    <p className="editor-status" role="status" aria-live="polite">{status}</p>
   </div>

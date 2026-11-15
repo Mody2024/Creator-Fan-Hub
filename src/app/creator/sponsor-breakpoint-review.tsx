@@ -45,14 +45,14 @@ export default function SponsorBreakpointReview({campaignId}:{campaignId:string}
  }
  return <div className="raye2-breakpoint-review">
   <strong>Review sponsor breakpoints</strong>
-  <p className="nhen-muted">Enter timestamps from the video timeline. Approve natural breaks or exclude moments that must never be interrupted.</p>
+  <p className="raye2-muted">Enter timestamps from the video timeline. Approve natural breaks or exclude moments that must never be interrupted.</p>
   <div className="poll-create-form">
    <label>Timestamp (seconds)<input type="number" min="0" step="1" value={seconds} onChange={e=>setSeconds(e.target.value)} placeholder="e.g. 420"/></label>
    <label>Review decision<select value={decision} onChange={e=>setDecision(e.target.value as "approve"|"exclude")}><option value="approve">Approve as a possible break</option><option value="exclude">Never place a break here</option></select></label>
    <label>Note (optional)<input value={note} onChange={e=>setNote(e.target.value)} maxLength={240} placeholder="Scene transition / important moment"/></label>
    <button className="button button-secondary" type="button" disabled={busy||!seconds.trim()} onClick={()=>void save()}>{busy?"Saving…":"Save review marker"}</button>
   </div>
-  <div className="nhen-playlist-list">{rows.map(row=><article className="nhen-playlist-row" key={row.id}>
+  <div className="raye2-playlist-list">{rows.map(row=><article className="raye2-playlist-row" key={row.id}>
    <span><strong>{Math.floor(row.at_seconds/60)}:{String(row.at_seconds%60).padStart(2,"0")}</strong><small>{row.decision==="approve"?"Approved candidate":"Creator exclusion"}{row.note?" · "+row.note:""}</small></span>
    <button type="button" disabled={busy} onClick={()=>void remove(row.id)}>Remove</button>
   </article>)}</div>

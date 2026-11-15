@@ -48,11 +48,11 @@ test("the brand mark integrates into favicon, app icons and a branded loading st
 });
 
 test("page shells share one content-width token instead of per-route widths", async () => {
-  const design = await read("../src/app/nhen-design-system.css");
+  const design = await read("../src/app/raye2-design-system.css");
   const notifications = await read("../src/app/notifications/raye2-notifications.css");
   const series = await read("../src/app/series/raye2-series.css");
-  assert.match(design, /--nhen-content:1320px/);
-  assert.match(design, /--nhen-reading:900px/);
+  assert.match(design, /--raye2-ds-content:1320px/);
+  assert.match(design, /--raye2-ds-reading:900px/);
   assert.doesNotMatch(design, /min\(100%,(850px|900px|1050px|1100px|1360px)\)/);
   assert.match(notifications, /min\(1320px,100%\)/);
   assert.match(series, /min\(1320px,100%\)/);

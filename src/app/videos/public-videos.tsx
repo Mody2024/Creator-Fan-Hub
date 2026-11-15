@@ -24,7 +24,7 @@ function youtubeEmbedUrl(source: string | null): string | null {
 
 export default async function PublicVideos() {
   const [supabase,cookieStore] = await Promise.all([createSupabaseServerClient(),cookies()]);
-  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   const copy = isArabic ? {
     eyebrow:"04 / RAYE2 WATCH", first:"أحدث فيديوهات", emphasis:"صنّاع المحتوى.", description:"فيديوهات رسمية منظمة في صفحات مشاهدة وسلاسل. افتح الفيديو للمشاهدة والحفظ والمشاركة في النقاش.", featured:"مميز", watch:"شاهد الآن ↗"
   } : {
@@ -103,7 +103,7 @@ export default async function PublicVideos() {
         <span className="eyebrow">{video.category.toUpperCase()} / VIDEO</span>
         <h3>{video.title}</h3>
         {video.description && <p>{video.description}</p>}
-        <Link href={"/watch/" + video.slug} className="nhen-watch-link-label">{copy.watch}</Link>
+        <Link href={"/watch/" + video.slug} className="raye2-watch-link-label">{copy.watch}</Link>
       </div>
     </article>)}</div>
   </section>;

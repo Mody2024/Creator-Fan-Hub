@@ -10,10 +10,10 @@ const palette: Record<Reaction, { fill: string; accent: string }> = {
   support: { fill: "#ff9fbd", accent: "#a83e68" },
 };
 
-export default function NhenReactionArt({ reaction, size = 24 }: { reaction: string; size?: number }) {
+export default function Raye2ReactionArt({ reaction, size = 24 }: { reaction: string; size?: number }) {
   const key = (reaction in palette ? reaction : "spark") as Reaction;
   const colors = palette[key];
-  return <svg className="nhen-reaction-art" width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+  return <svg className="raye2-reaction-art" width={size} height={size} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
     <circle cx="24" cy="24" r="21" fill={colors.fill} opacity=".2"/>
     {key === "spark" && <><path d="M24 5 29 18 43 23 29 28 24 43 19 28 5 23 19 18Z" fill={colors.fill} stroke={colors.accent} strokeWidth="2" strokeLinejoin="round"/><path d="m34 7 1.5 4.5L40 13l-4.5 1.5L34 19l-1.5-4.5L28 13l4.5-1.5Z" fill="#fff4c5"/></>}
     {key === "orbit" && <><circle cx="24" cy="24" r="11" fill={colors.fill} stroke={colors.accent} strokeWidth="2"/><ellipse cx="24" cy="24" rx="21" ry="8" transform="rotate(-28 24 24)" fill="none" stroke={colors.accent} strokeWidth="3"/><circle cx="39" cy="13" r="4" fill="#fff"/></>}

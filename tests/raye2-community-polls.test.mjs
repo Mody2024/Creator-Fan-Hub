@@ -44,8 +44,8 @@ test("the feed read is extended with poll data and the client renders, creates a
   assert.match(page, /poll: row\.poll_id \? \{/);
   assert.match(client, /supabase\.rpc\("raye2_create_community_poll"/);
   assert.match(client, /supabase\.rpc\("raye2_vote_community_poll"/);
-  assert.match(client, /nhen-poll-option/);
-  assert.match(css, /\.nhen-poll-option\.is-chosen/);
+  assert.match(client, /raye2-poll-option/);
+  assert.match(css, /\.raye2-poll-option\.is-chosen/);
 });
 
 test("poll votes notify the author through the inbox", () => {

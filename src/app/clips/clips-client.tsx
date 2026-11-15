@@ -35,7 +35,7 @@ export default function ClipsClient() {
     ? { heading: "شارك مقطعًا من فيديو", intro: "اختر فيديو منشورًا، حدّد البداية والنهاية (حتى ٣٠ ثانية)، وارفع المقطع. يظهر مع إشارة إلى المصدر.", source: "الفيديو المصدر", start: "البداية (ثانية)", end: "النهاية (ثانية)", title: "عنوان المقطع", caption: "وصف (اختياري)", choose: "＋ اختر ملف MP4/WebM", none: "لم يتم اختيار ملف", publish: "انشر المقطع ↗", publishing: "جارٍ النشر…", signIn: "سجّل الدخول لنشر مقطع ↗", loading: "جارٍ تحميل المقاطع…", empty: "لا توجد مقاطع مجتمع بعد. كن أول من يصنع واحدًا.", ready: "الملف جاهز. تحقق من النطاق والعنوان.", live: "أصبح مقطعك متاحًا.", invalid: "اختر ملف MP4 أو WebM.", tooLarge: "الحجم يتجاوز ٥٠ ميجابايت.", badRange: "يجب أن يكون النطاق بين ١ و٣٠ ثانية وداخل مدة المصدر.", videoRead: "تعذر قراءة الملف.", feedError: "تعذر تحميل المقاطع. حدّث الصفحة.", upload: "جارٍ الرفع", attribution: "المصدر", clipDuration: "المدة", expired: "منتهي", expires: "ينتهي", quota: "تم بلوغ الحد اليومي للمقاطع.", noSource: "اختر فيديو مصدرًا.", preview: "معاينة المقطع", visibility: "الظهور", publicVis: "عام", unlistedVis: "غير مدرج", remove: "إزالة مقطعي", removeConfirm: "إزالة هذا المقطع؟", removeDone: "تمت إزالة المقطع.", removeFail: "تعذر إزالة المقطع.", report: "إبلاغ", reportReason: "سبب الإبلاغ", reportDone: "تم إرسال الإبلاغ للمراجعة.", reportFail: "تعذر إرسال الإبلاغ.", reportCopyright: "حقوق النشر", reportSpam: "محتوى مزعج", reportHarassment: "مضايقة", reportOther: "أخرى" }
     : { heading: "Clip a published video", intro: "Pick a published video, set a start and end (up to 30 seconds) and upload the clip. It appears with source attribution.", source: "Source video", start: "Start (seconds)", end: "End (seconds)", title: "Clip title", caption: "Caption (optional)", choose: "＋ Choose MP4/WebM file", none: "No file selected", publish: "Publish clip ↗", publishing: "Publishing…", signIn: "Sign in to publish a clip ↗", loading: "Loading community clips…", empty: "No community clips yet. Be the first to make one.", ready: "File ready. Check the range and title.", live: "Your clip is live.", invalid: "Choose an MP4 or WebM file.", tooLarge: "This file exceeds the 50 MB limit.", badRange: "The range must be 1–30 seconds and inside the source duration.", videoRead: "This file could not be read.", feedError: "The clips feed could not load. Please refresh.", upload: "Uploading", attribution: "Source", clipDuration: "Duration", expired: "EXPIRED", expires: "Expires", quota: "Daily community clip limit reached.", noSource: "Choose a source video.", preview: "Clip preview", visibility: "Visibility", publicVis: "Public", unlistedVis: "Unlisted", remove: "Remove my clip", removeConfirm: "Remove this clip?", removeDone: "Clip removed.", removeFail: "Could not remove the clip.", report: "Report", reportReason: "Report reason", reportDone: "Report submitted for review.", reportFail: "Could not submit the report.", reportCopyright: "Copyright", reportSpam: "Spam", reportHarassment: "Harassment", reportOther: "Other" };
 
-  useEffect(() => { const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
+  useEffect(() => { const match = document.cookie.match(/(?:^|; )raye2_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
 
   const load = useCallback(async () => {
     if (!supabase) { setLoading(false); return; }
@@ -160,7 +160,7 @@ export default function ClipsClient() {
     <section className="raye2-clips-feed">
       <article className="raye2-clips-compose">
         <h2>{t.heading}</h2>
-        <p className="nhen-muted">{t.intro}</p>
+        <p className="raye2-muted">{t.intro}</p>
         {userId ? (
           <>
             <label>{t.source}
@@ -186,15 +186,15 @@ export default function ClipsClient() {
             {previewUrl ? <video className="raye2-clip-preview" src={`${previewUrl}#t=${Math.max(0, Math.round(start))},${Math.max(0, Math.round(end))}`} controls preload="metadata" playsInline aria-label={t.preview} /> : null}
             <small>{file ? file.name : t.none}</small>
             {uploadProgress !== null ? <progress aria-label={t.upload} max={100} value={uploadProgress} /> : null}
-            <button className="nhen-action" disabled={busy || !file || !title.trim() || !sourceId} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
+            <button className="raye2-action" disabled={busy || !file || !title.trim() || !sourceId} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
           </>
         ) : (
-          <Link className="nhen-action" href="/community#join">{t.signIn}</Link>
+          <Link className="raye2-action" href="/community#join">{t.signIn}</Link>
         )}
-        {status ? <p role="status" className="nhen-muted">{status}</p> : null}
+        {status ? <p role="status" className="raye2-muted">{status}</p> : null}
       </article>
 
-      {loading ? <div className="nhen-card nhen-empty-state">{t.loading}</div> : items.length ? (
+      {loading ? <div className="raye2-card raye2-empty-state">{t.loading}</div> : items.length ? (
         <div className="raye2-clips-grid">
           {items.map((item) => (
             <article className="raye2-clip-card" key={item.id}>
@@ -212,7 +212,7 @@ export default function ClipsClient() {
             </article>
           ))}
         </div>
-      ) : <div className="nhen-card nhen-empty-state">{t.empty}</div>}
+      ) : <div className="raye2-card raye2-empty-state">{t.empty}</div>}
     </section>
   );
 }

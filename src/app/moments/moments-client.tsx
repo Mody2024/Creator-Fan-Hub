@@ -22,7 +22,7 @@ export default function MomentsClient() {
     ? { compose: "أنشئ لحظة", intro: "اختر فيديو من فيديوهاتك وحدّد المقطع المميز (حتى ٣ دقائق).", pick: "اختر فيديو", start: "البداية (ثانية)", end: "النهاية (ثانية)", body: "اكتب وصفًا للحظة", publish: "انشر اللحظة ↗", publishing: "جارٍ النشر…", done: "أُرسلت اللحظة للمراجعة وستظهر قريبًا.", noMedia: "لا توجد فيديوهات منشورة بعد.", error: "تعذر نشر اللحظة.", clip: "يجب أن تكون النهاية بعد البداية." }
     : { compose: "Create a Moment", intro: "Pick one of your videos and mark the highlight window (up to 3 minutes).", pick: "Choose a video", start: "Start (seconds)", end: "End (seconds)", body: "Describe the Moment", publish: "Publish Moment ↗", publishing: "Publishing…", done: "Moment submitted for review; it will appear shortly.", noMedia: "No published videos yet.", error: "Could not publish the Moment.", clip: "The end must come after the start." };
 
-  useEffect(() => { const match = document.cookie.match(/(?:^|; )nhen_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
+  useEffect(() => { const match = document.cookie.match(/(?:^|; )raye2_locale=(en|ar)(?:;|$)/); if (match) setLocale(match[1] as "en" | "ar"); }, []);
 
   const load = useCallback(async () => {
     if (!supabase) return;
@@ -47,7 +47,7 @@ export default function MomentsClient() {
   return (
     <article className="raye2-moments-compose">
       <h2>{t.compose}</h2>
-      <p className="nhen-muted">{t.intro}</p>
+      <p className="raye2-muted">{t.intro}</p>
       <label>{t.pick}
         <select value={videoId} onChange={(e) => setVideoId(e.target.value)}>
           <option value="">—</option>
@@ -59,9 +59,9 @@ export default function MomentsClient() {
         <label>{t.start}<input type="number" min={0} value={start} onChange={(e) => setStart(Number(e.target.value))} /></label>
         <label>{t.end}<input type="number" min={1} value={end} onChange={(e) => setEnd(Number(e.target.value))} /></label>
       </div>
-      {end <= start ? <small className="nhen-muted">{t.clip}</small> : null}
-      <button className="nhen-action" disabled={busy || !videoId || !body.trim() || end <= start} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
-      {status ? <p role="status" className="nhen-muted">{status}</p> : null}
+      {end <= start ? <small className="raye2-muted">{t.clip}</small> : null}
+      <button className="raye2-action" disabled={busy || !videoId || !body.trim() || end <= start} onClick={() => void publish()}>{busy ? t.publishing : t.publish}</button>
+      {status ? <p role="status" className="raye2-muted">{status}</p> : null}
     </article>
   );
 }

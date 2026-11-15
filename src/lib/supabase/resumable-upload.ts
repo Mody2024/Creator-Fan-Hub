@@ -12,7 +12,7 @@ type ResumableUploadOptions = {
   signal?: AbortSignal;
 };
 
-const ALLOWED_BUCKETS = new Set(["creator-media-private", "creator-media-public", "nhen-community-shorts"]);
+const ALLOWED_BUCKETS = new Set(["creator-media-private", "creator-media-public", "raye2-community-shorts"]);
 const MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
@@ -150,7 +150,7 @@ export function getResumableUploadSession(
   const extension = MIME_EXTENSIONS[file.type];
   if (!extension) throw new Error("This file type is not supported for resumable upload.");
   const identity = [userId, bucketName, file.name, file.size, file.lastModified, file.type].join("|");
-  const key = "nhen-tus-session:" + encodeURIComponent(identity);
+  const key = "raye2-tus-session:" + encodeURIComponent(identity);
   const createObjectName = () => {
     const originalBase = file.name.replace(/\.[^.]*$/, "");
     const safeBase = originalBase.normalize("NFKD").replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(-80) || "asset";

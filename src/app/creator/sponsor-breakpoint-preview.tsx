@@ -30,16 +30,16 @@ export default function SponsorBreakpointPreview({campaignId}:{campaignId:string
   <div className="poll-create-form">
    <button className="button button-secondary" type="button" disabled={busy} onClick={()=>void generate()}>{busy?"Preparing…":"Preview reviewed breakpoints"}</button>
   </div>
-  {preview&&<div className="nhen-playlist-list">
+  {preview&&<div className="raye2-playlist-list">
    <p><strong>Private review preview</strong> · {preview.campaign.sponsorName} · {preview.campaign.placement} · {preview.campaign.status} · {Math.floor(preview.durationSeconds/60)}:{String(preview.durationSeconds%60).padStart(2,"0")} total video length</p>
    <p><strong>Creator review markers ({preview.reviewedBreakpoints.length})</strong></p>
-   {preview.reviewedBreakpoints.length?preview.reviewedBreakpoints.map(row=><article className="nhen-playlist-row" key={row.at_seconds}>
+   {preview.reviewedBreakpoints.length?preview.reviewedBreakpoints.map(row=><article className="raye2-playlist-row" key={row.at_seconds}>
     <span><strong>{Math.floor(row.at_seconds/60)}:{String(row.at_seconds%60).padStart(2,"0")}</strong><small>{row.decision==="exclude"?"Excluded by creator":"Approved candidate"}{row.note?" · "+row.note:""}</small></span>
-   </article>):<p className="nhen-muted">No timestamps have been reviewed yet.</p> }
-   {preview.proposedBreakpoints.length?preview.proposedBreakpoints.map(point=><article className="nhen-playlist-row" key={point.atSeconds}>
+   </article>):<p className="raye2-muted">No timestamps have been reviewed yet.</p> }
+   {preview.proposedBreakpoints.length?preview.proposedBreakpoints.map(point=><article className="raye2-playlist-row" key={point.atSeconds}>
     <span><strong>{Math.floor(point.atSeconds/60)}:{String(point.atSeconds%60).padStart(2,"0")}</strong><small>Creator-approved candidate · score {point.score.toFixed(2)} · optional context starts at {Math.floor(point.resumeContextFromSeconds/60)}:{String(point.resumeContextFromSeconds%60).padStart(2,"0")}</small><Link href={preview.watchUrl+"?t="+Math.floor(point.atSeconds)} target="_blank" rel="noopener noreferrer">Inspect this moment ↗</Link></span>
-   </article>):<p className="nhen-muted">No suitable reviewed breakpoints yet. Add approved timestamps above, leaving dialogue and important moments uninterrupted.</p>}
-   <p className="nhen-muted">Available creative versions: {preview.creativeVariants.length}. They are listed for review and are not selected for playback.</p>
+   </article>):<p className="raye2-muted">No suitable reviewed breakpoints yet. Add approved timestamps above, leaving dialogue and important moments uninterrupted.</p>}
+   <p className="raye2-muted">Available creative versions: {preview.creativeVariants.length}. They are listed for review and are not selected for playback.</p>
    <ul>{preview.limitations.map(item=><li key={item}>{item}</li>)}</ul>
   </div>}
   <p className="editor-status" role="status" aria-live="polite">{message}</p>

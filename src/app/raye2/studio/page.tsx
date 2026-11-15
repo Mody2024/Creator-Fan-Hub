@@ -13,7 +13,7 @@ type VideoEntry = { media_id: string; slug: string; published_at: string | null 
 export default async function Raye2CreatorStudioPage() {
   const [supabase, cookieStore] = await Promise.all([createSupabaseServerClient(), cookies()]);
   if (!supabase) redirect("/creator/login?setup=required");
-  const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
+  const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;

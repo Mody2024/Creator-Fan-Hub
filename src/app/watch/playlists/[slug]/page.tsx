@@ -11,7 +11,7 @@ type Item = { media_id: string; title: string; slug: string; description: string
 export default async function PlaylistPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const cookieStore = await cookies();
-  const isArabic = cookieStore.get("nhen_locale")?.value === "ar";
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   const supabase = await createSupabaseServerClient();
   if (!supabase) notFound();
 

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function MinisPage() {
   const cookieStore = await cookies();
-  const locale = cookieStore.get("nhen_locale")?.value === "ar" ? "ar" : "en";
+  const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
   const supabase = await createSupabaseServerClient();
   // Best-effort expiry sweep so clips past their lifetime drop out of the feed.
@@ -18,14 +18,14 @@ export default async function MinisPage() {
     : { watch: "Watch", community: "Community", eyebrow: "RAYE2 / MINI'S", title: "Quick <em>Mini's.</em>", intro: "Short clips from creators and the community — live for 30 days, then they expire." };
   return (
     <main className="raye2-minis-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-      <header className="nhen-watch-top">
-        <Link className="nhen-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
+      <header className="raye2-watch-top">
+        <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
         <nav><Link href="/watch">{labels.watch}</Link><Link href="/community">{labels.community}</Link></nav>
       </header>
       <div className="raye2-minis-heading">
-        <span className="nhen-section-label">{labels.eyebrow}</span>
+        <span className="raye2-section-label">{labels.eyebrow}</span>
         <h1>{isArabic ? <>مقاطع <em>مينيز.</em></> : <>Quick <em>Mini&apos;s.</em></>}</h1>
-        <p className="nhen-muted">{labels.intro}</p>
+        <p className="raye2-muted">{labels.intro}</p>
       </div>
       <MinisClient />
     </main>

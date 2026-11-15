@@ -36,9 +36,9 @@ export default function PlatformRevenueOverview(){
   document.body.appendChild(anchor);anchor.click();anchor.remove();URL.revokeObjectURL(url);
   setNotice("Platform finance and delivery CSV exported. Currency groups remain separate; no payments were executed.");
  };
- return <section className="nhen-card nhen-card-pad" aria-busy={busy}>
-  <div className="nhen-card-heading"><div><span className="eyebrow">RAYE2 / FINANCE CONTROL</span><h2>Platform sponsorship revenue</h2></div><div className="nhen-inline-actions"><button className="button button-secondary" type="button" disabled={busy} onClick={()=>void load()}>{busy?"Loading…":"Refresh"}</button><button className="button button-secondary" type="button" disabled={!report} onClick={exportCsv}>Export CSV</button></div></div>
-  <p className="nhen-muted">Aggregate financial attribution across creator contracts, platform campaigns and external networks. This report never treats estimates as received money.</p>
+ return <section className="raye2-card raye2-card-pad" aria-busy={busy}>
+  <div className="raye2-card-heading"><div><span className="eyebrow">RAYE2 / FINANCE CONTROL</span><h2>Platform sponsorship revenue</h2></div><div className="raye2-inline-actions"><button className="button button-secondary" type="button" disabled={busy} onClick={()=>void load()}>{busy?"Loading…":"Refresh"}</button><button className="button button-secondary" type="button" disabled={!report} onClick={exportCsv}>Export CSV</button></div></div>
+  <p className="raye2-muted">Aggregate financial attribution across creator contracts, platform campaigns and external networks. This report never treats estimates as received money.</p>
   {report&&<>
    <div className="dashboard-stats">
     <article><span>Creator-contract campaigns</span><strong>{report.campaign_counts.creator_contract.total}</strong><small>{report.campaign_counts.creator_contract.active} active · {report.campaign_counts.creator_contract.draft} drafts</small></article>
@@ -46,13 +46,13 @@ export default function PlatformRevenueOverview(){
     <article><span>Delivery events</span><strong>{report.delivery_by_source_event.reduce((sum,x)=>sum+Number(x.event_count),0).toLocaleString()}</strong><small>Recorded aggregate events</small></article>
    </div>
    <h3>Revenue by source and status</h3>
-   {rows.length?rows.map((row,index)=><article className="nhen-playlist-row" key={row.source_type+row.currency+row.status+row.provider_key+index}>
+   {rows.length?rows.map((row,index)=><article className="raye2-playlist-row" key={row.source_type+row.currency+row.status+row.provider_key+index}>
     <span><strong>{row.source_type.replaceAll("_"," ")} · {row.currency} · {row.status.replaceAll("_"," ")}</strong><small>{row.provider_key} · {row.records} records · gross {money(row.gross_amount,row.currency)}</small><small>Net {money(row.net_received,row.currency)} · confirmed received {money(row.verified_received,row.currency)} · unconfirmed {money(row.unconfirmed_net,row.currency)}</small><small>Platform share received {money(row.platform_share_received,row.currency)} · creator share received {money(row.creator_share_received,row.currency)}</small></span>
-   </article>):<p className="nhen-muted">No revenue ledger records yet. No earnings are assumed.</p>}
+   </article>):<p className="raye2-muted">No revenue ledger records yet. No earnings are assumed.</p>}
    <h3>Delivery activity</h3>
-   {report.delivery_by_source_event.length?report.delivery_by_source_event.map((row,index)=><article className="nhen-playlist-row" key={row.source_type+row.inventory+row.event_type+index}><span><strong>{row.source_type.replaceAll("_"," ")} · {row.inventory} · {row.event_type.replaceAll("_"," ")}</strong></span><b>{Number(row.event_count).toLocaleString()}</b></article>):<p className="nhen-muted">No sponsor delivery events recorded.</p>}
-   <p className="nhen-muted">Payment execution: disabled. Viewer identities exposed: no. Real payout integration requires a verified provider and reconciliation process.</p>
-   {currencies.length>0&&<p className="nhen-muted">Amounts are grouped by currency and must not be added across currencies.</p>}
+   {report.delivery_by_source_event.length?report.delivery_by_source_event.map((row,index)=><article className="raye2-playlist-row" key={row.source_type+row.inventory+row.event_type+index}><span><strong>{row.source_type.replaceAll("_"," ")} · {row.inventory} · {row.event_type.replaceAll("_"," ")}</strong></span><b>{Number(row.event_count).toLocaleString()}</b></article>):<p className="raye2-muted">No sponsor delivery events recorded.</p>}
+   <p className="raye2-muted">Payment execution: disabled. Viewer identities exposed: no. Real payout integration requires a verified provider and reconciliation process.</p>
+   {currencies.length>0&&<p className="raye2-muted">Amounts are grouped by currency and must not be added across currencies.</p>}
   </>}
   <p className="editor-status" role="status" aria-live="polite">{notice}</p>
  </section>;

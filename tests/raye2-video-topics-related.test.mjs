@@ -63,7 +63,7 @@ test("related videos rank by shared tags then recency and never return the sourc
 });
 
 test("the topic page localizes and renders published videos for a tag", () => {
-  assert.match(topicPage, /cookieStore\.get\("nhen_locale"\)/);
+  assert.match(topicPage, /cookieStore\.get\("raye2_locale"\)/);
   assert.match(topicPage, /dir=\{isArabic\?"rtl":"ltr"\}/);
   assert.match(topicPage, /raye2_get_topic_videos/);
   assert.match(topicPage, /فيديوهات بوسم/);

@@ -15,7 +15,7 @@ type RecCard = { slug:string; title:string; category:string; description:string;
 
 export default async function Raye2HomePage({searchParams}:{searchParams:Promise<{feed?:string}>}) {
   const [{feed}, cookieStore]=await Promise.all([searchParams,cookies()]);
-  const isArabic=cookieStore.get("nhen_locale")?.value==="ar";
+  const isArabic=cookieStore.get("raye2_locale")?.value==="ar";
   const locale=isArabic?"ar":"en";
   const selectedFeed=feed==="following"?"following":"latest";
   const supabase=await createSupabaseServerClient();
