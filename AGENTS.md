@@ -102,3 +102,13 @@ prove new migrations and to run behavioral matrices with the anon + service-role
 
 ## SECURITY DEFINER video-read invariant
 Any `SECURITY DEFINER` function that reads `public.video_catalog` must apply `public.raye2_can_view_video(vc.media_id)` (viewer-scoped, honours `auth.uid()`), because it bypasses the catalog RLS policy. A sweep script (last definition of each function, flag those with `video_catalog` but no `raye2_can_view_video`/`raye2_video_accessible`) catches regressions; only role-scoped/self-scoped functions should remain flagged.
+
+## Schema gotchas found this session
+- `raye2_messages` uses `sender_id`, not `author_id`. A shared BEFORE INSERT trigger (`raye2_enforce_restrictions`) read `new.author_id` on it and broke ALL messaging with `42703`. When a trigger is shared across tables, resolve the actor column per `tg_table_name`.
+- `raye2_platform_rules.category` is a check constraint (`roles,content,chat,groups,voice,recording,watch,watch_together,retention,storage,safety`). New rule categories need the constraint extended first.
+- `creator_admins` has only `(user_id, active, created_at)` — no `email` column; inserts that include `email` silently fail schema-cache validation. Tier comes from `raye2_creator_tier` (owner/admin→combined, creator→creator, streamer→streamer, else none).
+- `raye2_creator_usage` returned NULL for streams/minis/moments, making those quota checks dead (they guard on `v_used is not null`); now counts streams (`raye2_live_streams`), Mini's (`raye2_minis`) and Moments (`community_posts.is_moment`).
+- `community_short_comments` insert policy requires `status='pending'` (Shorts comments are moderated), unlike `community_short_videos` which publishes instantly.
+
+## Expiry jobs need a caller
+Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark rows expired; nothing runs them automatically. `raye2_run_maintenance()` consolidates them and is invoked best-effort from `/community` (and available to a scheduled job). Scheduled posts/polls already self-heal on their own read paths.

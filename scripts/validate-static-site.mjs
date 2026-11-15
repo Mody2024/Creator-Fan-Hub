@@ -594,6 +594,8 @@ const momentsMigration = await read("../supabase/migrations/20261110790000_raye2
 const momentsPage = await read("../src/app/moments/page.tsx");
 check("Moments require a creator role, a linked video and a bounded clip window", momentsMigration.includes("function public.raye2_publish_moment(") && momentsMigration.includes("raye2_assert_creator_action('publish_moment')") && momentsMigration.includes("moments.max_clip_seconds") && momentsMigration.includes("moments.lifetime_days") && momentsMigration.includes("add column if not exists is_moment boolean not null default false"));
 check("Moments count toward creator usage and expire from the feed", momentsMigration.includes("when 'moments_per_month' then") && momentsMigration.includes("function public.raye2_expire_moments(") && momentsMigration.includes("function public.raye2_list_moments(") && momentsPage.includes("raye2_list_moments"));
+const maintenanceMigration = await read("../supabase/migrations/20261110800000_raye2_maintenance_runner.sql");
+check("a maintenance runner expires Mini's and Moments best-effort", maintenanceMigration.includes("function public.raye2_run_maintenance(") && maintenanceMigration.includes("public.raye2_expire_minis()") && maintenanceMigration.includes("public.raye2_expire_moments()") && maintenanceMigration.includes("exception when others then") && maintenanceMigration.includes("grant execute on function public.raye2_run_maintenance() to anon, authenticated") && (await read("../src/app/community/page.tsx")).includes("raye2_run_maintenance"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");
