@@ -3226,6 +3226,22 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 3 (Video, feed, discovery) **~95% to ~96%**; overall **~93%**.
 
 ---
+
+## 2026-11-10 — Mega-batch round summary (provider-independent work complete)
+- [x] Delivered four provider-independent features/fixes this round: cleanup-preview estimates (13.10),
+  Watch Together in-room reactions (13.9), the event-question reporting regression fix, and share-a-video/moment
+  into DMs and groups (13.3). Each has a migration, UI wiring where applicable, a dedicated test and a validator
+  assertion.
+- [x] Verified shared links re-check permission at view time (the `/watch/[slug]` query is gated by
+  `raye2_can_view_video`, so takedown/expiry yields notFound).
+- [x] Confirmed already-implemented provider-independent items: server-side rate limits/anti-spam
+  (`20261110550000`), copyright reporting reason + takedown workflow, profile interests/links/cover editing.
+- [x] Remaining work is provider- or environment-dependent only: real transcoding/HLS delivery, real live
+  ingest, external ad-network SDK, LiveKit provider deployment, and isolated Supabase migration/RLS acceptance.
+- **Progress (all ten waves):** 0 ~90%, 1 ~90%, 2 ~86%, 3 ~96%, 4 ~90%, 5 ~100%, 6 ~95%, 7 ~88%, 8 ~100%,
+  9 ~99%; overall **~93%**; §18 ~97%.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3245,4 +3261,4 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | — | Overall (equal-weight average of Waves 0–9) | **~92%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps: Wave 4 (Creator Studio depth), Wave 2 (identity consolidation and route guards), Wave 7 (provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
