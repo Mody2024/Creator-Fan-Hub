@@ -117,6 +117,7 @@ export default function MediaLibrary() {
       ]);
       if (error) throw new Error("Could not load media. Confirm the creator-media migration is applied and this account is authorized.");
       setCapacity((capacityData?.[0] as StorageCapacity|undefined)??null);
+      if(!userCapacityError) setUserCapacity((userCapacityData?.[0] as UserStorageCapacity|undefined)??null);
       if(!healthError) setHealth((healthData?.[0] as MediaHealth|undefined)??null);
       const items = (data ?? []) as MediaRow[];
       const {data:processingRows,error:processingError}=items.length
