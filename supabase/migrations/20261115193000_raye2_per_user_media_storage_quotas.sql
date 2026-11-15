@@ -3,7 +3,7 @@
 -- this ledger provide isolation without pretending that per-user quotas add capacity.
 create table if not exists public.raye2_user_storage_quota_overrides (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  quota_bytes bigint not null check (quota_bytes between 0 and 10737418240),
+  quota_bytes bigint not null check (quota_bytes between 0 and 1099511627776),
   reason text not null default '',
   updated_by uuid references auth.users(id) on delete set null,
   updated_at timestamptz not null default now()
@@ -38,7 +38,7 @@ begin
 
   select coalesce(
     (select q.quota_bytes from public.raye2_user_storage_quota_overrides q where q.user_id=v_user),
-    case when public.is_nhen_video_publisher() then 262144000 else 104857600 end
+    case when public.is_nhen_video_publisher() then 2147483648 else 1073741824 end
   ) into v_quota;
 
   select coalesce(sum(
@@ -81,7 +81,7 @@ begin
   if auth.role() is distinct from 'service_role' then
     raise exception 'trusted admin service required' using errcode='42501';
   end if;
-  if p_user_id is null or (p_quota_bytes is not null and p_quota_bytes not between 0 and 10737418240)
+  if p_user_id is null or (p_quota_bytes is not null and p_quota_bytes not between 0 and 1099511627776)
     or length(coalesce(p_reason,''))>500 then
     raise exception 'invalid user storage quota' using errcode='22023';
   end if;
@@ -140,7 +140,7 @@ begin
 
   select coalesce(
     (select q.quota_bytes from public.raye2_user_storage_quota_overrides q where q.user_id=v_user),
-    case when public.is_nhen_video_publisher() then 262144000 else 104857600 end
+    case when public.is_nhen_video_publisher() then 2147483648 else 1073741824 end
   ) into v_user_quota;
 
   select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$'
@@ -214,7 +214,7 @@ begin
 
   select coalesce(
     (select q.quota_bytes from public.raye2_user_storage_quota_overrides q where q.user_id=p_owner_id),
-    262144000
+    2147483648
   ) into v_user_quota;
 
   select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$'
