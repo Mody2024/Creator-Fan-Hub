@@ -2365,3 +2365,9 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Discovery matrix:** 18/18 (separate viewer hides exclusive+expired across topic hubs, related, trending, search, watch context; counts drop accordingly; continue-watching hides newly-exclusive; owner still sees own; anon parity).
 - [x] Gates: validator 354 assertions; tests 698/698 (+4); tsc clean; lint 0 errors/24 warnings; build OK (190 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~65% to ~70% provisional**; Wave 9 (security/reliability) **~97% to ~98%**; full ten-wave estimate **~75% to ~76%**.
+
+## 2026-11-10 — Creator/profile/watch access check + Owner/Super-Admin separation (2 mega-batches)
+- [x] **Owner/Super-Admin separation** (`186cdf2`): `raye2_is_super_admin()` (owner), `raye2_admin_capabilities()` matrix; `raye2_run_cleanup_job` and `set/revoke_capability_override` are owner-only; admin UI shows the matrix and gates the Run button. Matrix 14/14.
+- [x] **Creator/profile/watch access check**: recreated `raye2_list_creators`, `raye2_get_profile_overview`, `raye2_validate_watch_source` with `raye2_can_view_video`, so exclusive/expired videos no longer inflate creator counts or seed Watch Together. Matrix 6/6.
+- [x] Gates: validator 358 assertions; tests 705/705 (+3); tsc clean; lint 0 errors/24 warnings; build OK (192 migrations).
+- **Progress:** Wave 2 (accounts/permissions) **~55% to ~62% provisional**; Wave 3 (video/feed/discovery) **~70% to ~73%**; Wave 9 (security) **~98%**; full ten-wave estimate **~76% to ~77%**.
