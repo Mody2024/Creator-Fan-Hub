@@ -83,7 +83,7 @@ The worker is a separate long-running process; a Vercel deployment does not run 
 - `SUPABASE_SERVICE_ROLE_KEY` in the private worker environment only.
 - Node.js 22, FFmpeg/FFprobe, and the repository's worker image.
 
-Do not put the service-role key in Vercel's `NEXT_PUBLIC_*` variables, GitHub Actions, the repository, or chat. The development database must first receive the reviewed media-processing and worker-queue migrations. The worker should remain stopped until those migrations and the end-to-end upload/HLS test pass.
+Do not put the service-role key in Vercel's `NEXT_PUBLIC_*` variables, repository files, workflow logs, issues, or chat. The only GitHub Actions use is the dedicated encrypted-backup workflow, where it must be stored as the restricted `SUPABASE_SERVICE_ROLE_KEY` Actions secret and is not passed to ordinary CI jobs. The development database must first receive the reviewed media-processing and worker-queue migrations. The worker should remain stopped until those migrations and the end-to-end upload/HLS test pass.
 
 ## 7. Final acceptance checklist
 
@@ -109,3 +109,34 @@ Do not put the service-role key in Vercel's `NEXT_PUBLIC_*` variables, GitHub Ac
 - [ ] The owner explicitly approves the merge to `main` and production deployment.
 
 A green CI run and a READY preview are necessary but do not replace these real-account acceptance checks.
+
+## 8. Add operational credentials at the end
+
+Do this only after the implementation and tests are ready. Add credentials directly in the relevant provider dashboards; never paste them into chat or commit them.
+
+### GitHub Actions → Secrets
+
+- `SUPABASE_ACCESS_TOKEN` — used only by the manually triggered development migration gate.
+- `SUPABASE_DB_PASSWORD` — password for the dedicated development database, used only by that migration gate.
+- `SUPABASE_DB_URL` — PostgreSQL connection string used only by the encrypted backup workflow.
+- `SUPABASE_SERVICE_ROLE_KEY` — server-only key used by the backup workflow and, separately, the private media-worker environment. It must never be exposed to browser code or ordinary CI.
+
+### GitHub Actions → Variables
+
+- `RAYE2_BACKUP_AGE_RECIPIENT` — age public recipient used to encrypt backups. Keep the matching private identity offline in at least two safe places.
+
+### Vercel environment variables
+
+The development Preview already has the Supabase URL and publishable key. Add provider variables only after a free, reachable host has been selected and tested:
+
+- `LIVEKIT_URL`
+- `LIVEKIT_API_KEY`
+- `LIVEKIT_API_SECRET`
+- `RAYE2_TURN_URLS`
+- `RAYE2_TURN_SHARED_SECRET`
+
+Do not configure Production until the development integration passes and the owner explicitly approves a release.
+
+### Hosting requirement
+
+The media worker, LiveKit and TURN need an always-on reachable machine with sufficient CPU, RAM, disk, network bandwidth and public connectivity. Open-source components have no licence fee, but a continuously available server is not guaranteed free. If no free host is available, leave processing queued and group voice disabled rather than enabling a paid service or pretending the integration is live.
