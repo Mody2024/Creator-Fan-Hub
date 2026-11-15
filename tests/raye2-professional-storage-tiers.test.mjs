@@ -26,6 +26,8 @@ test("the physical Supabase cap remains independent of a larger logical user all
 test("only free-only providers can be registered and new R2 is disabled", () => {
   assert.match(migration, /billing_mode text not null default 'free_only' check \(billing_mode='free_only'\)/);
   assert.match(migration, /'cloudflare_r2','s3_compatible',false,'free_only',0,0,0,0/);
+  assert.match(migration, /'backblaze_b2','s3_compatible',false,'free_only',0,0,0,0/);
+  assert.match(migration, /'tigris','s3_compatible',false,'free_only',0,0,0,0/);
   assert.match(migration, /hard_stop_percent numeric\(5,2\).*between 50 and 95/);
   assert.match(migration, /monthly_write_ops_limit bigint/);
   assert.match(migration, /monthly_read_ops_limit bigint/);
