@@ -282,7 +282,7 @@ revoke all on function public.raye2_get_creator_permission_matrix() from public,
 grant execute on function public.raye2_get_creator_permission_matrix() to authenticated;
 
 -- 8. Admin tuning of the quota matrix.
-create or replace function public.raye2_set_role_quota(p_tier text, p_metric text, p_limit integer)
+create or replace function public.raye2_set_role_quota(p_tier text, p_metric text, p_limit bigint)
 returns void language plpgsql security definer set search_path=''
 as $$
 begin
