@@ -2665,6 +2665,22 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** §13.5 (community clips) **~70% to ~88%**; Wave 3 **~91% to ~93%**.
 
 ---
+
+## 2026-11-10 — Creator panel shows real quota/cooldown state (mega-batch, plan 13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to display quota/cooldown state. The capability RPC
+  returned the cooldown *limit* but not whether the creator may publish right now, so the panel could not show
+  real state; the UI also never rendered the cooldown at all.
+- [x] **New migration** `20261110900000_raye2_creator_cooldown_status.sql`: the capability payload now includes a
+  read-only `cooldown` block (`long_video_cooldown_days`, `last_long_video_at`, `next_allowed_at`,
+  `can_publish_long_video_now`) computed from the creator's most recent long video. Enforcement is unchanged
+  (`raye2_assert_creator_action` remains authoritative).
+- [x] **Capabilities UI:** the cooldown days now appear in the quota grid and a status line reports whether the
+  creator can publish now or when the next long video is allowed, in EN and AR.
+- [x] **Guarded:** a test and validator assertion cover the cooldown block, its fields and the UI binding.
+- [x] Gates: validator 413 assertions; tests 803/803; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.4 (Creator Panel quota/cooldown display) **~70% to ~82%**; Wave 4 **~70% to ~73%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

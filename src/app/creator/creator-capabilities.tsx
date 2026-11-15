@@ -9,6 +9,12 @@ type Capabilities = {
   actions?: Capability[];
   quotas?: Record<string, number | null>;
   usage?: Record<string, number | null>;
+  cooldown?: {
+    long_video_cooldown_days?: number | null;
+    last_long_video_at?: string | null;
+    next_allowed_at?: string | null;
+    can_publish_long_video_now?: boolean;
+  };
 };
 
 const LABELS: Record<string, { en: string; ar: string }> = {
@@ -20,7 +26,8 @@ const LABELS: Record<string, { en: string; ar: string }> = {
   long_videos_per_month: { en: "Long videos / month", ar: "فيديوهات طويلة / شهر" },
   streams_per_month: { en: "Streams / month", ar: "بث مباشر / شهر" },
   minis_per_month: { en: "Mini's / month", ar: "مينيز / شهر" },
-  moments_per_month: { en: "Moments / month", ar: "لحظات / شهر" }
+  moments_per_month: { en: "Moments / month", ar: "لحظات / شهر" },
+  long_video_cooldown_days: { en: "Long-video cooldown", ar: "فترة الانتظار للفيديو الطويل" }
 };
 
 export default function CreatorCapabilities({ locale }: { locale: "ar" | "en" }) {
@@ -42,14 +49,15 @@ export default function CreatorCapabilities({ locale }: { locale: "ar" | "en" })
   if (!caps) return null;
 
   const t = isAr
-    ? { title: "الصلاحيات والحصص", role: "الدور", allowed: "متاح", blocked: "غير متاح", quota: "الحصة", used: "المستخدم" }
-    : { title: "Permissions & quotas", role: "Role", allowed: "Allowed", blocked: "Unavailable", quota: "Quota", used: "Used" };
+    ? { title: "الصلاحيات والحصص", role: "الدور", allowed: "متاح", blocked: "غير متاح", quota: "الحصة", used: "المستخدم", cooldown: "حالة فترة الانتظار", canPublish: "يمكنك النشر الآن", waiting: "بانتظار انتهاء الفترة", nextAt: "متاح من", days: "يوم" }
+    : { title: "Permissions & quotas", role: "Role", allowed: "Allowed", blocked: "Unavailable", quota: "Quota", used: "Used", cooldown: "Cooldown", canPublish: "You can publish now", waiting: "Waiting for the cooldown", nextAt: "Available from", days: "days" };
 
   const quotaRows: Array<[string, number | null]> = [
     ["long_videos_per_month", caps.quotas?.long_videos_per_month ?? null],
     ["streams_per_month", caps.quotas?.streams_per_month ?? null],
     ["minis_per_month", caps.quotas?.minis_per_month ?? null],
-    ["moments_per_month", caps.quotas?.moments_per_month ?? null]
+    ["moments_per_month", caps.quotas?.moments_per_month ?? null],
+    ["long_video_cooldown_days", caps.cooldown?.long_video_cooldown_days ?? caps.quotas?.long_video_cooldown_days ?? null]
   ];
 
   return (
@@ -78,6 +86,11 @@ export default function CreatorCapabilities({ locale }: { locale: "ar" | "en" })
           );
         })}
       </div>
+      {caps.cooldown ? (
+        <p className="module-note" role="status">
+          {t.cooldown}: {caps.cooldown.can_publish_long_video_now ? t.canPublish : `${t.waiting}${caps.cooldown.next_allowed_at ? " · " + t.nextAt + " " + new Date(caps.cooldown.next_allowed_at).toLocaleString(isAr ? "ar-EG" : "en-US") : ""}`}
+        </p>
+      ) : null}
     </section>
   );
 }

@@ -685,6 +685,9 @@ check("group voice rooms surface the same recording consent and indicator", grou
 const clipsFeedClient = await read("../src/app/clips/clips-client.tsx");
 const clipsReportingMigration = await read("../supabase/migrations/20261110890000_raye2_community_clip_reporting.sql");
 check("community clips support preview, visibility, owner removal and reporting", clipsFeedClient.includes("raye2-clip-preview") && clipsFeedClient.includes("p_visibility: visibility") && clipsFeedClient.includes("raye2_remove_community_clip") && clipsFeedClient.includes('p_target_type: "community_clip"') && clipsReportingMigration.includes("'post','comment','profile','community_clip'"));
+const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
+const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
+check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));
 check("predecessor NHEN/Nhen?/Creator Fan Hub labels are gone from Raye2 product surfaces", predecessorFree);
 check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 const platformNavModel = await read("../src/lib/platform-nav.ts");

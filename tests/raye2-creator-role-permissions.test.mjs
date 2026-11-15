@@ -36,3 +36,14 @@ test("the Creator Studio shows permitted actions and why others are unavailable"
   assert.match(studio, /cap\.reason/);
   assert.match(studio, /cap\.allowed/);
 });
+
+test("the creator capability payload surfaces long-video cooldown state", async () => {
+  const migration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
+  const ui = await read("../src/app/creator/creator-capabilities.tsx");
+  assert.match(migration, /'cooldown', jsonb_build_object\(/);
+  assert.match(migration, /can_publish_long_video_now/);
+  assert.match(migration, /next_allowed_at/);
+  assert.match(ui, /caps.cooldown.can_publish_long_video_now/);
+  assert.match(ui, /t\.cooldown/);
+  assert.match(ui, /long_video_cooldown_days/);
+});
