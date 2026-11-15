@@ -627,6 +627,12 @@ const achProfile = await read("../src/app/u/[handle]/profile-client.tsx");
 check("achievements publish explicit criteria and only award when measured", achMigration.includes("add column if not exists metric text") && achMigration.includes("add column if not exists threshold integer") && achMigration.includes("if v_value < v_threshold then return; end if;") && achMigration.includes("raye2_achievement_metric"));
 check("achievements enforce anti-abuse and expose transparent progress", achMigration.includes("function public.raye2_member_in_good_standing(") && achMigration.includes("not public.raye2_member_in_good_standing(p_user_id) then") && achMigration.includes("function public.raye2_member_achievement_progress("));
 check("the profile surfaces transparent achievement progress", achProfile.includes("raye2_member_achievement_progress") && achProfile.includes("role=\"progressbar\""));
+const evMigration = await read("../supabase/migrations/20261110860000_raye2_event_spaces_qa.sql");
+const evClient = await read("../src/app/events/public-events.tsx");
+const evPage = await read("../src/app/events/page.tsx");
+check("events support Q&A with host-only answers and author removal", evMigration.includes("create table if not exists public.event_qa") && evMigration.includes("function public.raye2_answer_event_question(") && evMigration.includes("host or creator access required") && evMigration.includes("function public.raye2_remove_event_question("));
+check("events attach a community space through the existing group conversation", evMigration.includes("add column if not exists conversation_id uuid references public.raye2_conversations") && evMigration.includes("function public.raye2_attach_event_space(") && evMigration.includes("you must belong to the room you attach"));
+check("the events UI surfaces Q&A and the attached space", evClient.includes("raye2_ask_event_question") && evClient.includes("raye2_list_event_questions") && evClient.includes("openSpace") && evPage.includes("space_group_slug"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");

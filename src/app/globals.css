@@ -1070,3 +1070,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 
 /* Raye2 live advertising readiness controls */
 .module-live-ads{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+
+/* Raye2 event spaces + Q&A */
+.event-space{margin:8px 0 0;font-size:11px}
+.event-space a{color:var(--raye2-accent,#78adff);font-weight:700}
+.public-event-qa{margin-top:12px;padding-top:10px;border-top:1px solid rgba(220,232,248,.1)}
+.event-qa-toggle{padding:7px 11px;border:1px solid rgba(220,232,248,.16);border-radius:9px;background:transparent;color:inherit;font-size:11px;font-weight:750;cursor:pointer}
+.event-qa-body{margin-top:10px;display:grid;gap:10px}
+.event-qa-ask{display:flex;gap:8px}
+.event-qa-ask input{flex:1;padding:9px 11px;border:1px solid rgba(220,232,248,.16);border-radius:9px;background:rgba(9,13,20,.6);color:inherit;font-size:11px}
+.event-qa-ask button{padding:9px 13px;border:1px solid var(--raye2-accent,#78adff);border-radius:9px;background:var(--raye2-accent,#78adff);color:#071321;font-size:11px;font-weight:800;cursor:pointer}
+.event-qa-list{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.event-qa-q{margin:0;font-size:12px;line-height:1.6}
+.event-qa-a{margin:5px 0 0;padding:7px 10px;border-inline-start:2px solid var(--raye2-accent,#78adff);font-size:12px;line-height:1.6;color:var(--muted,#9a97a8)}
+.event-qa-a span{font-weight:800;color:var(--raye2-accent,#78adff);margin-inline-end:6px}
