@@ -2433,3 +2433,14 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 18/18 (breakpoints; creator contract wins; exclusions; platform fallback; exclusive capped contract never falls through; intensity 0 disables; huge gap → one; labelled viewer schedule; frequency cap; dedupe; admin-only sources).
 - [x] Gates: validator 377 assertions; tests 746/746; tsc clean; lint 0 errors/24 warnings; build OK (201 migrations).
 - **Progress:** §18 (pre-beta blocker) **~60% to ~85%**; Wave 4 (creator economy) **~+4%**; full ten-wave estimate **~87% to ~90%**.
+
+## 2026-11-10 — Sponsor campaign integrity (mega-batch, plan 18.5/18.6)
+- [x] **Budgets + impression caps:** `budget_amount`, `currency`, `daily_impression_cap`, `lifetime_impression_cap` on creator and platform campaigns, enforced in `raye2_record_ad_delivery`.
+- [x] **Invalid-traffic handling:** admin-only, audited `raye2_flag_invalid_traffic`; invalid events stop counting toward caps; `raye2_detect_invalid_traffic` (rule `ads.invalid_traffic_impressions_per_hour`).
+- [x] **Reconciliation/dispute states:** `raye2_sponsor_reconciliation` + `raye2_open_reconciliation` + `raye2_set_reconciliation_state` (open/in_review/disputed/resolved/closed), admin-only and audited.
+- [x] **Creator reporting (18.5):** `raye2_creator_monetization_report` — estimates vs finalized, adjustments, payout status (not configured), never fabricated, never identity-exposing.
+- [x] **Admin integrity overview:** `raye2_campaign_integrity_overview` — budgets, caps, attributed net, reconciliation.
+- [x] **UI:** admin "Campaign integrity" tab + creator "Sponsorship earnings" panel, EN+AR.
+- [x] **Matrix:** 14/14 (daily cap; invalid frees cap; admin-only flag/detect; reconciliation states; non-fabricated creator report; admin overview).
+- [x] Gates: validator 381 assertions; tests 752/752; tsc clean; lint 0 errors/24 warnings; build OK (202 migrations).
+- **Progress:** §18 (pre-beta blocker) **~85% to ~93%**; Wave 8 (admin campaign control/accounting) **~+3%**; full ten-wave estimate **~90% to ~92%**.
