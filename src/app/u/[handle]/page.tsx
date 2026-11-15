@@ -1,7 +1,7 @@
 import {notFound} from "next/navigation";
 import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
-import MemberProfileClient,{type ProfilePost,type ProfileOverview,type ProfileMoment,type ProfilePlaylist} from "./profile-client";
+import MemberProfileClient,{type ProfilePost,type ProfileOverview,type ProfileMoment,type ProfilePlaylist,type ProfileClip,type ProfileCommunity} from "./profile-client";
 
 export const dynamic="force-dynamic";
 
@@ -27,6 +27,7 @@ export default async function MemberProfilePage({params}:{params:Promise<{handle
   return[{id:item.id,title:item.title,slug:catalog.slug,description:catalog.description||item.alt_text||"",category:catalog.category||"Video",src:supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl}];
  });
  const {data:collections}=await supabase.rpc("raye2_get_profile_collections",{p_handle:handle,p_limit:24});
- const coll=(collections??{}) as {moments?:ProfileMoment[];playlists?:ProfilePlaylist[]};
- return <MemberProfileClient profile={profile} posts={items} videos={videos} communityShorts={communityShorts} moments={coll.moments??[]} playlists={coll.playlists??[]} locale={locale} overview={overview}/>;
+ const coll=(collections??{}) as {moments?:ProfileMoment[];playlists?:ProfilePlaylist[];clips?:Array<Omit<ProfileClip,"src">>;communities?:ProfileCommunity[]};
+ const clips=(coll.clips??[]).map(clip=>({...clip,src:supabase.storage.from("raye2-clips").getPublicUrl(clip.storage_path).data.publicUrl}));
+ return <MemberProfileClient profile={profile} posts={items} videos={videos} communityShorts={communityShorts} moments={coll.moments??[]} playlists={coll.playlists??[]} clips={clips} communities={coll.communities??[]} locale={locale} overview={overview}/>;
 }

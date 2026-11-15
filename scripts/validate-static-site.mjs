@@ -772,6 +772,9 @@ check("profile collections add Moments and playlist surfaces", profileCollection
 const mediaExpiryCleanupMigration = await read("../supabase/migrations/20261111020000_raye2_media_expiry_cleanup.sql");
 check("expired temporary media queues physical deletion as a retried, observable background job", mediaExpiryCleanupMigration.includes("create table if not exists public.raye2_media_storage_cleanup") && mediaExpiryCleanupMigration.includes("'storage.delete'") && mediaExpiryCleanupMigration.includes("raye2_enqueue_storage_cleanup") && mediaExpiryCleanupMigration.includes("raye2_record_storage_cleanup") && mediaExpiryCleanupMigration.includes("raye2_get_storage_cleanup_stats") && mediaExpiryCleanupMigration.includes("raye2_claim_background_job(p_kind text default null)"));
 
+const profileClipsCommunitiesMigration = await read("../supabase/migrations/20261111030000_raye2_profile_clips_communities.sql");
+check("profile collections surface community clips and public communities with visibility and expiry gating", profileClipsCommunitiesMigration.includes("from public.raye2_community_clips c") && profileClipsCommunitiesMigration.includes("from public.raye2_group_members gm") && profileClipsCommunitiesMigration.includes("g.visibility = 'public' and g.status = 'active'") && profileClipsCommunitiesMigration.includes("'clips', coalesce") && profileClipsCommunitiesMigration.includes("'communities', coalesce"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

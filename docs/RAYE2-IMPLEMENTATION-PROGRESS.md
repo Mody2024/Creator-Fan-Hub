@@ -2976,6 +2976,24 @@ One regression-test file was briefly created on the default `main` branch becaus
   sub-item (queued, retried, observable physical deletion). Overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Profile community clips and public communities surfaces (mega-batch, plan 2.1 / 13.7)
+- [x] **Gap closed:** plan 13.7 requires profile surfaces to connect to "community posts/clips, public
+  communities, playlists/collections and achievements". Posts and playlists existed, but a member profile
+  could not show their published community clips or their public communities.
+- [x] **Migration** `20261111030000_raye2_profile_clips_communities.sql` extends the privacy-gated
+  `raye2_get_profile_collections` RPC with clips (published, public, unexpired, block-aware, with source
+  attribution) and communities (active memberships in public, active groups). Private and expired content is
+  never returned.
+- [x] **Profile UI** gains Clips and Communities tabs (bilingual), with clips linking back to their source
+  video and communities linking to `/groups/[slug]`.
+- [x] **Guarded:** tests assert the clip/community gating and that private communities are not leaked; a
+  validator assertion covers the migration.
+- [x] Gates: validator 429 assertions; tests 858/858; tsc clean; lint 0 errors/24 warnings; build OK; the
+  profile route 404s for an unknown handle.
+- **Progress:** Wave 2 (accounts/permissions) **~80% to ~81%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

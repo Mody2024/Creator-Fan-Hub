@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, page, client, playlistPage] = await Promise.all([
+const [migration, extras, page, client, playlistPage] = await Promise.all([
   read("../supabase/migrations/20261111010000_raye2_profile_collections.sql"),
+  read("../supabase/migrations/20261111030000_raye2_profile_clips_communities.sql"),
   read("../src/app/u/[handle]/page.tsx"),
   read("../src/app/u/[handle]/profile-client.tsx"),
   read("../src/app/watch/playlists/[slug]/page.tsx")
@@ -35,4 +36,19 @@ test("playlist cards link to a real published-playlist route", () => {
   assert.match(playlistPage, /\.eq\("slug", slug\)/);
   assert.match(playlistPage, /\.eq\("is_published", true\)/);
   assert.match(playlistPage, /creator-media-public\//);
+});
+
+test("profile collections also surface community clips and public communities", () => {
+  assert.match(extras, /from public\.raye2_community_clips c/);
+  assert.match(extras, /c\.status = 'published' and c\.visibility = 'public' and c\.expires_at > now\(\)/);
+  assert.match(extras, /from public\.raye2_group_members gm/);
+  assert.match(extras, /g\.visibility = 'public' and g\.status = 'active'/);
+  assert.match(extras, /'clips', coalesce/);
+  assert.match(extras, /'communities', coalesce/);
+  // The public communities surface must not leak private or expired groups.
+  assert.doesNotMatch(extras, /visibility = 'private'/);
+  assert.match(client, /id="profile-clips"/);
+  assert.match(client, /id="profile-communities"/);
+  assert.match(client, /href=\{"\/groups\/"\+c\.slug\}/);
+  assert.match(page, /storage\.from\("raye2-clips"\)\.getPublicUrl\(clip\.storage_path\)/);
 });
