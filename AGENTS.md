@@ -11,6 +11,17 @@ Persistent, repository-specific knowledge for agents working in this repo.
   `YYYYMMDDHHMMSS_description.sql`. Never edit an applied migration; add a new one.
 - Verification credit requires actually running the code against a live stack, not just authoring it.
 
+## Naming and repository hygiene
+
+- Product naming is Raye2. Never reintroduce the predecessor "nhen" brand: use `raye2-*` CSS classes,
+  `--raye2-ds-*` design tokens, the `raye2_locale` cookie, and `Raye2ReactionArt`. `tests/raye2-naming-hygiene.test.mjs`
+  fails if predecessor branding returns to `src/`.
+- Exception: applied database identifiers keep their original `nhen_*` names (migrations, storage buckets,
+  advisory locks) and the validator references them by that exact string. Renaming applied objects would break
+  the deployed schema.
+- The design system stylesheet is `src/app/raye2-design-system.css`. Install with `npm ci` against the committed
+  `package-lock.json`; `*.tsbuildinfo` is generated and ignored.
+
 ## Gates (run before every commit)
 
 ```bash
