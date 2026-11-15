@@ -157,7 +157,7 @@ function readConfig(providerId, env = process.env) {
     if (publicUrl.protocol !== "https:" || publicUrl.username || publicUrl.password || publicUrl.search || publicUrl.hash) {
       throw new Error(prefix + "_PUBLIC_BASE_URL must be a clean HTTPS URL.");
     }
-    normalizedPublicBaseUrl = publicUrl.toString().replace(/\\/$/, "");
+    normalizedPublicBaseUrl = publicUrl.toString().replace(/\/$/, "");
   }
   return { endpoint: parsed.origin, accessKeyId, secretAccessKey, region, publicBucket, privateBucket, publicBaseUrl: normalizedPublicBaseUrl };
 }
@@ -229,7 +229,7 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
         throw new Error("A public delivery domain is not configured for this object.");
       }
       const base = new URL(config.publicBaseUrl + "/");
-      base.pathname = base.pathname.replace(/\\/$/, "") + "/" + normalizeObjectKey(object.key);
+      base.pathname = base.pathname.replace(/\/$/, "") + "/" + normalizeObjectKey(object.key);
       return base.toString();
     },
     async headObject(object) {
@@ -248,7 +248,7 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
     },
     async copyObject(source, destination) {
       const sourcePath = "/" + normalizeBucket(source.bucket) + "/" + normalizeObjectKey(source.key);
-      const response = await request("PUT", destination, { "x-amz-copy-source": sourcePath });
+      await request("PUT", destination, { "x-amz-copy-source": sourcePath });
       const metadata = await this.headObject(destination);
       if (!metadata) throw new Error("Copied object could not be verified at its destination.");
       return metadata;

@@ -814,6 +814,26 @@ check("event-question reporting is restored alongside all report targets", event
 const shareIntoChatMigration = await read("../supabase/migrations/20261111120000_raye2_share_into_chat.sql");
 check("videos can be shared into member conversations with a view gate", shareIntoChatMigration.includes("raye2_share_video_to_chat") && shareIntoChatMigration.includes("raye2_is_conversation_member(p_conversation_id)") && shareIntoChatMigration.includes("public.raye2_can_view_video(vc.media_id)") && shareIntoChatMigration.includes("raye2_list_shareable_conversations"));
 
+const storageAllowancesMigration = await read("../supabase/migrations/20261116120000_raye2_storage_allowances_and_control.sql");
+check("managed storage buckets include every Raye2 member bucket", storageAllowancesMigration.includes("raye2_managed_buckets") && storageAllowancesMigration.includes("'raye2-community-shorts','raye2-minis','raye2-clips'"));
+check("storage reservation allow-list is widened to the Raye2 buckets", storageAllowancesMigration.includes("nhen_media_upload_reservations_bucket_id_check") && storageAllowancesMigration.includes("'raye2-community-shorts','raye2-minis','raye2-clips'"));
+check("per-role monthly allowances are seeded and override a role with a per-account row", storageAllowancesMigration.includes("raye2_storage_allowances") && storageAllowancesMigration.includes("raye2_storage_allowance_overrides") && storageAllowancesMigration.includes("raye2_storage_allowance_for") && storageAllowancesMigration.includes("is_override boolean"));
+check("my storage status returns the plan, period usage and reset date", storageAllowancesMigration.includes("raye2_my_storage_status") && storageAllowancesMigration.includes("period_end timestamptz") && storageAllowancesMigration.includes("public.raye2_storage_period_used"));
+check("the live reservation RPC enforces the monthly allowance and the platform ceiling", storageAllowancesMigration.includes("monthly storage allowance reached") && storageAllowancesMigration.includes("platform storage is temporarily full") && storageAllowancesMigration.includes("raye2_storage_settings") && storageAllowancesMigration.includes("platform_ceiling_bytes"));
+check("storage admin control requires an owner or admin and is audit-logged", storageAllowancesMigration.includes("public.raye2_is_platform_admin()") && storageAllowancesMigration.includes("raye2_admin_audit_log") && storageAllowancesMigration.includes("raye2_set_storage_allowance") && storageAllowancesMigration.includes("raye2_set_storage_allowance_override") && storageAllowancesMigration.includes("raye2_set_storage_ceiling"));
+check("storage admin RPCs are granted only to authenticated and revoked from anon", storageAllowancesMigration.includes("revoke all on function public.raye2_set_storage_allowance(text,bigint,bigint,text) from public, anon") && storageAllowancesMigration.includes("grant execute on function public.raye2_set_storage_ceiling(bigint,text) to authenticated"));
+
+const storageAllowanceLogic = await read("../src/lib/raye2/storage-allowances.mjs");
+const storageAllowanceTests = await read("../tests/raye2-storage-allowances.test.mjs");
+check("allowance module mirrors the seeded plan, period and ceiling rules", storageAllowanceLogic.includes("DEFAULT_STORAGE_ALLOWANCES") && storageAllowanceLogic.includes("currentPeriodStart") && storageAllowanceLogic.includes("canReserveWithinAllowance") && storageAllowanceLogic.includes("platform_full"));
+check("allowance tests cover role sizes, overrides, period rollover and both rejection paths", storageAllowanceTests.includes("combined is not the sum of creator and streamer") && storageAllowanceTests.includes("an override wins over the role allowance") && storageAllowanceTests.includes("the platform ceiling blocks uploads"));
+
+const mediaLibrarySource = await read("../src/app/creator/media-library.tsx");
+check("media library surfaces the personal monthly allowance with reset date", mediaLibrarySource.includes('supabase.rpc("raye2_my_storage_status")') && mediaLibrarySource.includes("allowanceReset") && mediaLibrarySource.includes("allowanceCustom"));
+
+const adminClientSource = await read("../src/app/creator/raye2/admin-client.tsx");
+check("admin storage fabric tab loads and mutates allowances, providers and ceiling", adminClientSource.includes('supabase.rpc("raye2_storage_admin_overview")') && adminClientSource.includes('supabase.rpc("raye2_set_storage_allowance"') && adminClientSource.includes('supabase.rpc("raye2_set_storage_provider"') && adminClientSource.includes('supabase.rpc("raye2_set_storage_ceiling"'));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

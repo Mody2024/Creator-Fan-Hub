@@ -3278,13 +3278,13 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~96% |
-| 4 | Creator Studio, exclusives and live streaming | ~90% |
+| 4 | Creator Studio, exclusives and live streaming | ~92% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~88% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~93%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~94%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
 Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
@@ -3352,3 +3352,30 @@ Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcod
 - [x] Added regression cases for incomplete configuration, invalid upload parameters and public delivery configuration.
 - [ ] Current test suite contains nine S3 adapter tests, but execution is still pending. The Vercel status on the latest test commit remains a build-rate-limit failure, not a successful or code-failure result.
 - **Latest adapter test commit checked:** `07b8b4b980e320ee01182f185d3912cf4f43ea69`. Server-only boundary is committed immediately after it; verify new HEAD status in the next audit.
+
+---
+## Batch — 2026-11-10: Storage allowances, live-path fix and owner control (development only)
+
+**Goal:** give every account a real monthly storage allowance that resets, larger allowances for creators and
+streamers, and owner/admin control over allowances, providers and the platform ceiling — layered on top of the
+provider control plane that already landed on `development`.
+
+- **Bug fix (member uploads were broken):** the live reservation RPC and the object-insert trigger only allowed
+  `creator-media-*` and `nhen-community-shorts`. Member uploads to `raye2-community-shorts`, `raye2-minis` and
+  `raye2-clips` were rejected at the reservation step. A canonical `raye2_managed_buckets()` set now covers every
+  Raye2 bucket and the reservation table constraint, the reservation RPC and the trigger all use it.
+- **Monthly allowances:** new `raye2_storage_allowances` (per-role monthly bytes + per-file cap + reset period)
+  and `raye2_storage_allowance_overrides` (per-account). `raye2_storage_allowance_for` resolves override → role.
+  `raye2_my_storage_status` returns plan, period usage and reset date for any signed-in account.
+- **Live enforcement:** `reserve_nhen_media_upload` now checks the per-file cap, the per-user monthly allowance and
+  the platform ceiling (`raye2_storage_settings.platform_ceiling_bytes`, default 750 MiB under Supabase Free).
+- **Owner control:** `raye2_storage_admin_overview` plus audited setters for allowances, per-account overrides,
+  provider enable/priority and the platform ceiling; all gated by `raye2_is_platform_admin()` and written to
+  `raye2_admin_audit_log`.
+- **UI:** new admin "Storage fabric" tab (providers, allowances, overrides, ceiling); the creator media library now
+  shows the personal monthly allowance and reset date.
+- **Regression fixes found on `development`:** the S3 adapter used an escaped-slash regex (`/\\/$/`) that broke
+  TypeScript parsing and its own test file; corrected to `/\/$/` and removed an unused binding. Two provider-policy
+  tests asserted R2 failover with a byte count that still fit R2's headroom; corrected to exceed it.
+- **Tests:** `tests/raye2-storage-allowances.test.mjs` (11); validator grew to 453 assertions.
+- Gates: validator 453 assertions; tests 922/922; tsc clean; lint 0 errors / 19 warnings; build OK.

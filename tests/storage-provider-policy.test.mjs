@@ -26,7 +26,7 @@ test("private chat attachments prefer B2", () => {
 });
 
 test("provider failover chooses B2 when R2 has insufficient safe headroom", () => {
-  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 5_000, providers });
+  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 6_000, providers });
   assert.equal(selected.provider, "backblaze_b2");
 });
 
@@ -36,9 +36,9 @@ test("unverified or unhealthy providers are never selected", () => {
 });
 
 test("provider ceilings include reservations and safety reserves", () => {
-  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 5_000, providers });
+  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 6_000, providers });
   assert.equal(selected.provider, "backblaze_b2");
-  assert.ok(selected.safeRemainingBytes >= 5_000);
+  assert.ok(selected.safeRemainingBytes >= 6_000);
 });
 
 test("user quotas are lifetime allocations, not monthly resets", () => {
