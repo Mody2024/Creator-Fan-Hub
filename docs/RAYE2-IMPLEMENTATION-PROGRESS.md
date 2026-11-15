@@ -2383,3 +2383,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Live-start + group join-request notifications** (`e4d9372`): `live_start`, `group_join_request`, `group_join_decision` types and `group`/`stream` target types; public-only, per-stream-capped follower broadcast on go-live; managers notified of a join request; requester notified on approve/decline. All helpers best-effort (never roll back the action). Matrix 8/8.
 - [x] Gates: validator 364 assertions; tests 718/718; tsc clean; lint 0 errors/24 warnings; build OK (195 migrations).
 - **Progress:** Wave 5 (social/communities/engagement) **~62% to ~68%**; Wave 6 (messaging/notifications) **~72% to ~78%**; Wave 3 (video/feed/discovery) **~76% to ~78%**; Wave 9 (security/reliability) **~99%**; full ten-wave estimate **~78% to ~80%**.
+
+## 2026-11-10 — Engagement notification preferences: per-category mute + quiet hours (mega-batch)
+- [x] `raye2_engagement_notification_preferences` (muted categories + timezone-aware quiet hours) with authenticated get/set RPCs; `raye2_notification_category` maps type→category; pure `raye2_in_quiet_hours` (wraps past midnight); `raye2_engagement_should_deliver` for nudges.
+- [x] Mute is enforced authoritatively in `raye2_get_notifications` and `raye2_get_notification_summary` (read filter, nothing deleted — unmute restores history). Eight categories: follow/reactions/comments/mentions/announcements/events/live/groups.
+- [x] Account page gains a Notification preferences card (8 mute toggles + quiet hours start/end/timezone), EN+AR.
+- [x] **Matrix:** 17/17 (mute hides exactly the category and drops its count; unmute restores; invalid category/timezone/identical-bounds rejected; quiet-hours wrap + delivery checks).
+- [x] Gates: validator 366 assertions; tests 722/722; tsc clean; lint 0 errors/24 warnings; build OK (196 migrations).
+- **Progress:** Wave 6 (messaging/notifications) **~78% to ~82%**; Wave 5 (social/engagement) **~68% to ~70%**; full ten-wave estimate **~80% to ~81%**.
