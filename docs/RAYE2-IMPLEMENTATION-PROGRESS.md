@@ -2399,3 +2399,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Matrix:** 5/5 (unrestricted send works + stored; message restriction blocks; Shorts comment restriction blocks; unrestricted Shorts comment allowed).
 - [x] Gates: validator 367 assertions; tests 726/726; tsc clean; lint 0 errors/24 warnings; build OK (197 migrations).
 - **Progress:** Wave 6 (messaging/notifications) **~82% to ~85%**; Wave 8 (moderation) **~93% to ~95%**; Wave 9 (security/reliability) **~99% to ~99.5%**; full ten-wave estimate **~81% to ~82%**.
+
+## 2026-11-10 — Mini's end-to-end + silent creator-quota fix (mega-batch)
+- [x] **Mini's (§4.4) implemented:** `raye2_minis` table (duration/path/lifetime constraints), public bucket `raye2-minis` with owner-scoped writes, `raye2_publish_mini` (creator tiers via `raye2_assert_creator_action`; ordinary users get a 3/day cap; duration bounded by a rule, technical ceiling 60s), `raye2_expire_minis` (marks expired, never deletes), public block-aware `raye2_list_minis` feed hiding expired clips. Platform rules for daily cap / max duration / lifetime (rules category check extended).
+- [x] **Bug fixed:** `raye2_creator_usage` returned NULL for streams/minis/moments, so those quota checks were silently dead; streams and Mini's now count from real tables.
+- [x] **UI:** `/minis` page + client (resumable upload, publish, feed with expiry labels), EN+AR, linked from the home rail.
+- [x] **Matrix:** 13/13 (publish within cap; 4th daily clip rejected; duration cap; creator count increments; foreign storage path rejected; expiry hides from feed but keeps row; anon feed read).
+- [x] Gates: validator 370 assertions; tests 731/731; tsc clean; lint 0 errors/24 warnings; build OK (198 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~78% to ~82%**; Wave 4 (creator economy) **~? to ~+3%**; full ten-wave estimate **~82% to ~84%**.
