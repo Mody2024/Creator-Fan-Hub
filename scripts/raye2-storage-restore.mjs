@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { readFile, stat } from "node:fs/promises";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -36,7 +36,9 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 let restored = 0;
 
 for (const item of manifest.objects) {
-  const bucket = safeSegments(item.bucket, "bucket")[0];
+  const bucketSegments = safeSegments(item.bucket, "bucket");
+  if (bucketSegments.length !== 1) throw new Error("Invalid bucket name in backup manifest.");
+  const bucket = bucketSegments[0];
   const objectSegments = safeSegments(item.path, "object path");
   const filePath = resolve(backupRoot, bucket, ...objectSegments);
   const rel = relative(backupRoot, filePath);
