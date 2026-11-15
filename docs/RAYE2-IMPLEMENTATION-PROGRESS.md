@@ -3288,3 +3288,21 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
 Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+
+
+---
+
+## 2026-11-15 — Free-first multi-provider storage architecture handoff
+
+- [x] Re-audited the active repository and confirmed `Mody2024/Creator-Fan-Hub`, working branch `development`; `main` and production were not modified.
+- [x] Re-read the full platform and community/chat/voice plans and reviewed the current implementation progress log.
+- [x] Added `docs/RAYE2-STORAGE-ARCHITECTURE.md` defining a provider-neutral storage control plane, Cloudflare R2 as the proposed hot/public-media provider, Backblaze B2 as the proposed secondary/overflow provider, and Supabase Storage as the legacy compatibility provider.
+- [x] The architecture explicitly separates storage allocation from expiry: monthly free-tier billing allowances must never trigger monthly deletion/reset of user content. Existing Moments, replay, Mini's, chat and recording retention rules remain independent.
+- [x] The architecture sets a conservative initial target of 8.5 GB per R2/B2 provider (subject to verified provider limits and terms), prohibits silent billable overages, and specifies admin controls, per-user/role quotas, signed uploads, checksum verification, failover, migration rollback and orphan reconciliation.
+- [x] Live Supabase project `Creator-Fan-Hub` is `ACTIVE_HEALTHY` in `eu-central-1`. The live database currently has `creator-media-private`, `creator-media-public` and legacy `nhen-community-shorts` buckets; each has a 50 MiB per-object cap. Existing app reservation logic uses a 750 MiB project-level safety ceiling and one-hour reservations.
+- [x] Confirmed the current browser resumable uploader and media worker are Supabase-specific. The existing media provider constraint supports `supabase`, `youtube`, and `external`; Cloudflare R2 and Backblaze B2 adapters are not implemented yet.
+- [x] Compared live Supabase migration history with repository history: live migration history currently ends at `20261102215604`; later repository migrations remain unverified against this live project. No migration was applied and no production storage object was moved or deleted.
+- [ ] Next implementation batch: Phase A storage inventory/contracts — enumerate every media, attachment, voice, memory and replay upload/download/delete path; define and test the shared storage adapter interface; reconcile repository migrations against an isolated development database.
+- [ ] Then implement the R2 adapter and provider-aware reservation/usage ledger, followed by B2 placement/failover, Admin Storage Control Center, migration/recovery tooling and full community integration.
+- **Progress accounting:** this was a documentation/audit batch only; it adds no feature implementation credit. Keep the canonical ten-wave implementation estimates unchanged at the existing ~93% historical snapshot until code-level storage functionality is delivered. Test/release readiness remains separate; live provider acceptance and isolated migration/RLS verification are outstanding.
+- **Exact branch commit for this storage architecture document:** `813233189be0f932470895de84f21c5d4f23ee0a`. The progress-log handoff is committed immediately after it; verify the current branch HEAD and CI on the next session before claiming exact-HEAD validation.
