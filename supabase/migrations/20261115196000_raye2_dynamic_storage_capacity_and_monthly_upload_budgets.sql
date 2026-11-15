@@ -503,9 +503,6 @@ declare
  v_global_month_reserved bigint;v_monthly_limit bigint;v_global_limit bigint;
  v_provider_ops bigint;v_provider_limit bigint;v_id uuid;
 begin
- if auth.role() is distinct from 'service_role' then
-   raise exception 'trusted media worker required' using errcode='42501';
- end if;
  if p_owner_id is null or p_bucket not in ('creator-media-private','creator-media-public')
    or p_bytes is null or p_bytes<1 or p_bytes>52428800 then
    raise exception 'invalid worker storage reservation' using errcode='22023';
