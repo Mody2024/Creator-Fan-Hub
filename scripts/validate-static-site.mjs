@@ -511,6 +511,11 @@ check("watch card media validation is shared and safe", watchLibMedia.includes("
 const discoveryEnforceMigration = await read("../supabase/migrations/20261110690000_raye2_discovery_exclusivity_enforcement.sql");
 check("discovery RPCs apply the video exclusivity and expiry check", ["raye2_get_related_videos","raye2_get_topic_videos","raye2_list_topics","raye2_get_trending_videos","raye2_get_trending_tags","raye2_search","raye2_get_watch_context","raye2_get_continue_watching"].every(name => discoveryEnforceMigration.includes("create or replace function public." + name + "(")));
 check("every recreated discovery RPC gates on raye2_can_view_video", (discoveryEnforceMigration.match(/public\.raye2_can_view_video\(vc\.media_id\)/g) ?? []).length >= 8);
+const ownerSepMigration = await read("../supabase/migrations/20261110700000_raye2_owner_super_admin_separation.sql");
+const adminClientFile = await read("../src/app/creator/raye2/admin-client.tsx");
+check("owner and super-admin powers are separated", ownerSepMigration.includes("create or replace function public.raye2_is_super_admin()") && ownerSepMigration.includes("create or replace function public.raye2_admin_capabilities()"));
+check("destructive cleanup and privilege overrides are owner-only", ownerSepMigration.includes("create or replace function public.raye2_run_cleanup_job(") && ownerSepMigration.includes("create or replace function public.raye2_set_capability_override(") && (ownerSepMigration.match(/raye2_is_super_admin\(\) then raise exception 'owner access required'/g) ?? []).length >= 3);
+check("the admin UI shows the capability matrix and gates destructive run", adminClientFile.includes('rpc("raye2_admin_capabilities")') === false && adminClientFile.includes("initialCaps") && adminClientFile.includes("canRunCleanup") && adminClientFile.includes("runOwnerOnly"));
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
