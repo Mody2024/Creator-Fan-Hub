@@ -518,6 +518,10 @@ check("destructive cleanup and privilege overrides are owner-only", ownerSepMigr
 check("the admin UI shows the capability matrix and gates destructive run", adminClientFile.includes('rpc("raye2_admin_capabilities")') === false && adminClientFile.includes("initialCaps") && adminClientFile.includes("canRunCleanup") && adminClientFile.includes("runOwnerOnly"));
 const accessExtMigration = await read("../supabase/migrations/20261110710000_raye2_creator_profile_watch_access.sql");
 check("creator, profile and watch-together reads apply the video access check", ["raye2_list_creators","raye2_get_profile_overview","raye2_validate_watch_source"].every(name => accessExtMigration.includes("create or replace function public." + name + "(")) && (accessExtMigration.match(/public\.raye2_can_view_video\(/g) ?? []).length >= 4);
+const seriesCommentsMigration = await read("../supabase/migrations/20261110720000_raye2_series_comments_collection_access.sql");
+check("series, comment-thread and collection reads apply the video access check", ["raye2_list_series","raye2_get_series","raye2_get_video_comment_thread","raye2_get_video_comment_replies","raye2_get_collection"].every(name => seriesCommentsMigration.includes("create or replace function public." + name + "(")) && (seriesCommentsMigration.match(/public\.raye2_can_view_video\(/g) ?? []).length >= 5);
+const finalGateMigration = await read("../supabase/migrations/20261110730000_raye2_video_reads_final_gate.sql");
+check("reaction counts, view recording and comment-parent visibility apply the video access check", ["get_video_reaction_counts","record_video_view","raye2_video_comment_parent_visible"].every(name => finalGateMigration.includes("create or replace function public." + name + "(")) && (finalGateMigration.match(/public\.raye2_can_view_video\(/g) ?? []).length >= 3);
 
 const groupBansMigration = await read("../supabase/migrations/20261110410000_raye2_group_bans.sql");
 const raye2Client = await read("../src/app/raye2/raye2-client.tsx");
