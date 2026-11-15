@@ -7,11 +7,12 @@ const roleMigration = await readFile(new URL("../supabase/migrations/20261110590
 const adminMigration = await readFile(new URL("../supabase/migrations/20261115195000_raye2_admin_storage_quota_controls.sql", import.meta.url), "utf8");
 const providerMigration = await readFile(new URL("../supabase/migrations/20261115194000_raye2_professional_storage_tiers_and_provider_registry.sql", import.meta.url), "utf8");
 
-test("global storage and monthly upload target are capped at 10 GiB", () => {
+test("global storage and monthly upload targets default to 10 GiB and can scale safely", () => {
   assert.match(migration, /target_total_capacity_bytes bigint not null default 10737418240/);
   assert.match(migration, /monthly_upload_target_bytes bigint not null default 10737418240/);
   assert.match(migration, /monthly_upload_hard_limit_bytes bigint not null default 10737418240/);
   assert.match(migration, /free_only boolean not null default true check \(free_only\)/);
+  assert.match(migration, /between 1 and 1125899906842624/);
 });
 
 test("actual storage capacity is calculated only from enabled, verified free providers", () => {
@@ -59,6 +60,14 @@ test("legacy bucket id is migrated safely while current Raye2 bucket is accepted
   assert.match(migration, /drop constraint if exists nhen_media_upload_reservations_bucket_id_check/);
 });
 
+test("admin storage controls are guarded, audited and fail closed for unready providers", () => {
+  assert.match(migration, /raye2_admin_get_storage_policy/);
+  assert.match(migration, /raye2_admin_set_storage_policy/);
+  assert.match(migration, /raye2_admin_list_storage_providers/);
+  assert.match(migration, /raye2_admin_set_storage_provider_enabled/);
+  assert.match(migration, /provider is not verified and healthy enough for zero-cost activation/);
+  assert.match(migration, /raye2_admin_audit_log/);
+});
 test("no provider credentials are stored in the registry or browser-side configuration", () => {
   const executableSql = providerMigration.replace(/^--.*$/gm, "");
   assert.doesNotMatch(executableSql, /access_key|secret_key|api_token|credential/i);
