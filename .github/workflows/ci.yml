@@ -37,6 +37,28 @@ jobs:
       - name: Build Next.js app
         run: npm run build
 
+  verify-database-migrations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SUPABASE_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+      - name: Start isolated local Supabase stack
+        run: supabase start
+      - name: Replay every migration from an empty local database
+        run: supabase db reset --local
+      - name: Verify local migration history
+        run: supabase migration list --local
+      - name: Stop local Supabase stack
+        if: always()
+        run: supabase stop --no-backup
+
   build-media-worker-image:
     runs-on: ubuntu-latest
     timeout-minutes: 15
