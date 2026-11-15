@@ -9,7 +9,7 @@ test("Raye2 Creator Studio is authenticated and role-gated on the server", async
   assert.ok(page.includes("supabase.auth.getClaims()"));
   assert.ok(page.includes('.from("creator_admins")'));
   assert.ok(page.includes('.eq("active", true)'));
-  assert.ok(page.includes('["owner", "admin", "creator", "editor", "moderator", "analyst"]'));
+  assert.ok(page.includes('["owner", "admin", "creator", "streamer", "editor", "moderator", "analyst"]'));
   assert.ok(page.includes('redirect("/creator/login?access=restricted")'));
 });
 

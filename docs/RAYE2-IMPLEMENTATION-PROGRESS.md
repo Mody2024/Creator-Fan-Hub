@@ -2596,6 +2596,22 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** §1.2/1.4 (design-system consistency) **~70% to ~85%**; Wave 1 **~72% to ~78%**.
 
 ---
+
+## 2026-11-10 — Streamer-only no longer locked out of the Studio (mega-batch, plan 2.1/13.4)
+- [x] **Bug fixed:** `/raye2/studio` omitted `streamer` from its role allowlist, so a streamer-only creator was
+  redirected out of the Studio dashboard with `access=restricted` even though `/creator` admits them. The
+  allowlist now matches the database constraint exactly (owner/admin/creator/streamer/editor/moderator/analyst).
+- [x] **Distinct permissions surfaced:** added `canStream` (owner/admin/streamer) beside `canPublish`
+  (owner/admin/creator). Streamer-only now sees a Live nav entry, a "Start a live stream" workflow action and a
+  Live streaming workspace card linking to the real live studio; creator-only still sees the upload/watch-page
+  actions and never the live one (plan 13.4: distinct, non-additive roles; the Studio shows only permitted actions).
+- [x] **Guarded:** a test asserts every assignable role appears in both the DB constraint and the studio allowlist,
+  and that `canStream` and `canPublish` are distinct and gate the right affordances; a validator assertion covers
+  the same. Updated the existing studio test for the new allowlist.
+- [x] Gates: validator 409 assertions; tests 796/796; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §2.1/13.4 (role gating) **~70% to ~76%**; Wave 2 **~62% to ~65%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
