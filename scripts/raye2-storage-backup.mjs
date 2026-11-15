@@ -37,6 +37,7 @@ function safeSegments(value, label) {
 
 function targetPath(bucket, objectPath) {
   const bucketSegments = safeSegments(bucket, "bucket name");
+  if (bucketSegments.length !== 1) throw new Error("Invalid Storage bucket name.");
   const objectSegments = safeSegments(objectPath, "object path");
   const destination = resolve(outputRoot, ...bucketSegments, ...objectSegments);
   const rel = relative(outputRoot, destination);
