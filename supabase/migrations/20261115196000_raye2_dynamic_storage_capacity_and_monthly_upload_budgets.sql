@@ -452,4 +452,38 @@ $$;
 revoke all on function public.enforce_nhen_storage_upload_reservation() from public,anon,authenticated;
 grant execute on function public.enforce_nhen_storage_upload_reservation() to authenticated,service_role;
 
+
+create or replace function public.raye2_get_user_monthly_upload_capacity()
+returns table(
+ month_start date,uploaded_bytes bigint,reserved_bytes bigint,
+ quota_bytes bigint,available_bytes bigint,usage_percent numeric
+)
+language plpgsql stable security definer set search_path=''
+as $
+declare
+ v_user uuid:=auth.uid();
+ v_month date:=date_trunc('month',now())::date;
+ v_uploaded bigint;
+ v_reserved bigint;
+ v_quota bigint;
+begin
+ if v_user is null then raise exception 'sign in required' using errcode='42501'; end if;
+ v_quota:=public.raye2_effective_monthly_upload_quota(v_user);
+ select coalesce(m.uploaded_bytes,0) into v_uploaded
+ from (select 1) seed
+ left join public.raye2_storage_monthly_usage m
+   on m.month_start=v_month and m.scope_key='user:'||v_user::text;
+ select coalesce(sum(r.expected_bytes),0) into v_reserved
+ from public.nhen_media_upload_reservations r
+ where r.user_id=v_user and r.expires_at>now()
+   and r.created_at>=v_month::timestamptz;
+ return query select v_month,v_uploaded,v_reserved,v_quota,
+   greatest(0,v_quota-v_uploaded-v_reserved),
+   case when v_quota=0 then 100::numeric
+   else round((v_uploaded+v_reserved)::numeric*100/v_quota,1) end;
+end;
+$;
+revoke all on function public.raye2_get_user_monthly_upload_capacity() from public,anon;
+grant execute on function public.raye2_get_user_monthly_upload_capacity() to authenticated;
+
 notify pgrst,'reload schema';
