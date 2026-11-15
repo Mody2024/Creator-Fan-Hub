@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import NhenReactionArt from "@/app/watch/[slug]/nhen-reaction-art";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import "./raye2-community.css";
+import { PLATFORM_NAV_ACCOUNT, PLATFORM_NAV_PRIMARY, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
 
 type Author = { handle: string; display_name: string; avatar_url: string | null };
 export type CommunityPoll = { id: string; question: string; options: Array<{ option: string; votes: number }>; total: number; closesAt: string | null; myVote: string | null };
@@ -29,6 +30,7 @@ type CommentReply = {comment_id:string;author_id:string;author_handle:string|nul
 
 export default function CommunityClient({ initialPosts, topics = [], selectedFeed, selectedSort = "latest", unreadNotificationCount, suggestedMembers, canModerate = false }: { initialPosts: CommunityPost[]; topics?: CommunityTopic[]; selectedFeed: "following" | "latest"; selectedSort?: "latest" | "hot"; unreadNotificationCount: number; suggestedMembers: SuggestedMember[]; canModerate?: boolean }) {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [member, setMember] = useState<Member | null>(null);
   const [followedSuggestions, setFollowedSuggestions] = useState<string[]>([]);
@@ -683,6 +685,9 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
     }
   }
 
+  const navLabels = { home: t.home, videos: "Videos", shorts: "Shorts", community: t.community, explore: "Explore", saved: t.saved, notifications: t.notifications, studio: "Studio" } as const;
+  const primaryNav = platformNavItems(PLATFORM_NAV_PRIMARY, navLabels);
+  const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
   return <main className="nhen-app-shell raye2-community-page" data-raye2-surface="community" dir={isArabic?"rtl":"ltr"} lang={locale}>
     <header className="nhen-app-header">
       <Link className="nhen-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-community-mark">R</span></Link>
@@ -691,13 +696,11 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
     </header>
     <div className="nhen-platform-grid">
       <aside className="nhen-sidebar" aria-label={t.community}>
-        <Link className="nhen-sidebar-link" href="/raye2/home"><span>⌂</span> {t.home}</Link>
-        <a className="nhen-sidebar-link" aria-current="page" href="/community"><span>◉</span> {t.community}</a>
-        <a className="nhen-sidebar-link" href="#official"><span>✦</span> {t.official}</a>
-        <a className="nhen-sidebar-link" href="#latest"><span>◷</span> {t.latest}</a>
+        {primaryNav.map(item => <Link className="nhen-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
+        <a className="nhen-sidebar-link" href="#official"><span aria-hidden="true">✦</span> {t.official}</a>
+        <a className="nhen-sidebar-link" href="#latest"><span aria-hidden="true">◷</span> {t.latest}</a>
         <span className="nhen-section-label">{t.yourSpace}</span>
-        <a className="nhen-sidebar-link" href="#join"><span>◎</span> {t.profile}</a>
-        <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> {t.saved}</Link>
+        {accountNav.map(item => <Link className="nhen-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
       </aside>
       <section className="nhen-feed-column">
         <div className="nhen-card nhen-card-pad">
@@ -787,6 +790,6 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
         <div style={{display:"flex",gap:8,marginTop:12}}><button className="nhen-action" disabled={busy} onClick={()=>void submitReport()}>{t.reportSend}</button><button className="nhen-action" onClick={()=>setReportTarget(null)}>{t.reportCancel}</button></div>
       </section>
     </div>}
-    <nav className="nhen-mobile-nav" aria-label="Mobile navigation"><Link href="/raye2/home">⌂<span>{t.home}</span></Link><a aria-current="page" href="/community">◉<span>{t.community}</span></a><a href="#latest">◷<span>{t.latest}</span></a><a href="#join">◎<span>{t.profile}</span></a></nav>
+    <nav className="nhen-mobile-nav" aria-label="Mobile navigation">{primaryNav.map(item => <Link href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span><span>{item.label}</span></Link>)}</nav>
   </main>;
 }

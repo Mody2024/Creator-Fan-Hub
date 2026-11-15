@@ -485,7 +485,8 @@ test("community moderation uses a private role helper across every moderation qu
 
 test("video navigation is hidden when the creator disables the video section", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /visibleSections\.includes\("videos"\) && <><a href="#videos">\{t\.watch\}<\/a><a href="\/shorts">\{t\.shorts\}<\/a><\/>/);
+  assert.match(page, /const videoSectionVisible = config\.visibleSections\.includes\("videos"\)/);
+  assert.match(page, /PLATFORM_NAV_PRIMARY\.filter\(key => key !== "videos" && key !== "shorts"\)/);
   assert.match(page, /visibleSections\.includes\("videos"\) && <PublicVideos \/>/);
 });
 
@@ -528,14 +529,16 @@ test("creator logo preparation can remove plain backgrounds and trim transparent
 
 test("video navigation is consistently gated without duplicate Watch and Videos links", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-  assert.ok(page.includes('config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>'));
+  assert.ok(page.includes('config.visibleSections.includes("videos")'));
   assert.equal(page.includes('<a href="#videos">Videos</a>'), false);
+  assert.ok(page.includes("const primaryKeys = videoSectionVisible"));
   const mobileStart = page.indexOf('<nav className="mobile-nav"');
   const mobileEnd = page.indexOf("</nav>", mobileStart);
   const mobileNav = page.slice(mobileStart, mobileEnd);
-  assert.ok(mobileNav.includes('config.visibleSections.includes("videos")'));
-  assert.ok(mobileNav.includes('<a href="/shorts">{t.shorts}</a>'));
-  assert.ok(mobileNav.includes('<a href="#videos">{t.watch}</a>'));
+  assert.ok(mobileNav.includes("primaryNav.map"));
+  const desktopStart = page.indexOf('<aside className="desktop-nav"');
+  const desktopEnd = page.indexOf("</aside>", desktopStart);
+  assert.ok(page.slice(desktopStart, desktopEnd).includes("primaryNav.map"));
 });
 test("publishing a site draft requires compatible published media assets", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");

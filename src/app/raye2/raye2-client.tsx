@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { PLATFORM_NAV_RAYE2, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
 import { usePathname, useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./raye2.module.css";
@@ -862,18 +863,13 @@ export default function Raye2Client() {
     else setMessages(current => current.filter(item => item.id !== message.id));
   }
 
-  const platformNav = [
-    { href: "/raye2/home", en: "Home", ar: "الرئيسية", icon: "⌂" },
-    { href: "/watch", en: "Watch", ar: "المشاهدة", icon: "▶" },
-    { href: "/shorts", en: "Mini's", ar: "ميني", icon: "▤" },
-    { href: "/search", en: "Explore", ar: "استكشف", icon: "⌕" },
-    { href: "/series", en: "Series", ar: "السلاسل", icon: "▥" },
-    { href: "/creator", en: "Creator Studio", ar: "استوديو المبدعين", icon: "✳" },
-    { href: "/raye2", en: "Messages", ar: "الرسائل", icon: "✉" },
-    { href: "/notifications", en: "Alerts", ar: "الإشعارات", icon: "◉" },
-    { href: "/saved", en: "Saved", ar: "المحفوظات", icon: "▱" },
-    { href: "/profile", en: "Profile", ar: "الملف الشخصي", icon: "◎" }
-  ];
+  const platformNav = platformNavItems(PLATFORM_NAV_RAYE2, isAr ? {
+    home: "الرئيسية", videos: "المشاهدة", shorts: "ميني", explore: "استكشف", series: "السلاسل",
+    studio: "استوديو المبدعين", messages: "الرسائل", notifications: "الإشعارات", saved: "المحفوظات", profile: "الملف الشخصي"
+  } : {
+    home: "Home", videos: "Watch", shorts: "Mini's", explore: "Explore", series: "Series",
+    studio: "Creator Studio", messages: "Messages", notifications: "Alerts", saved: "Saved", profile: "Profile"
+  });
   const switchLocale = () => {
     const next: Locale = locale === "en" ? "ar" : "en";
     setLocale(next);
@@ -889,8 +885,8 @@ export default function Raye2Client() {
       <header className={styles.header}>
         <Link href="/" className={styles.brand} aria-label="Raye2 home">RAYE<span>2</span></Link>
         <nav className={styles.platformNav} aria-label={isAr ? "التنقل الرئيسي" : "Main navigation"}>
-          {platformNav.map(item => <Link key={item.href} href={item.href} className={pathname === item.href || (item.href !== "/raye2/home" && pathname.startsWith(item.href + "/")) ? styles.platformNavActive : ""} aria-current={pathname === item.href ? "page" : undefined}>
-            <span className={styles.platformNavIcon} aria-hidden="true">{item.icon}</span><span>{isAr ? item.ar : item.en}</span>
+          {platformNav.map(item => <Link key={item.href} href={item.href} className={isPlatformNavActive(pathname, item.href) ? styles.platformNavActive : ""} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}>
+            <span className={styles.platformNavIcon} aria-hidden="true">{item.icon}</span><span>{item.label}</span>
           </Link>)}
         </nav>
         <div className={styles.headerActions}>
@@ -900,7 +896,7 @@ export default function Raye2Client() {
         </div>
       </header>
       <nav className={styles.mobilePlatformNav} aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
-        {platformNav.slice(0, 6).map(item => <Link key={item.href} href={item.href} className={item.href === "/raye2" ? styles.platformNavActive : ""} aria-current={item.href === "/raye2" ? "page" : undefined}><span aria-hidden="true">{item.icon}</span>{isAr ? item.ar : item.en}</Link>)}
+        {platformNav.slice(0, 6).map(item => <Link key={item.href} href={item.href} className={isPlatformNavActive(pathname, item.href) ? styles.platformNavActive : ""} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span>{item.label}</Link>)}
       </nav>
       <section className={styles.intro}><div><span className={styles.kicker}>RAYE2 / COMMUNITY LAYER</span><h1>{t.title}</h1><p>{t.intro}</p></div><div className={styles.introMark}><span>R</span><i>✳</i></div></section>
       <section className={styles.workspace}>

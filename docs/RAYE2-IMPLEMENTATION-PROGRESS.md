@@ -2534,6 +2534,23 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** §13.1 (brand/visual system) **~55% to ~62%**; Wave 1 **~52% to ~56%**. Remaining: global shell/layout rebuild and the logo-asset pipeline.
 
 ---
+
+## 2026-11-10 — One shared platform navigation across all surfaces (mega-batch, plan 1.3)
+- [x] **New `src/lib/platform-nav.ts`** — the single source of truth for platform destinations: one definition
+  per key (home/videos/shorts/community/explore/series/messages/notifications/saved/profile/studio) with its href,
+  icon and active rule, plus three grouped lists (primary, account, Raye2 rail).
+- [x] **Public home** (`page.tsx`) sidebar and mobile nav now render from the shared model instead of two
+  hand-written copies that had drifted; the creator's video-section gate is preserved (Watch/Mini's drop out when
+  the videos section is hidden).
+- [x] **Community** sidebar and mobile nav render from the shared model (previously a different set again).
+- [x] **Raye2 chat rail** drops its bespoke `platformNav` array and uses the shared model, including the shared
+  active-state rule, so highlighting is consistent everywhere.
+- [x] **Behavior preserved:** the video-section visibility gate still applies; no destination was silently removed.
+- [x] Gates: validator 403 assertions; tests 790/790; tsc clean; lint 0 errors/25 warnings; build OK.
+- **Progress:** §1.3 (navigation/shell consistency) **~50% to ~80%**; Wave 1 **~56% to ~62%**. Remaining in Wave 1:
+  page-level layout standardisation and the logo-asset pipeline.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2541,7 +2558,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~56% |
+| 1 | Brand system and full product redesign | ~62% |
 | 2 | Core platform architecture, accounts and permissions | ~62% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |

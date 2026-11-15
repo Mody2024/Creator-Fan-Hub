@@ -9,6 +9,7 @@ import NarrationControl from "@/app/narration-control";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
+import { PLATFORM_NAV_ACCOUNT, PLATFORM_NAV_PRIMARY, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +67,15 @@ export default async function HomePage() {
     const {data:eventRows}=await supabase.rpc("raye2_get_public_events",{p_limit:12});
     events=(Array.isArray(eventRows)?eventRows:[]).map((row:EventCard)=>({id:row.id,title:row.title,description:row.description,starts_at:row.starts_at,ends_at:row.ends_at,status:row.status,event_type:row.event_type,going_count:Number(row.going_count??0),host_count:Number(row.host_count??0),my_rsvp:!!row.my_rsvp,my_rsvp_status:row.my_rsvp_status??null}));
   }
+  const pathname = "/";
+  const navLabels = {
+    home: t.home, videos: t.watch, shorts: t.shorts, community: t.community,
+    explore: t.explore, saved: t.saved, notifications: t.notifications, studio: t.studio
+  } as const;
+  const videoSectionVisible = config.visibleSections.includes("videos");
+  const primaryKeys = videoSectionVisible ? PLATFORM_NAV_PRIMARY : PLATFORM_NAV_PRIMARY.filter(key => key !== "videos" && key !== "shorts");
+  const primaryNav = platformNavItems(primaryKeys, navLabels);
+  const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-motion={config.motion}>
     <header className="nhen-app-header">
       <Link className="nhen-brand" href="/" aria-label="Raye2 home">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span></Link>
@@ -74,15 +84,9 @@ export default async function HomePage() {
     </header>
     <div className="nhen-platform-grid">
       <aside className="desktop-nav" aria-label="Main navigation">
-        <Link className="nhen-sidebar-link" href="/"><span>⌂</span> {t.home}</Link>
-        {config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}
-        <Link className="nhen-sidebar-link" href="/community"><span>◉</span> {t.community}</Link>
-        <Link className="nhen-sidebar-link" href="/search"><span>⌕</span> {t.explore}</Link>
+        {primaryNav.map(item => <Link className="nhen-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
         <span className="nhen-section-label">{isArabic ? "مساحتك في Raye2" : "YOUR RAYE2"}</span>
-        <Link className="nhen-sidebar-link" href="/community#join"><span>◎</span> {t.profile}</Link>
-        <Link className="nhen-sidebar-link" href="/saved"><span>♡</span> {t.saved}</Link>
-        <Link className="nhen-sidebar-link" href="/notifications"><span>♧</span> {t.notifications}</Link>
-        <Link className="nhen-sidebar-link" href="/creator/login"><span>＋</span> {t.studio}</Link>
+        {accountNav.map(item => <Link className="nhen-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
       </aside>
       <section className="nhen-feed-column">
         <section className="nhen-home-welcome nhen-card nhen-card-pad" id="hero">
@@ -112,6 +116,6 @@ export default async function HomePage() {
         <section className="nhen-card nhen-card-pad"><span className="nhen-section-label">{t.creatorAccess}</span><h2 className="nhen-card-title">{t.haveChannel}</h2><p className="nhen-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو Raye2." : "Approved creators can publish official videos and manage their channel from Raye2 Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
       </aside>
     </div>
-    <nav className="mobile-nav" aria-label="Mobile navigation"><Link href="/">⌂<span>{t.home}</span></Link>{config.visibleSections.includes("videos") && <><a href="#videos">{t.watch}</a><a href="/shorts">{t.shorts}</a></>}<Link href="/community">◉<span>{t.community}</span></Link><Link href="/community#join">◎<span>{t.profile}</span></Link></nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
+    <nav className="mobile-nav" aria-label="Mobile navigation">{primaryNav.map(item => <Link href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span><span>{item.label}</span></Link>)}</nav>{config.mascotUrl && config.featureFlags.mascot && <img className="nhen-floating-mascot" src={config.mascotUrl} alt="" aria-hidden="true"/>}
   </main>;
 }
