@@ -2335,3 +2335,11 @@ One regression-test file was briefly created on the default `main` branch becaus
 - [x] **Pagination matrix:** 9/9 (page size + newest-first; walk-all-exactly-once; stability under inserts; following filter; empty cursor).
 - [x] Gates: validator 340 assertions; tests 682/682 (+3); tsc clean; lint 0 errors/24 warnings; build OK (186 migrations).
 - **Progress:** Wave 3 (video/feed/discovery) **~50% to ~58% provisional**; full ten-wave estimate **~71% to ~72%**.
+
+## 2026-11-10 — Restriction enforcement (voice/watch/comments) + member standing (mega-batch)
+- [x] Server-side enforcement closed for the previously-unenforced `voice` and `watch` features: guarded join wrappers (`raye2_join_voice_session_guarded`, `raye2_join_watch_session_guarded`); clients switched to them.
+- [x] `comment` restriction now also enforced on native video comments (new trigger).
+- [x] `raye2_get_my_restrictions`: owner-scoped self-view with latest appeal status; `/account` gains an **Account standing** card with an appeal form.
+- [x] **Restriction matrix:** 19/19 (unrestricted comment on community+video; comment restriction blocks both, not posting; self-view scope + anon blocked; appeal; voice/watch blocks; lift restores).
+- [x] Gates: validator 344 assertions; tests 686/686 (+4); tsc clean; lint 0 errors/24 warnings; build OK (187 migrations).
+- **Progress:** Wave 2 (accounts/permissions) **~40% to ~47% provisional**; Wave 8 (moderation) **~90% to ~93%**; full ten-wave estimate **~72% to ~73%**.
