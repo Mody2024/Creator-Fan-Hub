@@ -142,7 +142,7 @@ test("a vote option must belong to the same poll", () => {
 const validConfig = {
   schemaVersion: 1,
   identity: { siteName: "Creator Community", tagline: "Help shape what comes next.", logoMediaId: null, mascotMediaId: null, narrationMediaId: null, narrationText: "Welcome to the community.", narrationAutoPlay: true },
-  appearance: { theme: "obsidian", accent: "#d6ff72", colorMode: "dark", motion: "full" },
+  appearance: { theme: "obsidian", accent: "#80b4ff", motion: "full" },
   layout: {
     sectionOrder: ["hero", "ideas", "poll", "events", "community"],
     visibleSections: ["hero", "ideas", "poll", "events", "community"]
@@ -407,23 +407,18 @@ test("uploaded logo preview shows both themes while bilingual identity remains v
 });
 
 
-test("creator appearance preferences control public color mode and motion safely", async () => {
+test("the public surface uses the single fixed theme while motion preferences stay safe", async () => {
   const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/nhen-design-system.css", import.meta.url), "utf8");
-  assert.match(config, /colorMode: "dark" \| "light" \| "system"/);
+  assert.match(config, /theme: "obsidian"/);
+  assert.doesNotMatch(config, /colorMode/);
   assert.match(config, /motion: "full" \| "reduced" \| "off"/);
-  assert.match(config, /appearance\.colorMode === "light" \|\| appearance\.colorMode === "system"/);
   assert.match(config, /appearance\.motion === "reduced" \|\| appearance\.motion === "off"/);
-  assert.match(page, /data-color-mode=\{config\.colorMode\} data-motion=\{config\.motion\}/);
-  assert.match(settings, /Follow device/);
+  assert.match(page, /data-motion=\{config\.motion\}/);
   assert.match(settings, /Reduced motion/);
   assert.match(design, /\[data-motion="off"\]/);
-  assert.match(design, /--nhen-surface: #ffffff/);
-  assert.match(design, /\[data-color-mode="system"\]/);
-  assert.match(design, /prefers-color-scheme: light/);
-  assert.match(design, /\[data-color-mode="light"\]/);
 });
 
 

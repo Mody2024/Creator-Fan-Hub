@@ -644,6 +644,12 @@ const singleThemeGlobals = await read("../src/app/globals.css");
 const singleThemeDesign = await read("../src/app/nhen-design-system.css");
 check("the product uses a single black/white/grey/blue theme with no legacy light/violet variants", !/theme-(paper|violet|custom)/.test(singleThemeGlobals + singleThemeDesign) && singleThemeGlobals.includes("--success:") && singleThemeGlobals.includes("--error:") && singleThemeGlobals.includes("--state-selected:"));
 check("legacy lime/neon colors are gone from the theme", !/216,255,117|255,100,124|165,139,255/.test(singleThemeGlobals + singleThemeDesign));
+const siteConfigLib = await read("../src/lib/site-config.mjs");
+const publicConfigSrc = await read("../src/lib/public-site-config.ts");
+const creatorSettingsSrc = await read("../src/app/creator/creator-settings.tsx");
+const rootLayoutSrc = await read("../src/app/layout.tsx");
+check("the appearance system offers a single fixed theme with no color-mode or legacy options", /THEMES = new Set\(\["obsidian"\]\)/.test(siteConfigLib) && !/colorMode/.test(publicConfigSrc + creatorSettingsSrc) && !/d8ff75|c8ff4d/.test(publicConfigSrc + creatorSettingsSrc) && !/Nhen bilingual/.test(creatorSettingsSrc));
+check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an explicit decision", /MADE BY ALMUDDATHTHIR/.test(rootLayoutSrc));
 check("temporary Shared Memories expire on their own clock and preserved ones never do", memMigration.includes("function public.raye2_expire_shared_memories()") && memMigration.includes("function public.raye2_guard_memory_expiry()") && memMigration.includes("a temporary Shared Memory requires an expiry"));
 check("memory expiry and preservation are guarded and folded into maintenance", memMigration.includes("function public.raye2_set_memory_expiry(") && memMigration.includes("function public.raye2_preserve_memory(") && memMigration.includes("shared_memories_expired") && raye2MemoryClient.includes("raye2_set_memory_expiry") && raye2MemoryClient.includes("raye2_preserve_memory"));
 

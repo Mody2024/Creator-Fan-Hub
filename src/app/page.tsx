@@ -66,7 +66,7 @@ export default async function HomePage() {
     const {data:eventRows}=await supabase.rpc("raye2_get_public_events",{p_limit:12});
     events=(Array.isArray(eventRows)?eventRows:[]).map((row:EventCard)=>({id:row.id,title:row.title,description:row.description,starts_at:row.starts_at,ends_at:row.ends_at,status:row.status,event_type:row.event_type,going_count:Number(row.going_count??0),host_count:Number(row.host_count??0),my_rsvp:!!row.my_rsvp,my_rsvp_status:row.my_rsvp_status??null}));
   }
-  return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-color-mode={config.colorMode} data-motion={config.motion}>
+  return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="nhen-app-shell nhen-home-shell" data-motion={config.motion}>
     <header className="nhen-app-header">
       <Link className="nhen-brand" href="/" aria-label="Raye2 home">{config.logoUrl && <img className="site-logo-image" src={config.logoUrl} alt="" />}<span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span></Link>
       <form className="nhen-search-form" action="/search"><input className="nhen-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>

@@ -2516,6 +2516,24 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** §13.1 (brand/visual system) **~40% to ~55%**; Wave 1 **~47% to ~52%** provisional. Global shell/layout rebuild and the logo-asset pipeline remain.
 
 ---
+
+## 2026-11-10 — Appearance system collapsed to one theme + predecessor branding cleanup (mega-batch, plan 1.1/13.1)
+- [x] **Admin appearance system no longer offers a second theme.** The site-config `theme` union, the validator's
+  allowed `THEMES` set, and the publishing key whitelist are now `obsidian` only; the `colorMode` (dark/light/system)
+  field, its validation, its `data-color-mode` output and its CSS blocks are removed. The public surface is one theme.
+- [x] **Creator panel controls updated:** the "Visual theme" selector is now a fixed read-only label, and the
+  "Color mode" control is gone; `paper`/`violet`/`custom` options and the `theme-<name>` preview class are gone.
+- [x] **Legacy lime fallback removed:** the site-config fallback accent `#d8ff75` and the `#C8FF4D` migration shim
+  are replaced with the theme blue `#80b4ff`.
+- [x] **Predecessor wording removed** from the creator panel (`"Fixed Nhen bilingual brand identity"` → Raye2).
+- [x] **Owner-flagged decision honoured, not made silently:** the `MADE BY ALMUDDATHTHIR` credit is **retained**
+  (plan 13.1 requires an explicit owner decision before it changes); a validator assertion now guards it.
+- [x] The logo light/dark **previews** are retained — they are a required branding tool (plan 1.1), not a second
+  site theme.
+- [x] Gates: validator 402 assertions; tests 787/787; tsc clean; lint 0 errors/25 warnings; build OK.
+- **Progress:** §13.1 (brand/visual system) **~55% to ~62%**; Wave 1 **~52% to ~56%**. Remaining: global shell/layout rebuild and the logo-asset pipeline.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -2523,7 +2541,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | Wave | Area | % |
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
-| 1 | Brand system and full product redesign | ~52% |
+| 1 | Brand system and full product redesign | ~56% |
 | 2 | Core platform architecture, accounts and permissions | ~62% |
 | 3 | Video, feed and discovery ecosystem | ~91% |
 | 4 | Creator Studio, exclusives and live streaming | ~70% |

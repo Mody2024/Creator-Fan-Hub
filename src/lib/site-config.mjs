@@ -1,8 +1,7 @@
 const SECTION_KEYS = new Set([
   "hero", "ideas", "poll", "events", "community", "videos", "socials"
 ]);
-const THEMES = new Set(["obsidian", "paper", "violet", "custom"]);
-const COLOR_MODES = new Set(["dark", "light", "system"]);
+const THEMES = new Set(["obsidian"]);
 const MOTION_MODES = new Set(["full", "reduced", "off"]);
 const FEATURE_KEYS = new Set([
   "polls", "ideas", "events", "guidedTour", "mascot", "voice", "miniGames", "store"
@@ -76,9 +75,8 @@ export function validateSiteConfig(input) {
   if (!isRecord(appearance)) {
     addError(errors, "appearance", "must be an object");
   } else {
-    checkAllowedKeys(appearance, new Set(["theme", "accent", "colorMode", "motion"]), "appearance", errors);
+    checkAllowedKeys(appearance, new Set(["theme", "accent", "motion"]), "appearance", errors);
     if (!THEMES.has(appearance.theme)) addError(errors, "appearance.theme", "unsupported theme");
-    if (!COLOR_MODES.has(appearance.colorMode)) addError(errors, "appearance.colorMode", "unsupported color mode");
     if (!MOTION_MODES.has(appearance.motion)) addError(errors, "appearance.motion", "unsupported motion mode");
     if (typeof appearance.accent !== "string" || !HEX_COLOR.test(appearance.accent)) {
       addError(errors, "appearance.accent", "must be a six-digit hexadecimal color");

@@ -440,45 +440,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:600px){.nhen-logo-theme-previews{grid-template-columns:1fr}.nhen-logo-theme-preview{min-height:130px}}
 
 
-/* Creator-controlled appearance and accessibility preferences. */
-.site[data-color-mode="light"], .maintenance[data-color-mode="light"] {
-  color-scheme: light;
-  --bg: #f5f3f1;
-  --panel: #ffffff;
-  --ink: #17141c;
-  --muted: #716b78;
-  --line: rgba(23,20,28,.14);
-  --nhen-bg: #f5f3f1;
-  --nhen-surface: #ffffff;
-  --nhen-surface-raised: #f0edf1;
-  --nhen-surface-soft: #e9e5eb;
-  --nhen-ink: #17141c;
-  --nhen-muted: #716b78;
-  --nhen-line: rgba(23,20,28,.14);
-  --nhen-shadow: 0 18px 50px rgba(35,25,40,.09);
-  background: var(--nhen-bg);
-  color: var(--nhen-ink);
-}
-.site[data-color-mode="system"], .maintenance[data-color-mode="system"] { color-scheme: light dark; }
-@media (prefers-color-scheme: light) {
-  .site[data-color-mode="system"], .maintenance[data-color-mode="system"] {
-    --bg: #f5f3f1;
-    --panel: #ffffff;
-    --ink: #17141c;
-    --muted: #716b78;
-    --line: rgba(23,20,28,.14);
-    --nhen-bg: #f5f3f1;
-    --nhen-surface: #ffffff;
-    --nhen-surface-raised: #f0edf1;
-    --nhen-surface-soft: #e9e5eb;
-    --nhen-ink: #17141c;
-    --nhen-muted: #716b78;
-    --nhen-line: rgba(23,20,28,.14);
-    --nhen-shadow: 0 18px 50px rgba(35,25,40,.09);
-    background: var(--nhen-bg);
-    color: var(--nhen-ink);
-  }
-}
 .site[data-motion="reduced"] *, .maintenance[data-motion="reduced"] * {
   scroll-behavior: auto !important;
   animation-duration: .01ms !important;

@@ -5,7 +5,7 @@ import { useState } from "react";
 type SiteConfig = {
   schemaVersion: 1;
   identity: { siteName: string; tagline: string; logoMediaId: string | null; mascotMediaId: string | null };
-  appearance: { theme: "obsidian" | "paper" | "violet" | "custom"; accent: string; colorMode: "dark" | "light" | "system"; motion: "full" | "reduced" | "off" };
+  appearance: { theme: "obsidian"; accent: string; motion: "full" | "reduced" | "off" };
   layout: { sectionOrder: string[]; visibleSections: string[] };
   hero: { title: string; body: string; mediaId: string | null; overlay: number; muted: boolean; loop: boolean };
   socialLinkIds: string[];
@@ -61,7 +61,7 @@ export default function CreatorEditor({ initialConfig, initialRevision }: { init
       <div className="editor-field"><label htmlFor="tagline">Tagline</label><input id="tagline" maxLength={240} value={config.identity.tagline} onChange={e=>patch("identity",{...config.identity,tagline:e.target.value})}/></div>
       <div className="editor-field editor-wide"><label htmlFor="heroTitle">Hero headline</label><input id="heroTitle" maxLength={180} value={config.hero.title} onChange={e=>patch("hero",{...config.hero,title:e.target.value})}/></div>
       <div className="editor-field editor-wide"><label htmlFor="heroBody">Hero description</label><textarea id="heroBody" maxLength={1000} rows={3} value={config.hero.body} onChange={e=>patch("hero",{...config.hero,body:e.target.value})}/></div>
-      <div className="editor-field"><label htmlFor="theme">Visual theme</label><select id="theme" value={config.appearance.theme} onChange={e=>patch("appearance",{...config.appearance,theme:e.target.value as SiteConfig["appearance"]["theme"]})}><option value="obsidian">Obsidian</option><option value="paper">Paper</option><option value="violet">Violet</option><option value="custom">Custom</option></select></div>
+      <div className="editor-field"><label>Visual theme</label><input value="Raye2 — black / white / grey / blue" readOnly aria-label="Fixed single Raye2 theme" /><small>The product uses one theme; the palette is fixed for consistency.</small></div>
       <div className="editor-field"><label htmlFor="accent">Accent color</label><div className="color-input"><input id="accent" type="color" value={config.appearance.accent} onChange={e=>patch("appearance",{...config.appearance,accent:e.target.value})}/><code>{config.appearance.accent}</code></div></div>
       <div className="editor-field editor-wide"><label htmlFor="maintenanceMessage">Maintenance message</label><input id="maintenanceMessage" maxLength={240} value={config.maintenance.message} onChange={e=>patch("maintenance",{...config.maintenance,message:e.target.value})}/><label className="switch-line"><input type="checkbox" checked={config.maintenance.enabled} onChange={e=>patch("maintenance",{...config.maintenance,enabled:e.target.checked})}/> Enable maintenance mode on the public website</label></div>
     </div>
