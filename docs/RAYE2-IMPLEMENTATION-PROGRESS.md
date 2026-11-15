@@ -3141,6 +3141,24 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 7 (Voice, Watch Together) **~82% to ~84%**; overall stays **~93%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Creators can attach a community space to an event (mega-batch, plan 13.2 / Wave 7)
+- [x] **Gap closed:** plan 13.2 requires "Scheduled events with ... optional attached chat/voice/Watch Together
+  rooms". The attach RPC (`raye2_attach_event_space`) existed, but nothing in the creator workspace could call
+  it: `get_creator_events` did not expose the attached space and there was no list of rooms a creator may
+  attach, so the public "Open space" link could never be set.
+- [x] **Migration** `20261111080000_raye2_creator_event_space_attach.sql`: adds
+  `raye2_creator_attachable_spaces` (active groups the caller belongs to, creator-gated) and extends
+  `get_creator_events` with `space_group_slug` (plus `event_type`/`reminder_minutes_before`).
+- [x] **UI:** `event-social-management.tsx` lists attachable spaces and attaches/detaches through the guarded
+  `raye2_attach_event_space` RPC, showing the current space with a link (bilingual).
+- [x] **Guarded:** new test `tests/raye2-event-space-attach.test.mjs` plus a validator assertion cover the
+  membership scoping, the new return shape and the wired RPC calls.
+- [x] Gates: validator 438 assertions; tests 883/883; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/creator` and `/events` 200.
+- **Progress:** Wave 7 (Voice, Watch Together) **~84% to ~86%**; overall stays **~93%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.
@@ -3154,7 +3172,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 4 | Creator Studio, exclusives and live streaming | ~90% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~84% |
+| 7 | Voice, Watch Together and shared experiences | ~86% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~92%** |

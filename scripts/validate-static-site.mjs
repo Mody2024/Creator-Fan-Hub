@@ -799,6 +799,9 @@ check("community shared moments resolve a real watch-page slug and timestamp", s
 const groupVoiceControls = await read("../src/app/raye2/raye2-group-voice-controls.tsx");
 check("group voice rooms report connection quality and reconnect state", groupVoiceControls.includes("RoomEvent.ConnectionQualityChanged") && groupVoiceControls.includes("RoomEvent.Reconnecting") && groupVoiceControls.includes("RoomEvent.Reconnected") && groupVoiceControls.includes("setReconnecting(false)"));
 
+const eventSpaceAttachMigration = await read("../supabase/migrations/20261111080000_raye2_creator_event_space_attach.sql");
+check("creators can attach a community space to an event", eventSpaceAttachMigration.includes("raye2_creator_attachable_spaces") && eventSpaceAttachMigration.includes("space_group_slug text") && eventSpaceAttachMigration.includes("join public.raye2_conversation_members m on m.conversation_id = c.id"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

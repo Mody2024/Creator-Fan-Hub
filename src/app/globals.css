@@ -1098,3 +1098,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .library-quota{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:11px;letter-spacing:.03em;color:var(--muted)}
 .library-quota>strong{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink,inherit)}
 .library-quota b{color:var(--ink,inherit);font-family:var(--mono,monospace)}
+
+/* Raye2 Wave 7 / plan 13.2: attach a community space to an event. */
+.event-space-attach{display:grid;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.event-space-attach>b{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.event-space-attach select{font:inherit;font-size:11px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:inherit}
+.event-space-attach small{font-size:10px;color:var(--muted)}
