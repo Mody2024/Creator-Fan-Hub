@@ -585,6 +585,11 @@ check("engagement notifications have per-category mute and quiet hours", ["raye2
 check("the inbox and summary exclude muted categories", engPrefsMigration.includes("not (public.raye2_notification_category(n.notification_type) = any(m.cats))") && (engPrefsMigration.match(/not \(public\.raye2_notification_category\(n\.notification_type\) = any\(m\.cats\)\)/g) ?? []).length >= 2);
 const restrictionFixMigration = await read("../supabase/migrations/20261110770000_raye2_message_restriction_trigger_fix.sql");
 check("the restriction trigger resolves the per-table actor column", restrictionFixMigration.includes("new.sender_id") && restrictionFixMigration.includes("new.author_id") && restrictionFixMigration.includes("when 'raye2_messages' then 'message'") && restrictionFixMigration.includes("create trigger raye2_short_comments_restriction_guard"));
+const minisMigration = await read("../supabase/migrations/20261110780000_raye2_minis.sql");
+const minisClient = await read("../src/app/minis/minis-client.tsx");
+check("Mini's are published with role-aware quotas, a duration cap and a lifetime", minisMigration.includes("create table if not exists public.raye2_minis") && minisMigration.includes("function public.raye2_publish_mini(") && minisMigration.includes("minis.ordinary.daily_limit") && minisMigration.includes("minis.max_duration_seconds") && minisMigration.includes("minis.lifetime_days") && minisMigration.includes("function public.raye2_expire_minis("));
+check("creator usage counts streams and Mini's from real tables", minisMigration.includes("from public.raye2_live_streams s") && minisMigration.includes("from public.raye2_minis mn") && minisMigration.includes("when 'streams_per_month' then") && minisMigration.includes("when 'minis_per_month' then"));
+check("the Mini feed is public, block-aware and hides expired clips", minisMigration.includes("function public.raye2_list_minis(") && minisMigration.includes("mn.status='published' and mn.visibility='public' and mn.expires_at > now()") && minisMigration.includes("not public.is_member_blocked(mn.author_id)") && minisClient.includes("raye2_publish_mini") && minisClient.includes("raye2_list_minis"));
 
 const groupMigration = await read("../supabase/migrations/20261110280000_raye2_group_spaces.sql");
 const groupsIndex = await read("../src/app/groups/page.tsx");
