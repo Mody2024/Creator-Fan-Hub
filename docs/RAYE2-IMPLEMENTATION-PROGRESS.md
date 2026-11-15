@@ -3026,6 +3026,24 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 2 (accounts/permissions) **~82% to ~84%**; overall stays **~92%** (equal-weight average).
 
 ---
+
+## 2026-11-10 — Scheduled watch-page publication (mega-batch, plan 4.3)
+- [x] **Gap closed:** plan 4.3 lists "scheduled release if enabled" among the publication states of long
+  videos. Watch pages could only be private drafts or live immediately.
+- [x] **Migration** `20261111050000_raye2_video_scheduling.sql`: `video_catalog.publish_at` with a check that a
+  page is never both published and scheduled; `raye2_publish_due_videos` promotes due pages (idempotent, safe
+  from a read path); the owner-scoped `save_raye2_video_catalog` gains an appended `p_publish_at` parameter so
+  the original positional signature still works, and scheduling reuses the exact processing/visibility gates
+  as immediate publishing (a draft can never be queued to go live unprocessed). The shared maintenance runner
+  now also publishes due videos.
+- [x] **Video Studio UI** gains a datetime picker, a "Schedule watch page" action, a cancel action, and a
+  SCHEDULED catalog state (bilingual).
+- [x] **Guarded:** tests assert the schedule/processing/visibility gates, the maintenance hook and the UI;
+  three earlier tests were updated for the extended save signature (behaviour unchanged).
+- [x] Gates: validator 431 assertions; tests 866/866; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 (Creator Studio) **~83% to ~85%**; overall stays **~92%** (equal-weight average).
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

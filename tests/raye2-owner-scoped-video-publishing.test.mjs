@@ -62,4 +62,4 @@ test("public watch-page UI checks slug conflicts before invoking the guarded pub
  assert.ok(studio.includes('rpc("save_raye2_video_catalog"'));
 });
 
-test("explicit draft and publish actions persist the exact requested state",()=>{assert.ok(studio.includes("async function save(publish?:boolean)"));assert.ok(studio.includes("const shouldPublish=publish??publishedAt"));assert.ok(studio.includes("p_publish:shouldPublish"));assert.ok(studio.includes("setPublishedAt(shouldPublish)"));});
+test("explicit draft and publish actions persist the exact requested state",()=>{assert.ok(studio.includes("async function save(publish?:boolean,publishAtIso?:string|null)"));assert.ok(studio.includes("const shouldPublish=publish??publishedAt"));assert.ok(studio.includes("p_publish:shouldPublish"));assert.ok(studio.includes("setPublishedAt(shouldPublish)"));});

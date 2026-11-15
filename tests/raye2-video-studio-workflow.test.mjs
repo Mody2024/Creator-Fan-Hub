@@ -55,9 +55,9 @@ test("video studio separates private draft saving from publication",()=>{
 });
 
 test("creator video save receives an explicit publish intent and persists that exact state",()=>{
- assert.ok(source.includes("async function save(publish?:boolean)"));
+ assert.ok(source.includes("async function save(publish?:boolean,publishAtIso?:string|null)"));
  assert.ok(source.includes("const shouldPublish=publish??publishedAt"));
- assert.ok(source.includes("if(shouldPublish&&!asset.is_published)"));
+ assert.ok(source.includes("if((shouldPublish||scheduling)&&!asset.is_published)"));
  assert.ok(source.includes("p_publish:shouldPublish"));
  assert.ok(source.includes("setPublishedAt(shouldPublish)"));
 });
