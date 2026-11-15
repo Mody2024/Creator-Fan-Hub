@@ -486,4 +486,105 @@ $;
 revoke all on function public.raye2_get_user_monthly_upload_capacity() from public,anon;
 grant execute on function public.raye2_get_user_monthly_upload_capacity() to authenticated;
 
+
+-- Worker reservations use the same live provider, personal, physical and
+-- monthly budgets as browser uploads. This avoids spending transcode compute
+-- on an output that cannot be committed to storage.
+create or replace function public.reserve_raye2_worker_thumbnail_capacity(
+ p_owner_id uuid,p_bucket text,p_bytes bigint
+) returns uuid
+language plpgsql security definer set search_path=''
+as $
+declare
+ v_user_used bigint;v_user_reserved bigint;v_user_quota bigint;
+ v_used bigint;v_reserved bigint;v_physical bigint;
+ v_month date:=date_trunc('month',now())::date;
+ v_user_month bigint;v_global_month bigint;v_user_month_reserved bigint;
+ v_global_month_reserved bigint;v_monthly_limit bigint;v_global_limit bigint;
+ v_provider_ops bigint;v_provider_limit bigint;v_id uuid;
+begin
+ if auth.role() is distinct from 'service_role' then
+   raise exception 'trusted media worker required' using errcode='42501';
+ end if;
+ if p_owner_id is null or p_bucket not in ('creator-media-private','creator-media-public')
+   or p_bytes is null or p_bytes<1 or p_bytes>52428800 then
+   raise exception 'invalid worker storage reservation' using errcode='22023';
+ end if;
+ perform pg_advisory_xact_lock(hashtextextended('raye2-storage-global-budget:'||v_month::text,0));
+ delete from public.nhen_media_upload_reservations where expires_at<=now();
+
+ if public.raye2_choose_storage_provider(p_bytes) is distinct from 'supabase' then
+   raise exception 'No verified free provider is ready for worker output.' using errcode='53100';
+ end if;
+ v_user_quota:=public.raye2_effective_user_storage_quota(p_owner_id);
+ select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+
+
+   then (o.metadata->>'size')::bigint else 0 end),0)
+ into v_user_used from storage.objects o
+ where o.bucket_id in ('creator-media-private','creator-media-public',
+   'nhen-community-shorts','raye2-community-shorts')
+   and split_part(o.name,'/',1)=p_owner_id::text;
+ select coalesce(sum(r.expected_bytes),0) into v_user_reserved
+ from public.nhen_media_upload_reservations r
+ where r.user_id=p_owner_id and r.expires_at>now();
+ if v_user_used+v_user_reserved+p_bytes>v_user_quota then
+   raise exception 'Raye2 owner storage allowance reached; worker output rejected.' using errcode='53100';
+ end if;
+
+ select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+
+
+   then (o.metadata->>'size')::bigint else 0 end),0)
+ into v_used from storage.objects o
+ where o.bucket_id in ('creator-media-private','creator-media-public',
+   'nhen-community-shorts','raye2-community-shorts');
+ select coalesce(sum(r.expected_bytes),0) into v_reserved
+ from public.nhen_media_upload_reservations r where r.expires_at>now();
+ v_physical:=public.raye2_storage_effective_capacity_bytes();
+ if v_used+v_reserved+p_bytes>v_physical then
+   raise exception 'Raye2 shared verified free capacity reached; worker output rejected.' using errcode='53100';
+ end if;
+
+ select coalesce(m.uploaded_bytes,0) into v_user_month
+ from (select 1) seed left join public.raye2_storage_monthly_usage m
+ on m.month_start=v_month and m.scope_key='user:'||p_owner_id::text;
+ select coalesce(m.uploaded_bytes,0) into v_global_month
+ from (select 1) seed left join public.raye2_storage_monthly_usage m
+ on m.month_start=v_month and m.scope_key='global';
+ select coalesce(sum(r.expected_bytes),0) into v_user_month_reserved
+ from public.nhen_media_upload_reservations r
+ where r.user_id=p_owner_id and r.expires_at>now() and r.created_at>=v_month::timestamptz;
+ select coalesce(sum(r.expected_bytes),0) into v_global_month_reserved
+ from public.nhen_media_upload_reservations r
+ where r.expires_at>now() and r.created_at>=v_month::timestamptz;
+ v_monthly_limit:=public.raye2_effective_monthly_upload_quota(p_owner_id);
+ select monthly_upload_hard_limit_bytes into v_global_limit
+ from public.raye2_storage_global_policy where singleton=true;
+ if v_user_month+v_user_month_reserved+p_bytes>v_monthly_limit
+   or v_global_month+v_global_month_reserved+p_bytes>v_global_limit then
+   raise exception 'Raye2 monthly upload budget reached; worker output rejected.' using errcode='53100';
+ end if;
+
+ select coalesce(m.upload_ops,0) into v_provider_ops
+ from (select 1) seed left join public.raye2_storage_monthly_usage m
+ on m.month_start=v_month and m.scope_key='provider:supabase';
+ select monthly_write_ops_limit into v_provider_limit
+ from public.raye2_storage_providers
+ where provider_key='supabase' and enabled=true and billing_mode='free_only'
+   and adapter_ready=true and zero_cost_verified=true;
+ if v_provider_limit is null or v_provider_ops+
+   (select count(*) from public.nhen_media_upload_reservations r
+    where r.provider_key='supabase' and r.created_at>=v_month::timestamptz)+1>v_provider_limit then
+   raise exception 'Supabase worker write budget reached; output rejected.' using errcode='53100';
+ end if;
+
+ insert into public.nhen_media_upload_reservations(
+   user_id,bucket_id,expected_bytes,expires_at,provider_key
+ ) values(p_owner_id,p_bucket,p_bytes,now()+interval '20 minutes','supabase')
+ returning id into v_id;
+ return v_id;
+end;
+$;
+revoke all on function public.reserve_raye2_worker_thumbnail_capacity(uuid,text,bigint) from public,anon,authenticated;
+grant execute on function public.reserve_raye2_worker_thumbnail_capacity(uuid,text,bigint) to service_role;
+
 notify pgrst,'reload schema';
