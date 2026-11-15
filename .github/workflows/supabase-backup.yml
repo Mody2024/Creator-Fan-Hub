@@ -26,28 +26,33 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-      - name: Check required owner configuration
+      - name: Check whether owner backup credentials are configured
+        id: configuration
         shell: bash
         run: |
           set -euo pipefail
-          for name in SUPABASE_DB_URL SUPABASE_SERVICE_ROLE_KEY AGE_RECIPIENT; do
-            if [[ -z "${!name}" ]]; then
-              echo "::error::Missing required GitHub Actions configuration: ${name}"
-              exit 1
-            fi
-          done
+          if [[ -n "$SUPABASE_DB_URL" && -n "$SUPABASE_SERVICE_ROLE_KEY" && -n "$AGE_RECIPIENT" ]]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Encrypted backups are waiting for owner configuration. No secrets are printed or required to build the application."
+          fi
       - name: Set up Node.js
+        if: steps.configuration.outputs.ready == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - name: Install locked dependencies
+        if: steps.configuration.outputs.ready == 'true'
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Install PostgreSQL client and age
+        if: steps.configuration.outputs.ready == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends postgresql-client age
       - name: Dump and encrypt PostgreSQL and every Storage bucket
+        if: steps.configuration.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -65,6 +70,7 @@ jobs:
           test -s "backup/raye2-storage-${GITHUB_RUN_ID}.tar.gz.age"
           echo "Encrypted database and Storage backups created. Plaintext working files will be removed."
       - name: Store encrypted backup for 14 days
+        if: steps.configuration.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: raye2-supabase-backup-${{ github.run_id }}
