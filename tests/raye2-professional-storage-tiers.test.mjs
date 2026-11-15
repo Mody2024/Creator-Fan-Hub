@@ -7,10 +7,10 @@ const quotaMigration = await readFile(new URL("../supabase/migrations/2026111519
 const roleMigration = await readFile(new URL("../supabase/migrations/20261110590000_raye2_creator_role_permissions.sql", import.meta.url), "utf8");
 
 test("storage tiers follow Creator, Streamer and combined roles without additive combined quotas", () => {
-  assert.match(migration, /'creator','storage_bytes',2147483648/);
+  assert.match(migration, /'creator','storage_bytes',21474836480/);
   assert.match(migration, /'streamer','storage_bytes',2147483648/);
-  assert.match(migration, /'combined','storage_bytes',3221225472/);
-  assert.match(migration, /else 104857600 end/);
+  assert.match(migration, /'combined','storage_bytes',32212254720/);
+  assert.match(migration, /else 1073741824 end/);
   assert.match(migration, /raye2_creator_tier\(v_user\)/);
   assert.match(roleMigration, /when 'owner' then 'combined'/);
   assert.match(roleMigration, /when 'admin' then 'combined'/);
@@ -20,7 +20,7 @@ test("the physical Supabase cap remains independent of a larger logical user all
   assert.match(migration, /v_quota bigint:=786432000/);
   assert.match(migration, /v_used\+v_reserved\+p_bytes>v_quota/);
   assert.match(migration, /Raye2 shared Supabase safety limit reached/);
-  assert.match(quotaMigration, /between 0 and 10737418240/);
+  assert.match(quotaMigration, /between 0 and 1099511627776/);
 });
 
 test("only free-only providers can be registered and new R2 is disabled", () => {
@@ -53,9 +53,9 @@ test("platform admins can set or reset user quotas with audit and a 10 GiB hard 
   const adminMigration = await readFile(new URL("../supabase/migrations/20261115195000_raye2_admin_storage_quota_controls.sql", import.meta.url), "utf8");
   assert.match(adminMigration, /raye2_admin_set_user_storage_quota/);
   assert.match(adminMigration, /public\.raye2_is_platform_admin\(\)/);
-  assert.match(adminMigration, /10737418240/);
+  assert.match(adminMigration, /1099511627776/);
   assert.match(adminMigration, /reset_to_role_default/);
   assert.match(adminMigration, /raye2_admin_audit_log/);
-  assert.match(adminMigration, /storage tier limit cannot exceed 10 GiB/);
+  assert.match(adminMigration, /storage tier limit cannot exceed 1 TiB/);
   assert.match(adminMigration, /grant execute on function public\.raye2_admin_set_user_storage_quota\(uuid,bigint,text\) to authenticated/);
 });
