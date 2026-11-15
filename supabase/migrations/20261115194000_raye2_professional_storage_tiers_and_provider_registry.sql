@@ -11,9 +11,9 @@ alter table public.raye2_role_quotas add constraint raye2_role_quotas_metric_che
   ));
 
 insert into public.raye2_role_quotas(tier,metric,limit_value,description) values
- ('creator','storage_bytes',2147483648,'Creator: 2 GiB personal media allowance, subject to shared provider capacity.'),
- ('streamer','storage_bytes',2147483648,'Streamer: 2 GiB personal media allowance, subject to shared provider capacity.'),
- ('combined','storage_bytes',3221225472,'Creator+Streamer: 3 GiB combined allowance, not additive.')
+ ('creator','storage_bytes',21474836480,'Creator: 20 GiB requested allowance, subject to shared provider capacity.'),
+ ('streamer','storage_bytes',21474836480,'Streamer: 20 GiB requested allowance, subject to shared provider capacity.'),
+ ('combined','storage_bytes',32212254720,'Creator+Streamer: 30 GiB combined requested allowance, not additive.')
 on conflict(tier,metric) do update
 set limit_value=excluded.limit_value,description=excluded.description,updated_at=now();
 
@@ -119,8 +119,8 @@ begin
  select coalesce(
    (select q.quota_bytes from public.raye2_user_storage_quota_overrides q where q.user_id=v_user),
    case when v_tier in ('creator','streamer','combined')
-     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),262144000)
-     else 104857600 end
+     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),21474836480)
+     else 1073741824 end
  ) into v_quota;
  select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$'
    then (o.metadata->>'size')::bigint else 0 end),0)
@@ -171,8 +171,8 @@ begin
  select coalesce(
    (select q.quota_bytes from public.raye2_user_storage_quota_overrides q where q.user_id=v_user),
    case when v_tier in ('creator','streamer','combined')
-     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),262144000)
-     else 104857600 end
+     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),21474836480)
+     else 1073741824 end
  ) into v_user_quota;
 
  select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$'
@@ -227,8 +227,8 @@ begin
  select coalesce(
    (select q.quota_bytes from public.raye2_user_storage_quota_overrides q where q.user_id=p_owner_id),
    case when v_tier in ('creator','streamer','combined')
-     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),262144000)
-     else 104857600 end
+     then coalesce(public.raye2_role_quota(v_tier,'storage_bytes'),21474836480)
+     else 1073741824 end
  ) into v_user_quota;
  select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$'
    then (o.metadata->>'size')::bigint else 0 end),0)
