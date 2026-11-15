@@ -42,6 +42,12 @@ test("Creator Media Library displays personal and shared storage capacity separa
   assert.match(library, /Monthly upload allowance/);
 });
 
+test("admin UI can apply or reset permanent per-account storage allowances", async () => {
+  const adminClient = await readFile(new URL("../src/app/creator/raye2/admin-client.tsx", import.meta.url), "utf8");
+  assert.match(adminClient, /raye2_admin_set_user_storage_quota/);
+  assert.match(adminClient, /saveStorageUserQuota\(true\)/);
+  assert.match(adminClient, /raye2_set_role_quota/);
+});
 test("media upload code does not expose provider credentials", () => {
   assert.doesNotMatch(upload, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(upload, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
