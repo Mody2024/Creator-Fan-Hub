@@ -294,7 +294,7 @@ begin
   values(auth.uid(),'role_quota_set','role_quota',p_tier||'.'||p_metric,p_limit::text,jsonb_build_object('tier',p_tier,'metric',p_metric,'limit',p_limit));
 end;
 $$;
-revoke all on function public.raye2_set_role_quota(text,text,integer) from public,anon;
-grant execute on function public.raye2_set_role_quota(text,text,integer) to authenticated;
+revoke all on function public.raye2_set_role_quota(text,text,bigint) from public,anon;
+grant execute on function public.raye2_set_role_quota(text,text,bigint) to authenticated;
 
 notify pgrst, 'reload schema';
