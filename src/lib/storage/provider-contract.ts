@@ -40,6 +40,7 @@ export type Raye2StorageProvider = {
   readonly capabilities: StorageProviderCapabilities;
   createSignedUpload(request: StorageUploadRequest): Promise<{ url: string; headers: Record<string, string> }>;
   createSignedDownload(object: StorageObjectIdentity, expiresInSeconds: number): Promise<string>;
+  getPublicUrl?(object: StorageObjectIdentity): string;
   headObject(object: StorageObjectIdentity): Promise<StorageObjectMetadata | null>;
   copyObject(source: StorageObjectIdentity, destination: StorageObjectIdentity): Promise<StorageObjectMetadata>;
   deleteObject(object: StorageObjectIdentity): Promise<void>;
