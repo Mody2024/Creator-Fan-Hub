@@ -1041,3 +1041,21 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .raye2-detail-series-body strong{font-size:14px;letter-spacing:-.02em}
 .raye2-detail-series-body small{color:#a2afc1;font-size:10px}
 .raye2-detail-series-body a:last-child{color:#78adff;font-size:11px;font-weight:800}
+
+/* Raye2 Smart Advertising Director: creator panel + viewer-facing labelled placements */
+.raye2-ad-director{margin-top:16px;padding:19px;border:1px solid rgba(220,232,248,.1);border-radius:13px;background:linear-gradient(145deg,#111b29,#0e1520);display:flex;flex-direction:column;gap:12px}
+.raye2-ad-director h2{margin:0;font-size:15px}
+.raye2-ad-director h3{margin:6px 0 0;font-size:13px}
+.raye2-ad-director label{display:flex;flex-direction:column;gap:6px;font-size:12px}
+.raye2-ad-director select{padding:9px 11px;border-radius:9px;border:1px solid rgba(220,232,248,.14);background:#0e1520;color:inherit}
+.raye2-ad-director-actions{display:flex;gap:10px;flex-wrap:wrap}
+.raye2-ad-breakpoints,.raye2-ad-plan{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.raye2-ad-breakpoints li,.raye2-ad-plan li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:9px;background:rgba(255,255,255,.03);font-size:12px}
+.raye2-ad-breakpoints li.is-excluded{opacity:.55;text-decoration:line-through}
+.raye2-ad-plan-at{font-variant-numeric:tabular-nums;font-weight:600}
+.raye2-ad-plan-src{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#8ea6c4}
+.raye2-detail-sponsored{margin-top:16px;padding:19px;border:1px solid rgba(220,232,248,.1);border-radius:13px;background:linear-gradient(145deg,#111b29,#0e1520)}
+.raye2-detail-sponsored-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.raye2-detail-sponsored-list li{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px}
+.raye2-detail-sponsored-at{font-variant-numeric:tabular-nums;font-weight:600}
+.raye2-detail-sponsored-label{font-size:11px;letter-spacing:.03em;color:#cfe0f5}
