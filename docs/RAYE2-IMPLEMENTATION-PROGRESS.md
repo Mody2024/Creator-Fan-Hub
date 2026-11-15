@@ -2844,6 +2844,26 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** Wave 1 brand/theme **~78% to ~90%**.
 
 ---
+
+## 2026-11-10 — Profile identity depth + connection block fix (mega-batch, plan 2.1)
+- [x] **Gap closed:** plan 2.1 requires profile identity to cover avatar, cover, display name, handle, bio,
+  links, interests and privacy. The editor only handled display name, bio and one website; the cover was
+  decorative only; links and interests did not exist.
+- [x] **New migration** `20261110970000_raye2_profile_identity_depth.sql`: adds `cover_url`, `links` (<=6, http(s)
+  only) and `interests` (<=8) with checked constraints; `raye2_update_my_profile` validates every field
+  server-side and is owner-only by construction; `raye2_get_my_profile_editor` prefills the editor; the profile
+  overview RPC returns the new fields behind the same visibility/block gate.
+- [x] **Real bug fixed:** `raye2_get_member_connections` compared the profile owner against itself in its
+  block-exclusion clause, so a blocked member could still surface in a follower/following list. It now excludes
+  members blocked by, or blocking, the viewer.
+- [x] **UI:** the profile editor gains cover, links and interests inputs (with a client-side parse that mirrors
+  the server limits); the profile renders the cover image, link pills and interest chips, EN + AR.
+- [x] **Guarded:** a new test covers the identity fields, server validation, the block-exclusion fix and the
+  overview gate; a validator assertion covers the migration.
+- [x] Gates: validator 423 assertions; tests 836/836; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 2 accounts/identity **~72% to ~80%**.
+
+---
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. The single "full ten-wave" figure used earlier drifted out of step with the per-wave figures; this table is the single source of truth and is reported on every batch.

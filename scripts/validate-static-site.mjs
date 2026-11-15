@@ -754,6 +754,9 @@ for (const file of cssFiles) {
 check("all stylesheets use the single black/grey/blue Raye2 palette with no stray colors", strayColors.length === 0);
 check("Raye2 ships one theme with no light/dark switching", themeSwitchRefs === 0);
 
+const profileIdentityMigration = await read("../supabase/migrations/20261110970000_raye2_profile_identity_depth.sql");
+check("profile identity depth adds cover/links/interests and fixes connection block exclusion", profileIdentityMigration.includes("raye2_update_my_profile") && profileIdentityMigration.includes("add column if not exists cover_url") && profileIdentityMigration.includes("add column if not exists interests") && profileIdentityMigration.includes("(b.blocker_id = v_me and b.blocked_id = p.user_id)") && !profileIdentityMigration.includes("b.blocker_id = p_user_id and b.blocked_id = p_user_id") && profileIdentityMigration.includes("set search_path=''"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
