@@ -834,6 +834,25 @@ check("media library surfaces the personal monthly allowance with reset date", m
 const adminClientSource = await read("../src/app/creator/raye2/admin-client.tsx");
 check("admin storage fabric tab loads and mutates allowances, providers and ceiling", adminClientSource.includes('supabase.rpc("raye2_storage_admin_overview")') && adminClientSource.includes('supabase.rpc("raye2_set_storage_allowance"') && adminClientSource.includes('supabase.rpc("raye2_set_storage_provider"') && adminClientSource.includes('supabase.rpc("raye2_set_storage_ceiling"'));
 
+const storagePoolingMigration = await read("../supabase/migrations/20261116130000_raye2_storage_pooling_dedup_and_multipart.sql");
+check("provider pooling allows many instances of one provider kind", storagePoolingMigration.includes("add column if not exists provider_kind text") && storagePoolingMigration.includes("drop constraint if exists raye2_storage_providers_provider_id_check") && storagePoolingMigration.includes("raye2_storage_providers_kind_check") && storagePoolingMigration.includes("raye2_storage_providers_instance_check"));
+check("content-addressed dedup keys blobs by sha256 with a refcount", storagePoolingMigration.includes("create table if not exists public.raye2_storage_blobs") && storagePoolingMigration.includes("ref_count") && storagePoolingMigration.includes("raye2_storage_object_replicas"));
+check("dedup registration charges zero bytes on a hit and locks the digest", storagePoolingMigration.includes("raye2_register_storage_object") && storagePoolingMigration.includes("raye2-storage-blob:") && storagePoolingMigration.includes("v_dedup := true") && storagePoolingMigration.includes("v_charged := v_object.size_bytes"));
+check("dedup registration and release are service-role only", storagePoolingMigration.includes("revoke all on function public.raye2_register_storage_object(uuid,text,text) from public, anon, authenticated") && storagePoolingMigration.includes("revoke all on function public.raye2_release_storage_blob(text,text) from public, anon, authenticated"));
+check("multipart reservations may exceed the single-shot cap", storagePoolingMigration.includes("raye2_storage_reservations_expected_bytes_check") && storagePoolingMigration.includes("between 1 and 107374182400"));
+check("capacity summary and ceiling sync aggregate verified pooled capacity", storagePoolingMigration.includes("raye2_storage_capacity_summary") && storagePoolingMigration.includes("raye2_sync_platform_ceiling") && storagePoolingMigration.includes("platform_ceiling_cap_bytes") && storagePoolingMigration.includes("capacity_verified_at is not null"));
+
+const providerPolicySource = await read("../src/lib/storage/provider-policy.mjs");
+check("router selects the least-full pooled instance and summarizes the pool", providerPolicySource.includes("providerKind") && providerPolicySource.includes("summarizeProviderPool") && providerPolicySource.includes("instances.sort") && providerPolicySource.includes("verifiedCapacityBytes"));
+
+const s3AdapterSource = await read("../src/lib/storage/s3-compatible-provider.mjs");
+check("S3 adapter supports multipart uploads and pooled instances", s3AdapterSource.includes("createMultipartUpload") && s3AdapterSource.includes("signUploadPart") && s3AdapterSource.includes("completeMultipartUpload") && s3AdapterSource.includes("abortMultipartUpload") && s3AdapterSource.includes("multipartUploads: true") && s3AdapterSource.includes("configuredInstancePrefixes"));
+
+const dedupLogic = await read("../src/lib/storage/dedup.mjs");
+const dedupTests = await read("../tests/storage-dedup.test.mjs");
+check("dedup module plans hits, savings and last-reference reclaim", dedupLogic.includes("planDedup") && dedupLogic.includes("summarizeDedupSavings") && dedupLogic.includes("planBlobRelease"));
+check("dedup tests cover first store, hit, savings ratio and release", dedupTests.includes("a repeated digest is deduplicated") && dedupTests.includes("dedup savings report logical vs physical") && dedupTests.includes("the last reference to a blob may reclaim"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

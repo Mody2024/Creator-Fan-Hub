@@ -4,6 +4,7 @@ import {
   assertUserQuotaAvailable,
   buildStorageReservationKey,
   selectStorageProvider,
+  summarizeProviderPool,
   StorageCapacityError,
 } from "../src/lib/storage/provider-policy.mjs";
 
@@ -78,4 +79,48 @@ test("unknown or malformed capacity never becomes free headroom", () => {
     () => selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 1, providers: malformed }),
     StorageCapacityError,
   );
+});
+
+test("several pooled instances of one provider kind are routed to the least-full instance", () => {
+  const pooled = [
+    { provider: "raye2_r2_1", providerKind: "cloudflare_r2", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 10_000, usedBytes: 9_500, reservedBytes: 0, safetyReserveBytes: 0, bucketByVisibility: { public: "raye2-public" } },
+    { provider: "raye2_r2_2", providerKind: "cloudflare_r2", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 10_000, usedBytes: 1_000, reservedBytes: 0, safetyReserveBytes: 0, bucketByVisibility: { public: "raye2-public" } },
+    { provider: "supabase", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 5_000, usedBytes: 0, reservedBytes: 0, safetyReserveBytes: 0 },
+  ];
+  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 5_000, providers: pooled });
+  assert.equal(selected.provider, "raye2_r2_2");
+  assert.equal(selected.providerKind, "cloudflare_r2");
+});
+
+test("a full provider kind fails over to the next kind across pooled instances", () => {
+  const pooled = [
+    { provider: "raye2_r2_1", providerKind: "cloudflare_r2", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 10_000, usedBytes: 9_999, reservedBytes: 0, safetyReserveBytes: 0, bucketByVisibility: { public: "raye2-public" } },
+    { provider: "raye2_b2_1", providerKind: "backblaze_b2", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 10_000, usedBytes: 0, reservedBytes: 0, safetyReserveBytes: 0, bucketByVisibility: { public: "raye2-public-b2" } },
+  ];
+  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 5_000, providers: pooled });
+  assert.equal(selected.provider, "raye2_b2_1");
+});
+
+test("an explicit preferred instance wins when it has room", () => {
+  const pooled = [
+    { provider: "raye2_r2_1", providerKind: "cloudflare_r2", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 10_000, usedBytes: 8_000, reservedBytes: 0, safetyReserveBytes: 0, bucketByVisibility: { public: "raye2-public" } },
+    { provider: "raye2_r2_2", providerKind: "cloudflare_r2", enabled: true, health: "healthy", capacityVerified: true, capacityBytes: 10_000, usedBytes: 1_000, reservedBytes: 0, safetyReserveBytes: 0, bucketByVisibility: { public: "raye2-public" } },
+  ];
+  const selected = selectStorageProvider({ assetClass: "video", visibility: "public", expectedBytes: 1_000, providers: pooled, preferredProvider: "raye2_r2_1" });
+  assert.equal(selected.provider, "raye2_r2_1");
+});
+
+test("pool summary aggregates verified capacity and subtracts used and reserved bytes", () => {
+  const summary = summarizeProviderPool([
+    { provider: "raye2_r2_1", providerKind: "cloudflare_r2", enabled: true, capacityVerified: true, capacityBytes: 10_000, usedBytes: 2_000, reservedBytes: 500 },
+    { provider: "raye2_b2_1", providerKind: "backblaze_b2", enabled: true, capacityVerified: true, capacityBytes: 20_000, usedBytes: 1_000, reservedBytes: 0 },
+    { provider: "raye2_r2_2", providerKind: "cloudflare_r2", enabled: false, capacityVerified: true, capacityBytes: 99_000, usedBytes: 0, reservedBytes: 0 },
+    { provider: "raye2_b2_2", providerKind: "backblaze_b2", enabled: true, capacityVerified: false, capacityBytes: 50_000, usedBytes: 0, reservedBytes: 0 },
+  ]);
+  assert.equal(summary.enabledCount, 3);
+  assert.equal(summary.verifiedCount, 2);
+  assert.equal(summary.verifiedCapacityBytes, 30_000);
+  assert.equal(summary.capacityBytes, 80_000);
+  assert.equal(summary.usedBytes, 3_000);
+  assert.equal(summary.availableBytes, 26_500);
 });

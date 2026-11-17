@@ -3268,6 +3268,34 @@ One regression-test file was briefly created on the default `main` branch becaus
 - **Progress:** no feature delta this round; all ten waves unchanged. Overall **~93%**.
 
 ---
+---
+## Batch — 2026-11-10 (Batch 1): Storage pooling, dedup, multipart and capacity sync (development only)
+
+**Goal:** make Raye2 storage professional and larger without farming free tiers — add capacity by
+pooling providers we own, remove duplicate bytes, support large uploads, and derive the real ceiling
+from verified pooled capacity. Additive; `main`/production unchanged.
+
+- **Provider pooling.** `raye2_storage_providers.provider_id` is no longer a fixed 3-value enum; a new
+  `provider_kind` drives routing so several instances of one kind can be pooled (e.g. `raye2_r2_1`,
+  `raye2_r2_2`, `raye2_b2_1`). The router selects the least-full healthy, capacity-verified instance of
+  the preferred kind and fails over across kinds. Env discovery supports `RAYE2_R2_*`/`RAYE2_B2_*` plus
+  suffixed pools.
+- **Content-addressed dedup.** New `raye2_storage_blobs` (keyed by lowercase sha256 with a refcount) and
+  `raye2_storage_object_replicas` (one logical object, many physical replicas). `raye2_register_storage_object`
+  holds a per-digest advisory lock and charges zero new bytes on a hit; `raye2_release_storage_blob` decrements
+  refs. Pure planner in `src/lib/storage/dedup.mjs`.
+- **Multipart uploads.** The S3 adapter now exposes `createMultipartUpload`, `signUploadPart`,
+  `completeMultipartUpload` and `abortMultipartUpload` with real signed payloads, and advertises
+  `multipartUploads`/`resumableUploads`/`sha256Verification`. Reservation ceiling widened to 100 GiB so
+  parts may exceed the single-shot 50 MiB cap; per-file policy still fails closed at the allowance layer.
+- **Capacity sync.** `raye2_storage_capacity_summary` aggregates enabled providers and
+  `raye2_sync_platform_ceiling` raises the platform ceiling to pooled verified capacity, never below bytes
+  already used, capped by an owner `platform_ceiling_cap_bytes`. `summarizeProviderPool` mirrors it in the UI.
+- **Tests:** +2 S3 adapter tests (pooled ids, multipart), +4 router/pool tests, +6 dedup tests. Validator 463 assertions.
+- Gates: validator 463 assertions; tests 934/934; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet wired:** the chunked upload UI still uses the single-shot path, so per-file policy stays at 50 MiB until
+  Batch 2. Transcoding ladder and BYOS connectors are later batches.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3278,7 +3306,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~96% |
-| 4 | Creator Studio, exclusives and live streaming | ~92% |
+| 4 | Creator Studio, exclusives and live streaming | ~94% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~88% |

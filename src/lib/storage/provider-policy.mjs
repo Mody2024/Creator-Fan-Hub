@@ -34,6 +34,10 @@ function safeRemaining(provider) {
   return hardRemaining;
 }
 
+function providerKind(provider) {
+  return typeof provider.providerKind === "string" && provider.providerKind ? provider.providerKind : provider.provider;
+}
+
 export function selectStorageProvider({
   assetClass,
   visibility = "private",
@@ -62,27 +66,87 @@ export function selectStorageProvider({
     : assetClass === "voice_recording" ? "voice_recording"
     : "private_asset";
   const order = PROVIDER_ORDER[routeClass];
-  const byName = new Map(providers.map(provider => [provider.provider, provider]));
   const excluded = new Set(excludedProviders);
-  const candidates = [
-    ...(preferredProvider ? [preferredProvider] : []),
-    ...order,
-  ].filter((name, index, all) => all.indexOf(name) === index && !excluded.has(name));
+  const usable = provider => provider && provider.enabled === true && provider.health === "healthy"
+    && provider.capacityVerified === true && !excluded.has(provider.provider);
+
+  // Group instances by kind so several pooled instances of the same provider can be routed.
+  const byKind = new Map();
+  for (const provider of providers) {
+    const kind = providerKind(provider);
+    if (!byKind.has(kind)) byKind.set(kind, []);
+    byKind.get(kind).push(provider);
+  }
+
   const attemptedProviders = [];
-  for (const name of candidates) {
-    const provider = byName.get(name);
-    if (!provider || provider.enabled !== true || provider.health !== "healthy" || provider.capacityVerified !== true) continue;
-    attemptedProviders.push(name);
+  const considerInstance = provider => {
+    attemptedProviders.push(provider.provider);
     const remaining = safeRemaining(provider);
-    if (remaining !== null && remaining >= expectedBytes) {
-      return {
-        provider: name,
-        bucket: provider.bucketByVisibility?.[visibility] ?? provider.defaultBucket ?? null,
-        safeRemainingBytes: remaining,
-      };
+    if (remaining === null || remaining < expectedBytes) return null;
+    return {
+      provider: provider.provider,
+      providerKind: providerKind(provider),
+      bucket: provider.bucketByVisibility?.[visibility] ?? provider.defaultBucket ?? null,
+      safeRemainingBytes: remaining,
+    };
+  };
+
+  // An explicit preferred instance (any kind) is tried first, e.g. to keep a user's data on one pool.
+  if (preferredProvider) {
+    const preferred = providers.find(provider => provider.provider === preferredProvider);
+    if (usable(preferred)) {
+      const chosen = considerInstance(preferred);
+      if (chosen) return chosen;
+    }
+  }
+
+  const kinds = [...order, ...[...byKind.keys()].filter(kind => !order.includes(kind))];
+  for (const kind of kinds) {
+    if (excluded.has(kind)) continue;
+    const instances = (byKind.get(kind) || []).filter(usable);
+    // Within one provider kind, prefer the least-full instance that still has room.
+    instances.sort((a, b) => (safeRemaining(b) ?? -1) - (safeRemaining(a) ?? -1));
+    for (const instance of instances) {
+      const chosen = considerInstance(instance);
+      if (chosen) return chosen;
     }
   }
   throw new StorageCapacityError(assetClass, attemptedProviders);
+}
+
+/** Aggregate pooled capacity across enabled providers, mirroring raye2_storage_capacity_summary. */
+export function summarizeProviderPool(providers, { includeUnverified = false } = {}) {
+  if (!Array.isArray(providers)) throw new TypeError("providers must be an array.");
+  let capacityBytes = 0;
+  let usedBytes = 0;
+  let reservedBytes = 0;
+  let verifiedCapacityBytes = 0;
+  let enabledCount = 0;
+  let verifiedCount = 0;
+  for (const provider of providers) {
+    if (!provider || provider.enabled !== true) continue;
+    enabledCount += 1;
+    const capacity = Number.isSafeInteger(provider.capacityBytes) ? provider.capacityBytes : 0;
+    const used = Number.isSafeInteger(provider.usedBytes) ? provider.usedBytes : 0;
+    const reserved = Number.isSafeInteger(provider.reservedBytes) ? provider.reservedBytes : 0;
+    capacityBytes += capacity;
+    usedBytes += used;
+    reservedBytes += reserved;
+    if (provider.capacityVerified === true) {
+      verifiedCount += 1;
+      verifiedCapacityBytes += capacity;
+    }
+  }
+  const effectiveCapacityBytes = includeUnverified ? capacityBytes : verifiedCapacityBytes;
+  return {
+    enabledCount,
+    verifiedCount,
+    capacityBytes,
+    verifiedCapacityBytes,
+    usedBytes,
+    reservedBytes,
+    availableBytes: Math.max(0, effectiveCapacityBytes - usedBytes - reservedBytes),
+  };
 }
 
 export function assertUserQuotaAvailable({ usedBytes, reservedBytes, quotaBytes, expectedBytes }) {

@@ -62,9 +62,9 @@ function buildObjectUrl(config, object) {
   return url;
 }
 
-function authorizationHeaders(config, method, url, extraHeaders = {}, now = new Date()) {
+function authorizationHeaders(config, method, url, extraHeaders = {}, now = new Date(), body = "") {
   const { amzDate, shortDate } = timestampParts(now);
-  const payloadHash = "UNSIGNED-PAYLOAD";
+  const payloadHash = body ? sha256(body) : "UNSIGNED-PAYLOAD";
   const headers = {
     host: url.host,
     "x-amz-content-sha256": payloadHash,
@@ -97,11 +97,14 @@ function authorizationHeaders(config, method, url, extraHeaders = {}, now = new 
   };
 }
 
-function presign(config, method, object, expiresInSeconds, requiredHeaders = {}, now = new Date()) {
+function presign(config, method, object, expiresInSeconds, requiredHeaders = {}, now = new Date(), extraQuery = {}) {
   if (!Number.isInteger(expiresInSeconds) || expiresInSeconds < 1 || expiresInSeconds > MAX_PRESIGN_SECONDS) {
     throw new TypeError("Signed URL expiry must be between 1 second and 7 days.");
   }
   const url = buildObjectUrl(config, object);
+  for (const [name, value] of Object.entries(extraQuery)) {
+    url.searchParams.set(name, String(value));
+  }
   const { amzDate, shortDate } = timestampParts(now);
   const scope = shortDate + "/" + config.region + "/" + SERVICE + "/aws4_request";
   const signedNames = ["host", ...Object.keys(requiredHeaders).map(name => name.toLowerCase())].sort();
@@ -113,6 +116,9 @@ function presign(config, method, object, expiresInSeconds, requiredHeaders = {},
     "X-Amz-Expires": String(expiresInSeconds),
     "X-Amz-SignedHeaders": signedHeaders,
   });
+  for (const [name, value] of Object.entries(extraQuery)) {
+    parameters.set(name, String(value));
+  }
   url.search = canonicalQuery(parameters);
   const canonicalHeaders = signedNames.map(name => {
     const value = name === "host" ? url.host : requiredHeaders[name];
@@ -132,17 +138,16 @@ function presign(config, method, object, expiresInSeconds, requiredHeaders = {},
   return url;
 }
 
-function readConfig(providerId, env = process.env) {
-  const prefix = providerId === "cloudflare_r2" ? "RAYE2_R2" : "RAYE2_B2";
+function readConfig(prefix, env = process.env) {
   const accountId = env[prefix + "_ACCOUNT_ID"];
   const endpoint = env[prefix + "_ENDPOINT"] || (
-    providerId === "cloudflare_r2" && accountId
+    prefix.startsWith("RAYE2_R2") && accountId
       ? "https://" + accountId + ".r2.cloudflarestorage.com"
       : ""
   );
   const accessKeyId = env[prefix + "_ACCESS_KEY_ID"];
   const secretAccessKey = env[prefix + "_SECRET_ACCESS_KEY"];
-  const region = env[prefix + "_REGION"] || (providerId === "cloudflare_r2" ? "auto" : "us-west-004");
+  const region = env[prefix + "_REGION"] || (prefix.startsWith("RAYE2_R2") ? "auto" : "us-west-004");
   const publicBucket = env[prefix + "_PUBLIC_BUCKET"] || "";
   const privateBucket = env[prefix + "_PRIVATE_BUCKET"] || "";
   const publicBaseUrl = env[prefix + "_PUBLIC_BASE_URL"] || "";
@@ -162,6 +167,25 @@ function readConfig(providerId, env = process.env) {
   return { endpoint: parsed.origin, accessKeyId, secretAccessKey, region, publicBucket, privateBucket, publicBaseUrl: normalizedPublicBaseUrl };
 }
 
+// Discover every configured S3-compatible instance. RAYE2_R2_* and RAYE2_B2_* define the base
+// instances; additional pools use a suffix (e.g. RAYE2_R2_2_ACCESS_KEY_ID -> instance raye2_r2_2).
+function configuredInstancePrefixes(env = process.env) {
+  const prefixes = new Set();
+  for (const key of Object.keys(env)) {
+    const match = /^(RAYE2_(?:R2|B2)(?:_[A-Za-z0-9]+)?)_ACCESS_KEY_ID$/.exec(key);
+    if (match) prefixes.add(match[1]);
+  }
+  return [...prefixes].sort();
+}
+
+function instanceIdFor(prefix) {
+  return prefix.toLowerCase().replace(/^raye2_/, "").replace(/^r2/, "cloudflare_r2").replace(/^b2/, "backblaze_b2");
+}
+
+function kindFor(prefix) {
+  return prefix.startsWith("RAYE2_R2") ? "cloudflare_r2" : "backblaze_b2";
+}
+
 function responseError(response, providerId) {
   return response.text().then(body => {
     const safeBody = body.slice(0, 500);
@@ -170,8 +194,8 @@ function responseError(response, providerId) {
 }
 
 export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch) {
-  if (!["cloudflare_r2", "backblaze_b2"].includes(providerId)) {
-    throw new TypeError("Only R2 and B2 S3-compatible providers are supported here.");
+  if (typeof providerId !== "string" || !/^[a-z0-9][a-z0-9_-]{1,62}$/.test(providerId)) {
+    throw new TypeError("A valid provider instance id is required.");
   }
   if (!config || typeof config !== "object" || !config.endpoint || !config.accessKeyId ||
       !config.secretAccessKey || !config.region) {
@@ -190,36 +214,101 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
     return visibility === "public" ? config.publicBucket : config.privateBucket;
   };
   const capabilities = Object.freeze({
-    resumableUploads: false,
-    multipartUploads: false,
+    resumableUploads: true,
+    multipartUploads: true,
     signedDownloads: true,
     serverSideCopy: true,
-    sha256Verification: false,
+    sha256Verification: true,
     publicDelivery: Boolean(config.publicBaseUrl),
   });
 
-  async function request(method, object, extraHeaders = {}) {
+  async function request(method, object, extraHeaders = {}, extraQuery = {}, body = "") {
     const url = buildObjectUrl(config, object);
-    const headers = authorizationHeaders(config, method, url, extraHeaders);
-    const response = await fetchImpl(url, { method, headers, redirect: "error" });
+    for (const [name, value] of Object.entries(extraQuery)) {
+      url.searchParams.set(name, String(value));
+    }
+    const headers = authorizationHeaders(config, method, url, extraHeaders, new Date(), body);
+    const response = await fetchImpl(url, { method, headers, body: body || undefined, redirect: "error" });
     if (!response.ok && response.status !== 404) await responseError(response, providerId);
     return response;
   }
+
+  const normalizeUploadId = value => {
+    if (typeof value !== "string" || value.length < 1 || value.length > 1024 || /[\u0000-\u001f\u007f]/.test(value)) {
+      throw new TypeError("Multipart upload id is invalid.");
+    }
+    return value;
+  };
+  const normalizePartNumber = value => {
+    if (!Number.isInteger(value) || value < 1 || value > 10000) {
+      throw new TypeError("Multipart part number must be between 1 and 10000.");
+    }
+    return value;
+  };
+  const normalizeUploadRequest = requestOptions => {
+    if (!requestOptions || !Number.isSafeInteger(requestOptions.expectedBytes) ||
+        requestOptions.expectedBytes < 1 || typeof requestOptions.contentType !== "string" ||
+        requestOptions.contentType.length < 3 || requestOptions.contentType.length > 128) {
+      throw new TypeError("Upload size and content type must be valid.");
+    }
+    const bucket = requestOptions.bucket || bucketFor(requestOptions.visibility);
+    normalizeBucket(bucket);
+    return bucket;
+  };
 
   return Object.freeze({
     id: providerId,
     capabilities,
     async createSignedUpload(requestOptions) {
-      if (!requestOptions || !Number.isSafeInteger(requestOptions.expectedBytes) ||
-          requestOptions.expectedBytes < 1 || typeof requestOptions.contentType !== "string" ||
-          requestOptions.contentType.length < 3 || requestOptions.contentType.length > 128) {
-        throw new TypeError("Upload size and content type must be valid.");
-      }
-      const bucket = requestOptions.bucket || bucketFor(requestOptions.visibility);
-      normalizeBucket(bucket);
+      const bucket = normalizeUploadRequest(requestOptions);
       const headers = { "content-type": requestOptions.contentType };
       const url = presign(config, "PUT", { bucket, key: requestOptions.key }, requestOptions.expiresInSeconds, headers);
       return { url: url.toString(), headers };
+    },
+    // Begin an S3 multipart upload. Small files still use createSignedUpload.
+    async createMultipartUpload(requestOptions) {
+      const bucket = normalizeUploadRequest(requestOptions);
+      const response = await request("POST", { bucket, key: requestOptions.key }, { "content-type": requestOptions.contentType }, { uploads: "" });
+      const body = await response.text();
+      const match = /<UploadId>([^<]+)<\/UploadId>/.exec(body);
+      if (!match) throw new Error(providerId + " did not return a multipart upload id.");
+      return { uploadId: normalizeUploadId(match[1]), bucket, key: requestOptions.key };
+    },
+    async signUploadPart({ bucket, key, uploadId, partNumber, expiresInSeconds }) {
+      normalizeBucket(bucket);
+      const id = normalizeUploadId(uploadId);
+      const part = normalizePartNumber(partNumber);
+      const url = presign(config, "PUT", { bucket, key }, expiresInSeconds, {}, new Date(), {
+        partNumber: String(part),
+        uploadId: id,
+      });
+      return url.toString();
+    },
+    // Complete the multipart upload with the collected ETags.
+    async completeMultipartUpload({ bucket, key, uploadId, parts }) {
+      normalizeBucket(bucket);
+      const id = normalizeUploadId(uploadId);
+      if (!Array.isArray(parts) || parts.length < 1 || parts.length > 10000) {
+        throw new TypeError("Multipart completion requires between 1 and 10000 parts.");
+      }
+      const ordered = parts
+        .map(part => ({ partNumber: normalizePartNumber(part.partNumber), etag: String(part.etag || "").replace(/"/g, "") }))
+        .sort((a, b) => a.partNumber - b.partNumber);
+      if (ordered.some(part => !part.etag || /[\u0000-\u001f\u007f<>&]/.test(part.etag))) {
+        throw new TypeError("Multipart part ETags are invalid.");
+      }
+      const body = "<CompleteMultipartUpload>" + ordered
+        .map(part => "<Part><PartNumber>" + part.partNumber + "</PartNumber><ETag>\"" + part.etag + "\"</ETag></Part>")
+        .join("") + "</CompleteMultipartUpload>";
+      const response = await request("POST", { bucket, key }, { "content-type": "application/xml" }, { uploadId: id }, body);
+      if (!response.ok) await responseError(response, providerId);
+      return { bucket, key, partCount: ordered.length, body };
+    },
+    async abortMultipartUpload({ bucket, key, uploadId }) {
+      normalizeBucket(bucket);
+      const id = normalizeUploadId(uploadId);
+      const response = await request("DELETE", { bucket, key }, {}, { uploadId: id });
+      if (!response.ok && response.status !== 404) await responseError(response, providerId);
     },
     async createSignedDownload(object, expiresInSeconds) {
       return presign(config, "GET", object, expiresInSeconds).toString();
@@ -262,9 +351,11 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
 
 export function createConfiguredStorageProviders(env = process.env, fetchImpl = fetch) {
   const providers = [];
-  for (const providerId of ["cloudflare_r2", "backblaze_b2"]) {
-    const config = readConfig(providerId, env);
-    if (config) providers.push(createS3CompatibleProvider(providerId, config, fetchImpl));
+  for (const prefix of configuredInstancePrefixes(env)) {
+    const config = readConfig(prefix, env);
+    if (!config) continue;
+    const provider = createS3CompatibleProvider(instanceIdFor(prefix), config, fetchImpl);
+    providers.push({ ...provider, providerKind: kindFor(prefix) });
   }
   return providers;
 }

@@ -37,10 +37,50 @@ test("signed download URLs use GET and enforce expiry limits", async () => {
   await assert.rejects(() => provider.createSignedDownload({ bucket: config.privateBucket, key: "a" }, 604801), /expiry/);
 });
 
-test("rejects unsafe object keys and unsupported providers", async () => {
+test("rejects unsafe object keys and invalid provider instance ids", async () => {
   const provider = createS3CompatibleProvider("cloudflare_r2", config);
   await assert.rejects(() => provider.createSignedDownload({ bucket: config.privateBucket, key: "../secret" }, 60), /key is invalid/);
-  assert.throws(() => createS3CompatibleProvider("supabase", config), /Only R2 and B2/);
+  assert.throws(() => createS3CompatibleProvider("Bad Id", config), /valid provider instance id/);
+  assert.throws(() => createS3CompatibleProvider("", config), /valid provider instance id/);
+});
+
+test("pooled provider instances keep independent ids and advertise multipart", () => {
+  const first = createS3CompatibleProvider("raye2_r2_1", config);
+  const second = createS3CompatibleProvider("raye2_r2_2", config);
+  assert.equal(first.id, "raye2_r2_1");
+  assert.equal(second.id, "raye2_r2_2");
+  assert.equal(first.capabilities.multipartUploads, true);
+  assert.equal(first.capabilities.resumableUploads, true);
+});
+
+test("multipart upload initiates, presigns parts, completes and aborts", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options) => {
+    calls.push({ url: url.toString(), method: options.method, body: options.body });
+    if (options.method === "POST" && url.searchParams.get("uploads") === "") {
+      return new Response("<InitiateMultipartUploadResult><UploadId>upload-abc</UploadId></InitiateMultipartUploadResult>", { status: 200 });
+    }
+    if (options.method === "POST" && url.searchParams.get("uploadId") === "upload-abc") {
+      return new Response("<CompleteMultipartUploadResult/>", { status: 200 });
+    }
+    return new Response(null, { status: 200 });
+  };
+  const provider = createS3CompatibleProvider("raye2_r2_1", config, fetchImpl);
+  const started = await provider.createMultipartUpload({ bucket: config.publicBucket, key: "user/big.mp4", contentType: "video/mp4", expectedBytes: 90_000_000, visibility: "public", expiresInSeconds: 600 });
+  assert.equal(started.uploadId, "upload-abc");
+  const partUrl = new URL(await provider.signUploadPart({ bucket: config.publicBucket, key: "user/big.mp4", uploadId: started.uploadId, partNumber: 2, expiresInSeconds: 600 }));
+  assert.equal(partUrl.searchParams.get("partNumber"), "2");
+  assert.equal(partUrl.searchParams.get("uploadId"), "upload-abc");
+  assert.equal(partUrl.searchParams.has("X-Amz-Signature"), true);
+  const completed = await provider.completeMultipartUpload({ bucket: config.publicBucket, key: "user/big.mp4", uploadId: started.uploadId, parts: [{ partNumber: 2, etag: '"etag-2"' }, { partNumber: 1, etag: '"etag-1"' }] });
+  assert.equal(completed.partCount, 2);
+  assert.match(completed.body, /<PartNumber>1<\/PartNumber><ETag>"etag-1"<\/ETag>/);
+  assert.match(completed.body, /<PartNumber>2<\/PartNumber><ETag>"etag-2"<\/ETag>/);
+  const completionCall = calls.find(call => call.method === "POST" && call.body);
+  assert.match(String(completionCall.body), /<CompleteMultipartUpload>/);
+  await provider.abortMultipartUpload({ bucket: config.publicBucket, key: "user/big.mp4", uploadId: started.uploadId });
+  await assert.rejects(() => provider.signUploadPart({ bucket: config.publicBucket, key: "user/big.mp4", uploadId: "u", partNumber: 0, expiresInSeconds: 600 }), /part number/);
+  await assert.rejects(() => provider.completeMultipartUpload({ bucket: config.publicBucket, key: "user/big.mp4", uploadId: "u", parts: [] }), /between 1 and 10000/);
 });
 
 test("HEAD verifies metadata and returns null for a missing object", async () => {
