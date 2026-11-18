@@ -44,7 +44,8 @@ export async function POST() {
     return {
       provider_id: provider.id,
       provider_kind: kind,
-      enabled: true,
+      // Discovery must never activate a provider; an administrator verifies and enables it separately.
+      enabled: false,
       priority: DEFAULT_PRIORITY[kind] ?? 100,
       health: "unverified",
       capacity_bytes: DEFAULT_CAPACITY_BYTES,
