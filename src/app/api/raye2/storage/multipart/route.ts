@@ -36,6 +36,7 @@ type Adapter = {
   signUploadPart: (input: { bucket: string; key: string; uploadId: string; partNumber: number; expiresInSeconds: number }) => Promise<string>;
   completeMultipartUpload: (input: { bucket: string; key: string; uploadId: string; parts: Array<{ partNumber: number; etag: string }> }) => Promise<unknown>;
   abortMultipartUpload: (input: { bucket: string; key: string; uploadId: string }) => Promise<void>;
+  headObject?: (input: { bucket: string; key: string }) => Promise<{ sizeBytes: number; contentType?: string | null; etag?: string | null } | null>;
 };
 
 function adapterFor(providerId: string): Adapter | null {
@@ -262,7 +263,23 @@ async function completeUpload(service: ServiceClient, ownerId: string, payload: 
 
   const adapter = adapterFor(upload.provider_id);
   if (!adapter) return fail("unavailable", "The storage provider is not configured on this server.", 503);
-  await adapter.completeMultipartUpload({ bucket: upload.bucket_id, key: upload.object_key, uploadId: upload.upload_ref, parts: manifest });
+  // Recover when the provider completed the multipart upload but the
+  // database commit failed. Replaying CompleteMultipartUpload is not safe.
+  let existingObject = null;
+  if (adapter.headObject) {
+    try {
+      existingObject = await adapter.headObject({ bucket: upload.bucket_id, key: upload.object_key });
+    } catch {
+      return fail("provider_verification_failed", "Could not verify whether the upload already completed. Retry safely in a moment.", 503);
+    }
+  }
+  if (existingObject) {
+    if (existingObject.sizeBytes !== Number(upload.total_bytes)) {
+      return fail("provider_object_mismatch", "A stored object exists at this upload path but its size does not match the reservation.", 409);
+    }
+  } else {
+    await adapter.completeMultipartUpload({ bucket: upload.bucket_id, key: upload.object_key, uploadId: upload.upload_ref, parts: manifest });
+  }
 
   const sha256 = typeof payload.sha256 === "string" && /^[a-f0-9]{64}$/.test(payload.sha256) ? payload.sha256 : null;
   const { data: objectId, error: commitError } = await service.rpc("raye2_commit_storage_object", {
