@@ -3,7 +3,10 @@
 -- It lets every repository migration be parsed, planned and applied in dependency order without a
 -- live Supabase project. It is never applied to production and contains no application logic.
 
-create extension if not exists pgcrypto;
+create schema if not exists extensions;
+
+-- Supabase installs pgcrypto into the extensions schema, so migrations reference extensions.digest(...).
+create extension if not exists pgcrypto with schema extensions;
 
 -- Supabase roles --------------------------------------------------------------
 do $$ begin

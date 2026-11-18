@@ -74,6 +74,7 @@ test("the post-checks assert the platform's core invariants", () => {
 test("the RLS matrix drives the real authorization guards as each role", () => {
   assert.match(matrix, /set local role authenticated/);
   assert.match(matrix, /set local role anon/);
+  assert.match(matrix, /set local role service_role/);
   assert.match(matrix, /request\.jwt\.claim\.sub/);
   // Each guarded surface is exercised with both an allowed and a denied path.
   for (const surface of [
@@ -82,7 +83,20 @@ test("the RLS matrix drives the real authorization guards as each role", () => {
     "raye2_create_message_poll",
     "raye2_vote_message_poll",
     "raye2_close_message_poll",
-    "raye2_get_message_poll"
+    "raye2_get_message_poll",
+    "raye2_get_community_clip",
+    "raye2_share_clip_to_chat",
+    "raye2_my_storage_objects",
+    "raye2_request_object_deletion",
+    "raye2_admin_storage_objects",
+    "raye2_sync_storage_providers",
+    "raye2_set_conversation_disappearing",
+    "raye2_set_group_slow_mode",
+    "raye2_create_watch_session",
+    "raye2_create_watch_session_invite",
+    "raye2_revoke_watch_session_invite",
+    "raye2_join_watch_session_invite",
+    "raye2_join_watch_session_guarded"
   ]) {
     assert.ok(matrix.includes(surface), `matrix does not exercise ${surface}`);
   }
@@ -90,7 +104,7 @@ test("the RLS matrix drives the real authorization guards as each role", () => {
   assert.match(matrix, /when sqlstate '42501' then/);
   assert.match(matrix, /MATRIX FAIL/);
   // Every run resets the role so one check cannot leak privilege into the next.
-  assert.ok((matrix.match(/reset role/g) ?? []).length >= 6, "each role switch must reset");
+  assert.ok((matrix.match(/reset role/g) ?? []).length >= 20, "each role switch must reset");
   // Anonymous callers must not hold execute on the guarded RPCs.
   assert.match(matrix, /has_function_privilege\('anon'/);
 });

@@ -1092,9 +1092,17 @@ check("the live migration check applies every migration on a throwaway cluster",
   migrationCheckScript.includes("raye2-rls-matrix.sql"));
 check("the RLS matrix exercises the real role-switched authorization guards",
   rlsMatrix.includes("set local role authenticated") && rlsMatrix.includes("set local role anon") &&
+  rlsMatrix.includes("set local role service_role") &&
   rlsMatrix.includes("raye2_update_group_profile") && rlsMatrix.includes("raye2_list_group_moderation_log") &&
   rlsMatrix.includes("raye2_create_message_poll") && rlsMatrix.includes("raye2_vote_message_poll") &&
-  rlsMatrix.includes("raye2_close_message_poll") && rlsMatrix.includes("has_function_privilege('anon'") &&
+  rlsMatrix.includes("raye2_close_message_poll") && rlsMatrix.includes("raye2_get_message_poll") &&
+  rlsMatrix.includes("raye2_get_community_clip") && rlsMatrix.includes("raye2_share_clip_to_chat") &&
+  rlsMatrix.includes("raye2_my_storage_objects") && rlsMatrix.includes("raye2_request_object_deletion") &&
+  rlsMatrix.includes("raye2_admin_storage_objects") && rlsMatrix.includes("raye2_sync_storage_providers") &&
+  rlsMatrix.includes("raye2_set_conversation_disappearing") && rlsMatrix.includes("raye2_set_group_slow_mode") &&
+  rlsMatrix.includes("raye2_create_watch_session") && rlsMatrix.includes("raye2_join_watch_session_invite") &&
+  rlsMatrix.includes("raye2_join_watch_session_guarded") &&
+  rlsMatrix.includes("has_function_privilege('anon'") &&
   rlsMatrix.includes("MATRIX FAIL") && rlsMatrix.includes("when sqlstate '42501' then"));
 check("the Supabase stub mirrors the auth/storage/realtime surfaces the migrations use",
   migrationStub.includes("create table if not exists auth.users") &&
@@ -1102,6 +1110,8 @@ check("the Supabase stub mirrors the auth/storage/realtime surfaces the migratio
   migrationStub.includes("create table if not exists storage.objects") &&
   migrationStub.includes("owner_id text") &&
   migrationStub.includes("create table if not exists realtime.messages") &&
+  migrationStub.includes("create schema if not exists extensions") &&
+  migrationStub.includes("pgcrypto with schema extensions") &&
   migrationStub.includes("create role anon nologin noinherit"));
 check("the migration post-checks assert row level security and pinned search_path",
   migrationPostchecks.includes("public tables without row level security") &&

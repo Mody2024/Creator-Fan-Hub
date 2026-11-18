@@ -3627,6 +3627,37 @@ exercise the guards. Additive; `main` and production unchanged.
   isolated behavioral matrix now covers the newest guarded surfaces; a hosted Supabase project and route-level
   acceptance remain.
 
+## Batch — 2026-11-10 (Batch 14): Broadened behavioral authorization matrix (development only)
+
+**Goal:** Batch 13 proved the newest guards; this batch broadens the same behavioral matrix across the rest of
+the guarded surface so coverage is comprehensive, not just recent. Additive; `main` and production unchanged.
+
+- **New surfaces exercised** (each with an allowed path that persists and a denied path asserting a SQLSTATE):
+  community clip permalinks and share (`raye2_get_community_clip` — unlisted reachable by link, a removed clip
+  hidden from the public but visible to its source owner; `raye2_share_clip_to_chat` — member and manager share,
+  non-member denied); storage lifecycle (`raye2_my_storage_objects` owner-scoped, `raye2_admin_storage_objects`
+  platform-admin only, `raye2_request_object_deletion` owner-only and idempotent with the object moving to
+  `deleting`, `raye2_sync_storage_providers` service-role only — both the member denial and the service-role
+  success); disappearing messages and slow mode (`raye2_set_conversation_disappearing` and
+  `raye2_set_group_slow_mode` manager-only with out-of-policy windows rejected, the expiry trigger stamping
+  `expires_at`, and slow mode blocking a rapid second message with `55006`); Watch Together
+  (`raye2_create_watch_session` host-only and gated on the platform rule, `raye2_create_watch_session_invite`
+  host-only, `raye2_revoke_watch_session_invite`, `raye2_join_watch_session_invite` redemption and revoked-link
+  rejection, `raye2_join_watch_session_guarded` refusing a not-yet-started scheduled session).
+- **Seed grew** to add a clipper, a published ready source video (with the asset-metadata trigger forcing a
+  follow-up `ready` update), a published clip, a storage object, a fifth "newcomer" member, and activation of
+  the Watch Together platform rules (the session RPC refuses to run while they are disabled).
+- **Stub fidelity fix:** the Supabase stub now creates the `extensions` schema and installs `pgcrypto` there
+  (`create extension pgcrypto with schema extensions`), matching real Supabase; the watch-invite RPCs call
+  `extensions.digest(...)`, which previously could not resolve on the stub. This was a stub gap, not a repo bug.
+- **Non-vacuous (negative control):** replacing `raye2_my_storage_objects` with an unscoped body makes the matrix
+  fail at the "non-owner saw another member's object" case.
+- **Wiring.** Validator grew to **530 assertions** (the RLS-matrix assertion now checks 19 guarded surfaces);
+  the harness test still 7 tests. `npm run check` covers the matrix.
+- Gates: validator 530 assertions; live check applied **248/248 migrations** + post-checks + the broadened RLS
+  matrix with 0 failures; tests **1021/1021**; tsc clean; lint 0 errors; build OK.
+- **Progress accounting:** verification/authorization batch; the canonical ten-wave table is unchanged.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3646,7 +3677,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (RLS behavioral acceptance on a hosted Supabase project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated verification is now stronger: the full 248-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub, all post-apply invariants hold, and the newest guarded RPCs/RLS policies pass a role-switched behavioral authorization matrix (`npm run check:migrations`). Wave 9's remaining gap is therefore hosted-project acceptance, load/capacity/cost checks and owner sign-off rather than migration execution or isolated guard behavior. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (RLS behavioral acceptance on a hosted Supabase project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated verification is now comprehensive: the full 248-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub, all post-apply invariants hold, and 19 guarded RPC/RLS surfaces pass a role-switched behavioral authorization matrix covering group management, moderation logs, chat polls, clips, storage lifecycle, disappearing messages/slow mode and Watch Together (`npm run check:migrations`). Wave 9's remaining gap is therefore hosted-project acceptance, load/capacity/cost checks and owner sign-off rather than migration execution or isolated guard behavior. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

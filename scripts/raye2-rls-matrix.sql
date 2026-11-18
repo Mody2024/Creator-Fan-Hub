@@ -10,10 +10,14 @@
 -- means the migrated schema does not enforce what the source claims.
 
 -- Deterministic actors and objects reused across every block.
---   owner   1111…  group owner (also poll author)
+--   owner   1111…  group owner (also poll author, watch host, media owner)
 --   admin   2222…  group admin
 --   outsider 3333… member of the group but not a manager; not in the group conversation
+--   clipper 4444…  publishes a community clip from the owner's media
 --   group   aaaa…  public active group with a group conversation cccc…
+--   media   dddd…  published, ready video owned by the owner
+--   clip    eeee…  published clip by the clipper
+--   object  ffff…  storage object owned by the owner
 
 -- ---------------------------------------------------------------------------
 -- Seed (runs as the superuser session; deterministic ids make this idempotent).
@@ -21,17 +25,22 @@
 do $$
 begin
   delete from public.raye2_groups where id = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+  delete from public.raye2_storage_objects where object_id = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
   insert into auth.users(id,email) values
     ('11111111-1111-1111-1111-111111111111','matrix-owner@raye2.test'),
     ('22222222-2222-2222-2222-222222222222','matrix-admin@raye2.test'),
-    ('33333333-3333-3333-3333-333333333333','matrix-outsider@raye2.test')
+    ('33333333-3333-3333-3333-333333333333','matrix-outsider@raye2.test'),
+    ('44444444-4444-4444-4444-444444444444','matrix-clipper@raye2.test'),
+    ('55555555-5555-5555-5555-555555555555','matrix-newcomer@raye2.test')
   on conflict (id) do nothing;
 
   insert into public.member_profiles(user_id,handle,display_name) values
     ('11111111-1111-1111-1111-111111111111','raye2matrixowner','Matrix Owner'),
     ('22222222-2222-2222-2222-222222222222','raye2matrixadmin','Matrix Admin'),
-    ('33333333-3333-3333-3333-333333333333','raye2matrixoutsider','Matrix Outsider')
+    ('33333333-3333-3333-3333-333333333333','raye2matrixoutsider','Matrix Outsider'),
+    ('44444444-4444-4444-4444-444444444444','raye2matrixclipper','Matrix Clipper'),
+    ('55555555-5555-5555-5555-555555555555','raye2matrixnewcomer','Matrix Newcomer')
   on conflict (user_id) do nothing;
 
   insert into public.raye2_groups(id,name,slug,owner_id,visibility,status)
@@ -49,7 +58,43 @@ begin
 
   insert into public.raye2_conversation_members(conversation_id,user_id) values
     ('cccccccc-cccc-cccc-cccc-cccccccccccc','11111111-1111-1111-1111-111111111111'),
-    ('cccccccc-cccc-cccc-cccc-cccccccccccc','22222222-2222-2222-2222-222222222222');
+    ('cccccccc-cccc-cccc-cccc-cccccccccccc','22222222-2222-2222-2222-222222222222'),
+    ('cccccccc-cccc-cccc-cccc-cccccccccccc','55555555-5555-5555-5555-555555555555');
+
+  -- A published, ready video the owner can clip and watch. video_catalog carries its own RLS and
+  -- write rules, so seed it directly as the superuser session. The asset-metadata trigger forces a
+  -- freshly attached object to 'uploaded', so mark it ready with a follow-up update (processing_status
+  -- is outside the trigger's column list).
+  insert into public.media_items(id,title,media_type,is_published,owner_id,processing_status,provider,playback_kind)
+  values ('dddddddd-dddd-dddd-dddd-dddddddddddd','Matrix Source Video','video',true,
+          '11111111-1111-1111-1111-111111111111','ready','supabase','file');
+  update public.media_items set processing_status='ready' where id='dddddddd-dddd-dddd-dddd-dddddddddddd';
+  insert into public.video_catalog(media_id,slug,description,category,tags,featured,allow_comments,published_at,updated_at)
+  values ('dddddddd-dddd-dddd-dddd-dddddddddddd','raye2-matrix-source','Matrix source','general','{}',false,true,now(),now());
+
+  insert into public.raye2_community_clips(
+    id,clipper_id,source_media_id,source_owner_id,source_title,attribution_text,title,
+    storage_path,duration_seconds,visibility,status,expires_at)
+  values ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee','44444444-4444-4444-4444-444444444444',
+          'dddddddd-dddd-dddd-dddd-dddddddddddd','11111111-1111-1111-1111-111111111111',
+          'Matrix Source Video','@raye2matrixowner','Matrix Clip',
+          '44444444-4444-4444-4444-444444444444/clip.mp4',30,'public','published',now()+interval '30 days');
+
+  insert into public.raye2_storage_objects(
+    object_id,provider_id,bucket_id,object_key,owner_id,asset_class,visibility,object_state,
+    size_bytes,mime_type,idempotency_key)
+  values ('ffffffff-ffff-ffff-ffff-ffffffffffff','supabase','raye2-media','matrix/object.bin',
+          '11111111-1111-1111-1111-111111111111','other','private','active',2048,'application/octet-stream',
+          'matrix-object');
+
+  -- Watch Together ships disabled; the owner enables it through the platform rules (as the Admin
+  -- Rules Engine would). The session RPC refuses to run otherwise.
+  update public.raye2_platform_rules
+    set status='active', rule_value='true'::jsonb
+    where rule_key in ('watch.enabled','watch.public_sessions.enabled');
+  update public.raye2_platform_rules
+    set status='active'
+    where rule_key in ('watch.max_participants','watch.session.max_duration_seconds');
 end $$;
 
 -- ---------------------------------------------------------------------------
@@ -360,6 +405,384 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
+-- Community clip permalinks and share-to-chat (Batch: clip permalink/share).
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_owner uuid := '11111111-1111-1111-1111-111111111111';
+  v_admin uuid := '22222222-2222-2222-2222-222222222222';
+  v_clipper uuid := '44444444-4444-4444-4444-444444444444';
+  v_conv uuid := 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+  v_clip uuid := 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+  v_n integer;
+  v_code text;
+begin
+  -- Anyone holding the link can fetch a published, unlisted clip; the RPC re-checks permissions.
+  update public.raye2_community_clips set visibility='unlisted' where id=v_clip;
+  begin
+    set local role anon;
+    perform set_config('request.jwt.claim.role','anon',true);
+    perform set_config('request.jwt.claim.sub','',true);
+    select count(*) into v_n from public.raye2_get_community_clip(v_clip);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_n <> 1 then raise exception 'MATRIX FAIL: an unlisted clip was not reachable by link (n=%)', v_n; end if;
+
+  -- A removed clip disappears for the public but stays visible to its source owner.
+  update public.raye2_community_clips set status='removed' where id=v_clip;
+  begin
+    set local role anon;
+    perform set_config('request.jwt.claim.role','anon',true);
+    perform set_config('request.jwt.claim.sub','',true);
+    select count(*) into v_n from public.raye2_get_community_clip(v_clip);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_n <> 0 then raise exception 'MATRIX FAIL: a removed clip stayed public (n=%)', v_n; end if;
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    select count(*) into v_n from public.raye2_get_community_clip(v_clip);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_n <> 1 then raise exception 'MATRIX FAIL: the source owner could not see a removed clip'; end if;
+  update public.raye2_community_clips set status='published', visibility='public' where id=v_clip;
+
+  -- A conversation member may share a live clip; the message is server-authored.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    select result_code into v_code from public.raye2_share_clip_to_chat(v_conv, v_clip);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_code <> 'shared' then raise exception 'MATRIX FAIL: clip share did not succeed (%)', v_code; end if;
+  if (select count(*) from public.raye2_messages where conversation_id=v_conv and attachment->>'kind'='clip_share') < 1 then
+    raise exception 'MATRIX FAIL: the shared clip message was not written';
+  end if;
+
+  -- A group manager who is a conversation member may also share.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_admin::text, true);
+    select result_code into v_code from public.raye2_share_clip_to_chat(v_conv, v_clip);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_code <> 'shared' then raise exception 'MATRIX FAIL: a member could not share a clip'; end if;
+
+  -- A non-member cannot share into a conversation they do not belong to.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_clipper::text, true);
+    begin
+      perform public.raye2_share_clip_to_chat(v_conv, v_clip);
+      raise exception 'MATRIX FAIL: a non-member shared a clip into a conversation';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Storage lifecycle: owner-scoped access and service-role-only privileged RPCs.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_owner uuid := '11111111-1111-1111-1111-111111111111';
+  v_admin uuid := '22222222-2222-2222-2222-222222222222';
+  v_outsider uuid := '33333333-3333-3333-3333-333333333333';
+  v_object uuid := 'ffffffff-ffff-ffff-ffff-ffffffffffff';
+  v_n integer;
+  v_deleted boolean;
+begin
+  -- The owner sees only their own object; a different member sees none.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    select count(*) into v_n from public.raye2_my_storage_objects(100);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_n <> 1 then raise exception 'MATRIX FAIL: the owner did not see their own object (n=%)', v_n; end if;
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_outsider::text, true);
+    select count(*) into v_n from public.raye2_my_storage_objects(100);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_n <> 0 then raise exception 'MATRIX FAIL: a non-owner saw another member''s object (n=%)', v_n; end if;
+
+  -- The cross-owner admin listing requires platform-admin rights.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_admin::text, true);
+    begin
+      perform public.raye2_admin_storage_objects(200);
+      raise exception 'MATRIX FAIL: a non-platform-admin listed every object';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+
+  -- A member cannot request deletion of an object they do not own.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_outsider::text, true);
+    begin
+      perform public.raye2_request_object_deletion(v_object);
+      raise exception 'MATRIX FAIL: a non-owner requested deletion of another member''s object';
+    exception when sqlstate '22023' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+
+  -- The owner requests deletion; the object moves to 'deleting' and the call is idempotent.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    select already_deleted into v_deleted from public.raye2_request_object_deletion(v_object);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_deleted then raise exception 'MATRIX FAIL: a fresh deletion was reported as already deleted'; end if;
+  if (select object_state from public.raye2_storage_objects where object_id=v_object) <> 'deleting' then
+    raise exception 'MATRIX FAIL: the object did not move to the deleting state';
+  end if;
+
+  -- Provider reconciliation is service-role only.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    begin
+      perform public.raye2_sync_storage_providers('[]'::jsonb);
+      raise exception 'MATRIX FAIL: a member ran the service-role provider sync';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  begin
+    set local role service_role;
+    perform set_config('request.jwt.claim.role','service_role',true);
+    perform set_config('request.jwt.claim.sub','',true);
+    perform public.raye2_sync_storage_providers('[]'::jsonb);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Disappearing messages and group slow mode (Batch 9): manager-only settings,
+-- server-stamped expiry and server-enforced slow mode.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_admin uuid := '22222222-2222-2222-2222-222222222222';
+  v_outsider uuid := '33333333-3333-3333-3333-333333333333';
+  v_newcomer uuid := '55555555-5555-5555-5555-555555555555';
+  v_group uuid := 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+  v_conv uuid := 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+  v_n integer;
+begin
+  -- A non-manager cannot set a group conversation's disappearing window or the group slow mode.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_outsider::text, true);
+    begin
+      perform public.raye2_set_conversation_disappearing(v_conv, 86400);
+      raise exception 'MATRIX FAIL: a non-manager set a group disappearing window';
+    exception when sqlstate '42501' then null;
+    end;
+    begin
+      perform public.raye2_set_group_slow_mode(v_group, 60);
+      raise exception 'MATRIX FAIL: a non-manager set group slow mode';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+
+  -- A manager sets a valid window and the server rejects an out-of-policy one.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_admin::text, true);
+    perform public.raye2_set_conversation_disappearing(v_conv, 86400);
+    begin
+      perform public.raye2_set_conversation_disappearing(v_conv, 3600);
+      raise exception 'MATRIX FAIL: an out-of-policy disappearing window was accepted';
+    exception when sqlstate '22023' then null;
+    end;
+    perform public.raye2_set_group_slow_mode(v_group, 3600);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if (select disappearing_seconds from public.raye2_conversations where id=v_conv) <> 86400 then
+    raise exception 'MATRIX FAIL: the disappearing window did not persist';
+  end if;
+  if (select slow_mode_seconds from public.raye2_groups where id=v_group) <> 3600 then
+    raise exception 'MATRIX FAIL: group slow mode did not persist';
+  end if;
+
+  -- A new message is server-stamped with the conversation's window; a rapid second message is
+  -- blocked by slow mode. (The newcomer has not written to this conversation yet.)
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_newcomer::text, true);
+    insert into public.raye2_messages(conversation_id,sender_id,body) values (v_conv,v_newcomer,'hello');
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if (select expires_at is not null from public.raye2_messages
+        where conversation_id=v_conv and sender_id=v_newcomer order by created_at desc limit 1) is not true then
+    raise exception 'MATRIX FAIL: the disappearing window was not stamped onto the message';
+  end if;
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_newcomer::text, true);
+    begin
+      insert into public.raye2_messages(conversation_id,sender_id,body) values (v_conv,v_newcomer,'again');
+      raise exception 'MATRIX FAIL: slow mode did not block a rapid second message';
+    exception when sqlstate '55006' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- Watch Together scheduled sessions and private invitation links.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_owner uuid := '11111111-1111-1111-1111-111111111111';
+  v_admin uuid := '22222222-2222-2222-2222-222222222222';
+  v_outsider uuid := '33333333-3333-3333-3333-333333333333';
+  v_conv uuid := 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+  v_media uuid := 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+  v_session uuid;
+  v_invite uuid;
+  v_revoked uuid;
+  v_token text := repeat('a', 48);
+  v_join uuid;
+  v_scheduled uuid;
+begin
+  -- The host creates an immediate private session.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    v_session := public.raye2_create_watch_session(v_conv,'Matrix Watch','private','native',v_media,null,null,null);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_session is null then raise exception 'MATRIX FAIL: the watch session was not created'; end if;
+
+  -- A non-host cannot mint an invitation link.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_outsider::text, true);
+    begin
+      perform public.raye2_create_watch_session_invite(v_session, repeat('b',48), now()+interval '1 day', null);
+      raise exception 'MATRIX FAIL: a non-host created a watch invitation';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+
+  -- The host mints a link; an outsider redeems it and joins.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    v_invite := public.raye2_create_watch_session_invite(v_session, v_token, now()+interval '1 day', 5);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_invite is null then raise exception 'MATRIX FAIL: the host could not create a watch invitation'; end if;
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_outsider::text, true);
+    v_join := public.raye2_join_watch_session_invite(v_token);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_join <> v_session then raise exception 'MATRIX FAIL: redeeming the invite did not join the session'; end if;
+  if not exists(select 1 from public.raye2_watch_participants
+        where session_id=v_session and user_id=v_outsider and status='joined') then
+    raise exception 'MATRIX FAIL: the invitee was not recorded as a participant';
+  end if;
+
+  -- A revoked link can no longer be redeemed.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    v_revoked := public.raye2_create_watch_session_invite(v_session, repeat('c',48), now()+interval '1 day', null);
+    perform public.raye2_revoke_watch_session_invite(v_revoked);
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_outsider::text, true);
+    begin
+      perform public.raye2_join_watch_session_invite(repeat('c',48));
+      raise exception 'MATRIX FAIL: a revoked invitation was redeemed';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+
+  -- A future scheduled session is not yet joinable.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    v_scheduled := public.raye2_create_watch_session(v_conv,'Matrix Watch Later','private','native',v_media,null,null,now()+interval '2 days');
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_admin::text, true);
+    begin
+      perform public.raye2_join_watch_session_guarded(v_scheduled);
+      raise exception 'MATRIX FAIL: a not-yet-started scheduled session was joinable';
+    exception when sqlstate '55000' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- Denial invariants: anonymous callers must not reach any mutating write RPC.
 -- ---------------------------------------------------------------------------
 do $$
@@ -372,6 +795,18 @@ declare
     'public.raye2_vote_message_poll(uuid,uuid[])',
     'public.raye2_close_message_poll(uuid)',
     'public.raye2_get_message_poll(uuid)',
+    'public.raye2_share_clip_to_chat(uuid,uuid)',
+    'public.raye2_my_storage_objects(integer)',
+    'public.raye2_request_object_deletion(uuid)',
+    'public.raye2_admin_storage_objects(integer)',
+    'public.raye2_sync_storage_providers(jsonb)',
+    'public.raye2_set_conversation_disappearing(uuid,integer)',
+    'public.raye2_set_group_slow_mode(uuid,integer)',
+    'public.raye2_create_watch_session_invite(uuid,text,timestamp with time zone,integer)',
+    'public.raye2_revoke_watch_session_invite(uuid)',
+    'public.raye2_join_watch_session_invite(text)',
+    'public.raye2_create_watch_session(uuid,text,text,text,uuid,text,integer,timestamp with time zone)',
+    'public.raye2_join_watch_session_guarded(uuid)',
     'public.raye2_reserve_storage(uuid,text,text,text,bigint,text,integer)',
     'public.raye2_commit_storage_object(uuid,text,text,bigint,text,text,text,text,uuid)',
     'public.raye2_release_storage_reservation(uuid,text)'

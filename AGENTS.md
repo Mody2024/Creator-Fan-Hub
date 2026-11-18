@@ -41,10 +41,17 @@ cleanly when no PostgreSQL is installed or `RAYE2_PG_DSN` is unset, so it is saf
 with `npm run check:migrations`. Set `RAYE2_PGBIN` if the server binaries are in a non-standard place.
 
 The RLS matrix seeds a deterministic dataset and, for each guarded surface, switches the session role
-(`set local role authenticated`/`anon`) and the Supabase request-context GUCs
+(`set local role authenticated`/`anon`/`service_role`) and the Supabase request-context GUCs
 (`request.jwt.claim.role`/`sub`), then proves the authorized path succeeds and persists and the denied
-path raises the expected SQLSTATE. When you add or change a guarded RPC, add a case here: a broken guard
-must make `npm run check:migrations` fail (verified by negative control).
+path raises the expected SQLSTATE. It currently covers 19 guarded surfaces (group management, moderation
+logs, chat polls, clips, storage lifecycle, disappearing messages/slow mode, Watch Together). When you add
+or change a guarded RPC, add a case here: a broken guard must make `npm run check:migrations` fail
+(verified by negative control).
+
+The stub mirrors real Supabase layout where it matters: `pgcrypto` is installed into an `extensions`
+schema (so `extensions.digest(...)` resolves), and the auth/storage/realtime schemas carry the columns the
+migrations reference. If a migration fails only under the stub, suspect the stub first and fix its fidelity
+rather than adding a corrective migration.
 
 ### Editing migrations
 
