@@ -265,7 +265,7 @@ async function completeUpload(service: ServiceClient, ownerId: string, payload: 
   if (!adapter) return fail("unavailable", "The storage provider is not configured on this server.", 503);
   // Recover when the provider completed the multipart upload but the
   // database commit failed. Replaying CompleteMultipartUpload is not safe.
-  let existingObject = null;
+  let existingObject: { sizeBytes: number; contentType?: string | null; etag?: string | null } | null = null;
   if (adapter.headObject) {
     try {
       existingObject = await adapter.headObject({ bucket: upload.bucket_id, key: upload.object_key });
