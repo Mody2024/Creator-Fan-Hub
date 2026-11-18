@@ -3358,6 +3358,42 @@ bring-your-own-storage a persisted, owner-scoped registry with an admin surface.
   the Supabase fallback keeps production working; live RLS application and real R2/B2/Storj acceptance remain. A
   contributor-facing BYOS connect UI (beyond the admin view) and an on-demand provider probe endpoint are next.
 
+## Batch — 2026-11-10 (Batch 4): Object lifecycle, BYOS probing, provider discovery and migration (development only)
+
+**Goal:** close the remaining provider-independent storage gaps so that, once keys are added, the whole
+storage fabric works end-to-end with no further code. Additive; `main`/production unchanged.
+
+- **Owner storage lifecycle.** Migration `20261116160000_raye2_storage_lifecycle_and_migration.sql` adds
+  owner-scoped definer RPCs `raye2_my_storage_objects` and `raye2_request_object_deletion`, plus an
+  admin-gated `raye2_admin_storage_objects`. `raye2_storage_objects` stays RLS-locked with anon/authenticated
+  revoked; owners reach only their own rows and the RPCs re-apply the owner predicate themselves.
+- **Object delivery and deletion API.** New `src/app/api/raye2/storage/object/route.ts` signs playback URLs
+  (private objects are never returned as public URLs; legacy Supabase objects are handed back to the Supabase
+  client) and deletes objects: pooled objects are removed with the provider adapter, Supabase objects with the
+  storage client, then the registry row is marked deleted so provider byte counters drop.
+- **BYOS probing.** New `src/app/api/raye2/storage/byos/route.ts` reads a connection's credentials from a
+  server-side environment variable named by `secret_ref` (never a stored value), probes the bucket with the
+  S3-compatible adapter, and records verified/failed via the service-role-only RPC. Pure logic in
+  `src/lib/storage/byos-probe.mjs`.
+- **Contributor BYOS UI.** The Account page now lists stored files with delete, and connects BYOS buckets
+  (provider, endpoint, region, bucket, secret reference) with a one-click test. Bilingual EN/AR.
+- **Provider discovery.** New `src/app/api/raye2/storage/providers/discover/route.ts` (admin-only) reconciles
+  the registry with the providers actually configured in the environment via `raye2_sync_storage_providers`,
+  which upserts identity/config columns only and never overwrites usage counters. The reconcile worker also
+  performs this sync so a newly configured provider is discovered automatically.
+- **Storage migration.** New `src/app/api/raye2/storage/migrate/route.ts` (admin-only) plans a batch with the
+  conservative `src/lib/storage/migration-planner.mjs` (only draining, unprotected, active objects; never
+  exceeding destination headroom or the batch ceiling), then copies each object server-side, repoints its row
+  via `raye2_complete_object_migration`, and deletes the old copy — so a failed delete never loses data.
+  A `raye2_storage_object_migrations` ledger is service-role only.
+- **Admin surface.** The admin BYOS tab gains "Reconcile providers" and "Migrate from Supabase" actions.
+- **Tests/validator:** +19 tests (object delivery, migration planner, BYOS probe); validator grew to 500
+  assertions covering the owner/admin/service-role gating, the ledger counter moves and copy-before-delete order.
+- Gates: validator 500 assertions; tests 974/974; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (all key-dependent):** the storage keys and buckets are not configured in this environment, so
+  no provider is live and the migration moves zero objects. Live RLS acceptance on an isolated Supabase project
+  and multi-device voice/live acceptance remain. Everything else storage-related is implemented.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3366,18 +3402,18 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
-| 2 | Core platform architecture, accounts and permissions | ~87% |
-| 3 | Video, feed and discovery ecosystem | ~96% |
-| 4 | Creator Studio, exclusives and live streaming | ~96% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~97% |
+| 4 | Creator Studio, exclusives and live streaming | ~97% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~88% |
+| 7 | Voice, Watch Together and shared experiences | ~90% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~94%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~95%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is now codec-aware and the chunked upload path is wired, but no provider is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired and the migration tooling exists, but no provider key is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

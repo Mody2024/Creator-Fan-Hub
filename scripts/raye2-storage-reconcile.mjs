@@ -86,6 +86,24 @@ async function main() {
   });
   if (ceilingError) throw ceilingError;
   console.log(`[raye2-reconcile] platform ceiling is now ${ceiling} bytes.`);
+
+  // Keep the registry in step with the providers actually configured in this environment. A newly
+  // configured provider is discovered here; existing rows keep their usage counters.
+  const syncPayload = providers.map(provider => ({
+    provider_id: provider.id,
+    provider_kind: provider.providerKind ?? provider.id.replace(/_\d+$/, ""),
+    enabled: true,
+    priority: provider.providerKind === "cloudflare_r2" ? 10 : 20,
+    health: "healthy",
+    capacity_bytes: Number(known.get(provider.id)?.capacity_bytes ?? 8 * 1024 * 1024 * 1024),
+    safety_reserve_bytes: 256 * 1024 * 1024,
+    max_managed_bytes: null,
+    public_bucket: known.get(provider.id)?.public_bucket ?? "",
+    private_bucket: known.get(provider.id)?.private_bucket ?? "",
+  }));
+  const { data: discovered, error: discoverError } = await supabase.rpc("raye2_sync_storage_providers", { p_providers: syncPayload });
+  if (discoverError) console.error("[raye2-reconcile] provider discovery failed:", discoverError.message);
+  else console.log(`[raye2-reconcile] registry synced for ${discovered ?? syncPayload.length} provider(s).`);
 }
 
 await main();

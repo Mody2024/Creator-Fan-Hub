@@ -895,6 +895,45 @@ const uploadHelper = await read("../src/lib/supabase/resumable-upload.ts");
 check("every member upload surface prefers the pooled path with a Supabase fallback", uploadSurfaces.every(source => source.includes("prefersChunkedUpload") && source.includes("MultipartUnavailableError") && source.includes("uploadToSupabaseStorage")));
 check("the client upload allowlist covers every bucket the surfaces use", ["creator-media-private", "creator-media-public", "raye2-community-shorts", "raye2-minis", "raye2-clips"].every(bucket => uploadHelper.includes('"' + bucket + '"')));
 
+// Batch 4 — object lifecycle, BYOS probing, provider discovery and migration.
+const lifecycleMigration = await read("../supabase/migrations/20261116160000_raye2_storage_lifecycle_and_migration.sql");
+check("object listing and deletion are owner-scoped through definer RPCs", lifecycleMigration.includes("create or replace function public.raye2_my_storage_objects") && lifecycleMigration.includes("create or replace function public.raye2_request_object_deletion") && lifecycleMigration.includes("o.owner_id=v_actor") && lifecycleMigration.includes("where object_id=p_object_id and owner_id=v_actor for update"));
+check("owner object RPCs are revoked from anon and granted only to authenticated", lifecycleMigration.includes("revoke all on function public.raye2_my_storage_objects(integer) from public, anon") && lifecycleMigration.includes("grant execute on function public.raye2_my_storage_objects(integer) to authenticated") && lifecycleMigration.includes("revoke all on function public.raye2_request_object_deletion(uuid) from public, anon"));
+check("the admin object listing is gated by the platform admin check", lifecycleMigration.includes("create or replace function public.raye2_admin_storage_objects") && lifecycleMigration.includes("if not public.raye2_is_platform_admin() then"));
+check("BYOS probing metadata is additive and never stores a secret value", lifecycleMigration.includes("add column if not exists last_probed_at") && lifecycleMigration.includes("add column if not exists probe_listed_keys") && lifecycleMigration.includes("Never the value"));
+check("provider discovery is service-role only and keeps existing usage counters", lifecycleMigration.includes("create or replace function public.raye2_sync_storage_providers") && lifecycleMigration.includes("to service_role") && lifecycleMigration.includes("on conflict (provider_id) do update set") && !lifecycleMigration.includes("used_bytes=excluded.used_bytes"));
+check("the migration ledger is service-role only and moves provider byte counters", lifecycleMigration.includes("create table if not exists public.raye2_storage_object_migrations") && lifecycleMigration.includes("revoke all on public.raye2_storage_object_migrations from anon, authenticated") && lifecycleMigration.includes("create or replace function public.raye2_complete_object_migration") && lifecycleMigration.includes("used_bytes=greatest(0,used_bytes-v_migration.size_bytes)") && lifecycleMigration.includes("used_bytes=used_bytes+v_migration.size_bytes"));
+check("draining-object selection protects recordings and memories and excludes in-flight moves", lifecycleMigration.includes("create or replace function public.raye2_list_draining_objects") && lifecycleMigration.includes("o.asset_class not in ('voice_recording','memory')") && lifecycleMigration.includes("m.migration_state in ('pending','copied')"));
+
+const objectDelivery = await read("../src/lib/storage/object-delivery.mjs");
+const objectDeliveryTests = await read("../tests/storage-object-delivery.test.mjs");
+check("object delivery signs private objects and keeps public Supabase buckets unsigned", objectDelivery.includes("planObjectDelivery") && objectDelivery.includes("composeObjectUrl") && objectDelivery.includes("MAX_SIGNED_URL_TTL_SECONDS") && objectDeliveryTests.includes("a private object is never returned as a public URL") && objectDeliveryTests.includes("legacy Supabase public buckets are delivered without signing"));
+
+const migrationPlanner = await read("../src/lib/storage/migration-planner.mjs");
+const migrationPlannerTests = await read("../tests/storage-migration-planner.test.mjs");
+check("migration planner only moves draining, unprotected, active objects within headroom", migrationPlanner.includes("planStorageMigration") && migrationPlanner.includes("PROTECTED_ASSET_CLASSES") && migrationPlanner.includes("buildMigrationIdempotencyKey") && migrationPlannerTests.includes("protected asset classes are never moved automatically") && migrationPlannerTests.includes("an unverified destination never receives objects"));
+
+const byosProbe = await read("../src/lib/storage/byos-probe.mjs");
+const byosProbeTests = await read("../tests/storage-byos-probe.test.mjs");
+check("BYOS probe builds a private-only adapter and interprets results safely", byosProbe.includes("buildByosAdapterConfig") && byosProbe.includes("createByosAdapter") && byosProbe.includes("interpretProbe") && byosProbe.includes("isConnectionUsable") && byosProbeTests.includes("a connection is only usable when verified and backed by a secret reference"));
+
+const objectRoute = await read("../src/app/api/raye2/storage/object/route.ts");
+const byosRoute = await read("../src/app/api/raye2/storage/byos/route.ts");
+const discoverRoute = await read("../src/app/api/raye2/storage/providers/discover/route.ts");
+const migrateRoute = await read("../src/app/api/raye2/storage/migrate/route.ts");
+check("object route enforces owner scoping before signing or deleting", objectRoute.includes("data.owner_id !== ownerId") && objectRoute.includes("raye2_request_object_deletion") && objectRoute.includes("raye2_mark_storage_object_deleted") && objectRoute.includes("planObjectDelivery"));
+check("BYOS route resolves credentials by name and records the probe outcome", byosRoute.includes("readSecret") && byosRoute.includes("connection.owner_id !== ownerId") && byosRoute.includes("raye2_set_byos_connection_state"));
+check("discovery route is admin-gated and syncs only configured providers", discoverRoute.includes('rpc("raye2_is_platform_admin")') && discoverRoute.includes("createConfiguredStorageProviders") && discoverRoute.includes("raye2_sync_storage_providers"));
+check("migrate route is admin-gated and copies before repointing then deleting", migrateRoute.includes('rpc("raye2_is_platform_admin")') && migrateRoute.includes("raye2_list_draining_objects") && migrateRoute.includes("copyObject") && migrateRoute.indexOf("copyObject") < migrateRoute.indexOf("raye2_complete_object_migration"));
+
+const accountSettingsSource = await read("../src/app/account/account-settings.tsx");
+check("account settings expose owner storage and BYOS connection management", accountSettingsSource.includes('raye2_my_storage_objects') && accountSettingsSource.includes('raye2_my_byos_connections') && accountSettingsSource.includes('raye2_upsert_byos_connection') && accountSettingsSource.includes("/api/raye2/storage/object") && accountSettingsSource.includes("/api/raye2/storage/byos"));
+check("admin BYOS surface exposes provider reconciliation and migration", byosAdminUi.includes("/api/raye2/storage/providers/discover") && byosAdminUi.includes("/api/raye2/storage/migrate"));
+
+const objectListMigration = lifecycleMigration;
+check("owner deletion moves pooled objects out of the legacy Supabase path", objectRoute.includes('row.provider_id === "supabase"') && objectRoute.includes("service.storage.from(String(row.bucket_id)).remove"));
+check("object lifecycle RPCs set an empty search path for safety", (objectListMigration.match(/set search_path/g) || []).length >= 6);
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
