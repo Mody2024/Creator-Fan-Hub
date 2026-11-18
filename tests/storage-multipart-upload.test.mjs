@@ -96,3 +96,13 @@ test("multipart completion reports ledger-finalization failures without losing t
   assert.match(route, /completion_finalize_failed/);
   assert.match(route, /The object is stored and recorded\. Retry completion to safely finalize the upload\./);
 });
+
+
+test("multipart completion verifies an existing provider object before replaying completion", async () => {
+  const route = await readFile(new URL("../src/app/api/raye2/storage/multipart/route.ts", import.meta.url), "utf8");
+  assert.match(route, /headObject\?: \(input: \{ bucket: string; key: string \}\)/);
+  assert.match(route, /existingObject = await adapter\.headObject/);
+  assert.match(route, /existingObject\.sizeBytes !== Number\(upload\.total_bytes\)/);
+  assert.match(route, /if \(existingObject\)[\s\S]*?else \{[\s\S]*?adapter\.completeMultipartUpload/);
+  assert.match(route, /provider_verification_failed/);
+});
