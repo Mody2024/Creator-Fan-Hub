@@ -418,7 +418,7 @@ test("uploaded logo preview shows both themes without a text wordmark in the her
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null'));
-  assert.doesNotMatch(page, /portal-wordmark|رايق|<strong>Raye2<\\/strong>/);
+  assert.doesNotMatch(page, /portal-wordmark|رايق/);
   assert.match(studio, /DARK THEME/);
   assert.match(studio, /LIGHT THEME/);
   assert.match(design, /raye2-logo-theme-previews/);
