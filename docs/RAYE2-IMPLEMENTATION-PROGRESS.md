@@ -3915,3 +3915,46 @@ and `docs/OWNER-SETUP.md`.
 buckets (50 MiB per object); the platform ceiling is 750 MiB (Supabase Free). Cloudflare R2 and Backblaze B2 are
 registered but disabled — enabling them (provider env vars + `raye2_sync_storage_providers`) is the path to
 larger storage.
+
+---
+
+## Batch — 2026-11-18 (Batch 18): Pool many providers and many accounts; admin Providers panel
+
+**Goal:** let the platform use several free storage providers together — including multiple accounts of the
+same provider — to maximise free capacity, all visible and manageable from the admin panel.
+
+- **Generic provider discovery.** Env blocks are now `RAYE2_<FAMILY>[_<ACCOUNT>]_*`. The family maps to
+  `provider_kind` through `PROVIDER_PRESETS` (`r2`, `b2`, `tigris`, `filebase`, `storj`, `wasabi`, `idrive`,
+  `scaleway`, `linode`, `aws`); the optional account suffix becomes part of the unique instance id
+  (`RAYE2_B2_ACCOUNT2_*` → `backblaze_b2_account2`, kind `backblaze_b2`). Known families may omit
+  `_ENDPOINT`/`_REGION` (presets fill them); unknown families work with an explicit `_ENDPOINT`.
+- **Fix:** the discovery route read `provider.publicBucket`, which the adapter never exposed, so "Discover"
+  would blank the bucket columns. The adapter now exposes `publicBucket`/`privateBucket`.
+- **Migration `20261116260000_raye2_multi_provider_accounts.sql`:** relaxes `raye2_storage_providers_kind_check`
+  to any `^[a-z0-9][a-z0-9_-]{1,62}$` family, adds the admin-gated `raye2_storage_provider_list()` inventory and
+  surfaces `provider_kind` in `raye2_storage_admin_overview()`.
+- **Admin panel:** new **Providers** tab (`storage-providers.tsx`) lists every pooled provider and account with
+  kind, priority, capacity, used, reserved, headroom, used %, buckets, health and last-verified time, plus
+  enable/disable and "Reconcile providers" controls.
+- Gates: validator **535 assertions**; `check:migrations` **251 migrations** + post-checks + RLS matrix; tests
+  **1026/1026**; tsc clean; lint 0 errors; build OK. Applied to production (251 migrations); CI green on both
+  branches.
+
+### Canonical ten-wave table (unchanged)
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~93% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
+
+**Free storage achievable with no credit card:** Supabase 750 MiB + Backblaze B2 10 GB + Tigris 5 GB +
+Filebase 5 GB ≈ **20.75 GB**, and each extra account (e.g. a second B2 account) adds its own free allowance.
