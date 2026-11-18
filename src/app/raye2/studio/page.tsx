@@ -26,14 +26,13 @@ export default async function Raye2CreatorStudioPage() {
     .eq("user_id", userId)
     .eq("active", true)
     .maybeSingle();
-  if (accessError || !access || !["owner", "admin", "creator", "streamer", "editor", "moderator", "analyst"].includes(access.role)) {
+  if (accessError || !access || !["owner", "admin", "creator", "streamer", "editor"].includes(access.role)) {
     redirect("/creator/login?access=restricted");
   }
 
   const role = access.role as "owner" | "admin" | "creator" | "streamer" | "editor" | "moderator" | "analyst";
   const canPublish = ["owner", "admin", "creator"].includes(role);
   const canStream = ["owner", "admin", "streamer"].includes(role);
-  const canModerate = ["owner", "admin", "moderator"].includes(role);
   const canAnalyze = ["owner", "admin", "creator", "streamer", "analyst"].includes(role);
 
   const [{ data: mediaData, error: mediaError }, { data: videoData, error: videoError }] = await Promise.all([
@@ -72,7 +71,6 @@ export default async function Raye2CreatorStudioPage() {
         <Link href="/raye2/studio" aria-current="page">{isArabic ? "الاستوديو" : "Studio"}</Link>
         {canPublish && <Link href="/creator">{isArabic ? "إدارة المحتوى" : "Content tools"}</Link>}{canStream && <Link href="/creator#creator-live-studio">{isArabic ? "البث المباشر" : "Live"}</Link>}
         {canAnalyze && <Link href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}
-        {canModerate && <Link href="/creator/community">{isArabic ? "الإشراف" : "Moderation"}</Link>}
       </nav>
       <div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
     </header>
@@ -112,7 +110,6 @@ export default async function Raye2CreatorStudioPage() {
         {canPublish && <article className={styles.card}><span className={styles.cardIndex}>01 / PUBLISH</span><h3>{t.manage}</h3><p>{t.manageDesc}</p><Link className={styles.action} href="/creator">{t.open} ↗</Link></article>}
         {canAnalyze && <article className={styles.card}><span className={styles.cardIndex}>02 / INSIGHTS</span><h3>{t.analytics}</h3><p>{t.analyticsDesc}</p><Link className={styles.action} href="/creator/analytics">{isArabic ? "فتح التحليلات" : "Open analytics"} ↗</Link></article>}
         {canStream && <article className={styles.card}><span className={styles.cardIndex}>02 / LIVE</span><h3>{t.live}</h3><p>{t.liveDesc}</p><Link className={styles.action} href="/creator#creator-live-studio">{isArabic ? "فتح أدوات البث" : "Open live tools"} ↗</Link></article>}{role === "editor" && <article className={styles.card}><span className={styles.cardIndex}>01 / EDITORIAL</span><h3>{t.editorial}</h3><p>{t.editorialDesc}</p><span className={styles.action}>{t.editorialComing}</span></article>}
-        {canModerate && <article className={styles.card}><span className={styles.cardIndex}>03 / TRUST</span><h3>{t.moderation}</h3><p>{t.moderationDesc}</p><Link className={styles.action} href="/creator/community">{isArabic ? "فتح أدوات الإشراف" : "Open moderation"} ↗</Link></article>}
       </div>
     </section>
     <section className={styles.beta} data-slot="beta">
