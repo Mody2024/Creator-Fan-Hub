@@ -164,3 +164,22 @@ test("rejects invalid upload size and content type before signing", async () => 
     expectedBytes: 10, visibility: "private", expiresInSeconds: 60,
   }), /Upload size and content type/);
 });
+
+test("listObjects parses keys and sizes and follows continuation tokens", async () => {
+  const fetchImpl = async (url) => {
+    const token = new URL(String(url)).searchParams.get("continuation-token");
+    if (!token) {
+      return new Response("<ListBucketResult><IsTruncated>true</IsTruncated><NextContinuationToken>tok-2</NextContinuationToken><Contents><Key>users/u1/a.mp4</Key><Size>1024</Size></Contents></ListBucketResult>", { status: 200 });
+    }
+    return new Response("<ListBucketResult><IsTruncated>false</IsTruncated><Contents><Key>users/u1/b.mp4</Key><Size>2048</Size></Contents></ListBucketResult>", { status: 200 });
+  };
+  const provider = createS3CompatibleProvider("raye2_r2_1", config, fetchImpl);
+  const first = await provider.listObjects({ bucket: config.privateBucket, prefix: "users/u1/" });
+  assert.equal(first.isTruncated, true);
+  assert.equal(first.nextContinuationToken, "tok-2");
+  assert.deepEqual(first.objects, [{ key: "users/u1/a.mp4", sizeBytes: 1024 }]);
+  const second = await provider.listObjects({ bucket: config.privateBucket, continuationToken: first.nextContinuationToken });
+  assert.equal(second.isTruncated, false);
+  assert.deepEqual(second.objects, [{ key: "users/u1/b.mp4", sizeBytes: 2048 }]);
+  await assert.rejects(() => provider.listObjects({ bucket: config.privateBucket, maxKeys: 5000 }), /maxKeys/);
+});

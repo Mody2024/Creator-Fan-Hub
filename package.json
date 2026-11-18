@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "node --test",
     "check": "node scripts/validate-static-site.mjs",
-    "media:worker": "node scripts/raye2-media-worker.mjs"
+    "media:worker": "node scripts/raye2-media-worker.mjs",
+    "storage:reconcile": "node scripts/raye2-storage-reconcile.mjs"
   },
   "engines": {
     "node": "22.x"

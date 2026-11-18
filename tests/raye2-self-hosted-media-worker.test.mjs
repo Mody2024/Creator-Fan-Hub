@@ -232,9 +232,8 @@ test("self-hosted worker has an isolated minimal runtime image and secret-safe c
 
 test("video worker creates bounded 360p and 720p adaptive HLS renditions with audio when present",()=>{
  assert.ok(worker.includes("MAX_HLS_DURATION_SECONDS = 3600"));
- assert.ok(worker.includes('name: "360p", maxWidth: 640, maxHeight: 360'));
- assert.ok(worker.includes('name: "720p", maxWidth: 1280, maxHeight: 720'));
- assert.ok(worker.includes('"libx264"'));
+ assert.ok(worker.includes("planVideoLadder"));
+ assert.ok(worker.includes("variant.videoCodec"));
  assert.ok(worker.includes('"-hls_time", "6"'));
  assert.ok(worker.includes('"-hls_playlist_type", "vod"'));
  assert.ok(worker.includes('...(hasAudio ? ["-c:a", "aac"'));

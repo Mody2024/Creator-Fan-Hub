@@ -3296,6 +3296,39 @@ from verified pooled capacity. Additive; `main`/production unchanged.
 - **Not yet wired:** the chunked upload UI still uses the single-shot path, so per-file policy stays at 50 MiB until
   Batch 2. Transcoding ladder and BYOS connectors are later batches.
 
+## Batch — 2026-11-10 (Batch 2): Chunked upload path, reconciliation, optimization ladder and BYOS (development only)
+
+**Goal:** finish wiring the large-file upload path that Batch 1 built the storage for, add a real reconciliation
+worker, make the transcode ladder codec-aware, and land the first bring-your-own-storage connector interface.
+Additive; `main`/production unchanged.
+
+- **Chunked upload path wired end to end.** New service-role route `src/app/api/raye2/storage/multipart/route.ts`
+  (`begin` / `sign` / `part` / `complete` / `abort`): authenticates the caller, checks the per-file allowance, picks
+  a pooled provider through `selectStorageProvider`, atomically reserves capacity, signs parts, records each part,
+  completes the provider multipart upload, commits the object and registers the sha256 for dedup. New browser
+  helper `src/lib/storage/chunked-upload.ts` drives it with retry + progress and raises `MultipartUnavailableError`
+  when the pool cannot serve the request so the caller can fall back. The creator media library now prefers the
+  pooled path for large files and falls back to the Supabase TUS path, so nothing regresses while providers are
+  unconfigured.
+- **Multipart ledger.** Migration `20261116140000_raye2_multipart_uploads_and_reconciliation.sql` adds
+  `raye2_multipart_uploads` plus `raye2_begin_multipart_upload`, `raye2_record_upload_part` (out-of-order safe)
+  and `raye2_finish_multipart_upload`. The reservation RPC was re-created to accept pooled instance ids and 100 GiB
+  parts, with explicit `revoke`/`grant` retained.
+- **Reconciliation.** New `raye2_reconcile_storage_provider` records a trusted worker's real used/capacity bytes,
+  marks capacity fresh and writes a usage-ledger entry. `scripts/raye2-storage-reconcile.mjs` (npm `storage:reconcile`)
+  lists each configured provider's buckets via the new adapter `listObjects`, reconciles, and re-syncs the platform
+  ceiling. It refuses to run with a publishable/anon key.
+- **Optimization ladder.** `src/lib/storage/media-optimization.mjs` chooses the best available codec (AV1 → HEVC →
+  H.264) and builds a no-upscale HLS ladder; the media worker now uses it and honours `RAYE2_VIDEO_CODEC`. It is
+  documented honestly as *visually lossless*, not lossless — no lossless re-encode shrinks a file.
+- **BYOS connectors.** `src/lib/storage/byos-connectors.mjs` defines the S3-compatible connector interface (Storj
+  first) with secret-free descriptors and a placement policy that keeps public delivery on Raye2-owned providers.
+  Raw Google Drive is deliberately not integrated (its terms forbid backend use).
+- **Tests:** +1 adapter test (`listObjects`), +6 optimization tests, +5 BYOS tests. Validator grew to 476 assertions.
+- Gates: validator 476 assertions; tests 954/954; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done:** provider accounts/keys are still unconfigured, so the pooled path is exercised by unit tests and
+  the fallback keeps production safe; live RLS/migration application and real R2/B2/Storj acceptance remain.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3306,7 +3339,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~86% |
 | 3 | Video, feed and discovery ecosystem | ~96% |
-| 4 | Creator Studio, exclusives and live streaming | ~94% |
+| 4 | Creator Studio, exclusives and live streaming | ~95% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~88% |
@@ -3315,7 +3348,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | — | Overall (equal-weight average of Waves 0–9) | **~94%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is now codec-aware and the chunked upload path is wired, but no provider is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

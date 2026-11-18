@@ -3,6 +3,7 @@
 import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
+import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
 
 type MediaKind = "image" | "video" | "audio" | "sprite";
 type ProcessingFilter = "all" | "waiting" | "processing" | "ready" | "failed";
@@ -258,7 +259,19 @@ export default function MediaLibrary() {
       const controller=new AbortController();
       setUploadController(controller);
       setUploadStage("uploading");
-      await uploadToSupabaseStorage({client:supabase,bucketName:"creator-media-private",objectName:path,file,onProgress:setUploadProgress,signal:controller.signal});
+      let pooledUploaded=false;
+      if(prefersChunkedUpload(file)){
+        try{
+          await uploadChunkedToPool({bucketId:"creator-media-private",objectKey:path,file,assetClass:"video",contentType:file.type,onProgress:setUploadProgress,signal:controller.signal});
+          pooledUploaded=true;
+        }catch(poolError){
+          if(!(poolError instanceof MultipartUnavailableError)) throw poolError;
+          // Pooled multipart storage is not available yet; fall back to the Supabase path below.
+        }
+      }
+      if(!pooledUploaded){
+        await uploadToSupabaseStorage({client:supabase,bucketName:"creator-media-private",objectName:path,file,onProgress:setUploadProgress,signal:controller.signal});
+      }
       uploaded=true;
       setUploadStage("saving");
       const {data:saved,error:saveError} = await supabase.rpc("save_creator_media",{

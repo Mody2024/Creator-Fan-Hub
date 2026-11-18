@@ -853,6 +853,36 @@ const dedupTests = await read("../tests/storage-dedup.test.mjs");
 check("dedup module plans hits, savings and last-reference reclaim", dedupLogic.includes("planDedup") && dedupLogic.includes("summarizeDedupSavings") && dedupLogic.includes("planBlobRelease"));
 check("dedup tests cover first store, hit, savings ratio and release", dedupTests.includes("a repeated digest is deduplicated") && dedupTests.includes("dedup savings report logical vs physical") && dedupTests.includes("the last reference to a blob may reclaim"));
 
+// Batch 2 — chunked uploads, reconciliation, optimization ladder and BYOS connectors.
+const multipartMigration = await read("../supabase/migrations/20261116140000_raye2_multipart_uploads_and_reconciliation.sql");
+check("multipart ledger tracks parts, state and reservation linkage", multipartMigration.includes("create table if not exists public.raye2_multipart_uploads") && multipartMigration.includes("uploaded_parts") && multipartMigration.includes("raye2_begin_multipart_upload") && multipartMigration.includes("raye2_record_upload_part") && multipartMigration.includes("raye2_finish_multipart_upload"));
+check("reservation RPC accepts pooled instance ids and 100 GiB parts", multipartMigration.includes("p_provider_id !~ '^[a-z0-9][a-z0-9_-]{1,62}$'") && multipartMigration.includes("p_expected_bytes > 107374182400"));
+check("provider reconciliation records usage and marks capacity fresh", multipartMigration.includes("raye2_reconcile_storage_provider") && multipartMigration.includes("capacity_verified_at=now()") && multipartMigration.includes("last_reconciled_at=now()"));
+
+const multipartPlanner = await read("../src/lib/storage/multipart-upload.mjs");
+const multipartPlannerTests = await read("../tests/storage-multipart-upload.test.mjs");
+check("multipart planner sizes parts, resumes and builds an ordered manifest", multipartPlanner.includes("planUploadParts") && multipartPlanner.includes("planResume") && multipartPlanner.includes("buildCompletionManifest") && multipartPlanner.includes("planPartRetry"));
+check("multipart planner tests cover the 5 MiB rule and 10000-part ceiling", multipartPlannerTests.includes("every non-final part meets the 5 MiB minimum") && multipartPlannerTests.includes("never exceed the maximum number of parts"));
+
+const multipartRoute = await read("../src/app/api/raye2/storage/multipart/route.ts");
+check("multipart route reserves, signs parts, completes and dedups via service role", multipartRoute.includes("raye2_reserve_storage") && multipartRoute.includes("raye2_begin_multipart_upload") && multipartRoute.includes("raye2_record_upload_part") && multipartRoute.includes("raye2_commit_storage_object") && multipartRoute.includes("raye2_register_storage_object") && multipartRoute.includes("createSupabaseServiceClient"));
+
+const chunkedClient = await read("../src/lib/storage/chunked-upload.ts");
+const mediaLibrary = await read("../src/app/creator/media-library.tsx");
+check("chunked client falls back to Supabase when the pool is unavailable", chunkedClient.includes("MultipartUnavailableError") && chunkedClient.includes("prefersChunkedUpload") && chunkedClient.includes("uploadChunkedToPool") && mediaLibrary.includes("MultipartUnavailableError") && mediaLibrary.includes("uploadToSupabaseStorage"));
+check("reconciliation worker lists provider buckets and syncs the ceiling", (await read("../scripts/raye2-storage-reconcile.mjs")).includes("raye2_reconcile_storage_provider") && (await read("../scripts/raye2-storage-reconcile.mjs")).includes("raye2_sync_platform_ceiling") && s3AdapterSource.includes("listObjects"));
+
+const optimization = await read("../src/lib/storage/media-optimization.mjs");
+const optimizationTests = await read("../tests/storage-media-optimization.test.mjs");
+check("optimization ladder prefers AV1/HEVC and never claims lossless video", optimization.includes("visually lossless") && optimization.includes("chooseVideoCodec") && optimization.includes("planVideoLadder") && optimization.includes("estimatedSavingsPercent"));
+check("optimization tests cover codec choice, no-upscale ladder and savings", optimizationTests.includes("preferring AV1 then HEVC") && optimizationTests.includes("never upscales") && optimizationTests.includes("compact rendition"));
+check("media worker uses the shared optimization ladder", (await read("../scripts/raye2-media-worker.mjs")).includes("planVideoLadder"));
+
+const byos = await read("../src/lib/storage/byos-connectors.mjs");
+const byosTests = await read("../tests/storage-byos-connectors.test.mjs");
+check("BYOS connectors are S3-compatible and never store secrets", byos.includes("BYOS_PROVIDERS") && byos.includes("hasSecret: false") && byos.includes("Storj"));
+check("BYOS placement keeps public delivery on Raye2-owned providers", byos.includes("planByosPlacement") && byos.includes("public_not_allowed") && byosTests.includes("private overflow only"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

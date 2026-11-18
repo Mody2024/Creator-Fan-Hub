@@ -310,6 +310,27 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
       const response = await request("DELETE", { bucket, key }, {}, { uploadId: id });
       if (!response.ok && response.status !== 404) await responseError(response, providerId);
     },
+    // List object keys and sizes for capacity reconciliation. Paginates via continuation tokens.
+    async listObjects({ bucket, prefix = "", maxKeys = 1000, continuationToken = null } = {}) {
+      normalizeBucket(bucket);
+      if (!Number.isInteger(maxKeys) || maxKeys < 1 || maxKeys > 1000) {
+        throw new TypeError("maxKeys must be between 1 and 1000.");
+      }
+      const url = new URL(config.endpoint);
+      url.pathname = url.pathname.replace(/\/$/, "") + "/" + bucket;
+      const query = { "list-type": "2", "max-keys": String(maxKeys) };
+      if (prefix) query.prefix = prefix;
+      if (continuationToken) query["continuation-token"] = String(continuationToken);
+      const headers = authorizationHeaders(config, "GET", url);
+      const response = await fetchImpl(url.toString() + "?" + canonicalQuery(new URLSearchParams(query)), { method: "GET", headers, redirect: "error" });
+      if (!response.ok) await responseError(response, providerId);
+      const body = await response.text();
+      const objects = [...body.matchAll(/<Contents>[\s\S]*?<Key>([^<]*)<\/Key>[\s\S]*?<Size>(\d+)<\/Size>[\s\S]*?<\/Contents>/g)]
+        .map(match => ({ key: match[1], sizeBytes: Number(match[2]) }));
+      const truncated = /<IsTruncated>true<\/IsTruncated>/.test(body);
+      const token = /<NextContinuationToken>([^<]+)<\/NextContinuationToken>/.exec(body);
+      return { objects, isTruncated: truncated, nextContinuationToken: truncated && token ? token[1] : null };
+    },
     async createSignedDownload(object, expiresInSeconds) {
       return presign(config, "GET", object, expiresInSeconds).toString();
     },
@@ -358,6 +379,18 @@ export function createConfiguredStorageProviders(env = process.env, fetchImpl = 
     providers.push({ ...provider, providerKind: kindFor(prefix) });
   }
   return providers;
+}
+
+/** Build the adapter for one pooled instance id, or null when it is not configured in this environment. */
+export function createStorageProviderForId(providerId, env = process.env, fetchImpl = fetch) {
+  for (const prefix of configuredInstancePrefixes(env)) {
+    if (instanceIdFor(prefix) !== providerId) continue;
+    const config = readConfig(prefix, env);
+    if (!config) return null;
+    const provider = createS3CompatibleProvider(providerId, config, fetchImpl);
+    return { ...provider, providerKind: kindFor(prefix) };
+  }
+  return null;
 }
 
 export function getStorageBucketForVisibility(config, visibility) {

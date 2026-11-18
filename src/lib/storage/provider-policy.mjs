@@ -43,7 +43,7 @@ export function selectStorageProvider({
   visibility = "private",
   expectedBytes,
   providers,
-  preferredProvider,
+  preferredProvider = null,
   excludedProviders = [],
 }) {
   if (!Number.isSafeInteger(expectedBytes) || expectedBytes < 1) {

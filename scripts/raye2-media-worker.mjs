@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
+import { planVideoLadder } from "../src/lib/storage/media-optimization.mjs";
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -17,6 +18,11 @@ const MAX_HLS_DURATION_SECONDS = 3600;
 const MAX_TRANSCODE_TIMEOUT_MS = 20 * 60 * 1000;
 const PRIVATE_BUCKET = "creator-media-private";
 const PUBLIC_BUCKET = "creator-media-public";
+// Opt-in modern codec for the adaptive ladder. Defaults to H.264 for maximum compatibility;
+// set RAYE2_VIDEO_CODEC=av1 or hevc on a worker that has the matching ffmpeg encoder.
+const VIDEO_CODEC = ["av1", "hevc", "h264"].includes(String(process.env.RAYE2_VIDEO_CODEC ?? "").toLowerCase())
+  ? String(process.env.RAYE2_VIDEO_CODEC).toLowerCase()
+  : "h264";
 
 if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   throw new Error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the worker environment.");
@@ -253,7 +259,7 @@ async function removeWorkerHls(ownerId, mediaId, masterPath) {
   }
 }
 
-async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ownerId, mediaId, leaseToken, bucket) {
+async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ownerId, mediaId, leaseToken, bucket, sourceHeight = 720, codec = "h264") {
   if (!Number.isFinite(durationSeconds) || durationSeconds > MAX_HLS_DURATION_SECONDS) {
     return { hls: null, skippedReason: `Adaptive playback is limited to videos of ${MAX_HLS_DURATION_SECONDS / 60} minutes in this worker version.` };
   }
@@ -261,23 +267,23 @@ async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ow
   const uploaded = [];
   const masterDir = join(root, "master");
   await mkdir(masterDir, { recursive: true });
-  const variants = [
-    { name: "360p", maxWidth: 640, maxHeight: 360, crf: 27, audioRate: "96k", bandwidth: 850000 },
-    { name: "720p", maxWidth: 1280, maxHeight: 720, crf: 24, audioRate: "128k", bandwidth: 2200000 },
-  ];
+  const ladder = planVideoLadder({ sourceHeight, hasAudio, codec, segmentSeconds: 6 });
+  const variants = ladder.variants;
   try {
     for (const variant of variants) {
       const variantDir = join(root, variant.name);
       await mkdir(variantDir, { recursive: true });
       const filter = `scale=w='min(${variant.maxWidth},iw)':h='min(${variant.maxHeight},ih)':force_original_aspect_ratio=decrease:force_divisible_by=2`;
+      const maxRate = `${Math.round(variant.bandwidth / 1000)}k`;
+      const bufSize = `${Math.round(variant.bandwidth / 500)}k`;
       const args = [
         "-hide_banner", "-loglevel", "error", "-i", sourcePath,
         "-map", "0:v:0", ...(hasAudio ? ["-map", "0:a:0?"] : []),
-        "-vf", filter, "-c:v", "libx264", "-preset", "veryfast", "-crf", String(variant.crf),
-        "-maxrate", variant.name === "720p" ? "2200k" : "850k",
-        "-bufsize", variant.name === "720p" ? "4400k" : "1700k",
+        "-vf", filter, "-c:v", variant.videoCodec, "-preset", "veryfast", "-crf", String(variant.crf),
+        "-maxrate", maxRate,
+        "-bufsize", bufSize,
         "-threads", "2", "-force_key_frames", "expr:gte(t,n_forced*6)", "-sc_threshold", "0",
-        ...(hasAudio ? ["-c:a", "aac", "-b:a", variant.audioRate, "-ac", "2"] : ["-an"]),
+        ...(hasAudio ? ["-c:a", "aac", "-b:a", `${variant.audioKbps}k`, "-ac", "2"] : ["-an"]),
         "-f", "hls", "-hls_time", "6", "-hls_playlist_type", "vod",
         "-hls_flags", "independent_segments",
         "-hls_segment_filename", join(variantDir, "segment_%05d.ts"),
@@ -298,8 +304,7 @@ async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ow
     await writeFile(masterFile, master, "utf8");
     const files = await walkFiles(root);
     if (!files.some(file => file.relative === "master/master.m3u8")
-      || !files.some(file => file.relative === "360p/index.m3u8")
-      || !files.some(file => file.relative === "720p/index.m3u8")) {
+      || !variants.every(variant => files.some(file => file.relative === `${variant.name}/index.m3u8`))) {
       throw new Error("Adaptive HLS package is missing a required master or rendition playlist.");
     }
     for (const file of files) {
@@ -310,6 +315,7 @@ async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ow
       hls: {
         masterPath: `${bucket}/${ownerId}/streams/${mediaId}-${leaseToken}/master/master.m3u8`,
         variants: variants.map(variant => variant.name),
+        codec: ladder.codec,
         segmentDurationSeconds: 6,
         hasAudio,
         outputObjects: files.length,
@@ -379,7 +385,8 @@ async function processJob(job) {
         }
         try {
           const hasAudio = extracted.streams.some(stream => stream.type === "audio");
-          const packageResult = await makeHlsPackage(sourcePath, workDir, extracted.durationSeconds, hasAudio, job.owner_id, job.media_id, job.lease_token, bucket);
+          const sourceHeight = Math.max(0, ...extracted.streams.filter(stream => stream.type === "video").map(stream => Number(stream.height) || 0)) || 720;
+          const packageResult = await makeHlsPackage(sourcePath, workDir, extracted.durationSeconds, hasAudio, job.owner_id, job.media_id, job.lease_token, bucket, sourceHeight, VIDEO_CODEC);
           if (packageResult.hls) extracted.hls = packageResult.hls;
           if (packageResult.skippedReason) extracted.hlsSkippedReason = packageResult.skippedReason;
         } catch (error) {
