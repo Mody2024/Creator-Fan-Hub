@@ -1,3 +1,10 @@
+## Media processing provider integration and CI repair — 2026-11-18
+
+- **Commits d4cc887, 1888c6c, 18988e7:** the self-hosted media worker now resolves newly pooled source objects from the storage registry by the exact persisted bucket/object path and owner, then downloads them through that provider's short-lived signed URL. Downloads fail closed when the provider is unavailable, enforce the existing 50 MiB processing ceiling while streaming, and verify the received byte count against the committed object size. Legacy Supabase Storage media continues through its original download path.
+- **Regression coverage added:** worker contract tests cover pooled provider lookup, signed download, exact byte verification, bounded streaming, missing-provider failure, and legacy compatibility.
+- **CI audit:** the first full push workflow exposed two static-validator mismatches: its streamer navigation assertion expected the old /creator URL although Studio now uses its own #creator-live-studio anchor; and its CSS allowlist omitted existing neutral/blue shades and semantic status shades. Updated the validator to check the actual Studio route and recognize the palette tokens already used in Raye2 styles. No production styles or theme switching were changed.
+- **Verification:** an earlier run failed at repository validation before tests/type-check/lint/build. The media worker Docker image job passed. A new CI run is queued for the latest changes; full test/type-check/lint/build success is not yet established.
+
 # Raye2 full-platform implementation progress
 
 ## Source of truth
