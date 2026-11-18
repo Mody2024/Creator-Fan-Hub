@@ -254,6 +254,7 @@ export default function MediaLibrary() {
     let reservationId:string|null=null;
     let uploadSession:ReturnType<typeof getResumableUploadSession>|null=null;
     let uploaded=false;
+    let pooledObjectId:string|null=null;
     try {
       const {data:userData} = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Sign in before uploading.");
@@ -279,7 +280,8 @@ export default function MediaLibrary() {
       let pooledUploaded=false;
       if(prefersChunkedUpload(file)){
         try{
-          await uploadChunkedToPool({bucketId:"creator-media-private",objectKey:path,file,assetClass:"video",contentType:file.type,onProgress:setUploadProgress,signal:controller.signal});
+          const pooledResult=await uploadChunkedToPool({bucketId:"creator-media-private",objectKey:path,file,assetClass:kind==="video"?"video":"other",contentType:file.type,onProgress:setUploadProgress,signal:controller.signal});
+          pooledObjectId=pooledResult.objectId;
           pooledUploaded=true;
         }catch(poolError){
           if(!(poolError instanceof MultipartUnavailableError)) throw poolError;
@@ -298,8 +300,21 @@ export default function MediaLibrary() {
         p_is_published:false
       });
       if (saveError || !saved?.[0]?.saved) {
-        const {error:cleanupError}=await supabase.storage.from("creator-media-private").remove([path]);
-        if(cleanupError) {
+        let cleanupFailed=false;
+        if(pooledObjectId) {
+          try {
+            const cleanupResponse=await fetch("/api/raye2/storage/object",{
+              method:"POST",
+              headers:{"content-type":"application/json"},
+              body:JSON.stringify({action:"delete",objectId:pooledObjectId})
+            });
+            cleanupFailed=!cleanupResponse.ok;
+          } catch { cleanupFailed=true; }
+        } else {
+          const {error:cleanupError}=await supabase.storage.from("creator-media-private").remove([path]);
+          cleanupFailed=!!cleanupError;
+        }
+        if(cleanupFailed) {
           throw new Error("Media metadata was not saved, and the uploaded private file could not be cleaned up. Refresh the library and contact the site administrator if it remains orphaned.");
         }
         throw saveError ?? new Error("Media metadata was not saved. The uploaded file was removed.");
