@@ -67,14 +67,14 @@ export default async function Raye2CreatorStudioPage() {
     home: "العودة إلى الرئيسية", role: "الصلاحية الحالية", assets: "ملفات الوسائط", publicAssets: "ملفات منشورة", drafts: "مسودات خاصة", videos: "صفحات المشاهدة", published: "منشور",
     workspace: "مساحات العمل", recent: "أحدث الملفات", recentDesc: "آخر الملفات التي أضفتها إلى مكتبتك.", emptyRecent: "لم تضف أي ملفات بعد.", uploadNow: "رفع وسائط", videoNow: "إعداد صفحة مشاهدة", liveNow: "بدء بث مباشر", live: "البث المباشر", liveDesc: "ابدأ بثًا مباشرًا وأدر حالتك من أدوات المبدع.", viewAll: "عرض المكتبة", privateLabel: "مسودة خاصة", publicLabel: "منشور", readyLabel: "جاهز", waitingLabel: "قيد المعالجة", failedLabel: "فشل", manage: "إدارة المحتوى", manageDesc: "افتح أدوات رفع الملفات وتحرير البيانات الوصفية والنشر وقوائم التشغيل وسجل الإصدارات.", open: "فتح أدوات المحتوى",
     analytics: "تحليلات الأداء", analyticsDesc: "راجع إجماليات المشاهدات والتفاعلات والتعليقات دون كشف هويات المشاهدين.",
-    editorial: "مراجعة المحتوى", editorialDesc: "يمكن للمحررين مراجعة المحتوى وإعداد الملاحظات، لكن صلاحيات الرفع والنشر الرسمي محفوظة للمالك والمديرين والمبدعين المعتمدين.", editorialComing: "مساحة التحرير قيد التجهيز", beta: "مختبر بيتا", betaDesc: "ميزات قيد التجهيز ستظهر هنا عند تفعيلها. لن تظهر كميزات جاهزة قبل اكتمال تنفيذها واختبارها.",
+    beta: "مختبر بيتا", betaDesc: "ميزات قيد التجهيز ستظهر هنا عند تفعيلها. لن تظهر كميزات جاهزة قبل اكتمال تنفيذها واختبارها.",
     noAccess: "تعذر تحميل بعض بيانات المكتبة. يمكنك إعادة المحاولة من أدوات المحتوى.", coming: "قريبًا / تجريبي", note: "الأرقام تعكس البيانات التي تسمح بها صلاحيات حسابك فقط."
   } : {
     eyebrow: "CREATOR WORKSPACE", title: "Raye2 ", accent: "Studio.", intro: "One workspace for your media library, watch pages, publishing workflow and content performance.",
     home: "Back to home", role: "CURRENT ACCESS", assets: "MEDIA ASSETS", publicAssets: "Published assets", drafts: "Private drafts", videos: "WATCH PAGES", published: "Published",
     workspace: "WORKSPACES", recent: "RECENT MEDIA", recentDesc: "The latest assets added to your library.", emptyRecent: "You have not added any media yet.", uploadNow: "Upload media", videoNow: "Build a watch page", liveNow: "Start a live stream", live: "Live streaming", liveDesc: "Go live and manage your stream from the creator tools.", viewAll: "Open media library", privateLabel: "PRIVATE DRAFT", publicLabel: "PUBLISHED", readyLabel: "READY", waitingLabel: "PROCESSING", failedLabel: "FAILED", manage: "Content management", manageDesc: "Open the existing upload, asset metadata, publishing, playlist and version-history tools.", open: "Open content tools",
     analytics: "Performance analytics", analyticsDesc: "Review aggregate views, reactions and comments without exposing viewer identities.",
-    editorial: "Editorial review", editorialDesc: "Editors can prepare reviews and feedback, while official uploads and publishing remain restricted to owners, admins and assigned creators.", editorialComing: "Editorial workspace is being prepared", beta: "Beta lab", betaDesc: "Upcoming experiments will appear here when enabled. Nothing is labelled ready until it is implemented and tested.",
+    beta: "Beta lab", betaDesc: "Upcoming experiments will appear here when enabled. Nothing is labelled ready until it is implemented and tested.",
     noAccess: "Some library data could not be loaded. You can retry from the content tools.", coming: "COMING SOON / EXPERIMENTAL", note: "Counts reflect only the data your account is allowed to access."
   };
 
@@ -124,7 +124,7 @@ export default async function Raye2CreatorStudioPage() {
       <div className={styles.grid}>
         {canPublish && <article className={styles.card}><span className={styles.cardIndex}>01 / PUBLISH</span><h3>{t.manage}</h3><p>{t.manageDesc}</p><Link className={styles.action} href="#creator-media">{t.open} ↗</Link></article>}
         {canAnalyze && <article className={styles.card}><span className={styles.cardIndex}>02 / INSIGHTS</span><h3>{t.analytics}</h3><p>{t.analyticsDesc}</p><Link className={styles.action} href="/creator/analytics">{isArabic ? "فتح التحليلات" : "Open analytics"} ↗</Link></article>}
-        {canStream && <article className={styles.card}><span className={styles.cardIndex}>02 / LIVE</span><h3>{t.live}</h3><p>{t.liveDesc}</p><Link className={styles.action} href="#creator-live-studio">{isArabic ? "فتح أدوات البث" : "Open live tools"} ↗</Link></article>}{role === "editor" && <article className={styles.card}><span className={styles.cardIndex}>01 / EDITORIAL</span><h3>{t.editorial}</h3><p>{t.editorialDesc}</p><span className={styles.action}>{t.editorialComing}</span></article>}
+        {canStream && <article className={styles.card}><span className={styles.cardIndex}>02 / LIVE</span><h3>{t.live}</h3><p>{t.liveDesc}</p><Link className={styles.action} href="#creator-live-studio">{isArabic ? "فتح أدوات البث" : "Open live tools"} ↗</Link></article>}
       </div>
     </section>
     <div className={styles.embeddedTools} data-slot="creator-tools">
