@@ -27,3 +27,13 @@ test("campaign editor clearly keeps delivery disabled",()=>{
  assert.ok(source.includes("Delivery remains disabled."));
  assert.ok(source.includes("automated delivery remains disabled"));
 });
+
+test("platform campaigns expose all four ad inventories",()=>{
+ assert.ok(source.includes("Eligible for video inventory"));
+ assert.ok(source.includes("Eligible for live inventory"));
+ assert.ok(source.includes("Eligible for Mini’s feed"));
+ assert.ok(source.includes("Eligible for community feed"));
+ assert.ok(source.includes("campaign_scope:{videos,live,minis,community}"));
+ assert.ok(source.includes("setMinis(row.campaign_scope?.minis===true)"));
+ assert.ok(source.includes("setCommunity(row.campaign_scope?.community===true)"));
+});
