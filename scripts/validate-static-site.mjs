@@ -854,7 +854,7 @@ check("saved library opens, renames, deletes and empties collections via RPC", s
 
 
 // Raye2 single-theme palette (plan 1.1): black, white, grey and blue only, no theme switching.
-const PALETTE = new Set(["#0b0b0d","#090a0c","#090a0d","#0d0e11","#07101f","#101013","#101115","#111215","#111216","#121216","#121316","#141416","#17181c","#171c27","#1a1c21","#1b1b20","#1c1c1f","#1c1c20","#1d1d21","#202024","#20232a","#242427","#2f6fe0","#4d8df6","#85858f","#8e9bb0","#92929b","#9297a2","#96969f","#9b9ba5","#a1a1aa","#a9c9ff","#aeb8c8","#aaaab3","#b5b5bd","#b9d2ff","#c5c5cc","#d6d6db","#d6e4ff","#f4f4f6","#ffffff","#000000","#5cc98f","#75d6a4","#e0b878","#f0bd72","#e87d85","#ff8585","#73737d","#777d89"]);
+const PALETTE = new Set(["#0b0b0d","#090a0c","#090a0d","#0d0e11","#07101f","#101013","#101115","#111215","#111216","#121216","#121316","#141416","#17181c","#171c27","#1a1c21","#1b1b20","#1c1c1f","#1c1c20","#1d1d21","#202024","#20232a","#242427","#2f6fe0","#4d8df6","#9dc0ff","#85858f","#8e9bb0","#92929b","#9297a2","#96969f","#9b9ba5","#a1a1aa","#a9c9ff","#aeb8c8","#aaaab3","#b5b5bd","#b9d2ff","#c5c5cc","#d6d6db","#d6e4ff","#f4f4f6","#ffffff","#000000","#5cc98f","#75d6a4","#e0b878","#f0bd72","#e87d85","#ff8585","#73737d","#777d89"]);
 async function collectCss(dir) {
   const out = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
