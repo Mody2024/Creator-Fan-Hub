@@ -32,7 +32,11 @@ export async function POST() {
       ["private", provider.privateBucket],
     ].map(async ([visibility, bucket]) => {
       try {
-        const result = await provider.listObjects({ bucket, prefix: "", maxKeys: 1 });
+        // The runtime adapter accepts an explicit bucket; its inferred JS declaration omits it.
+        const listObjects = provider.listObjects as unknown as (options: {
+          bucket: string; prefix?: string; maxKeys?: number;
+        }) => Promise<{ objects: unknown[] }>;
+        const result = await listObjects({ bucket, prefix: "", maxKeys: 1 });
         return { visibility, ok: true, canList: true, sampleCount: result.objects.length };
       } catch {
         return { visibility, ok: false, canList: false };
