@@ -32,7 +32,8 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
   const [rows, setRows] = useState<StorageProviderRow[]>([]);
   const [reason, setReason] = useState("");
   const [notice, setNotice] = useState("");
-  const [busy, setBusy] = useState(false);\n  const [testResults, setTestResults] = useState<Array<{providerId:string;ok:boolean;checks:Array<{visibility:string;ok:boolean;canList?:boolean}>}>>([]);
+  const [busy, setBusy] = useState(false);
+  const [testResults, setTestResults] = useState<Array<{providerId:string;ok:boolean;checks:Array<{visibility:string;ok:boolean;canList?:boolean}>}>>([]);
 
   const load = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
@@ -60,7 +61,20 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
     setBusy(false);
   }
 
-  async function testConnections() {\n    if (busy) return;\n    setBusy(true); setNotice(""); setTestResults([]);\n    try {\n      const response = await fetch("/api/raye2/storage/providers/test", { method: "POST" });\n      const data = await response.json().catch(() => null) as { providers?: typeof testResults; error?: string; verified?: number; configured?: number } | null;\n      if (!response.ok) throw new Error(data?.error ?? t.fail);\n      setTestResults(data?.providers ?? []);\n      setNotice(`${t.tested}: ${data?.verified ?? 0}/${data?.configured ?? 0}`);\n    } catch (error) { setNotice(error instanceof Error ? error.message : t.fail); }\n    finally { setBusy(false); }\n  }\n\n  async function reconcile() {
+  async function testConnections() {
+    if (busy) return;
+    setBusy(true); setNotice(""); setTestResults([]);
+    try {
+      const response = await fetch("/api/raye2/storage/providers/test", { method: "POST" });
+      const data = await response.json().catch(() => null) as { providers?: typeof testResults; error?: string; verified?: number; configured?: number } | null;
+      if (!response.ok) throw new Error(data?.error ?? t.fail);
+      setTestResults(data?.providers ?? []);
+      setNotice(`${t.tested}: ${data?.verified ?? 0}/${data?.configured ?? 0}`);
+    } catch (error) { setNotice(error instanceof Error ? error.message : t.fail); }
+    finally { setBusy(false); }
+  }
+
+  async function reconcile() {
     if (busy) return;
     setBusy(true); setNotice("");
     try {
@@ -80,13 +94,15 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
         <h2>{t.title}</h2>
         <p>{t.note}</p>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className={styles.action} disabled={busy} onClick={() => void testConnections()}>{busy ? t.testing : t.test}</button>\n          <button className={styles.action} disabled={busy} onClick={() => void reconcile()}>{t.reconcile}</button>
+          <button className={styles.action} disabled={busy} onClick={() => void testConnections()}>{busy ? t.testing : t.test}</button>
+          <button className={styles.action} disabled={busy} onClick={() => void reconcile()}>{t.reconcile}</button>
           <button className={styles.action} disabled={busy} onClick={() => void load()}>{t.refresh}</button>
         </div>
       </div>
       {notice ? <p className={styles.warning}>{notice}</p> : null}
       <label>{t.reason}<textarea rows={2} value={reason} onChange={event => setReason(event.target.value)} maxLength={500} /></label>
-      {testResults.length > 0 ? <div className={styles.storageGrid}>{testResults.map(result => <article className={styles.card} key={result.providerId}><div className={styles.cardHead}><h3>{result.providerId}</h3><span className={result.ok ? styles.ok : styles.warning}>{result.ok ? "Connected" : "Check failed"}</span></div>{result.checks.map(check => <small key={check.visibility}>{check.visibility}: {check.ok ? "List permission verified" : "Unavailable or permission denied"}</small>)}</article>)}</div> : null}\n      {rows.length === 0 ? <p>{t.empty}</p> : (
+      {testResults.length > 0 ? <div className={styles.storageGrid}>{testResults.map(result => <article className={styles.card} key={result.providerId}><div className={styles.cardHead}><h3>{result.providerId}</h3><span className={result.ok ? styles.ok : styles.warning}>{result.ok ? "Connected" : "Check failed"}</span></div>{result.checks.map(check => <small key={check.visibility}>{check.visibility}: {check.ok ? "List permission verified" : "Unavailable or permission denied"}</small>)}</article>)}</div> : null}
+      {rows.length === 0 ? <p>{t.empty}</p> : (
         <div className={styles.storageGrid}>
           {rows.map(row => (
             <article className={styles.card} key={row.provider_id}>
