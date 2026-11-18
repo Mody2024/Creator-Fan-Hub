@@ -78,13 +78,8 @@ async function main() {
     } catch (providerError) {
       console.error(`[raye2-reconcile] ${provider.id} failed:`, providerError instanceof Error ? providerError.message : providerError);
       measuredHealth.set(provider.id, "unavailable");
-      await supabase.rpc("raye2_reconcile_storage_provider", {
-        p_provider_id: provider.id,
-        p_used_bytes: 0,
-        p_capacity_bytes: Number(row.capacity_bytes ?? 0),
-        p_idempotency_key: `reconcile:${provider.id}:fail:${Math.floor(Date.now() / 60000)}`,
-        p_health: "unavailable",
-      }).then(() => {}, () => {});
+      // Do not write a fabricated zero usage total when listing failed.
+      // The registry sync below records health=unavailable while preserving last known usage.
     }
   }
 
