@@ -127,3 +127,13 @@
 .quickActions button span{color:var(--blue,#4d8df6)}
 @media(max-width:900px){.quickActions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.quickActions{grid-template-columns:1fr}}
+
+
+/* Search-first admin navigation */
+.navSearch{display:flex;align-items:center;gap:9px;min-height:42px;padding:0 12px;margin:0 0 10px;border:1px solid rgba(255,255,255,.11);border-radius:11px;background:rgba(255,255,255,.035);color:#8e9bb0}
+.navSearch>span{font-size:19px;line-height:1}
+.navSearch input{width:100%;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#f4f4f6!important;font:inherit!important;font-size:11px!important;box-shadow:none!important}
+.navSearch input::placeholder{color:#777d89}
+.navSearch button{border:0;background:transparent;color:#aeb8c8;font-size:19px;cursor:pointer}
+.navEmpty{padding:10px 12px;color:#9297a2;font-size:11px;line-height:1.6}
+@media(max-width:720px){.sidenav{flex-wrap:wrap;align-items:stretch}.navSearch{flex:1 0 100%;margin:0 0 4px}.navGroup{max-width:100%}.navGroupItems{display:flex;flex-wrap:wrap}.navItem,.navItemActive{white-space:normal}}
