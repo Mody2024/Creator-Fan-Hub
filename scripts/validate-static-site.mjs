@@ -691,7 +691,7 @@ const studioPage = await read("../src/app/raye2/studio/page.tsx");
 const roleMigration = await read("../supabase/migrations/20261110590000_raye2_creator_role_permissions.sql");
 const assignableRoles = ["owner", "admin", "creator", "streamer", "editor", "moderator", "analyst"];
 check("the studio admits every assignable creator role (streamer included)", assignableRoles.every(role => studioPage.includes(`"${role}"`) && roleMigration.includes(`'${role}'`)));
-check("streamer-only gets live affordances distinct from creator-only uploads", /const canStream = \["owner", "admin", "streamer"\]\.includes\(role\)/.test(studioPage) && /\{canStream && <Link href="\/creator#creator-live-studio"/.test(studioPage));
+check("streamer-only gets live affordances distinct from creator-only uploads", /const canStream = \["owner", "admin", "streamer"\]\.includes\(role\)/.test(studioPage) && /\{canStream && <Link href="#creator-live-studio"/.test(studioPage));
 const voiceControlsSrc = await read("../src/app/raye2/raye2-voice-controls.tsx");
 check("voice recording requires consent with a visible indicator and elapsed time", voiceControlsSrc.includes("raye2_request_voice_recording_consent") && voiceControlsSrc.includes("raye2_respond_voice_recording_consent") && voiceControlsSrc.includes("styles.voiceRecording") && voiceControlsSrc.includes("recordingClock"));
 const groupVoiceControlsSrc = await read("../src/app/raye2/raye2-group-voice-controls.tsx");
@@ -1162,6 +1162,7 @@ check("npm run check runs the static validator and the live migration check",
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
+  if (strayColors.length) console.error("Unexpected CSS colors:\n" + [...new Set(strayColors)].join("\n"));
   process.exitCode = 1;
 } else {
   console.log(`Repository validation passed (${assertionCount} assertions).`);
