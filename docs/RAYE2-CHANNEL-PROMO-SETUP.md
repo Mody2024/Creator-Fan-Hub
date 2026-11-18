@@ -38,7 +38,7 @@ The Data API does not expose a reliable dedicated "Shorts tab" feed for a channe
 1. Open YouTube while signed into the channel.
 2. Create a playlist named `Raye2 Mini Promos`.
 3. Add the Shorts you want Raye2 to use.
-4. Set playlist visibility to Public or Unlisted.
+4. Set playlist visibility to Public so the API key can read its items as public channel data.
 5. Copy the playlist ID from its URL. It is the value after `list=`.
 
 Keep this playlist updated when you publish new Shorts. Only items in this playlist are used by the Mini feed; full uploads are excluded.
