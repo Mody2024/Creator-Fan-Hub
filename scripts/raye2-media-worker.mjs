@@ -392,7 +392,8 @@ async function processJob(job) {
   const { data: pooledObjects, error: pooledLookupError } = await supabase
     .from("raye2_storage_objects")
     .select("provider_id,bucket_id,object_key,object_state,size_bytes,mime_type")
-    .eq("media_id", job.media_id)
+    .eq("bucket_id", legacyBucket)
+    .eq("object_key", legacyObjectPath)
     .eq("owner_id", job.owner_id)
     .in("object_state", ["active", "verified"])
     .order("created_at", { ascending: false })
