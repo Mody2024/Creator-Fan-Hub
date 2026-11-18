@@ -356,11 +356,13 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
       }
       const url = new URL(config.endpoint);
       url.pathname = url.pathname.replace(/\/$/, "") + "/" + bucket;
-      const query = { "list-type": "2", "max-keys": String(maxKeys) };
-      if (prefix) query.prefix = prefix;
-      if (continuationToken) query["continuation-token"] = String(continuationToken);
+      url.searchParams.set("list-type", "2");
+      url.searchParams.set("max-keys", String(maxKeys));
+      if (prefix) url.searchParams.set("prefix", prefix);
+      if (continuationToken) url.searchParams.set("continuation-token", continuationToken);
+      // Sign the exact canonical query string that will be sent to the provider.
       const headers = authorizationHeaders(config, "GET", url);
-      const response = await fetchImpl(url.toString() + "?" + canonicalQuery(new URLSearchParams(query)), { method: "GET", headers, redirect: "error" });
+      const response = await fetchImpl(url.toString(), { method: "GET", headers, redirect: "error" });
       if (!response.ok) await responseError(response, providerId);
       const body = await response.text();
       const objects = [...body.matchAll(/<Contents>[\s\S]*?<Key>([^<]*)<\/Key>[\s\S]*?<Size>(\d+)<\/Size>[\s\S]*?<\/Contents>/g)]
