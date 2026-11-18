@@ -5,7 +5,7 @@ import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import SponsorCreativeVariants from "../sponsor-creative-variants";
 
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean};
-type Campaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;category_key:string;category_exclusive:boolean;priority:number;max_per_viewer:number;starts_at:string|null;ends_at:string|null;status:string;allowed_regions:string[];sponsor_asset_media_id:string};
+type Campaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;category_key:string;category_exclusive:boolean;priority:number;max_per_viewer:number;starts_at:string|null;ends_at:string|null;status:string;allowed_regions:string[];campaign_scope:{videos?:boolean;live?:boolean;minis?:boolean;community?:boolean};sponsor_asset_media_id:string};
 type CampaignDraftInput={name:string;assetId:string;disclosure:string;videos:boolean;live:boolean;minis:boolean;community:boolean;priority:string;frequency:string;regions:string;starts:string;ends:string};
 
 export function validatePlatformSponsorDraft(input:CampaignDraftInput):string|null{
@@ -71,6 +71,7 @@ export default function PlatformSponsorManagement(){
   if(row.status!=="draft")return;
   setEditingCampaignId(row.id);setName(row.sponsor_name);setAssetId(row.sponsor_asset_media_id);setDisclosure(row.disclosure_text);
   setPlacement(row.placement);setCategory(row.category_key);setExclusive(row.category_exclusive);
+  setVideos(row.campaign_scope?.videos===true);setLive(row.campaign_scope?.live===true);setMinis(row.campaign_scope?.minis===true);setCommunity(row.campaign_scope?.community===true);
   setPriority(String(row.priority));setFrequency(String(row.max_per_viewer));
   setRegions((row.allowed_regions??[]).join(", "));setStarts(row.starts_at?.slice(0,10)??"");
   setEnds(row.ends_at?.slice(0,10)??"");
