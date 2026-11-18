@@ -32,7 +32,7 @@ export async function POST() {
       ["private", provider.privateBucket],
     ].map(async ([visibility, bucket]) => {
       try {
-        const result = await provider.listObjects({ bucket, maxKeys: 1 });
+        const result = await provider.listObjects({ prefix: "", maxKeys: 1 });
         return { visibility, ok: true, canList: true, sampleCount: result.objects.length };
       } catch {
         return { visibility, ok: false, canList: false };
