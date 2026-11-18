@@ -87,6 +87,10 @@ begin
           '11111111-1111-1111-1111-111111111111','other','private','active',2048,'application/octet-stream',
           'matrix-object');
 
+  -- Non-zero provider byte counters so an object migration must move the exact delta.
+  update public.raye2_storage_providers set used_bytes=5000 where provider_id='supabase';
+  update public.raye2_storage_providers set used_bytes=1000 where provider_id='cloudflare_r2';
+
   -- Watch Together ships disabled; the owner enables it through the platform rules (as the Admin
   -- Rules Engine would). The session RPC refuses to run otherwise.
   update public.raye2_platform_rules
@@ -492,6 +496,84 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
+-- Storage object migration: service-role-only ledger, provider byte transfer.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_owner uuid := '11111111-1111-1111-1111-111111111111';
+  v_object uuid := 'ffffffff-ffff-ffff-ffff-ffffffffffff';
+  v_migration uuid;
+  v_migrations uuid;
+  v_committed boolean;
+  v_count integer;
+begin
+  -- Only the service role may list draining objects and open a migration.
+  begin
+    set local role authenticated;
+    perform set_config('request.jwt.claim.role','authenticated',true);
+    perform set_config('request.jwt.claim.sub', v_owner::text, true);
+    begin
+      perform public.raye2_list_draining_objects(array['supabase'], 500);
+      raise exception 'MATRIX FAIL: a member listed draining storage objects';
+    exception when sqlstate '42501' then null;
+    end;
+    begin
+      perform public.raye2_begin_object_migration(v_object,'cloudflare_r2','b2','matrix-migration-key');
+      raise exception 'MATRIX FAIL: a member opened an object migration';
+    exception when sqlstate '42501' then null;
+    end;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+
+  -- The service-role worker lists the draining object and opens a migration.
+  begin
+    set local role service_role;
+    perform set_config('request.jwt.claim.role','service_role',true);
+    perform set_config('request.jwt.claim.sub','',true);
+    select count(*) into v_count from public.raye2_list_draining_objects(array['supabase'], 500);
+    v_migration := public.raye2_begin_object_migration(v_object,'cloudflare_r2','raye2-migrated','matrix-migration-key');
+    -- Beginning the same migration again is idempotent on its idempotency key.
+    v_migrations := public.raye2_begin_object_migration(v_object,'cloudflare_r2','raye2-migrated','matrix-migration-key');
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if v_count <> 1 then raise exception 'MATRIX FAIL: the draining-object list missed the seeded object (n=%)', v_count; end if;
+  if v_migration is distinct from v_migrations then
+    raise exception 'MATRIX FAIL: reopening a migration was not idempotent';
+  end if;
+
+  -- The service-role worker commits the copy; bytes move and the ledger records the event.
+  begin
+    set local role service_role;
+    perform set_config('request.jwt.claim.role','service_role',true);
+    perform set_config('request.jwt.claim.sub','',true);
+    select public.raye2_complete_object_migration(v_migration,'matrix/object-migrated.bin') into v_committed;
+    reset role;
+  exception when others then reset role; raise;
+  end;
+  if not v_committed then raise exception 'MATRIX FAIL: committing a copied migration did not report success'; end if;
+  if (select provider_id from public.raye2_storage_objects where object_id=v_object) <> 'cloudflare_r2' then
+    raise exception 'MATRIX FAIL: the object was not repointed to the destination provider';
+  end if;
+  if (select object_key from public.raye2_storage_objects where object_id=v_object) <> 'matrix/object-migrated.bin' then
+    raise exception 'MATRIX FAIL: the object key was not repointed';
+  end if;
+  if (select used_bytes from public.raye2_storage_providers where provider_id='supabase') <> 2952 then
+    raise exception 'MATRIX FAIL: the source provider byte counter did not decrease';
+  end if;
+  if (select used_bytes from public.raye2_storage_providers where provider_id='cloudflare_r2') <> 3048 then
+    raise exception 'MATRIX FAIL: the destination provider byte counter did not increase';
+  end if;
+  if (select count(*) from public.raye2_storage_usage_ledger where event_kind='object_migrated') <> 1 then
+    raise exception 'MATRIX FAIL: the migration ledger event was not recorded';
+  end if;
+  if (select migration_state from public.raye2_storage_object_migrations where migration_id=v_migration) <> 'committed' then
+    raise exception 'MATRIX FAIL: the migration ledger row was not marked committed';
+  end if;
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- Storage lifecycle: owner-scoped access and service-role-only privileged RPCs.
 -- ---------------------------------------------------------------------------
 do $$
@@ -807,6 +889,9 @@ declare
     'public.raye2_join_watch_session_invite(text)',
     'public.raye2_create_watch_session(uuid,text,text,text,uuid,text,integer,timestamp with time zone)',
     'public.raye2_join_watch_session_guarded(uuid)',
+    'public.raye2_list_draining_objects(text[],integer)',
+    'public.raye2_begin_object_migration(uuid,text,text,text)',
+    'public.raye2_complete_object_migration(uuid,text,text)',
     'public.raye2_reserve_storage(uuid,text,text,text,bigint,text,integer)',
     'public.raye2_commit_storage_object(uuid,text,text,bigint,text,text,text,text,uuid)',
     'public.raye2_release_storage_reservation(uuid,text)'

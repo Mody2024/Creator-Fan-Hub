@@ -3658,6 +3658,30 @@ the guarded surface so coverage is comprehensive, not just recent. Additive; `ma
   matrix with 0 failures; tests **1021/1021**; tsc clean; lint 0 errors; build OK.
 - **Progress accounting:** verification/authorization batch; the canonical ten-wave table is unchanged.
 
+## Batch — 2026-11-10 (Batch 15): Storage object migration verified; latent ledger bug fixed (development only)
+
+**Goal:** prove the storage object-migration ledger end to end and fix the latent defect it exposed. Additive;
+`main` and production unchanged.
+
+- **Latent bug found and fixed.** `raye2_complete_object_migration` records an `object_migrated` event in
+  `raye2_storage_usage_ledger`, but that table's `event_kind` check (from
+  `20261115190000_raye2_multi_provider_storage_control_plane`) never listed the kind, so every BYOS object
+  migration failed at commit with a check-constraint violation. The original migration applied cleanly, so this
+  is a forward-only repair (`20261116240000_raye2_storage_migration_ledger_event_kind.sql`) that drops and
+  re-adds the constraint with the full kind list plus `object_migrated` — not an in-place edit.
+- **New behavioral matrix block** (`raye2-rls-matrix.sql`): a member is denied `raye2_list_draining_objects` and
+  `raye2_begin_object_migration`; the service-role worker lists the draining object, opens a migration (and
+  reopening the same idempotency key returns the same id), commits the copy, and the block asserts the object is
+  repointed (provider + key), the source provider's byte counter drops by exactly the object size, the
+  destination's rises by the same, the `object_migrated` ledger event is written, and the migration row is
+  `committed`. Seed now gives the providers non-zero byte counters.
+- **Non-vacuous:** running the matrix without the corrective migration fails at the ledger check constraint
+  (the same violation), so the block is testing real behaviour, not a tautology.
+- **Wiring.** Validator grew to **531 assertions**; the harness test grew to **9 tests**.
+- Gates: validator 531 assertions; live check applied **249/249 migrations** + post-checks + broadened RLS
+  matrix with 0 failures; tests **1023/1023**; tsc clean; lint 0 errors; build OK.
+- **Progress accounting:** verification/hardening batch; the canonical ten-wave table is unchanged.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3677,7 +3701,11 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (RLS behavioral acceptance on a hosted Supabase project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated verification is now comprehensive: the full 248-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub, all post-apply invariants hold, and 19 guarded RPC/RLS surfaces pass a role-switched behavioral authorization matrix covering group management, moderation logs, chat polls, clips, storage lifecycle, disappearing messages/slow mode and Watch Together (`npm run check:migrations`). Wave 9's remaining gap is therefore hosted-project acceptance, load/capacity/cost checks and owner sign-off rather than migration execution or isolated guard behavior. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (RLS behavioral acceptance on a hosted Supabase project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated verification is now comprehensive: the full 249-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub, all post-apply invariants hold, and 22 guarded RPC/RLS surfaces pass a role-switched behavioral authorization matrix covering group
+management, moderation logs, chat polls, clips, storage lifecycle and object migration, disappearing
+messages/slow mode and Watch Together (`npm run check:migrations`). A latent defect was found this way: the
+object-migration ledger's `event_kind` check omitted `object_migrated`, so the commit path always failed — now
+repaired by `20261116240000_raye2_storage_migration_ledger_event_kind.sql`. Wave 9's remaining gap is therefore hosted-project acceptance, load/capacity/cost checks and owner sign-off rather than migration execution or isolated guard behavior. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

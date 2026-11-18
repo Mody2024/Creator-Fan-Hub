@@ -53,6 +53,11 @@ schema (so `extensions.digest(...)` resolves), and the auth/storage/realtime sch
 migrations reference. If a migration fails only under the stub, suspect the stub first and fix its fidelity
 rather than adding a corrective migration.
 
+The storage object-migration ledger (`raye2_storage_usage_ledger.event_kind`) must list every kind the
+storage RPCs write, including `object_migrated` used by `raye2_complete_object_migration`. When you add a
+new `event_kind`, widen the check in the same migration (see `20261116240000_raye2_storage_migration_ledger_event_kind.sql`);
+the RLS matrix exercises the commit path and will fail loudly otherwise.
+
 ### Editing migrations
 
 The forward-only rule above still holds for anything that has run against a real database. Exception: a

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [atomic, feed, allowances, runner, stub, postchecks, pkg, matrix] = await Promise.all([
+const [atomic, feed, allowances, runner, stub, postchecks, pkg, matrix, ledgerRepair] = await Promise.all([
   read("../supabase/migrations/20261115193000_raye2_atomic_storage_reservations.sql"),
   read("../supabase/migrations/20261111070000_raye2_community_feed_linked_slug.sql"),
   read("../supabase/migrations/20261116120000_raye2_storage_allowances_and_control.sql"),
@@ -11,7 +11,8 @@ const [atomic, feed, allowances, runner, stub, postchecks, pkg, matrix] = await 
   read("../scripts/raye2-stub-supabase.sql"),
   read("../scripts/raye2-migration-postchecks.sql"),
   read("../package.json"),
-  read("../scripts/raye2-rls-matrix.sql")
+  read("../scripts/raye2-rls-matrix.sql"),
+  read("../supabase/migrations/20261116240000_raye2_storage_migration_ledger_event_kind.sql")
 ]);
 
 test("the atomic storage migration is structurally intact", () => {
@@ -71,6 +72,27 @@ test("the post-checks assert the platform's core invariants", () => {
   assert.match(postchecks, /storage reservation RPCs must be service-role only/);
 });
 
+test("the storage migration ledger repair admits the object_migrated event kind", () => {
+  // raye2_complete_object_migration writes this kind; the original ledger check omitted it.
+  assert.match(ledgerRepair, /drop constraint if exists raye2_storage_usage_ledger_event_kind_check/);
+  assert.match(ledgerRepair, /add constraint raye2_storage_usage_ledger_event_kind_check/);
+  assert.match(ledgerRepair, /'object_migrated'/);
+  // The repair re-lists every previously allowed kind so nothing is dropped.
+  for (const kind of [
+    "upload_verified", "object_deleted", "object_reconciled", "replica_created",
+    "replica_removed", "reservation_expired", "manual_adjustment"
+  ]) {
+    assert.ok(ledgerRepair.includes(`'${kind}'`), `repair drops the ${kind} kind`);
+  }
+});
+
+test("the RLS matrix proves the storage object migration moves bytes and records the ledger", () => {
+  assert.match(matrix, /raye2_list_draining_objects/);
+  assert.match(matrix, /raye2_begin_object_migration/);
+  assert.match(matrix, /raye2_complete_object_migration/);
+  assert.match(matrix, /event_kind='object_migrated'/);
+});
+
 test("the RLS matrix drives the real authorization guards as each role", () => {
   assert.match(matrix, /set local role authenticated/);
   assert.match(matrix, /set local role anon/);
@@ -96,7 +118,10 @@ test("the RLS matrix drives the real authorization guards as each role", () => {
     "raye2_create_watch_session_invite",
     "raye2_revoke_watch_session_invite",
     "raye2_join_watch_session_invite",
-    "raye2_join_watch_session_guarded"
+    "raye2_join_watch_session_guarded",
+    "raye2_list_draining_objects",
+    "raye2_begin_object_migration",
+    "raye2_complete_object_migration"
   ]) {
     assert.ok(matrix.includes(surface), `matrix does not exercise ${surface}`);
   }

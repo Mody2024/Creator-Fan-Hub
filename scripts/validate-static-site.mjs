@@ -1084,6 +1084,12 @@ const migrationCheckScript = await read("../scripts/raye2-migration-check.mjs");
 const migrationStub = await read("../scripts/raye2-stub-supabase.sql");
 const migrationPostchecks = await read("../scripts/raye2-migration-postchecks.sql");
 const rlsMatrix = await read("../scripts/raye2-rls-matrix.sql");
+const storageLedgerRepair = await read("../supabase/migrations/20261116240000_raye2_storage_migration_ledger_event_kind.sql");
+check("the storage migration ledger repair admits the object_migrated event kind",
+  storageLedgerRepair.includes("drop constraint if exists raye2_storage_usage_ledger_event_kind_check") &&
+  storageLedgerRepair.includes("add constraint raye2_storage_usage_ledger_event_kind_check") &&
+  storageLedgerRepair.includes("'object_migrated'") &&
+  storageLedgerRepair.includes("'manual_adjustment'"));
 const packageManifest = JSON.parse(await read("../package.json"));
 check("the live migration check applies every migration on a throwaway cluster",
   migrationCheckScript.includes("supabase") && migrationCheckScript.includes("migrations") &&
@@ -1102,6 +1108,8 @@ check("the RLS matrix exercises the real role-switched authorization guards",
   rlsMatrix.includes("raye2_set_conversation_disappearing") && rlsMatrix.includes("raye2_set_group_slow_mode") &&
   rlsMatrix.includes("raye2_create_watch_session") && rlsMatrix.includes("raye2_join_watch_session_invite") &&
   rlsMatrix.includes("raye2_join_watch_session_guarded") &&
+  rlsMatrix.includes("raye2_list_draining_objects") && rlsMatrix.includes("raye2_begin_object_migration") &&
+  rlsMatrix.includes("raye2_complete_object_migration") && rlsMatrix.includes("event_kind='object_migrated'") &&
   rlsMatrix.includes("has_function_privilege('anon'") &&
   rlsMatrix.includes("MATRIX FAIL") && rlsMatrix.includes("when sqlstate '42501' then"));
 check("the Supabase stub mirrors the auth/storage/realtime surfaces the migrations use",
