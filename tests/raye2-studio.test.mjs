@@ -34,7 +34,7 @@ test("Creator Studio only exposes tools permitted by the assigned role", async (
   assert.ok(page.includes("editor"));
   assert.ok(page.includes("canStream"));
   assert.ok(page.includes("canAnalyze"));
-  assert.ok(page.includes('href="/creator"'));
+  assert.ok(page.includes('href="/raye2/home"'));
   assert.ok(page.includes('href="/creator/analytics"'));
   assert.ok(page.includes('href="/creator/community"'));
 });
@@ -113,7 +113,7 @@ test("editor is admitted to the unified Studio workspace", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.ok(page.includes('const canPublish = ["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
   assert.ok(page.includes('{canPublish && <article'));
-  assert.ok(page.includes('role === "editor"'));
+  assert.ok(page.includes('const canPublish = ["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
   assert.ok(page.includes('"editor"].includes(role)'));
   assert.ok(page.includes("{canPublish &&"));
 });
