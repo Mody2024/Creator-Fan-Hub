@@ -6,12 +6,12 @@ import SponsorCreativeVariants from "../sponsor-creative-variants";
 
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean};
 type Campaign={id:string;sponsor_name:string;disclosure_text:string;placement:string;category_key:string;category_exclusive:boolean;priority:number;max_per_viewer:number;starts_at:string|null;ends_at:string|null;status:string;allowed_regions:string[];sponsor_asset_media_id:string};
-type CampaignDraftInput={name:string;assetId:string;disclosure:string;videos:boolean;live:boolean;priority:string;frequency:string;regions:string;starts:string;ends:string};
+type CampaignDraftInput={name:string;assetId:string;disclosure:string;videos:boolean;live:boolean;minis:boolean;community:boolean;priority:string;frequency:string;regions:string;starts:string;ends:string};
 
 export function validatePlatformSponsorDraft(input:CampaignDraftInput):string|null{
  if(input.name.trim().length<2||input.name.trim().length>120)return "Sponsor name must contain 2–120 characters.";
  if(!input.assetId)return "Choose a published sponsor creative.";
- if(!input.videos&&!input.live)return "Select at least one eligible inventory type.";
+ if(!input.videos&&!input.live&&!input.minis&&!input.community)return "Select at least one eligible inventory type.";
  if(input.disclosure.trim().length<3||input.disclosure.trim().length>240)return "Disclosure must contain 3–240 characters.";
  const priority=Number(input.priority),frequency=Number(input.frequency);
  if(!Number.isInteger(priority)||priority<1||priority>100)return "Priority must be a whole number from 1 to 100.";
@@ -41,6 +41,8 @@ export default function PlatformSponsorManagement(){
  const [regions,setRegions]=useState("");
  const [videos,setVideos]=useState(true);
  const [live,setLive]=useState(false);
+ const [minis,setMinis]=useState(false);
+ const [community,setCommunity]=useState(false);
  const [starts,setStarts]=useState("");
  const [ends,setEnds]=useState("");
  const [busy,setBusy]=useState(false);
@@ -62,7 +64,7 @@ export default function PlatformSponsorManagement(){
  function clearForm(){
   setEditingCampaignId(null);setName("");setAssetId("");setDisclosure("Sponsored");setPlacement("intro");
   setCategory("general");setExclusive(false);setPriority("50");setFrequency("1");setRegions("");
-  setVideos(true);setLive(false);setStarts("");setEnds("");
+  setVideos(true);setLive(false);setMinis(false);setCommunity(false);setStarts("");setEnds("");
  }
 
  function editDraft(row:Campaign){
@@ -77,7 +79,7 @@ export default function PlatformSponsorManagement(){
 
  async function create(){
   if(!supabase||busy)return;
-  const validation=validatePlatformSponsorDraft({name,assetId,disclosure,videos,live,priority,frequency,regions,starts,ends});
+  const validation=validatePlatformSponsorDraft({name,assetId,disclosure,videos,live,minis,community,priority,frequency,regions,starts,ends});
   if(validation){setNotice(validation);return}
   setBusy(true);
   try{
@@ -85,7 +87,7 @@ export default function PlatformSponsorManagement(){
    if(userError||!user.user)throw new Error("Sign in again as a Raye2 admin.");
    const payload={
     sponsor_asset_media_id:assetId,sponsor_name:name.trim(),disclosure_text:disclosure.trim(),placement,
-    campaign_scope:{videos,live},category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",
+    campaign_scope:{videos,live,minis,community},category_key:category.trim().toLowerCase().replace(/[^a-z0-9_-]/g,"-").slice(0,40)||"general",
     category_exclusive:exclusive,priority:Number(priority),max_per_viewer:Number(frequency),
     allowed_regions:regions.split(",").map(x=>x.trim().toUpperCase()).filter(Boolean),
     starts_at:starts?new Date(starts+"T00:00:00").toISOString():null,
@@ -162,6 +164,8 @@ export default function PlatformSponsorManagement(){
    <label>Campaign ends<input type="date" value={ends} onChange={e=>setEnds(e.target.value)}/></label>
    <label className="raye2-video-check"><input type="checkbox" checked={videos} onChange={e=>setVideos(e.target.checked)}/> Eligible for video inventory</label>
    <label className="raye2-video-check"><input type="checkbox" checked={live} onChange={e=>setLive(e.target.checked)}/> Eligible for live inventory (provider support required)</label>
+   <label className="raye2-video-check"><input type="checkbox" checked={minis} onChange={e=>setMinis(e.target.checked)}/> Eligible for Mini’s feed (native sponsored card)</label>
+   <label className="raye2-video-check"><input type="checkbox" checked={community} onChange={e=>setCommunity(e.target.checked)}/> Eligible for community feed (native sponsored post)</label>
    <label className="raye2-video-check"><input type="checkbox" checked={exclusive} onChange={e=>setExclusive(e.target.checked)}/> Exclusive within this sponsor category</label>
    <div className="raye2-inline-actions"><button className="button button-primary" type="button" disabled={busy||!assets.length} onClick={()=>void create()}>{busy?"Saving…":editingCampaignId?"Save draft changes":"Save platform campaign draft"}</button>{editingCampaignId&&<button className="button button-secondary" type="button" disabled={busy} onClick={clearForm}>Cancel editing</button>}</div>
   </div>
