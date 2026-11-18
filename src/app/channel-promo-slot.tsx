@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import "./channel-promo-slot.css";
 import { selectRaye2ChannelPromo, type Raye2PromoPlacement } from "@/lib/raye2/channel-promo-rotation";
 
 const recentByPlacement = new Map<string, string[]>();
