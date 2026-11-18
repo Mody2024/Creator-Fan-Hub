@@ -19,7 +19,7 @@ test("streamer-only gets live affordances and creator-only gets upload, never th
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.match(page, /const canPublish = \["owner", "admin", "creator", "streamer", "editor"\]\.includes\(role\)/);
   assert.match(page, /const canStream = \["owner", "admin", "streamer"\]\.includes\(role\)/);
-  assert.match(page, /const canStream = \["owner", "admin", "streamer"\]\.includes\(role\)/);\n  assert.match(page, /const canAnalyze = \["owner", "admin", "creator", "streamer"\]\.includes\(role\)/);
+  assert.match(page, /const canAnalyze = \["owner", "admin", "creator", "streamer"\]\.includes\(role\)/);
   assert.match(page, /\{canStream && <Link href="#creator-live-studio"/);
   assert.match(page, /\{canStream && <article/);
 });
