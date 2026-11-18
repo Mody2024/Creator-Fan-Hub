@@ -66,9 +66,7 @@ export default async function CreatorDashboardPage() {
         {admin.role === "owner" && (
 <a className="module-card" href="/creator/team"><div className="module-card-top"><span>08 / ACCESS</span><span className="module-state">Owner only</span></div><h3>{t.team}</h3><p>{t.teamDesc}</p><span className="module-arrow">↗</span></a>
         )}
-        {["owner","admin"].includes(admin.role) && (
-<a className="module-card" href="/creator/raye2"><div className="module-card-top"><span>09 / PLATFORM</span><span className="module-state">Raye2</span></div><h3>{t.raye2Admin}</h3><p>{t.raye2AdminDesc}</p><span className="module-arrow">↗</span></a>
-        )}
+
         {["owner","admin"].includes(admin.role) && (
 <a className="module-card" href="/creator/community"><div className="module-card-top"><span>10 / TRUST & SAFETY</span><span className="module-state">Community</span></div><h3>{t.moderation}</h3><p>{t.moderationDesc}</p><span className="module-arrow">↗</span></a>
         )}
