@@ -377,7 +377,7 @@ test("Supabase migration versions are unique and sortable", async () => {
 
 
 
-test("Nhen bilingual identity and logo studio are wired into public and creator experiences", async () => {
+test("Raye2 logo studio is wired into public and creator experiences", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
@@ -417,7 +417,7 @@ test("deleting a prepared logo also cleans up its private original backup safely
 });
 
 
-test("uploaded logo preview shows both themes while bilingual identity remains visible in the hero portal", async () => {
+test("uploaded logo preview shows both themes without a text wordmark in the hero portal", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
@@ -530,7 +530,7 @@ test("trigger-only SECURITY DEFINER functions cannot be called as public RPCs", 
   }
 });
 
-test("the bilingual Raye2 identity and uploaded logo remain theme-aware", async () => {
+test("the uploaded logo remains theme-aware without a text wordmark", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
