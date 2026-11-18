@@ -38,6 +38,7 @@ async function measureProvider(provider, buckets) {
 }
 
 async function main() {
+  const measuredHealth = new Map();
   const providers = createConfiguredStorageProviders(process.env);
   if (!providers.length) {
     console.error("[raye2-reconcile] No R2/B2 providers are configured in this environment; nothing to reconcile.");
@@ -46,7 +47,7 @@ async function main() {
 
   const { data: rows, error } = await supabase
     .from("raye2_storage_providers")
-    .select("provider_id,capacity_bytes,public_bucket,private_bucket");
+    .select("provider_id,enabled,health,capacity_bytes,public_bucket,private_bucket");
   if (error) throw error;
   const known = new Map((rows ?? []).map(row => [row.provider_id, row]));
 
@@ -60,6 +61,7 @@ async function main() {
       const { usedBytes, objectCount } = await measureProvider(provider, [row.public_bucket, row.private_bucket]);
       const capacityBytes = Number(row.capacity_bytes ?? 0);
       const health = capacityBytes > 0 && usedBytes <= capacityBytes ? "healthy" : "degraded";
+      measuredHealth.set(provider.id, health);
       const { error: reconcileError } = await supabase.rpc("raye2_reconcile_storage_provider", {
         p_provider_id: provider.id,
         p_used_bytes: usedBytes,
@@ -71,6 +73,7 @@ async function main() {
       console.log(`[raye2-reconcile] ${provider.id}: used=${usedBytes} capacity=${capacityBytes} objects=${objectCount} health=${health}`);
     } catch (providerError) {
       console.error(`[raye2-reconcile] ${provider.id} failed:`, providerError instanceof Error ? providerError.message : providerError);
+      measuredHealth.set(provider.id, "unavailable");
       await supabase.rpc("raye2_reconcile_storage_provider", {
         p_provider_id: provider.id,
         p_used_bytes: 0,
@@ -92,9 +95,11 @@ async function main() {
   const syncPayload = providers.map(provider => ({
     provider_id: provider.id,
     provider_kind: provider.providerKind ?? provider.id.replace(/_\d+$/, ""),
-    enabled: true,
+    // Never auto-enable a provider during reconciliation. Preserve the admin decision.
+    enabled: known.has(provider.id) ? known.get(provider.id).enabled === true : false,
     priority: provider.providerKind === "cloudflare_r2" ? 10 : 20,
-    health: "healthy",
+    // Preserve the result of the actual bucket scan; never overwrite a failed scan as healthy.
+    health: measuredHealth.get(provider.id) ?? "unverified",
     capacity_bytes: Number(known.get(provider.id)?.capacity_bytes ?? 8 * 1024 * 1024 * 1024),
     safety_reserve_bytes: 256 * 1024 * 1024,
     max_managed_bytes: null,
