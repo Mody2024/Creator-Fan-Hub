@@ -7,6 +7,12 @@
 - Production/main: unchanged; no merge or production deployment authorized.
 - Snapshot commit reviewed: `67e9e926b56e6eefd2e810af06574fb6c3a4301d` (2026-11-08; test suite passed but TypeScript caught a missing locale separator, corrected in this batch).
 
+## Recent implementation log — 2026-11-18
+
+- **Admin usability batch (commits `4453e7b`, `226b1f7`, `ea01a6c`):** removed the Creator Studio shortcut from the Admin header to reinforce the separate publishing/admin workspaces; added live client-side search across Admin navigation sections; added clear-search and no-results states; improved mobile wrapping and search-field layout.
+- **Verification state:** source changes are committed to `development`. The matching Vercel Preview deployment for `ea01a6c` was still queued when checked; no successful build or browser/device acceptance is claimed yet.
+- **Scope note:** this is an Admin usability improvement, not evidence that the entire Admin Rules Engine, upload pipeline, media processing, or platform is complete. The conservative full-platform snapshot below remains the last measured baseline until a new full repository audit and acceptance run are completed.
+
 ## Progress snapshot — 2026-11-08
 
 These are conservative repository-based estimates against the **entire ten-wave platform**, not the old chat/voice-only scope. A feature earns credit only for code that exists in this repository; a route, plan item, schema proposal, or legacy feature elsewhere in the product is not treated as an end-to-end Raye2 implementation.
