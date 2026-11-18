@@ -52,7 +52,7 @@ export default function PlatformSponsorManagement(){
   if(!supabase)return;
   const [media,campaign]=await Promise.all([
    supabase.rpc("get_creator_media",{p_limit:200}),
-   supabase.from("raye2_platform_sponsor_campaigns").select("id,sponsor_name,disclosure_text,placement,category_key,category_exclusive,priority,max_per_viewer,starts_at,ends_at,status,allowed_regions,sponsor_asset_media_id").order("priority",{ascending:false}).order("created_at",{ascending:false})
+   supabase.from("raye2_platform_sponsor_campaigns").select("id,sponsor_name,disclosure_text,placement,category_key,category_exclusive,priority,max_per_viewer,starts_at,ends_at,status,allowed_regions,campaign_scope,sponsor_asset_media_id").order("priority",{ascending:false}).order("created_at",{ascending:false})
   ]);
   if(!media.error)setAssets(((media.data??[]) as Asset[]).filter(x=>x.is_published&&(x.media_type==="image"||x.media_type==="video")));
   if(campaign.error)setNotice("Platform sponsor settings are unavailable until the free Raye2 sponsorship migration is applied.");
