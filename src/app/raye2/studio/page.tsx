@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import LanguageSwitch from "@/app/language-switch";
 import styles from "./studio.module.css";
 
 export const dynamic = "force-dynamic";
@@ -73,7 +74,7 @@ export default async function Raye2CreatorStudioPage() {
         {canAnalyze && <Link href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}
         {canModerate && <Link href="/creator/community">{isArabic ? "الإشراف" : "Moderation"}</Link>}
       </nav>
-      <Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link>
+      <div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
     </header>
     <section className={styles.hero} data-slot="hero">
       <div><span className={styles.eyebrow}>RAYE2 / CREATOR TOOLS</span><h1>{t.title}<em>{t.accent}</em></h1><p>{t.intro}</p></div>

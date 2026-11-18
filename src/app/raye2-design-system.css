@@ -580,7 +580,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(max-width:700px){.raye2-home-polls{padding:16px}.raye2-home-polls .published-poll{padding:14px}}
 
 /* Language control is shared across the site; it stays unobtrusive and keyboard accessible. */
-.raye2-language-switch{position:fixed;z-index:95;top:14px;right:16px;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 12px;border:1px solid var(--raye2-ds-line);border-radius:999px;background:rgba(11,11,13,.88);color:var(--raye2-ds-text);font:600 11px/1 inherit;backdrop-filter:blur(14px);cursor:pointer}
+.raye2-language-switch{position:fixed;z-index:95;bottom:16px;top:auto;right:16px;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 12px;border:1px solid var(--raye2-ds-line);border-radius:999px;background:rgba(11,11,13,.88);color:var(--raye2-ds-text);font:600 11px/1 inherit;backdrop-filter:blur(14px);cursor:pointer}
 .raye2-language-switch:hover{border-color:var(--raye2-ds-accent);color:var(--raye2-ds-accent)}
 .raye2-language-switch:focus-visible{outline:2px solid var(--raye2-ds-accent);outline-offset:3px}
 .raye2-language-switch span{font-size:15px}
@@ -594,7 +594,7 @@ body:has(.raye2-language-switch--header) .raye2-language-switch:not(.raye2-langu
 [dir="rtl"] .raye2-sidebar-link,[dir="rtl"] .raye2-home-discovery-links a{direction:rtl}
 [dir="rtl"] .raye2-search-form input{text-align:right}
 [dir="rtl"] .raye2-home-video-meta,[dir="rtl"] .raye2-home-post{text-align:right}
-@media(max-width:700px){.raye2-language-switch{top:10px;right:10px;min-height:34px;padding:0 10px;font-size:10px}[dir="rtl"] .raye2-language-switch{right:auto;left:10px}}
+@media(max-width:700px){.raye2-language-switch{bottom:10px;top:auto;right:10px;min-height:34px;padding:0 10px;font-size:10px}[dir="rtl"] .raye2-language-switch{right:auto;left:10px}}
 
 /* Arabic layout refinements for watch and community-video surfaces. */
 [dir="rtl"].raye2-watch-page .raye2-watch-top,[dir="rtl"] .raye2-watch-title-row,[dir="rtl"] .raye2-watch-actions,[dir="rtl"] .raye2-card-heading{direction:rtl}

@@ -5,6 +5,7 @@ import PublicVideoPlayer from "@/app/videos/public-video-player";
 import WatchLibraryMore from "./watch-library-more";
 import {buildWatchCard,type WatchRow} from "./watch-library-media";
 import ContinueWatching from "./continue-watching";
+import LanguageSwitch from "@/app/language-switch";
 import "./watch-library.css";
 export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
@@ -29,6 +30,7 @@ export default async function WatchLibraryPage(){
    <Link className="raye2-watch-brand" href="/raye2/home" aria-label="Raye2 home"><span aria-hidden="true">R</span><span className="raye2-watch-sr-only">Raye2</span></Link>
    <form className="raye2-watch-search" action="/search"><span aria-hidden="true">⌕</span><input name="q" placeholder="Search videos, creators and communities" aria-label="Search Raye2"/><kbd>↵</kbd></form>
    <nav><Link href="/raye2/home">Home</Link><Link href="/community">Community</Link><Link href={profileHref}>My profile</Link></nav>
+   <LanguageSwitch initialLocale="en" variant="header"/>
   </header>
   <div className="raye2-watch-layout">
    <aside className="raye2-watch-rail"><span className="raye2-watch-label">YOUR SPACE</span><Link href="/raye2/home">⌂ <span>Home</span></Link><Link className="active" href="/watch">▶ <span>Watch</span></Link><Link href="/shorts">▤ <span>Mini’s</span></Link><Link href="/community">◉ <span>Communities</span></Link></aside>

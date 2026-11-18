@@ -30,3 +30,5 @@
 @media(max-width:850px){.workflow{grid-template-columns:1fr;gap:18px}.workflowActions{grid-template-columns:repeat(2,minmax(0,1fr))}.primaryAction{min-height:54px}}
 @media(max-width:560px){.workflow{padding:18px}.workflowActions{grid-template-columns:1fr}.sectionHead{align-items:start}.recentItem{gap:9px;padding:10px}.assetIcon{width:33px;height:33px;flex-basis:33px}.statusPublished,.statusDraft,.statusWaiting,.statusFailed{font-size:7px;padding:5px 6px}}
 @media(prefers-reduced-motion:reduce){.primaryAction{transition:none}}
+
+.headerActions{display:flex;align-items:center;gap:12px}

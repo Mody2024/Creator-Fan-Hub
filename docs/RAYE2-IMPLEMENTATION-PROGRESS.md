@@ -3979,3 +3979,42 @@ more of the header editable from the admin panel.
   database migration is required (the config tables store arbitrary JSONB).
 - Gates: validator **538 assertions**; `check:migrations` **251 migrations** + post-checks + RLS matrix;
   tests **1028/1028**; tsc clean; lint 0 errors; build OK.
+
+---
+
+## Batch — 2026-11-20 (Batch 20): Admin panel reorganization + site-wide language control
+
+**Goal:** make the one-page admin panel navigable, and finish removing the floating language button
+from every header it could overlap.
+
+- **Admin panel organized.** The 19 sections were a single horizontally scrolling tab strip. They are now
+  grouped into a sticky left sidebar (Overview, Governance, Storage, Community & moderation, Business & live,
+  Access & operations) with the active section highlighted; on narrow screens the sidebar collapses to a
+  horizontal, scrollable group bar. The page uses a `shell` grid and shows the active section name above the
+  content. The admin header now also carries the inline language control.
+- **Language control is inline everywhere it matters.** Added `variant="header"` to the Watch, Mini's,
+  Shorts, Creator Studio, Creator workspace and admin headers, so the toggle sits inside each header instead
+  of floating over it. The shared fallback pill is kept for the remaining pages but moved from the top-right
+  (over sticky headers) to the bottom-right corner, out of the way. Added `.headerActions` layout for the
+  studio header.
+- Gates: validator **539 assertions**; `check:migrations` **251 migrations** + post-checks + RLS matrix;
+  tests **1028/1028**; tsc clean; lint 0 errors (20 warnings); build OK.
+
+### Storage activation status (for the operator)
+
+Adding provider keys to Vercel is necessary but not sufficient. The app adopts providers only after a
+**reconcile**, and the platform ceiling stays at its current value until it is raised from the admin panel:
+
+1. `/creator/raye2` → **Storage → Providers → Reconcile providers** (registers and enables configured
+   providers from the `RAYE2_<FAMILY>_*` env blocks).
+2. **Storage → Storage fabric → Platform ceiling** → set to e.g. `12884901888` (12 GiB) with a reason.
+3. Verify the Providers table shows capacity/used/health, then run a real upload.
+
+Env naming (bucket names must be non-empty): `RAYE2_TIGRIS_ACCESS_KEY_ID`, `RAYE2_TIGRIS_SECRET_ACCESS_KEY`,
+`RAYE2_TIGRIS_PUBLIC_BUCKET`, `RAYE2_TIGRIS_PRIVATE_BUCKET`, and the same for `RAYE2_FILEBASE_*`
+(no `_ENDPOINT` needed for either — both have built-in endpoints). Redeploy after changing env.
+
+**Deployment note:** the live custom domain `creator-fan-hub.vercel.app` currently serves the *legacy*
+"THE INNER CIRCLE — Creator Hub" build, not this Raye2 app. The Raye2 deployment URL is behind Vercel
+authentication (`creator-fan-hub-3gjkdncrd-…vercel.app` → 302 to Vercel SSO). Verify which Vercel
+project/deployment owns the domain and point it at the Raye2 build.

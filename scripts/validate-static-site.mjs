@@ -654,8 +654,15 @@ const languageSwitchSrc = await read("../src/app/language-switch.tsx");
 const homeSurfaceSrc = await read("../src/app/raye2/home/page.tsx");
 const communitySurfaceSrc = await read("../src/app/community/community-client.tsx");
 const creatorEditorSrc = await read("../src/app/creator/editor.tsx");
+const watchSurfaceSrc = await read("../src/app/watch/page.tsx");
+const minisSurfaceSrc = await read("../src/app/minis/page.tsx");
+const shortsSurfaceSrc = await read("../src/app/shorts/page.tsx");
+const studioSurfaceSrc = await read("../src/app/raye2/studio/page.tsx");
+const creatorSurfaceSrc = await read("../src/app/creator/page.tsx");
+const adminSurfaceSrc = await read("../src/app/creator/raye2/admin-client.tsx");
 check("the language control renders inline inside app headers instead of floating over content", languageSwitchSrc.includes('variant === "header"') && languageSwitchSrc.includes("raye2-language-switch--header") && singleThemeDesign.includes(".raye2-language-switch--header{position:static") && singleThemeDesign.includes("body:has(.raye2-language-switch--header) .raye2-language-switch:not(.raye2-language-switch--header){display:none}"));
-check("every app header renders the shared language control inline", page.includes('variant="header"') && homeSurfaceSrc.includes('variant="header"') && communitySurfaceSrc.includes('variant="header"'));
+check("every primary surface renders the shared language control inline", [page, homeSurfaceSrc, communitySurfaceSrc, watchSurfaceSrc, minisSurfaceSrc, shortsSurfaceSrc, studioSurfaceSrc, creatorSurfaceSrc, adminSurfaceSrc].every(src => src.includes('variant="header"')));
+check("the admin panel groups its sections into a sidebar instead of one long tab strip", adminSurfaceSrc.includes("styles.sidenav") && adminSurfaceSrc.includes("navGroups") && adminSurfaceSrc.includes("styles.navGroupTitle"));
 check("header context text and the language label are admin-editable", siteConfigLib.includes('"navigation"') && siteConfigLib.includes("navigation.contextEyebrow") && publicConfigSrc.includes("navigation: {") && creatorEditorSrc.includes("patchNavigation") && homeSurfaceSrc.includes("siteConfig.navigation.contextEyebrow"));
 const predecessorSurfaces = [
   "../src/app/page.tsx", "../src/app/saved/page.tsx", "../src/app/notifications/page.tsx",

@@ -9,6 +9,7 @@ import PlatformRevenueOverview from "./platform-revenue-overview";
 import CampaignIntegrity from "./campaign-integrity";
 import ByosConnections from "./byos-connections";
 import StorageProviders from "./storage-providers";
+import LanguageSwitch from "@/app/language-switch";
 
 export type RuleRow = { rule_key: string; category: string; rule_value: unknown; status: "proposed" | "active" | "disabled"; description: string; updated_at: string };
 export type RetentionRow = { category: string; retention_days: number | null; warning_days: number; expiry_action: "archive" | "delete"; enabled: boolean; preserve_shared_memories: boolean; updated_at: string };
@@ -29,13 +30,14 @@ export type CapRow = { capability: string; required_role: string; allowed: boole
 export type FabricRow = { section: string; key: string; label: string; value_numeric: number | null; value_text: string | null; enabled: boolean; detail: string };
 
 type Locale = "en" | "ar";
+type TabId = "rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation";
 const bytes = (value: number) => value < 1024 ? value + " B" : value < 1024 ** 2 ? (value / 1024).toFixed(1) + " KB" : value < 1024 ** 3 ? (value / 1024 ** 2).toFixed(1) + " MB" : (value / 1024 ** 3).toFixed(2) + " GB";
 
 export default function Raye2AdminClient({ locale, initialRules, initialRetention, initialJobs, initialStorage, initialAudit, initialHealth, initialAdmins, initialCaps, initialFabric }: {
   locale: Locale; initialRules: RuleRow[]; initialRetention: RetentionRow[]; initialJobs: CleanupRow[]; initialStorage: StorageRow[]; initialAudit: AuditRow[]; initialHealth: HealthRow[]; initialAdmins: AdminRow[]; initialCaps: CapRow[]; initialFabric: FabricRow[];
 }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const [tab, setTab] = useState<"rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation">("rules");
+  const [tab, setTab] = useState<TabId>("health");
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
   const [modStatus, setModStatus] = useState<"open"|"reviewing"|"resolved"|"dismissed">("open");
   const [modNote, setModNote] = useState("");
@@ -333,12 +335,22 @@ export default function Raye2AdminClient({ locale, initialRules, initialRetentio
     setNotice(t.modResolved); setModNote("");
     await loadModQueue();
   }
-  const tabs = [{ id: "health", label: t.health }, { id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "storage", label: t.storage }, { id: "roles", label: t.roles }, { id: "audit", label: t.audit }, { id: "quotas", label: t.quotas }, { id: "jobs", label: t.jobs }, { id: "telemetry", label: t.telemetry }, { id: "capacity", label: t.capacity }, { id: "fabric", label: t.fabric }, { id: "providers", label: isAr ? "المزودون" : "Providers" }, { id: "byos", label: isAr ? "تخزين المستخدمين" : "BYOS" }, { id: "live", label: t.live }, { id: "sponsors", label: t.sponsors }, { id: "revenue", label: t.revenue }, { id: "integrity", label: isAr ? "نزاهة الحملات" : "Campaign integrity" }, { id: "moderation", label: isAr ? "قائمة المراجعة" : "Moderation queue" }] as const;
+  const navGroups: Array<{ title: string; items: Array<{ id: TabId; label: string }> }> = [
+    { title: isAr ? "نظرة عامة" : "Overview", items: [{ id: "health", label: t.health }, { id: "capacity", label: t.capacity }, { id: "telemetry", label: t.telemetry }] },
+    { title: isAr ? "الحوكمة" : "Governance", items: [{ id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "audit", label: t.audit }] },
+    { title: isAr ? "التخزين" : "Storage", items: [{ id: "fabric", label: t.fabric }, { id: "providers", label: isAr ? "المزودون" : "Providers" }, { id: "storage", label: t.storage }, { id: "byos", label: isAr ? "تخزين المستخدمين" : "BYOS" }] },
+    { title: isAr ? "المجتمع والإشراف" : "Community & moderation", items: [{ id: "moderation", label: t.modQueue }, { id: "integrity", label: isAr ? "نزاهة الحملات" : "Campaign integrity" }] },
+    { title: isAr ? "الأعمال والبث" : "Business & live", items: [{ id: "sponsors", label: t.sponsors }, { id: "revenue", label: t.revenue }, { id: "live", label: t.live }] },
+    { title: isAr ? "الوصول والعمليات" : "Access & operations", items: [{ id: "roles", label: t.roles }, { id: "quotas", label: t.quotas }, { id: "jobs", label: t.jobs }] }
+  ];
+  const activeLabel = navGroups.flatMap(group => group.items).find(item => item.id === tab)?.label ?? "";
   return <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
-    <header className={styles.header}><Link href="/raye2" className={styles.brand}>RAYE<span>2</span></Link><div><span className={styles.dot}/>{t.eyebrow}</div><Link href="/creator">{t.back}</Link></header>
+    <header className={styles.header}><Link href="/raye2" className={styles.brand}>RAYE<span>2</span></Link><div><span className={styles.dot}/>{t.eyebrow}</div><div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link href="/creator">{t.back}</Link></div></header>
     <section className={styles.intro}><span>{t.eyebrow}</span><h1>{t.title}</h1><p>{t.intro}</p></section>
-    <nav className={styles.tabs} aria-label="Raye2 admin sections">{tabs.map(item => <button key={item.id} className={tab === item.id ? styles.active : ""} onClick={() => setTab(item.id)}>{item.label}</button>)}</nav>
-    <section className={styles.content}>
+    <div className={styles.shell}>
+      <nav className={styles.sidenav} aria-label="Raye2 admin sections">{navGroups.map(group => <div className={styles.navGroup} key={group.title}><span className={styles.navGroupTitle}>{group.title}</span>{group.items.map(item => <button key={item.id} type="button" className={tab === item.id ? styles.navItemActive : styles.navItem} aria-current={tab === item.id ? "page" : undefined} onClick={() => setTab(item.id)}>{item.label}</button>)}</div>)}</nav>
+      <section className={styles.main}>
+      <div className={styles.sectionHead}><h2>{activeLabel}</h2></div>
       {tab === "health" && <><div className={styles.sectionHead}><h2>{t.health}</h2><p>{t.healthNote}</p></div>{initialHealth.length===0 ? <p>{t.noHealth}</p> : <div className={styles.storageGrid}>{initialHealth.map(row => <article className={styles.card} key={row.metric}><span>{row.metric}</span><strong className={row.state==="ok"?styles.ok:row.state==="warning"?styles.warning:styles.critical}>{row.metric.startsWith("storage_") ? bytes(row.value) : row.value.toLocaleString()}</strong><small>{row.state==="ok"?t.stateOk:row.state==="warning"?t.stateWarning:t.stateCritical}</small></article>)}</div>}</>}
       {tab === "rules" && <><div className={styles.sectionHead}><h2>{t.rules}</h2><p>{t.status}: {t.proposed} · {t.active} · {t.disabled}</p></div>
         {rules.map(rule => <article className={styles.card} key={rule.rule_key}><div className={styles.cardHead}><div><span>{rule.category}</span><h3>{rule.rule_key}</h3><p>{rule.description}</p></div><select value={rule.status} onChange={event => setRules(current => current.map(item => item.rule_key === rule.rule_key ? { ...item, status: event.target.value as RuleRow["status"] } : item))}><option value="proposed">{t.proposed}</option><option value="active">{t.active}</option><option value="disabled">{t.disabled}</option></select></div><label>{t.value}<textarea rows={2} value={jsonDrafts[rule.rule_key] ?? JSON.stringify(rule.rule_value)} onChange={event => setJsonDrafts(current => ({ ...current, [rule.rule_key]: event.target.value }))}/></label><button className={styles.action} disabled={busy} onClick={() => void saveRule(rule)}>{t.save}</button></article>)}
@@ -378,7 +390,8 @@ export default function Raye2AdminClient({ locale, initialRules, initialRetentio
       {tab === "roles" && <><article className={styles.card}><div className={styles.cardHead}><div><h3>{t.caps}</h3><p>{t.capsNote}</p></div></div><div className={styles.metrics}>{caps.map(item => <span key={item.capability}>{item.capability} · {t.capsRequired} {item.required_role} · {item.allowed ? t.capsYes : t.capsNo}</span>)}</div></article><div className={styles.sectionHead}><h2>{t.roles}</h2><p>{t.ownerOnly}</p></div>{admins.map(item => <article className={styles.card} key={item.user_id}><div className={styles.cardHead}><div><span>{item.active?t.accessActive:t.accessSuspended}</span><h3>{item.display_name ?? item.handle ?? item.user_id}</h3><p>@{item.handle ?? "—"}</p></div><label>{t.role}<select value={item.role} disabled={busy || item.role === "owner"} onChange={event => void changeRole(item.user_id, event.target.value)}><option value="admin">admin</option><option value="creator">creator</option><option value="streamer">streamer</option><option value="editor">editor</option><option value="moderator">moderator</option><option value="analyst">analyst</option>{item.role === "owner" && <option value="owner">owner</option>}</select></label></div>{item.role !== "owner" && <button className={styles.action} disabled={busy} onClick={() => void toggleActive(item.user_id, !item.active)}>{item.active ? t.suspend : t.reactivate}</button>}</article>)}</>}
       {tab === "audit" && <><div className={styles.sectionHead}><h2>{t.audit}</h2><p>Append-only administrative history.</p></div><article className={styles.card}><b>{t.auditFilter}</b><div className={styles.fields}><label>{t.auditAction}<input value={auditAction} onChange={event => setAuditAction(event.target.value)} placeholder="safety_report_resolved"/></label><label>{t.auditActor}<input value={auditActor} onChange={event => setAuditActor(event.target.value)} placeholder="00000000-0000-0000-0000-000000000000"/></label></div><div style={{display:"flex",gap:8}}><button className={styles.action} disabled={busy} onClick={() => void loadAudit()}>{t.auditApply}</button><button className={styles.action} onClick={() => { setAuditAction(""); setAuditActor(""); }}>{t.auditClear}</button></div></article>{!audit.length && <p>{t.auditEmpty}</p>}{audit.map(entry => <article className={styles.card} key={entry.id}><div className={styles.cardHead}><h3>{entry.action}</h3><time>{new Date(entry.created_at).toLocaleString(isAr ? "ar-EG" : "en")}</time></div><p>{entry.target_type} · {entry.target_id ?? "—"}</p><p>{entry.reason}</p><pre>{JSON.stringify(entry.details, null, 2)}</pre></article>)}</>}
       {notice && <p className={styles.notice} role="status">{notice}</p>}
-    </section>
+      </section>
+    </div>
     <footer className={styles.footer}>RAYE2 ADMIN · {t.ownerGuard} · NO AUTOMATIC DELETION FROM THIS SCREEN</footer>
   </main>;
 }
