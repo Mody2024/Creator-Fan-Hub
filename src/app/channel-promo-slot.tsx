@@ -52,7 +52,18 @@ export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2P
         {promo.description ? <p>{promo.description}</p> : null}
         <a href={promo.url} target="_blank" rel="noopener noreferrer">{promo.cta} ↗</a>
       </div>
-      {promo.thumbnailUrl ? (
+      {placement === "minis" && promo.videoId ? (
+        <div className="raye2-channel-promo-mini">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(promo.videoId)}?playsinline=1&controls=1&rel=0`}
+            title={`Maronizer Short: ${promo.title}`}
+            loading="lazy"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        </div>
+      ) : promo.thumbnailUrl ? (
         <a className="raye2-channel-promo-art" href={promo.url} target="_blank" rel="noopener noreferrer" aria-label={promo.cta}>
           <img src={promo.thumbnailUrl} alt="" loading="lazy" />
         </a>
