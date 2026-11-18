@@ -1,4 +1,5 @@
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import assert from "node:assert/strict";
 import {
   buildCompletionManifest,
@@ -71,4 +72,27 @@ test("part retry uses bounded exponential backoff", () => {
   assert.deepEqual(planPartRetry(3), { retry: true, delayMs: 4000, attempt: 3 });
   assert.equal(planPartRetry(5).retry, false);
   assert.equal(planPartRetry(9).retry, false);
+});
+
+
+test("multipart completion recovers an object committed before ledger finalization", async () => {
+  const route = await readFile(new URL("../src/app/api/raye2/storage/multipart/route.ts", import.meta.url), "utf8");
+  assert.match(route, /\.from\("raye2_storage_reservations"\)[\s\S]*?\.select\("reservation_state,object_id"\)/);
+  assert.match(route, /reservation\.reservation_state === "consumed" && typeof reservation\.object_id === "string"/);
+  assert.match(route, /alreadyCompleted: true, recovered: true/);
+  assert.match(route, /p_upload_state: "completed"/);
+});
+
+test("multipart completion never repeats provider completion after the reservation was consumed", async () => {
+  const route = await readFile(new URL("../src/app/api/raye2/storage/multipart/route.ts", import.meta.url), "utf8");
+  const recovery = route.indexOf('reservation.reservation_state === "consumed"');
+  const providerComplete = route.indexOf("adapter.completeMultipartUpload", route.indexOf("async function completeUpload"));
+  assert.ok(recovery >= 0 && providerComplete > recovery);
+  assert.match(route, /if \(reservation\.reservation_state !== "active"\) return fail\("reservation_finalized"/);
+});
+
+test("multipart completion reports ledger-finalization failures without losing the committed object", async () => {
+  const route = await readFile(new URL("../src/app/api/raye2/storage/multipart/route.ts", import.meta.url), "utf8");
+  assert.match(route, /completion_finalize_failed/);
+  assert.match(route, /The object is stored and recorded\. Retry completion to safely finalize the upload\./);
 });
