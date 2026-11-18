@@ -239,6 +239,10 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   cluster, then apply the rest forward. That path was verified clean (161/161 + post-checks + RLS matrix).
 - Deployment is external (Vercel); there is no deploy workflow in `.github/workflows/`. `ci.yml` runs the gates
   on pushes/PRs to `development` and `main`.
+- Public production URL: **https://raye2.vercel.app** (Vercel project `creator-fan-hub-dev`, branch
+  `development`). The old `creator-fan-hub.vercel.app` and `creator-fan-hub-dev.vercel.app` hostnames no longer
+  serve this app. Per-deployment URLs like `creator-fan-hub-<hash>-modytupegaming-9846.vercel.app` return
+  Vercel SSO login because of Deployment Protection — that is expected and unrelated to app auth.
 
 ## Raye2 storage — enablement and gotchas
 - Supabase Storage is the always-on provider; `raye2_storage_providers` seeds `cloudflare_r2` and
