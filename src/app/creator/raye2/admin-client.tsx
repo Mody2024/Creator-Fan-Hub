@@ -33,8 +33,8 @@ type Locale = "en" | "ar";
 type TabId = "rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation";
 const bytes = (value: number) => value < 1024 ? value + " B" : value < 1024 ** 2 ? (value / 1024).toFixed(1) + " KB" : value < 1024 ** 3 ? (value / 1024 ** 2).toFixed(1) + " MB" : (value / 1024 ** 3).toFixed(2) + " GB";
 
-export default function Raye2AdminClient({ locale, initialRules, initialRetention, initialJobs, initialStorage, initialAudit, initialHealth, initialAdmins, initialCaps, initialFabric }: {
-  locale: Locale; initialRules: RuleRow[]; initialRetention: RetentionRow[]; initialJobs: CleanupRow[]; initialStorage: StorageRow[]; initialAudit: AuditRow[]; initialHealth: HealthRow[]; initialAdmins: AdminRow[]; initialCaps: CapRow[]; initialFabric: FabricRow[];
+export default function Raye2AdminClient({ locale, logoUrl, initialRules, initialRetention, initialJobs, initialStorage, initialAudit, initialHealth, initialAdmins, initialCaps, initialFabric }: {
+  locale: Locale; logoUrl: string | null; initialRules: RuleRow[]; initialRetention: RetentionRow[]; initialJobs: CleanupRow[]; initialStorage: StorageRow[]; initialAudit: AuditRow[]; initialHealth: HealthRow[]; initialAdmins: AdminRow[]; initialCaps: CapRow[]; initialFabric: FabricRow[];
 }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [tab, setTab] = useState<TabId>("health");
