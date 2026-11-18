@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";
+import Raye2SkippablePromoGate from "@/app/raye2-skippable-promo-gate";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -47,14 +47,13 @@ export default async function LiveStreamPage({ params }: { params: Promise<{ id:
           </span>
           <h1 style={{ margin: "8px 0" }}>{stream.title}</h1>
           <p style={{ opacity: 0.75 }}>{stream.description}</p>
-          <div style={{ aspectRatio: "16 / 9", background: "rgba(128,128,128,0.15)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 16 }}>
+          <Raye2SkippablePromoGate placement="live"><div style={{ aspectRatio: "16 / 9", background: "rgba(128,128,128,0.15)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 16 }}>
             {stream.playback_url ? (
               <video src={stream.playback_url} controls style={{ width: "100%", height: "100%", borderRadius: 12 }} />
             ) : (
               <p style={{ opacity: 0.7, fontSize: 13, padding: 16, textAlign: "center" }}>{t.noProvider}</p>
             )}
-          </div>
-          <Raye2ChannelPromoSlot placement="live"/>
+          </div></Raye2SkippablePromoGate>
           <p style={{ marginTop: 12, fontSize: 12, opacity: 0.7 }}>{t.health}: {stream.health}{stream.health_detail ? ` · ${stream.health_detail}` : ""}</p>
           {stream.replay_until ? <p style={{ fontSize: 12, opacity: 0.7 }}>{t.replayUntil} {new Date(stream.replay_until).toLocaleString(isArabic ? "ar-EG" : "en")}</p> : null}
         </section>
