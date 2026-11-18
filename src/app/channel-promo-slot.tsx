@@ -27,7 +27,8 @@ export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2P
         const response = await fetch("/api/raye2/channel-promos", { cache: "no-store" });
         if (response.ok) {
           const data = await response.json();
-          if (Array.isArray(data.promos) && data.promos.length) promos = data.promos;
+          const byPlacement = data.promosByPlacement?.[placement];
+          if (Array.isArray(byPlacement)) promos = byPlacement;
         }
       } catch {
         // Use the optional manually configured list if channel sync is unavailable.
