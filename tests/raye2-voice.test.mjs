@@ -1,0 +1,322 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
+
+const read = path => readFile(new URL(path, import.meta.url), "utf8");
+const [voice, foundations, plan, client, preferences] = await Promise.all([
+  read("../supabase/migrations/20261104000500_raye2_voice_sessions.sql"),
+  read("../supabase/migrations/20261103180000_raye2_community_chat_foundations.sql"),
+  read("../docs/RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md"),
+  read("../src/app/raye2/raye2-client.tsx"),
+  read("../supabase/migrations/20261104010000_raye2_voice_preferences.sql")
+]);
+
+test("voice control plane separates private calls from group rooms and starts with recording off", () => {
+  assert.match(voice, /session_type in \('private_call','group_room'\)/);
+  assert.match(voice, /recording_state text not null default 'off'/);
+  assert.match(voice, /recording_consent text not null default 'not_requested'/);
+  assert.match(voice, /voice\.private_call\.enabled/);
+  assert.match(voice, /voice\.group_room\.enabled/);
+  assert.match(voice, /recording\.enabled/);
+});
+
+test("private call creation requires a direct conversation, an active feature flag and no account block", () => {
+  assert.match(voice, /private calls require a direct conversation/);
+  assert.match(voice, /voice feature is not enabled by the platform owner/);
+  assert.match(voice, /public\.member_blocks/);
+  assert.match(voice, /raye2_is_conversation_member/);
+  assert.match(voice, /'private_call',p_conversation_id,auth\.uid\(\),'ringing'/);
+});
+
+test("group voice sessions require an active member of the associated group", () => {
+  assert.match(voice, /raye2_is_group_member\(v_conversation\.group_id\)/);
+  assert.match(voice, /group voice is unavailable/);
+  assert.match(voice, /'group_room',p_conversation_id,v_group_id/);
+  assert.match(voice, /voice\.group_room\.max_participants/);
+  assert.match(voice, /for update/);
+});
+
+test("voice invitation, joining, decline and leave are guarded server-side", () => {
+  for (const fn of [
+    "raye2_create_voice_session", "raye2_join_voice_session",
+    "raye2_decline_voice_invitation", "raye2_leave_voice_session"
+  ]) {
+    assert.ok(voice.includes("create or replace function public." + fn + "("));
+    assert.ok(voice.includes("grant execute on function public." + fn));
+    assert.ok(voice.includes("revoke all on function public." + fn));
+  }
+  assert.match(voice, /voice invitation required/);
+  assert.match(voice, /voice room is locked/);
+  assert.match(voice, /voice session is full/);
+});
+
+test("voice moderation requires a real participant role or group manager permission", () => {
+  assert.match(voice, /v_actor_role is null or/);
+  assert.match(voice, /voice room moderator access required/);
+  assert.match(voice, /'lock','unlock','remove','promote_cohost'/);
+  assert.match(voice, /voice_room_moderated/);
+});
+
+test("recording consent is optional, explicit, unanimous and stops on decline or withdrawal", () => {
+  assert.match(voice, /recording is disabled by platform policy/);
+  assert.match(voice, /recording_consent='pending'/);
+  assert.match(voice, /recording_consent<>'accepted'/);
+  assert.match(voice, /if p_decision in \('declined','withdrawn'\) then/);
+  assert.match(voice, /recording_state='stopped'/);
+  assert.match(voice, /recording_state='consent_granted'/);
+  assert.doesNotMatch(voice, /recording_state in \('consent_pending','consent_granted','stopped'\)/);
+  assert.match(voice, /raye2_voice_recording_consent_events/);
+});
+
+test("a late joiner resets consent to pending before recording can be considered approved", () => {
+  assert.match(voice, /recording_state=case when recording_state='consent_granted' then 'consent_pending'/);
+  assert.match(voice, /if v_session\.recording_state in \('consent_pending','consent_granted'\) then/);
+  assert.match(voice, /values\(p_session_id,auth\.uid\(\),'requested'\)/);
+});
+
+test("private voice signaling is limited to invited or joined participants", () => {
+  assert.match(voice, /raye2_can_access_voice_topic/);
+  assert.match(voice, /extension in \('broadcast','presence'\)/);
+  assert.match(voice, /raye2_can_access_voice_topic\(realtime\.topic\(\),false\)/);
+  assert.match(voice, /raye2_can_access_voice_topic\(realtime\.topic\(\),true\)/);
+  assert.doesNotMatch(voice, /create table[^;]*realtime\./i);
+  assert.doesNotMatch(voice, /alter table realtime\.messages enable row level security/i);
+});
+
+test("voice data is read-only through direct client grants and uses RLS", () => {
+  for (const table of [
+    "raye2_voice_sessions", "raye2_voice_participants",
+    "raye2_voice_recording_consent_events"
+  ]) {
+    assert.ok(voice.includes("alter table public." + table + " enable row level security"));
+  }
+  assert.match(voice, /revoke all on public\.raye2_voice_sessions,public\.raye2_voice_participants/);
+  assert.match(voice, /grant select on public\.raye2_voice_sessions,public\.raye2_voice_participants/);
+  assert.match(voice, /security definer set search_path=''/);
+});
+
+test("voice signaling helper avoids recursive participant-table RLS and validates topic UUIDs", () => {
+  assert.match(voice, /raye2_can_access_voice_session/);
+  assert.match(voice, /raye2_can_access_voice_topic/);
+  assert.doesNotMatch(voice, /select 1 from public\.raye2_voice_participants own/);
+  assert.match(voice, /\[0-9a-fA-F\]\{8\}-\[0-9a-fA-F\]\{4\}/);
+});
+
+test("session duration is owner-configurable within a safe technical ceiling", () => {
+  assert.match(voice, /voice\.session\.max_duration_seconds/);
+  assert.match(voice, /make_interval\(secs=>v_duration\)/);
+  assert.match(voice, /least\(coalesce\(v_duration,10800\),43200\)/);
+});
+
+test("voice implementation remains aligned with the confirmed plan and does not claim transport is complete", () => {
+  assert.match(plan, /private one-to-one voice calls/);
+  assert.match(plan, /group voice rooms/);
+  assert.match(plan, /every participant has actively consented/);
+  assert.match(plan, /WebRTC with an SFU for multi-participant rooms/);
+  assert.match(foundations, /voice_recordings/);
+  assert.match(client, /getSupabaseBrowserClient/);
+});
+
+test("voice sessions and consent events publish for realtime invitation and room refresh", () => {
+  assert.ok(voice.includes("alter publication supabase_realtime add table public.%I"));
+  assert.match(voice, /'raye2_voice_sessions'/);
+  assert.match(voice, /'raye2_voice_participants'/);
+  assert.match(voice, /'raye2_voice_recording_consent_events'/);
+});
+
+
+test("private call UI uses explicit user action before requesting microphone access", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /getUserMedia/);
+  assert.match(component, /onClick=\{\(\) => void startCall\(\)\}/);
+  assert.match(component, /onClick=\{\(\) => void acceptCall\(incoming\)\}/);
+  assert.match(component, /raye2_create_voice_session/);
+  assert.match(component, /raye2_join_voice_session/);
+  assert.match(component, /RTCPeerConnection/);
+  assert.match(component, /createOffer/);
+  assert.match(component, /createAnswer/);
+  assert.match(component, /addIceCandidate/);
+  assert.match(component, /onicecandidate/);
+  assert.match(component, /track\.enabled = !next/);
+});
+
+test("private call UI does not start microphone capture during render or initial effects", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /const getMicrophone = useCallback/);
+  assert.match(component, /const startCall = useCallback/);
+  assert.match(component, /const acceptCall = useCallback/);
+  assert.match(component, /await navigator\.mediaDevices\.getUserMedia/);
+  assert.match(component, /await getMicrophone\(\)/);
+});
+
+test("private call signaling validates the peer identity and cleans up local media", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /payload\.from !==/);
+  assert.match(component, /localStreamRef\.current\?\.getTracks\(\)\.forEach/);
+  assert.match(component, /supabase\.removeChannel/);
+  assert.match(component, /\/api\/raye2\/voice\/ice/);
+  assert.doesNotMatch(component, /NEXT_PUBLIC_RAYE2_ICE_SERVERS/);
+});
+
+test("the direct-message header only renders voice controls for a signed-in direct peer", () => {
+  assert.match(client, /Raye2VoiceControls/);
+  assert.match(client, /voiceGlobalWrap/);
+  assert.match(client, /conversationId=\{selected\?\.kind === "direct" \? selected\.conversationId : null\}/);
+});
+
+
+test("incoming private-call invitations are discovered across conversations, not only the open chat", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /session_type === "private_call" && item\.status === "ringing"/);
+  assert.doesNotMatch(component, /item\.conversation_id === conversationId/);
+  assert.match(client, /voiceGlobalWrap/);
+});
+
+test("active private calls retain their original peer when the user changes chats", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /setActivePeerId\(call\.created_by\)/);
+  assert.match(component, /setActivePeerId\(peerUserId\)/);
+  assert.match(component, /payload\.from !== \(role === "host" \? activePeerId : session\.created_by\)/);
+});
+
+test("private voice controls provide device selection and measured connection quality", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /enumerateDevices/);
+  assert.match(component, /replaceTrack/);
+  assert.match(component, /setSinkId/);
+  assert.match(component, /getStats/);
+  assert.match(component, /currentRoundTripTime/);
+  assert.match(component, /packetsLost/);
+  assert.match(component, /Quality:/);
+});
+
+
+test("members can independently disable private voice calls and read only their own setting", () => {
+  assert.match(preferences, /create table if not exists public\.raye2_voice_preferences/);
+  assert.match(preferences, /allow_private_calls boolean not null default true/);
+  assert.match(preferences, /using \(user_id=\(select auth\.uid\(\)\)\)/);
+  assert.match(preferences, /raye2_set_voice_preferences/);
+  assert.match(preferences, /revoke all on public\.raye2_voice_preferences from anon,authenticated/);
+  assert.match(preferences, /grant select on public\.raye2_voice_preferences to authenticated/);
+});
+
+test("private-call preferences are enforced server-side for both invitation and acceptance", () => {
+  assert.match(preferences, /before insert or update of status on public\.raye2_voice_participants/);
+  assert.match(preferences, /new\.status in \('invited','joined'\)/);
+  assert.match(preferences, /new\.user_id<>v_creator/);
+  assert.match(preferences, /not coalesce\(v_allowed,true\)/);
+  assert.match(preferences, /not accepting private voice calls/);
+});
+
+test("private-call permission is available in bilingual member contact settings", () => {
+  assert.match(client, /allowVoiceCalls/);
+  assert.match(client, /saveVoicePreferences/);
+  assert.match(client, /raye2_set_voice_preferences/);
+  assert.match(client, /checked=\{allowPrivateCalls\}/);
+});
+
+
+test("group voice room discovery is serialized and restricted to active group members", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/20261104020000_raye2_group_voice_sfu.sql", import.meta.url), "utf8");
+  assert.match(migration, /raye2_start_or_join_group_voice_room/);
+  assert.match(migration, /raye2_is_conversation_member/);
+  assert.match(migration, /raye2_is_group_member/);
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /raye2_create_voice_session\(p_conversation_id,'group_room'\)/);
+  assert.match(migration, /for update/);
+});
+
+test("LiveKit token endpoint authenticates the user and requires joined group-room membership", () => {
+  const route = readFileSync(new URL("../src/app/api/raye2/voice/token/route.ts", import.meta.url), "utf8");
+  assert.match(route, /supabase\.auth\.getUser/);
+  assert.match(route, /raye2_voice_participants/);
+  assert.match(route, /\.eq\("user_id", auth\.user\.id\)/);
+  assert.match(route, /\.eq\("status", "joined"\)/);
+  assert.match(route, /session\.session_type !== "group_room"/);
+  assert.match(route, /new AccessToken/);
+  assert.match(route, /ttl: "10m"/);
+  assert.match(route, /canPublish: membership\.role !== "listener"/);
+  assert.match(route, /LIVEKIT_API_SECRET/);
+  assert.doesNotMatch(route, /NEXT_PUBLIC_LIVEKIT_API_SECRET/);
+});
+
+test("group voice browser client connects through LiveKit and requests microphone only after joining", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-group-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /raye2_start_or_join_group_voice_room/);
+  assert.match(component, /raye2_join_voice_session/);
+  assert.match(component, /\/api\/raye2\/voice\/token/);
+  assert.match(component, /await import\("livekit-client"\)/);
+  assert.match(component, /await room\.connect/);
+  assert.match(component, /setMicrophoneEnabled\(true\)/);
+  assert.match(component, /RoomEvent\.TrackSubscribed/);
+  assert.match(component, /RoomEvent\.ActiveSpeakersChanged/);
+  assert.match(component, /raye2_leave_voice_session/);
+});
+
+test("group chats expose voice-room controls and LiveKit SDKs are explicit dependencies", () => {
+  assert.match(client, /Raye2GroupVoiceControls/);
+  assert.match(client, /selected\.kind === "group" && selectedGroup/);
+  const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  assert.equal(packageJson.dependencies["livekit-client"], "2.23.0");
+  assert.equal(packageJson.dependencies["livekit-server-sdk"], "2.19.2");
+});
+
+
+test("private-call opt-out label is translated in both supported locales", () => {
+  assert.equal((client.match(/allowVoiceCalls:/g) ?? []).length, 2);
+  assert.match(client, /allowVoiceCalls:"Allow private voice calls"/);
+  assert.match(client, /allowVoiceCalls:"السماح بالمكالمات الصوتية الخاصة"/);
+});
+
+
+test("private-call TURN credentials are short-lived and issued only to joined call participants", () => {
+  const route = readFileSync(new URL("../src/app/api/raye2/voice/ice/route.ts", import.meta.url), "utf8");
+  assert.match(route, /supabase\.auth\.getUser/);
+  assert.match(route, /raye2_voice_participants/);
+  assert.match(route, /\.eq\("status", "joined"\)/);
+  assert.match(route, /session\.session_type !== "private_call"/);
+  assert.match(route, /createHmac\("sha1", sharedSecret\)/);
+  assert.match(route, /Math\.floor\(Date\.now\(\) \/ 1000\) \+ 600/);
+  assert.match(route, /RAYE2_TURN_SHARED_SECRET/);
+  assert.match(route, /turnConfigured/);
+  assert.doesNotMatch(route, /NEXT_PUBLIC_RAYE2_TURN_SHARED_SECRET/);
+});
+
+test("TURN relay URLs and shared secret are documented as server-only environment settings", () => {
+  const env = readFileSync(new URL("../.env.example", import.meta.url), "utf8");
+  assert.match(env, /RAYE2_TURN_URLS=/);
+  assert.match(env, /RAYE2_TURN_SHARED_SECRET=/);
+  assert.match(env, /Keep the shared secret server-side/);
+});
+
+
+test("group voice moderation authorization checks active host/cohost/moderator or group-manager roles", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/20261104030000_raye2_voice_sfu_moderation.sql", import.meta.url), "utf8");
+  assert.match(migration, /raye2_can_moderate_voice_session/);
+  assert.match(migration, /session_type='group_room'/);
+  assert.match(migration, /v_actor_role not in \('host','cohost','moderator'\)/);
+  assert.match(migration, /raye2_is_group_manager/);
+  assert.match(migration, /v_target_role<>'host'/);
+  assert.match(migration, /grant execute on function public\.raye2_can_moderate_voice_session/);
+});
+
+test("SFU participant removal is authorized in the database before LiveKit room administration", () => {
+  const route = readFileSync(new URL("../src/app/api/raye2/voice/moderate/route.ts", import.meta.url), "utf8");
+  assert.match(route, /supabase\.auth\.getUser/);
+  assert.match(route, /raye2_can_moderate_voice_session/);
+  assert.match(route, /new RoomServiceClient/);
+  assert.match(route, /removeParticipant/);
+  assert.match(route, /raye2_moderate_voice_session/);
+  assert.match(route, /LIVEKIT_API_SECRET/);
+});
+
+test("group voice UI exposes roster, room lock and moderator-only participant removal", () => {
+  const component = readFileSync(new URL("../src/app/raye2/raye2-group-voice-controls.tsx", import.meta.url), "utf8");
+  assert.match(component, /groupVoiceRoster/);
+  assert.match(component, /toggleRoomLock/);
+  assert.match(component, /canModerate &&/);
+  assert.match(component, /removeParticipant/);
+  assert.match(component, /\/api\/raye2\/voice\/moderate/);
+  assert.match(client, /groupId=\{selectedGroup\.id\}/);
+});

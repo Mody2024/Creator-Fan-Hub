@@ -1,0 +1,3799 @@
+# Raye2 full-platform implementation progress
+
+## Source of truth
+- Master product plan: [RAYE2-FULL-PLATFORM-PLAN.md](RAYE2-FULL-PLATFORM-PLAN.md)
+- Mandatory detailed supplement: [RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md](RAYE2-COMMUNITY-CHAT-VOICE-PLAN.md)
+- Active implementation branch: `development`
+- Production/main: unchanged; no merge or production deployment authorized.
+- Snapshot commit reviewed: `67e9e926b56e6eefd2e810af06574fb6c3a4301d` (2026-11-08; test suite passed but TypeScript caught a missing locale separator, corrected in this batch).
+
+## Progress snapshot — 2026-11-08
+
+These are conservative repository-based estimates against the **entire ten-wave platform**, not the old chat/voice-only scope. A feature earns credit only for code that exists in this repository; a route, plan item, schema proposal, or legacy feature elsewhere in the product is not treated as an end-to-end Raye2 implementation.
+
+| Wave | Scope | Implementation estimate | Current evidence / remaining work |
+|---|---|---:|---|
+| 0 | Repository audit and implementation map | **55%** | Master plan and initial source/migration/test inventory exist. Complete route-by-route and requirement-by-requirement gap matrix, provider/config audit, and unresolved decision closure remain. |
+| 1 | Brand system and full product redesign | **31%** | Raye2 messaging has blue/graphite tokens, one fixed dark theme (black/white/grey/blue) and bilingual responsive navigation; admin-created themes are deferred post-release; the new home and Explore surfaces have matching scoped blue/graphite layouts, responsive behavior and Arabic/English content. Full shared shell, final logo/brand integration, typography and redesign of all other surfaces remain. |
+| 2 | Core architecture, accounts and permissions | **27%** | Existing authenticated Raye2 workspace, membership models, RLS/guarded RPCs and some admin controls exist. Unified profile/social identity, route guards, consistent cross-surface authorization and full negative permission tests remain. |
+| 3 | Video, feed and discovery | **22%** | New Raye2 home queries latest/following community posts and published video catalog entries; post cards support native reactions, comments, bookmarks, follow/unfollow and share with batch-loaded state; published video thumbnail assets are surfaced where configured; `/search` has been redesigned as a bilingual Raye2 Explore experience across videos, people and community posts. Full player previews, search ranking, richer recommendations and complete media journey remain. |
+| 4 | Creator Studio, exclusives and live streaming | **36% provisional** | Creator Studio entry, upload/media lifecycle foundations, trusted worker queue, media validation, image/video/audio metadata inspection, WebP thumbnails, SHA-256 checksums, lease renewal, quota-bound thumbnail storage, processing-gated publication, processing-state dashboard/filtering, bounded creator-requested retries, authoritative processing-state display in Video Studio, publish controls disabled until native media is ready, playlist item removal, sponsorship review workflow/history/creator notifications, and confirmed watch-page unpublishing exist in source. Actual video transcoding/HLS/DASH, full creator upload/draft UX, end-to-end playback, exclusives and live ingest/delivery remain. |
+| 5 | Social graph, communities and engagement | **24%** | Raye2 public/private groups, membership and moderation foundations exist, plus a verified community post/comment lifecycle (owner edit/delete, moderator pin) enforced by guarded RPCs. Added this batch: transactional follow/block RPCs, follower/following lists, mutual-follower discovery, block-aware mutual-ranked member suggestions, and an events RSVP surface (`event_rsvps` + RPCs), all verified on a live stack. Community publishing breadth (drafts/scheduling), polls depth and collections remain. |
+| 6 | Messaging and chat | **85%** | Strong implementation: DMs/groups, message actions, requests, search, pins, notifications, quiet hours, moderation, invites, Shared Memories and group controls. Remaining: runtime DB/RLS acceptance, delivery/push, attachment/media lifecycle, and end-to-end operational verification. |
+| 7 | Voice and Watch Together | **55%** | Private WebRTC call path, LiveKit group-room integration path/moderation, voice preferences, Watch Together sessions/queue/playback sync exist. Real provider deployment, multi-device/network acceptance, reconnection/telemetry, consented recording pipeline, external embeds/invites and remaining session features are outstanding. |
+| 8 | Admin Rules Engine and governance | **35%** | Existing owner/admin-gated controls, retention/cleanup request foundations and audit concepts exist. A unified configurable Rules Engine, operational dashboards, full moderation workflow, quota/feature controls and verified destructive-action recovery remain. |
+| 9 | Security, reliability and release readiness | **21%** | Security-oriented migrations, bounded worker subprocesses, lease-token completion, source checksums, thumbnail cleanup and CI coverage exist. Isolated PostgreSQL migration/RLS execution, applied migration verification, full orphan cleanup, load/capacity/cost checks, accessibility/device acceptance and owner approval remain. |
+
+**Estimated full-platform implementation: ~40%.** This is a planning estimate, not a measured metric. The earlier ~65% referred to the narrower chat/voice plan and must not be reused as whole-platform completion.
+
+### Verification and release gates
+- **Latest snapshot:** commit `9231c5606da54074c16126dd70c57d15ce135e26` passed Free CI run `42490902615` (automated tests, type-check, lint and Next.js build). The preceding cover-art regression correction `526f7083` also passed run `42490777013`.
+- **Automated verification (historical):** `Validate site` passed on code HEAD `f42de989` (including 207 prototype/configuration tests, Next.js type-check + production build, and lint). The video-thumbnail and Explore batch on `5554261f` passed the full `Validate site` workflow, including 207 prototype/configuration tests, Next.js type-check + production build, and lint. The subsequent member-profile redesign is committed on `76752f79`; its full validation is still running, and the latest `e29cce1` Creator Studio batch passed `Validate site` and `Free CI`. The separate `Free CI` run passed on `e29cce1`.
+- **Database/runtime verification:** Raye2 migrations are committed in the repository; this snapshot does not prove they have been applied to the intended Supabase project or passed live RLS/RPC tests.
+- **Preview/owner acceptance:** Vercel automatically creates development previews, but the newest commit's deployment must be checked for `READY` before claiming it is usable. Browser/device smoke tests and owner acceptance of the complete platform/redesigned primary surfaces remain outstanding.
+- **Production:** no merge/deployment authorized.
+
+## Verified implemented areas
+
+### Messaging and groups
+- [x] Direct conversations and participant-scoped membership model
+- [x] Public/private groups, membership, discovery and join flows
+- [x] Message replies, reactions, edit/delete windows and personal saved messages
+- [x] Presence and typing foundations
+- [x] Read receipts and unread state
+- [x] Message requests and per-account request opt-out
+- [x] Conversation-scoped bounded search and pinned messages
+- [x] Notification inbox, preferences, per-group overrides and quiet hours
+- [x] Block/report controls and guarded reporting path
+- [x] Private invite links with expiry/use limits/revocation and sign-in continuation
+- [x] Shared Memories separated from ordinary message retention
+- [x] Shared-memory contribution/export policies and metadata export
+- [x] Group role changes, member removal and join-request management
+
+### Voice
+- [x] Private-call and group-room control-plane foundations
+- [x] Recording-off default and unanimous-consent state machine
+- [x] Participant-scoped realtime signaling policies
+- [x] Browser WebRTC private audio path, mute and remote audio
+- [x] Incoming call controls and device selection where supported
+- [x] Short-lived participant-scoped TURN credential endpoint
+- [x] LiveKit group-room token/start path and browser client
+- [x] Group voice roster, lock/unlock and moderator removal controls
+- [ ] Deploy and validate TURN/LiveKit against real network paths
+- [ ] Multi-user acceptance, remote mute/role promotion, reconnect and quality telemetry
+- [ ] Consent-gated recording media pipeline and retention
+
+### Watch Together
+- [x] Session, participant, shared queue and vote data model with RLS
+- [x] Native published-video and HTTPS YouTube/Vimeo source validation
+- [x] Session lifecycle and host playback versioning
+- [x] Queue voting, ordering, removal and advancement RPCs
+- [x] Realtime authorization and guest resynchronization
+- [x] Group-chat Watch Together panel for Raye2-hosted published videos
+- [ ] Private invitation links and scheduled sessions
+- [ ] Public external-player embeds and synchronization
+- [ ] In-room reactions/polls and live multi-device acceptance
+
+## Latest Creator Studio entry-point batch (in this commit)
+- [x] Add an authenticated Raye2 Creator Studio landing page at `/raye2/studio`.
+- [x] Gate the page by active creator-workspace roles on the server and show edit, analytics and moderation destinations only to roles allowed to use them.
+- [x] Load media-library and watch-catalog counts from existing Supabase sources; show unavailable states rather than inventing zero counts when a query fails.
+- [x] Add responsive blue/graphite styling and Arabic RTL support.
+- [x] Add a separate Beta / Coming Soon backlog so proposed ideas do not become fake controls or silently block private beta.
+- [ ] Replace the legacy creator tool surfaces with the shared Raye2 shell; this entry point currently links to existing functional tools.
+
+## Latest member profile redesign batch (through commit `9f8e7167`)
+- [x] Replace the legacy NHEN profile presentation with a Raye2 blue/graphite member profile layout.
+- [x] Preserve profile editing, follow/unfollow, block/unblock and follower/following counts.
+- [x] Present achievements, creator videos, Mini's and community posts in responsive sections.
+- [x] Add responsive mobile profile layout and bilingual labels.
+- [ ] Add profile-level activity feed reactions, media thumbnails and richer creator/verification identity.
+
+## Latest home/feed, engagement and Explore batch (through commit `5554261f`)
+- [x] Add a dedicated `/raye2/home` server-rendered platform home route.
+- [x] Load latest community posts and a following-only feed using authenticated membership.
+- [x] Resolve post author profiles and link through to public member profiles.
+- [x] Surface recently published video catalog items and connect to Watch detail pages.
+- [x] Add desktop left navigation, main feed column and discovery rail, with responsive mobile layout.
+- [x] Add Arabic/English home content using the existing locale cookie and RTL direction.
+- [x] Route the Raye2 workspace Home navigation to the new home surface and highlight the current route.
+- [ ] Add real video thumbnails/player previews, feed-level reactions/comments/save controls, ranking and richer discovery.
+
+## Latest design batches (through commit `365bd912`)
+- [x] Add connected desktop navigation for Home, Watch, Mini's, Explore, Series, Creator Studio, Messages, Alerts, Saved and Profile.
+- [x] Add horizontally scrollable compact mobile navigation.
+- [x] Add English/Arabic locale switch and persist locale through the existing locale cookie.
+- [x] Keep the current route highlighted and expose `aria-current` on the active navigation destination.
+
+## Previous design foundation (commit `a1da7035`)
+- [x] Establish Raye2-only blue/graphite design tokens and layered panel/surface styling.
+- [x] Add explicit accessible focus states and reduced-motion-compatible existing motion behavior.
+- [x] Add light-theme CSS variables and light surface overrides.
+- [x] Add a persistent user-controlled light/dark switcher, with graceful fallback if browser storage is unavailable.
+- [ ] Extend the new design system to the full product shell, brand/logo, typography, global navigation, creator surfaces, feed and video UI.
+
+## Latest Creator Studio entry-point batch (this commit)
+- [x] Add a role-aware Raye2 Creator Studio route at `/raye2/studio`.
+- [x] Load media and published watch-page totals from existing Supabase RPC/table sources.
+- [x] Provide role-scoped navigation for content management, analytics and moderation.
+- [x] Add a dedicated beta/coming-soon idea backlog with explicit delivery lanes.
+- [ ] Complete the end-to-end upload/draft/publish workflow and provider-backed live streaming; this batch does not claim those workflows are complete.
+
+## Next large implementation batches
+
+1. **Wave 1 redesign:** extend the new design system and navigation across Watch, Mini's, Creator Studio and all remaining public platform surfaces.
+2. **Core product surfaces:** build the connected Raye2 home/feed, Explore/search, profiles and community surfaces on shared data contracts.
+3. **Media + Creator Studio:** integrate native video lifecycle, Mini's/Moments, creator/streamer role quotas and publishing workflows.
+4. **Community + engagement:** connect follows, communities, posts, polls, events, collections and custom reactions.
+5. **Finish communications:** close remaining chat/voice/Watch Together gaps and operational provider setup.
+6. **Admin + hardening:** complete Rules Engine, cleanup worker, security/runtime tests, capacity checks and acceptance matrix.
+
+Keep updating this file after each meaningful batch. Report implementation, automated verification, preview verification and owner acceptance separately. Do not mark a wave complete based on a plan, placeholder, route render or successful deployment alone.
+
+
+## Latest Creator workspace integration batch (2026-11-05, implementation commit `d3bcd8ff`; verification follow-up in this commit)
+- [x] Apply the Raye2 blue/graphite design tokens to the existing creator dashboard and its functional management modules.
+- [x] Replace obsolete NHEN identity in creator dashboard, analytics and moderation entry surfaces with Raye2.
+- [x] Add direct navigation between the Raye2 Creator Studio landing page and the existing content-management workspace.
+- [x] Correct the Creator Studio role gate so assigned `creator` accounts can open the workspace and access publishing tools.
+- [x] Add contract tests for role access, navigation and shared visual tokens.
+- [ ] Continue redesigning the inner upload, video catalog, analytics and moderation components; this batch scopes the shared shell and does not claim every nested control is fully redesigned.
+
+
+## Latest creator tools branding batch (2026-11-05, commit pending)
+- [x] Update visible storage and external-video copy from NHEN to Raye2 without renaming the underlying database buckets or RPC contracts.
+- [x] Rename the video catalog's Shorts category to the platform's Mini's label.
+- [x] Apply the shared Raye2 creator shell to owner team management.
+- [x] Rename analytics CSV exports to Raye2 filenames.
+- [x] Add regression coverage for creator tools branding and team layout.
+- [ ] Continue the detailed interaction/accessibility redesign and runtime role verification for nested media tools.
+
+
+## Latest media operations visibility batch (2026-11-05, implementation commit `c3a6e96f`; verification follow-up in this commit)
+- [x] Surface existing creator-only storage health metrics in the media library.
+- [x] Show possible orphan object count/size, oldest candidate timestamp and expired reservation cleanup count.
+- [x] Clearly label orphan objects as review candidates; no automatic object deletion is added.
+- [x] Add regression coverage for health visibility and update analytics export branding expectations.
+- [ ] Add an explicit owner/admin orphan review workflow only after confirming safe object ownership and recovery behavior.
+
+
+## Latest Creator Studio permission-alignment batch (2026-11-05, commit `1b44f42e`; superseded test expectation removed in this follow-up)
+- [x] Align the Raye2 Studio publishing entry point with the database publisher policy: owner, admin and assigned creator only.
+- [x] Keep editor access to the Studio landing page while clearly separating the upcoming editorial-review workspace from official upload/publish privileges.
+- [x] Add regression tests to prevent editor UI access from implying publisher permissions.
+- [ ] Implement a dedicated editor review workflow with explicit server-side authorization before exposing review actions.
+
+
+## Latest video metadata safety batch (2026-11-05, implementation commit `ebcf1655`; regression follow-up in this commit)
+- [x] Validate optional video duration as a whole number within the database-supported 1–86,400 second range.
+- [x] Validate description and category lengths before catalog writes.
+- [x] Deduplicate tags and reject more than 12 tags or tags longer than 40 characters rather than silently truncating.
+- [x] Add regression coverage for client-side metadata validation.
+- [ ] Continue toward a server-authoritative unified upload/draft/processing/publish lifecycle; current browser-side validation is usability support, not a replacement for database constraints.
+
+
+## 2026-11-06 — Owner-confirmed monetization scope added as a pre-beta blocker
+
+The owner explicitly confirmed that the complete Smart Sponsorship, Advertising & Creator Monetization ecosystem must be implemented **before** the one-month friends-testing period. It is not a post-launch/Coming Soon feature.
+
+Required work is now specified in section 18 of the master plan and spans:
+- Wave 4: creator/streamer-owned sponsorship settings inside video upload and stream setup, placement review and creator reporting.
+- Wave 8: separate Admin/Owner management of Raye2 platform-wide campaigns, campaign conflict rules, audit and revenue reporting.
+- Wave 9: external ad-provider compliance, contextual placement, net-revenue attribution, fraud/invalid-traffic controls, age-appropriate eligibility and end-to-end release verification.
+
+The proposed external-network split is 70% Raye2 / 30% eligible creator or streamer from net revenue actually recognized and received by Raye2 for attributable inventory, subject to provider approval and contract terms. Creator-contracted sponsors, Raye2 platform sponsors and external network ads must remain separate in delivery and accounting. The optional five-second context replay is configurable and must fail safely when live-provider capabilities do not support it.
+
+**Implementation status on 2026-11-06:** specification captured; no monetization database schema, provider integration, campaign UI or revenue ledger is claimed implemented yet. The previous 2026-11-05 ~37% full-platform estimate remains a historical baseline and does not include this newly confirmed scope. Recalculate the overall estimate after the monetization work is decomposed into testable implementation tasks.
+
+
+
+## 2026-11-07 — Repository and Supabase environment re-audit
+
+- Confirmed active GitHub repository: `Mody2024/Creator-Fan-Hub`; linked GitHub permission is Admin/Push.
+- Confirmed Git branches `development` and `main`. All current work remains on `development`; no merge or production deployment was performed.
+- Re-read both complete Raye2 plans, the implementation progress file and beta backlog. The owner-agreed monetization ecosystem is now recorded as a mandatory pre-beta blocker in the master plan and backlog.
+- Rechecked the linked Supabase project `Creator-Fan-Hub` (`scxkgybuodhuohcxpfat`): project status is `ACTIVE_HEALTHY`; there are currently **no Supabase development branches**.
+- Queried the live Supabase migration history. It currently ends at `20261102215604_nhen_scope_storage_quota_to_managed_buckets`. The repository contains additional Raye2 migrations dated 2026-11-03 and 2026-11-04 (community/chat foundations, invites/memories, read receipts, notifications, safety, search/pins, voice sessions/preferences/group SFU/moderation and Watch Together) which are **not present in the live migration history** returned by Supabase.
+- Therefore the Raye2 chat/voice/watch database layer cannot be marked runtime-applied or operationally verified yet. Do not claim those repository migrations are live. Before applying them, review the full ordered migration chain and execute on an isolated Supabase development database; the connected project currently has no Supabase development branch.
+- GitHub compare reports `development` and `main` have diverged (development 1,015 commits ahead and 12 behind in the compare response). Do not merge or rebase as part of routine wave work; keep the production branch untouched and perform a dedicated history/release review before any eventual merge.
+- No live Supabase schema, data, secrets, project settings or production deployment were changed in this audit.
+
+### Next implementation order (updated)
+
+1. **Wave 4 — Creator Studio/media publishing:** complete the real server-authoritative upload → draft → processing → publish lifecycle, creator/streamer role and quota enforcement, creator-owned sponsor setup per video/stream, and actual live-provider integration. Do not expose sponsor controls until their persistence and permission checks exist.
+2. **Wave 1/3 — Finish the product-wide redesign and connected media journey:** extend the shared Raye2 design system beyond the existing home/search/profile/chat surfaces; finish the actual player, media details and responsive creator surfaces.
+3. **Wave 5 — Complete communities and social graph:** profiles/follows, community posts/polls/events/collections, custom reactions and cross-surface consistency.
+4. **Wave 6/7 — Operationalize chat/voice/watch:** apply and verify the pending migration chain on an isolated database, then finish attachments, delivery, provider deployment, reconnection, consent-gated recording pipeline and Watch Together acceptance.
+5. **Wave 8 — Complete Admin campaign and rules control:** platform-wide sponsor campaign manager, conflict/exclusivity rules, revenue ledgers, unified quotas/feature flags, operational dashboards and cleanup worker.
+6. **Wave 9 — Monetization and release hardening:** approved ad-provider integration, net-revenue accounting, fraud/eligibility controls, security/runtime/load/accessibility tests, friend-test preview acceptance.
+
+Progress percentages above remain the last recorded 2026-11-05 historical baseline until a fresh route/schema/test audit supports revised values. The newly confirmed monetization scope has not been credited as implemented.
+
+
+
+### 2026-11-07 — Wave 4 creator sponsorship foundation (development only)
+
+- Added `supabase/migrations/20261107120000_raye2_creator_video_sponsorships.sql`: creator-owned campaign records, strict authenticated creator RLS, owner-identity checks, published-video attachment validation, published creator-owned image/video creative validation, explicit rights confirmation, disclosure text, placement, scheduling fields, frequency cap and draft/active/paused/completed states.
+- Added `src/app/creator/creator-video-sponsorship.tsx` and connected it to the existing Video Studio for a selected published watch page. Creators can save their own sponsor setup and pause/activate campaign configuration. Multiple creatives can be represented as separate campaign entries.
+- Important limitation: this is **campaign configuration and persistence only**. It does not yet insert ads into playback, analyze scene breakpoints, serve live-stream ads, provide sponsor contracts, operate a platform-wide admin campaign director, or calculate/reconcile revenue. The UI explicitly states that playback delivery remains disabled. Do not count it as a completed advertising system or claim sponsor impressions/revenue.
+- Migration has been committed to `development` only. It has **not** been applied to Supabase; the live database and production environment were not changed. Until a free isolated database test and migration review are completed, the new UI will report that sponsorship settings are unavailable if the table is absent.
+- No paid services, paid branches, paid APIs, or deployment were used. No production/main changes.
+- Wave 4 remains in progress; no new overall or wave percentage is claimed from this narrow feature patch. The historical 2026-11-05 percentages remain historical, not a fresh audit.
+
+- Follow-up batch: added a separate Raye2 Admin tab and UI for platform-wide sponsor campaigns, with admin-only RLS, admin-owned published creative validation, video/live eligibility flags, category/exclusivity, priority, regions, scheduling and frequency-cap configuration. This is distinct from creator-contracted sponsorship records.
+- Added `tests/raye2-sponsorship-contracts.test.mjs` to cover creator ownership, published creative checks, disclosure/schedule/frequency fields, platform-admin isolation and the explicit no-delivery boundary. The tests are committed but have not yet been executed in this environment; the development preview check is pending.
+- Both campaign systems remain configuration-only. There is no ad director, playback insertion, scene analysis, live provider integration, actual delivery measurement, payout/revenue ledger or approved ad-network connection yet. These remain mandatory pre-friend-test work.
+
+
+### 2026-11-07 — Sponsor director selection foundation
+
+- Added a provider-neutral deterministic breakpoint selector at `src/lib/raye2/sponsor-breakpoint-director.mjs`, with TypeScript declarations and unit tests.
+- The selector ranks only supplied timestamp evidence (creator marks, dialogue gaps, chapters, scene transitions), enforces lead/tail margins, minimum spacing, confidence floor and a maximum of three breaks, and hard-rejects candidates marked as active dialogue, climax, key action or creator-excluded.
+- It returns an optional five-second context-replay start timestamp, but playback/provider integration must decide whether compliant replay is supported. It never inserts ads.
+- This is a tested-in-source algorithm foundation, **not** automatic audiovisual analysis: no model currently detects dialogue, scene transitions or climax from uploaded media, and no playback client consumes these selected breaks yet. Those remain open Wave 4 tasks.
+- The new unit tests are committed. CI/build status has not yet been confirmed; do not count the tests as passing until the workflow reports success.
+
+- Hardening follow-up: malformed confidence values and unknown candidate-source keys are rejected, invalid numeric settings fall back to safe defaults, and the test suite now covers malformed evidence. Latest Vercel development status is still pending; no passing build/test result is claimed.
+
+
+### 2026-11-07 — Sponsor workflow expansion batch
+
+- Added persistent creator review markers for sponsor breakpoints. Creators can approve candidate timestamps or exclude moments, with server-side checks that the campaign belongs to them and timestamps fall within the published video's duration.
+- Added reusable creative-variant management for both creator-owned and platform-owned campaigns: short 5s, standard 10s, extended and alternate versions. Database constraints and trigger validation require exactly one campaign parent and a published image/video owned by the same creator/admin.
+- Added creator contract category keys and category exclusivity settings. Added a provider-neutral eligibility resolver that reads both app-shaped and database snake_case campaign records, checks campaign status/schedule, inventory scope, region and per-viewer frequency caps, and suppresses eligible platform campaigns that conflict with an eligible creator exclusivity.
+- The resolver returns `deliveryEnabled: false` deliberately. It is not connected to a player and cannot insert ads. Creator breakpoint review is manual timestamp annotation, not AI media analysis. Creative variants are stored but not selected for playback. Live eligibility is configuration only, not live-stream ad insertion.
+- Added/expanded tests for resolver behavior, persisted campaign shapes, creative-variant ownership, and creator breakpoint review constraints. Tests remain unexecuted in this environment; the Vercel preview check must complete before claiming build success.
+- New migrations are committed on `development` only and have not been applied to Supabase. No paid services, paid branches, or production deployments were used.
+
+
+### 2026-11-07 — Large sponsorship telemetry and accounting batch
+
+- Added `20261107160000_raye2_sponsor_delivery_and_revenue_ledgers.sql` with separate creator-contract, platform-campaign and external-network delivery event sources, deduplication keys, bounded metadata, hashed viewer reference field, and service-role-only access.
+- Added a separate revenue ledger with gross, provider deductions, refunds, invalid-traffic adjustments, other adjustments, net received, platform/creator shares, provider transaction idempotency and explicit estimated/provider-reported/received/adjusted/reversed states.
+- Added exact reconciliation: net received must equal gross less every recorded adjustment. The 70/30 split is enforced only for external-network net receipts. Creator-contract and platform sponsorships cannot silently flow through that split.
+- A received status requires a received timestamp. The schema explicitly requires a future trusted provider adapter to verify provider signatures; no provider is connected, no payment/payout occurs, and no estimated amount is represented as money received.
+- Added `tests/raye2-sponsor-ledger-contracts.test.mjs` for source separation, service-role isolation, idempotency, reconciliation, 70/30 scope and receipt-state boundaries.
+- Verification: GitHub status/workflow lookup returned no workflow runs for the latest recorded commit, so tests/build remain **unverified**. Migrations remain unapplied. No production or main changes; no paid infrastructure.
+
+### Provisional progress snapshot — 2026-11-07
+
+- Overall Raye2 implementation: **approximately 38%** (previous documented baseline was approximately 37%; this is a small provisional adjustment, not a full repository-wide re-audit).
+- Wave 4 Creator Studio & Live: **approximately 12%** (previous baseline 9%). Sponsorship configuration, creator breakpoint review, creative variants, deterministic campaign eligibility and ledger schema are now represented in code; core publishing, processing, real playback insertion, automated media analysis, live-provider integration and payout/provider operations remain substantial unfinished work.
+- Test readiness: **not ready for friend testing**. The new migrations are not applied, migration chain is not yet validated in a free isolated database, test suite and build have not been executed successfully, and real delivery/provider integrations are absent.
+- Percentages are estimates of implementation coverage, not quality scores or proof of operational functionality. Other wave percentages remain at their previous historical values until a fresh audit.
+
+
+- Follow-up in the same Wave 4 batch: added a fail-closed live sponsorship safety gate. It only considers streamer-declared breaks, intermissions, round breaks or loading transitions; rejects gameplay, conversation and key-event interruptions; requires provider mid-roll capability, an explicitly verified adapter, eligible creator campaign, frequency allowance and disclosure; and caps optional context replay at five seconds only when provider DVR is available.
+- This module is a policy gate only. It is not wired to a live provider, does not send insertion requests and always returns the action `no_insertion` in this implementation. Tests cover unsupported providers, missing adapters, unsafe break types and all mandatory eligibility checks.
+- Wave 4 remains approximately 12%; this additional safety foundation does not materially change the estimate until provider integration and operational end-to-end tests exist.
+
+
+### 2026-11-07 — Creator sponsorship preview integration batch
+
+- Added authenticated `POST /api/creator/sponsorship/preview`. It validates a bounded request and UUID, requires a signed-in session, scopes campaign lookup to the current creator, checks the native video's published state and duration, and loads only that creator's saved breakpoint decisions and active creative variants.
+- The server runs the existing deterministic breakpoint director over creator-approved timestamps. Explicit creator exclusions are passed as hard exclusions; lead/tail margins, spacing and a two-break preview cap are enforced.
+- Connected a creator-facing preview panel to every campaign in Creator Studio. It shows proposed timestamps, optional context-start positions, available creative-version count and explicit limitations.
+- The endpoint is private/no-store and explicitly returns `previewOnly: true` and `deliveryEnabled: false`. It does not fetch an ad, start playback, create an impression, select platform/external campaigns or infer scenes/dialogue. Automatic media analysis and real player insertion remain unimplemented.
+- Added static contract tests for authentication, ownership scoping, exclusion handling, no-store behavior, non-delivery guarantees and Creator Studio wiring. Tests/build still require execution in a working checkout and a passing preview check.
+- This connects campaign setup → creator breakpoint review → creative variants → deterministic preview as one workflow. Migrations are still unapplied; no production deployment, main-branch edit or paid service was used.
+
+
+- Build follow-up: inspected the failed preview for commit `d3c53d6`. Compilation succeeded; ESLint then failed on an unescaped apostrophe in the creator sponsorship consent label at `creator-video-sponsorship.tsx:93`. Corrected it to JSX-safe `&apos;` in commit `65bb73f`. The preview deployment for that fix is queued/pending at the time of this note; do not mark the build as passing until Vercel reports READY.
+
+
+- Preview usability follow-up: the creator preview now displays every saved review marker, distinguishing approved candidates from creator exclusions and showing notes, sponsor name, requested placement and campaign status. Added static UI contract assertions for both marker states.
+- The first preview build exposed a pre-existing JSX lint blocker in the sponsorship consent sentence; it has been escaped and the corrected commit is in the current development build queue. Earlier failed deployment is not treated as passing.
+
+
+### 2026-11-07 — Sponsorship review-to-video inspection batch
+
+- Extended the authenticated creator sponsorship preview to return the published video's canonical Raye2 Watch route alongside its duration.
+- Every proposed breakpoint now has an **Inspect this moment** link opening the native Watch page at the exact timestamp using the existing bounded `?t=` deep-link behavior. This lets the creator inspect actual video context rather than trusting a timestamp-only list.
+- The preview continues to use only saved creator review markers and hard exclusions; it does not claim AI scene detection or ad insertion. The native player remains unchanged and does not receive sponsor playback commands.
+- Added contract assertions for the Watch route, timestamp deep link and inspection link.
+- Previous corrected preview deployment for commit `c9c528d` is confirmed **READY**. Latest inspection-link batch commit `7152d25` has a new development preview queued/pending; its build result is not yet known.
+- No Supabase migration applied, no production deployment, no main-branch change, and no paid services.
+
+
+### 2026-11-07 — Creator sponsorship analytics batch
+
+- Added migration `20261107170000_raye2_creator_sponsorship_analytics.sql` with a creator-scoped aggregate reporting RPC. It requires the authenticated assigned publisher role, optionally scopes to one creator-owned media item, and only aggregates that creator's campaign-linked events and external-network ledger rows.
+- The RPC explicitly excludes platform-wide campaigns and viewer identity data. Creator-contracted sponsor deals are reported as delivery activity only; they are not represented as creator payout attribution.
+- Added Creator Studio sponsorship analytics showing campaign totals, delivery-event counts, event types/providers, and external-network revenue grouped by currency/status/provider.
+- Received creator share is separated from estimated/provider-reported unconfirmed amounts. No earnings are invented; absent ledger rows are shown as no records. Delivery counts are events, not unique viewers.
+- Connected the panel to each creator video sponsorship workspace and added static contract tests for role/ownership scope, platform campaign exclusion, financial state separation and honest dashboard labels.
+- Migration remains unapplied; no provider integration or actual ad delivery exists. The new development preview for commit `99c6c63` is queued/pending and no GitHub workflow run is reported yet. Do not mark this batch build-passing until Vercel reports READY.
+- No production deployment, main-branch changes, paid services or spending.
+
+### Progress note
+- Overall implementation estimate remains **approximately 38%** pending a full source audit.
+- Wave 4 remains **approximately 12%**; this analytics layer is a new code foundation but does not complete upload/processing/publishing, provider delivery, live integration or operational verification.
+- Friend testing remains blocked. Sponsorship migrations and the wider pending migration chain must be validated in a free isolated database before any production application.
+
+
+### 2026-11-07 — Owner-scoped video publishing and playlist hardening
+
+- Added `save_raye2_video_catalog`, an authenticated publisher-only RPC. It validates slug/metadata/tag/duration bounds, verifies the selected media is an official video/YouTube source owned by the signed-in creator, and rejects publishing a watch page until its underlying media asset is public.
+- Replaced the Video Studio's direct `video_catalog.upsert` with the guarded RPC. The browser no longer gets to assert ownership merely by submitting a media ID.
+- Tightened video-catalog RLS to require both the official publisher role and ownership of the referenced media asset.
+- Added playlist ownership to `video_playlists`. Existing playlists are backfilled only when all linked media rows identify one unambiguous owner; ambiguous legacy playlists remain unassigned rather than being granted to the wrong creator.
+- Replaced broad playlist policies with creator-owned read/write rules. Playlist items can only reference media owned by the playlist owner, and only active publishers can change playlist contents.
+- Added a publication guard: a public playlist cannot contain an unpublished watch page or private underlying media asset.
+- Updated Video Studio to assign new playlists to the signed-in creator. Added static contract tests for owner checks, publication state, legacy backfill safety and playlist-item boundaries.
+- This is database/code hardening, not proof of runtime RLS acceptance. The migrations `20261107180000` and `20261107190000` are committed but not applied. Full migration-chain testing in free local Supabase is still required.
+- Latest development preview for commit `29ddc22` is queued/pending; no workflow run or successful build is yet confirmed. No production deployment, main-branch change, paid service or spending.
+
+### Updated provisional progress estimate
+- Overall implementation remains approximately **38%** of the full Raye2 platform; this batch improves correctness and authorization, not broad feature coverage.
+- Wave 4 (Creator Studio / publishing / live) is provisionally **14%**. The secure catalog and playlist paths are now better protected, but native media processing, reliable publish lifecycle, live ingest/delivery, provider integration, and runtime acceptance remain major gaps.
+- Automated static contract tests were added but have not been executed in a working checkout in this batch. Friend testing remains blocked.
+
+
+### 2026-11-07 — Resumable media upload reliability batch
+
+- Audited the current media library against its accepted MIME types and found the resumable helper rejected every non-MP4/WebM asset even though the UI explicitly accepts JPEG, PNG, WebP, GIF and several audio formats.
+- Expanded the resumable upload helper to support the ten MIME types advertised by the media library, with MIME-derived safe extensions, bucket allowlisting and object-path validation.
+- Added per-request session validation and refresh for long-running uploads so access-token expiry does not unnecessarily break a multi-chunk transfer.
+- Added an explicit Pause upload control. It pauses the TUS client without terminating the remote upload resource; selecting the same file again reuses the saved object path and TUS fingerprint to resume. The existing one-hour storage reservation can be renewed for the same user/bucket/byte count before finalization.
+- Kept the storage reservation trigger's one-time consume behavior and did not attach a reservation UUID to immutable TUS metadata; this preserves recovery after an earlier reservation expires and is renewed.
+- Added `tests/resumable-media-upload.test.mjs` to cover accepted MIME formats, bucket/path checks, token refresh, pause/resume identity and UI wiring. These are static contract tests and are not yet confirmed executed.
+- Previous owner-scoped publishing/playlist preview commit `5536a92` is now confirmed **READY**. Latest upload-reliability preview for `4e0343a` is **QUEUED/PENDING**; do not mark the new code build-passing until Vercel reports READY.
+- No database migration was applied, no production deployment, no main-branch changes, and no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **38%** of the complete platform pending a full source audit.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **15%**. Resumable uploads now cover the media types actually offered in the UI and can be paused/resumed; processing/transcoding, robust finalization states, provider/live integration, and end-to-end runtime tests remain incomplete.
+- Friend testing remains blocked pending migration-chain validation and full workflow acceptance.
+
+
+### 2026-11-07 — Media processing lifecycle foundation
+
+- Added `20261107200000_raye2_media_processing_lifecycle.sql`: media processing attempt/error/timestamp fields, bounded retry counters and a creator-only processing-status RPC.
+- Replaced the prior metadata-sync trigger function so newly inserted or replaced native storage objects start at `uploaded`, not falsely at `ready`. YouTube embed sources remain explicitly `ready` because Raye2 does not process their video bytes.
+- The trigger has separate INSERT and UPDATE branches so INSERT never reads an unassigned OLD row. Existing rows retain their current state when only descriptive metadata changes.
+- Connected the Creator Media Library to the owner-scoped processing-status RPC and show the real status, MIME type, size and any recorded processing error. The library explicitly reports assets awaiting a worker instead of implying that uploaded files have completed processing.
+- Added `tests/raye2-media-processing-lifecycle.test.mjs` covering initial/replacement states, YouTube distinction, owner-scoped status access and UI labels. These static contract tests have not been executed in a working checkout in this batch.
+- Vercel development preview for commit `23a91b1` is now confirmed **READY**. This confirms the preview build, not runtime database acceptance or test execution.
+- No database migration was applied; no production deployment or main-branch change; no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **38%** pending a full source audit.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **16%**. Uploads now transition honestly into an explicit uploaded state, and the creator library can inspect server-recorded processing metadata. No FFmpeg/transcoding worker, thumbnail generation pipeline, media finalizer or live provider integration has been delivered yet.
+- Friend testing remains blocked pending free local migration-chain execution, runtime authorization/storage checks, and end-to-end processing/publishing acceptance.
+
+
+### 2026-11-07 — Self-hosted media worker and thumbnail pipeline
+
+- Added a local Node 22 worker at `scripts/raye2-media-worker.mjs` and `npm run media:worker`. It is deliberately not a Vercel Function: free serverless deployments are not a dependable always-on media queue.
+- Added service-role-only database job claiming/completion with `FOR UPDATE SKIP LOCKED`, 20-minute leases, random lease tokens, stale-lease recovery and a five-attempt cap. Creator sessions cannot forge processing completion.
+- Added owner-bound, byte-exact thumbnail storage reservations under the existing conservative 750 MiB project storage ceiling. The storage insert trigger now permits the trusted service role only when it supplies an owner ID and consumes a matching, unexpired reservation; normal user uploads retain their authenticated-user reservation path.
+- Worker handles images/sprites with the existing `sharp` dependency, extracting dimensions/format and generating WebP thumbnails. It uses local `ffprobe` for video/audio stream and duration metadata and attempts a video poster with local `ffmpeg`. It does not claim to transcode video or package HLS/DASH.
+- Thumbnail objects are unique per processing lease, respect the source asset's private/public bucket, and the previous thumbnail is removed only after the new processing result commits. Failed/expired leases cannot overwrite a newer result.
+- Exposed `thumbnail_path` through the creator-only processing-status RPC and updated the Creator Media Library to render the generated thumbnail instead of always using the full original asset. Storage health audit now treats committed thumbnail paths as referenced objects.
+- Added `docs/RAYE2-SELF-HOSTED-MEDIA-WORKER.md` with local setup, required environment, ffmpeg/ffprobe dependencies, deployment order and explicit limits. Added `tests/raye2-self-hosted-media-worker.test.mjs` for service-role boundaries, lease/retry behavior, quota reservation, metadata extraction and thumbnail rendering.
+- Current Supabase secret formats accepted by the worker are legacy JWT service-role keys and the newer `sb_secret_` form; publishable keys are rejected. Secret must remain only in the private worker environment.
+- The development preview for commit `20cb2d1` was still **BUILDING** when checked. Later changes in this batch have not yet been build-verified. No worker has been run against Supabase, no migrations applied, and no media processing has been claimed as runtime-tested.
+- No production deployment, no main-branch changes, no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **39%** of the full platform pending a comprehensive source audit and end-to-end test execution.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **19%**. A real self-hosted metadata/thumbnail worker and secure job queue now exist in code, but setup/run, migration validation, media finalization, actual transcoding/adaptive delivery, live ingest, and end-to-end acceptance remain outstanding.
+- Friend testing remains blocked.
+
+
+### 2026-11-07 — Publication readiness gate and media-library hardening
+
+- Added `20261107220000_raye2_processing_gated_media_publication.sql`: creator media saves are owner-scoped, native uploads must begin as private drafts, and native media cannot be published until the server-side processing state is `ready`. YouTube remains explicitly external and is not falsely treated as a native upload.
+- Tightened source URL and storage-path validation in the publishing RPC; the RPC now rejects missing YouTube URLs, mismatched native source URLs, paths owned by another creator, and bucket/publication mismatches.
+- Creator UI now blocks publication before processing completes and polls the owner-scoped processing status while jobs remain uploaded, processing, or failed.
+- Processing state is preserved when the same verified asset is moved between its private/public bucket as a visibility change, instead of needlessly re-queuing an identical file.
+- Fixed creator preview path validation so nested thumbnail paths such as `<owner>/thumbnails/<asset>-<lease>.webp` are accepted safely. Public assets fall back to their public source object if an older thumbnail is still private.
+- Added private thumbnail cleanup when a private media asset is deleted. Updated static contract tests for publication gating, visibility transitions, nested thumbnails, and cleanup. Removed a duplicate test fixture declaration and aligned the preview assertion with the actual fallback behavior.
+- Repaired the worker storage-reservation migration after detecting a malformed SQL block during direct source inspection. The current file was re-fetched and checked for a complete dollar-quoted function, valid owner-folder extraction, byte-exact unexpired reservation consumption, and grants. This remains source inspection, not PostgreSQL execution.
+- Final GitHub status for commit `8eceacb1` still reports Vercel build-rate-limit failure. No preview deployment was created for the latest commit. The free Vercel build limit must reset; no upgrade will be purchased.
+- No GitHub Actions workflow run was returned for this commit by the available commit-run lookup. Static tests have not been executed in a working checkout; no SQL migration was applied; worker has not run against Supabase.
+- No production deployment, no main-branch changes, and no paid services or spending.
+
+### Updated provisional progress estimate
+- Overall Raye2 remains approximately **39%** of the full platform pending a broad repository audit and executable validation.
+- Wave 4 (Creator Studio / media publishing / live) is provisionally **22%**. The self-hosted metadata/thumbnail worker, leased processing queue, owner-bound storage reservations, creator preview integration, and server-authoritative publication gate are now present in source. Actual PostgreSQL migration execution, worker runtime, video transcoding/adaptive delivery, native player integration, live ingest, creator sponsor workflows, and end-to-end acceptance remain outstanding.
+- Friend testing remains blocked. These source-level changes are not a beta-ready claim.
+
+
+### 2026-11-07 — Public watch-page readiness and path hardening
+
+- Fixed a real public-route consistency gap: the video grid already filtered native uploads to `processing_status='ready'`, but direct `/watch/[slug]` routes previously checked only publication state. The watch route now fetches processing status and refuses native video playback unless the trusted worker has marked it ready. External YouTube embeds remain separate.
+- Hardened native public watch storage object paths: only safe path segments are accepted before constructing a public storage URL; malformed and traversal-like segments fail closed.
+- Added `tests/raye2-public-watch-page.test.mjs` covering processing readiness, public-bucket isolation, privacy-enhanced YouTube embeds, and safe object path validation.
+- CI diagnosis: the prior run reached 235 passing tests and one remaining assertion failure plus a test-file syntax error. The syntax error was fixed by replacing a literal escaped newline with a real line break. The thumbnail property assertion was corrected to match the exact source declaration spacing. The next CI runs are required to verify these corrections; no green result is claimed yet.
+- Latest GitHub Actions run at the time of this note is still queued/in progress; the Vercel preview limit remains unrelated to GitHub Actions. No paid services used.
+- No database migrations applied, no production deployment, and no changes to `main`.
+
+### Progress estimate
+- Overall Raye2: approximately **39%**, provisional pending full executable validation.
+- Wave 4: approximately **22%**, provisional. The source now includes owner-scoped processing, thumbnail generation, publication gating, and direct watch-page readiness checks. Adaptive streaming/transcoding, player delivery improvements, real live ingest, sponsor workflows, applied migrations and end-to-end validation remain outstanding.
+
+
+### 2026-11-07 — Public watch and catalog path validation follow-through
+
+- GitHub Actions completed the complete Node test suite with **288/288 passing** on the preceding commit, then TypeScript correctly caught an implicit-any in the new public watch path validator. This was a genuine type-check failure, not a test failure.
+- Added an explicit `string` annotation to the watch route path segment validator.
+- Applied the same strict safe-segment validation to the homepage public video catalog. This closes the weaker path check that previously only verified a non-empty object path.
+- Added a regression test for the public catalog path validator.
+- New GitHub Actions run is in progress for the combined fixes. TypeScript, lint and Next.js build are not yet confirmed on this latest source.
+- No Vercel deployment, no paid service, no database migration applied, no production change, and no changes to `main`.
+
+
+### 2026-11-07 — Native creator thumbnails connected to public playback
+
+- Connected the existing self-hosted media worker's generated WebP thumbnail output to the native public watch player and homepage video cards.
+- The watch route selects `thumbnail_path`, accepts only creator public-bucket thumbnail objects with safe path segments, and requires the thumbnail URL to be HTTPS and same-origin with the configured Supabase video URL.
+- The homepage catalog applies the same public-bucket, safe-segment, HTTPS and same-origin rules before passing a poster URL to the native player.
+- Extended the shared public video player with an optional poster attribute. YouTube embeds remain unchanged and are not treated as Raye2-hosted inventory.
+- Added regression coverage for watch-player poster wiring and homepage card poster validation.
+- Current GitHub Actions run is still installing dependencies; automated tests, TypeScript, lint and Next.js build have not yet run on the combined commit.
+- Prior CI baseline: 288/289 tests passed; the one failure was a stale assertion that did not include the explicit TypeScript annotation. That assertion has been updated, but this combined commit is not yet verified.
+- Adaptive HLS/DASH transcoding is **not implemented**. The current worker probes media and generates thumbnails; native playback still relies on source-file delivery. Do not represent this as adaptive streaming.
+- No paid services, no database migrations applied, no production deployment, and no changes to `main`.
+
+### Progress estimate
+- Overall Raye2 remains approximately **39%**, provisional.
+- Wave 4 remains approximately **22%**, provisional; thumbnail display closes a small end-to-end presentation gap but does not complete transcoding, live ingest, sponsor delivery, applied migrations or end-to-end acceptance.
+
+## 2026-11-07 — Native media processing and watch-publication hardening
+
+- [x] Worker validates the expected primary video/audio stream, duration, video dimensions and audio channel bounds before marking processing successful.
+- [x] Video poster extraction samples a duration-aware frame instead of always seeking to the first second.
+- [x] Creator Media Library already polls active processing jobs, displays processing state/errors and blocks native media publication until the trusted worker reports `ready`.
+- [x] Added a follow-up database migration that independently gates native `video_catalog` publication on `processing_status='ready'`, while retaining the external YouTube source path.
+- [x] Added regression coverage for typed media probing and the watch-catalog processing gate.
+- [ ] Run the complete CI workflow after the latest test/migration changes and fix any failures.
+- [ ] Apply the pending migration chain to a disposable local Supabase instance and verify the complete upload → worker → poster → watch-page publication flow. The cloud Supabase project remains unchanged; no paid branch is permitted.
+- [ ] Add adaptive HLS renditions only after local FFmpeg, storage reservation, player compatibility and low-resource limits are validated together. No HLS capability is claimed yet.
+
+**Verification note:** These are repository changes on `development`; migrations are not claimed as applied to the live Supabase project, the local worker is not claimed to be running, and production remains untouched.
+
+## 2026-11-07 — Worker runtime resilience batch
+
+- [x] Bound FFmpeg/FFprobe subprocess output to 2 MiB to prevent unbounded diagnostic/stdout accumulation.
+- [x] Enforce per-process execution timeouts with forced termination and actionable timeout errors.
+- [x] Add graceful SIGINT/SIGTERM handling: stop claiming new jobs, allow the active job to finish, then exit.
+- [x] Add jittered idle polling and capped exponential backoff for repeated queue/database errors to avoid tight retry loops.
+- [x] Add regression checks for subprocess bounds, shutdown handling and retry backoff.
+- [ ] Verify this complete batch through CI, then run the full migration chain and media lifecycle against a disposable local Supabase instance.
+- [ ] Validate actual FFmpeg/FFprobe execution and object cleanup with representative test media before calling the worker production-ready.
+
+**Verification note:** Runtime hardening is committed to `development`; no live Supabase migration was applied and no production deployment was triggered.
+
+- [x] Extended server-side validation to decoded image formats and dimensions, enforcing a 40-megapixel limit before thumbnail generation.
+
+- [x] Added lease-loss cleanup for generated thumbnails: uncommitted attempt objects are removed using a strict owner/media path check, while the previous thumbnail is retained until the database confirms the replacement.
+
+
+## 2026-11-07 — Re-audit correction after media-worker and sponsorship batches
+
+This entry supersedes the older provisional 38% and 39% notes above for the current source snapshot. It does **not** convert source presence into runtime acceptance.
+
+### Evidence checked on current development HEAD `fbb4d714c5aba2449692541cb6f5fc8879826f88`
+
+- Creator sponsorship configuration is present in `src/app/creator/creator-video-sponsorship.tsx`, connected to the Video Studio; creator ownership, published source/creative checks and campaign state are represented in `20261107120000_raye2_creator_video_sponsorships.sql`.
+- Separate platform-wide campaign configuration is present in `src/app/creator/raye2/platform-sponsor-management.tsx` with admin-gated database policies.
+- Creative variants, creator breakpoint review, authenticated preview, watch-page timestamp inspection, eligibility resolution and fail-closed live policy modules are present. The preview explicitly remains `previewOnly` / `deliveryEnabled: false`; the resolver also returns delivery disabled. These are configuration and planning foundations, not playback ad delivery.
+- Separate sponsor delivery and revenue ledger schemas are present. The 70/30 rule applies only to external-network net receipts; no external provider, signed event ingestion, real impression collection, payout provider or payment flow is connected.
+- Creator analytics is an aggregate RPC and UI. It excludes platform-wide campaigns and viewer identity, and does not claim creator-contracted sponsor payouts.
+- The self-hosted media worker now validates media streams and image dimensions, creates thumbnails, uses storage reservations, applies bounded subprocess execution and retry/backoff, and cleans up uncommitted thumbnails after lease loss. Native publication is gated on worker-ready state; HLS/DASH transcoding is still absent.
+- Current HEAD is `fbb4d714`. GitHub Actions Free CI run [42415426700](https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/42415426700) completed successfully: repository integration tests, TypeScript type-check, lint and Next.js production build all passed.
+- The successful CI run does not execute the pending Supabase migration chain against PostgreSQL or run the media worker against a real Supabase Storage/FFmpeg environment. The live Supabase migration history was last confirmed to end at `20261102215604_nhen_scope_storage_quota_to_managed_buckets`; the newer Raye2 migrations remain unapplied there.
+
+### Corrected provisional implementation estimate
+
+| Wave | Scope | Current estimate | Why this is not higher |
+|---|---|---:|---|
+| 0 | Audit and implementation map | 60% | Major route/schema/test inventory is improving; full requirement matrix, provider/cost audit and migration validation remain. |
+| 1 | Brand and product-wide redesign | 31% | Core home/search/profile and some shared shell work exists; full surface redesign and final brand integration remain. |
+| 2 | Core architecture, accounts and permissions | 27% | Role/RLS foundations exist; unified identity, complete route authorization and broad negative tests remain. |
+| 3 | Video, feed and discovery | 24% | Native watch readiness and thumbnail presentation improved; adaptive delivery, complete player journey and discovery ranking remain. |
+| 4 | Creator Studio, media publishing, sponsorship and live | 25% | Creator Studio, processing lifecycle, publication gates and sponsor configuration/review foundations exist; upload-to-publish runtime acceptance, HLS/DASH, playback insertion, automatic media analysis and real live ingest remain. |
+| 5 | Social graph, communities and engagement | 16% | Group foundations exist; full social graph and connected engagement breadth remain. |
+| 6 | Messaging and chat | 85% | Broad feature implementation exists; applied schema/runtime delivery and end-to-end acceptance remain. |
+| 7 | Voice and Watch Together | 55% | WebRTC/LiveKit control paths and Watch Together foundations exist; provider deployment, multi-device acceptance and consented recording pipeline remain. |
+| 8 | Admin rules and governance | 38% | Platform sponsor manager and admin campaign isolation exist; unified rules engine, operational dashboards, moderation breadth and cleanup recovery remain. |
+| 9 | Security, reliability and release readiness | 19% | CI is green and source-level safety/ledger contracts exist; database execution, provider verification, runtime/load/accessibility and owner acceptance remain. |
+
+**Current overall implementation estimate: 40%** of the full ten-wave product. This is a weighted planning estimate based on the scope above, not a measured metric or a claim that 40% of the app is ready to use. It replaces the stale 37–39% figures for this source snapshot. Recalculate again after another substantial connected feature batch, not after isolated cosmetic changes.
+
+### Verification and friend-test status
+
+- **Automated repository checks:** latest Free CI is green on current HEAD.
+- **Database/migration verification:** not complete; do not apply to the live project. A free isolated PostgreSQL/Supabase migration run is still required.
+- **Worker/runtime verification:** not complete against real storage and FFmpeg/FFprobe.
+- **Preview/owner acceptance:** not confirmed for the current HEAD by this CI run.
+- **Friend-test readiness:** **blocked**. Sponsorship playback/delivery, real provider integrations, database migration validation, end-to-end media flow, remaining community/social features, voice/Watch Together runtime acceptance and full release/security review remain pre-beta work.
+- No changes to `main`, no production deployment, no paid infrastructure or spending.
+
+
+### 2026-11-07 — Creator media thumbnail visibility synchronization
+
+- Fixed a publication-flow gap: the media object moved between private/public buckets but its worker-generated thumbnail could remain in the old visibility bucket, causing missing posters or a stale public thumbnail.
+- The creator media library now validates the thumbnail's owner/media path, downloads it, reserves destination quota, copies it into the same visibility bucket as the media, and updates the database pointer through an owner-scoped RPC. The previous thumbnail is cleaned up after the pointer update; failed source publication cleans up the temporary thumbnail copy.
+- Added migration `20261107240000_raye2_creator_thumbnail_visibility_binding.sql`. It requires an active assigned publisher, verifies ownership, checks the bucket matches publication state, and confirms the exact object exists before changing the thumbnail pointer. The migration is committed to development only and remains unapplied to the live Supabase project.
+- Updated the native watch page/player loading mark to Raye2 branding; no change to playback provider behavior.
+- Added static regression contracts for ownership, visibility, quota reservation and cleanup. These are not substitutes for a live Storage/database exercise.
+- No main-branch change, production deployment, paid service or spend. Friend testing remains blocked pending isolated migration execution and full media runtime acceptance.
+
+
+### 2026-11-07 — Atomic media and thumbnail publication
+
+- Closed a race in the previous visibility-sync fix: media publication and thumbnail-pointer updates previously used two separate database RPC calls. If the second call failed, media visibility could change while the thumbnail pointer still referenced the old bucket.
+- Added `save_creator_media_with_thumbnail`, which calls the existing server-authoritative media save function and validates/updates the creator-owned thumbnail pointer in the same database transaction. Invalid thumbnail ownership, bucket visibility or missing Storage object now rolls back the database publication change.
+- The creator media library now uses this atomic RPC and only removes the old thumbnail after the combined database operation succeeds.
+- Added regression tests for the atomic call path and database ownership/visibility checks. These static tests do not execute PostgreSQL; migration-chain validation remains outstanding.
+- No changes to main, no production deployment, no paid infrastructure. Friend testing remains blocked.
+
+
+## Recent media-worker reliability batch — 2026-11-08
+- [x] Ignore attached cover-art streams when selecting a playable video stream; map real video tracks for posters.
+- [x] Persist source SHA-256 fingerprints under the matching processing lease.
+- [x] Renew long-running processing leases every five minutes; each renewal extends the active lease by twenty minutes.
+- [x] Serialize heartbeat requests and fail closed when lease ownership cannot be confirmed.
+- [x] Regression coverage for lease renewal, stale completion prevention and stream selection.
+- [ ] Implement real video transcoding and HLS/DASH packaging.
+- [ ] Validate migration chain and worker behavior against isolated PostgreSQL/Supabase with actual media fixtures.
+
+
+## Creator media recovery batch — 2026-11-08
+- [x] Add processing-state totals and filters to the Creator Media Library.
+- [x] Add owner-scoped manual retry for failed private media, with a maximum of two manual retries per asset and audit logging.
+- [x] Keep processing authority exclusively with the trusted worker; creator retry only requeues.
+- [x] Add English/Arabic labels, safe status messages, regression tests and documentation.
+- [ ] Validate the migration against isolated PostgreSQL/Supabase before applying it to any live project.
+
+
+## Video Studio workflow batch — 2026-11-08
+- [x] Fix both stale static-validator assertions after the media library gained a third filter.
+- [x] Load owner-authorized processing status before rendering native video publication controls; restrict studio source choices to media IDs returned by that owner-scoped RPC.
+- [x] Show waiting/processing/ready/failed state in the source selector in English and Arabic.
+- [x] Disable native watch-page publication until processing is ready; retain the YouTube external-source path.
+- [x] Show the worker's processing error for failed selected assets.
+- [x] Allow creators to remove the selected owned video from their own playlists under existing RLS.
+- [x] Add regression coverage for processing-aware publication and playlist removal.
+- [ ] Verify the new flow against an isolated Supabase database with the migrations applied.
+
+- [x] Fix TypeScript locale syntax and complete Arabic processing/playlist labels after CI caught the missing comma.
+
+
+## 2026-11-08 — Platform finance export batch
+- [x] Add an admin-only CSV export action to the existing platform sponsorship finance dashboard.
+- [x] Export source/currency/status-separated revenue rows with gross, net, verified received, unconfirmed, platform share received and creator share received fields.
+- [x] Include aggregate delivery event rows and separate creator-contract/platform campaign counts in the same report.
+- [x] Escape CSV cells and neutralize spreadsheet formula-leading values before export.
+- [x] Keep currencies separated; do not produce misleading cross-currency totals.
+- [x] Add regression assertions for finance export structure, delivery coverage and formula safety.
+- [ ] Verify against live populated ledger data and real admin/non-admin accounts; CI contract tests do not replace Supabase runtime/RLS acceptance.
+- [ ] Integrate a verified provider settlement adapter and reconciliation process before claiming executable payouts. Payment execution remains disabled.
+
+**Progress accounting correction:** the detailed ten-wave roadmap in this file is the source of truth for whole-platform estimates. The previous conversational 46% estimate was not supported by the roadmap and is withdrawn. Current baseline remains approximately 38% pending a full evidence-based recalculation; this CSV/reporting batch is a narrow increment and does not justify a multi-point overall increase.
+
+
+## 2026-11-08 — Finance CSV serialization hardening
+- [x] Correct the formula-leading cell guard to use an actual whitespace regex (rather than matching a literal backslash sequence).
+- [x] Correct UTF-8 BOM and CRLF serialization so spreadsheet imports receive actual control characters.
+- [x] Strengthen regression assertions to lock the exact regex and serialization contract.
+- [ ] Re-run CI and verify the latest development preview before calling the export batch release-ready.
+- [ ] Live admin/non-admin RLS and populated-ledger acceptance remains required.
+
+
+## 2026-11-08 — Finance export regression test repair
+- [x] Correct malformed JavaScript template-literal syntax in the CSV serialization assertions.
+- [x] Assert the literal source contract for the whitespace guard, UTF-8 BOM and CRLF separators without using nested template literals.
+- [ ] Re-run full CI after this repair.
+
+
+## 2026-11-08 — Platform sponsor campaign editor reliability
+- [x] Add shared pre-submit validation for sponsor name/disclosure length, selected creative, eligible inventory, priority and frequency bounds.
+- [x] Validate two-letter region codes, duplicate region entries and campaign date ordering before database writes.
+- [x] Add owner-scoped editing for unused platform campaign drafts; updates require the current admin identity and draft status.
+- [x] Preserve the explicit no-delivery state in editor feedback; campaign configuration does not imply ad insertion or payment execution.
+- [x] Add regression contracts for validation boundaries, region/date checks and draft-only edit guards.
+- [ ] Confirm CI, TypeScript, lint and preview against this exact commit.
+- [ ] Validate admin RLS and update behavior against an isolated Supabase database with the migration chain applied.
+
+
+## 2026-11-08 — Platform campaign editor repair and completion
+- [x] Restore the draft editor state and handlers that were referenced by the UI but absent from the component.
+- [x] Replace the literal "\\n" text accidentally inserted into the React state declaration with valid source lines.
+- [x] Enforce draft-only editing and scope the update query to the authenticated creator/admin identity.
+- [x] Reuse the same validated payload for create and update; keep campaign activation distinct from delivery.
+- [x] Correct date validation to use a real YYYY-MM-DD digit pattern.
+- [x] Add regression coverage for owner-scoped draft editing and explicit delivery-disabled messaging.
+- [ ] Confirm CI, build, lint and preview on this commit.
+- [ ] Validate database RLS and admin/non-admin behavior in a real test environment.
+
+
+## 2026-11-08 — Creator video sponsorship validation
+- [x] Centralize creator sponsor draft validation before database writes.
+- [x] Enforce sponsor/disclosure lengths, creative selection, rights attestation, frequency range and category length.
+- [x] Validate date-only calendar inputs without incorrectly rejecting campaigns that start and end on the same calendar day.
+- [x] Reset placement to the default when the editor is cleared.
+- [x] Add regression contracts for validation and reset behavior.
+- [ ] Verify CI and Vercel preview for this commit.
+- [ ] Exercise Supabase RLS and database triggers with real creator/admin accounts before enabling delivery.
+
+
+## 2026-11-08 — Redesign wave foundation: palette and brand metadata
+- [x] Replace legacy pink/purple design-system root tokens with the approved black/white/grey/blue palette.
+- [x] Align global base tokens and light/dark theme surfaces with the Raye2 neutral-blue direction.
+- [x] Replace predecessor Nhen? metadata with Raye2 identity in application, page title and social metadata.
+- [x] Add regression contracts for palette and brand metadata.
+- [ ] Migrate every route from legacy selector names and page-specific color variables to shared Raye2 tokens.
+- [ ] Rebuild shared navigation, feed, watch, profile, Studio, community, messaging and admin surfaces.
+- [ ] Complete desktop/tablet/mobile and Arabic RTL visual acceptance.
+- [ ] Re-run CI and preview verification for this commit.
+
+
+## 2026-11-08 — Priority redesign batch: home discovery shell
+- [x] Add a consistent sticky Raye2 home header with brand mark treatment, search entry and profile/notification shortcuts.
+- [x] Add dedicated mobile bottom navigation so primary destinations remain reachable on small screens.
+- [x] Refine desktop three-column proportions, left navigation hierarchy and discovery sidebar.
+- [x] Refresh home hero, video cards, feed tabs, post surfaces and interaction states using the approved neutral-blue palette.
+- [x] Localize primary navigation and hero actions for Arabic; preserve RTL direction support.
+- [x] Respect reduced-motion preferences and safe-area padding on mobile.
+- [ ] Verify visual output at mobile/tablet/desktop breakpoints and Arabic RTL in preview.
+- [ ] Extend shared shell components to Watch, Explore, profile and Creator Studio before calling redesign wave complete.
+
+
+## 2026-11-08 — Priority 3: Watch library redesign and publication safety
+- [x] Replace legacy NHEN watch library shell with Raye2 header, navigation, discovery hero, responsive cards and discovery sidebar.
+- [x] Use the shared black/white/grey/blue visual direction.
+- [x] Hide native videos until processing status is ready.
+- [x] Validate native public storage object segments and require same-origin HTTPS URLs.
+- [x] Reuse safe generated thumbnails when available.
+- [x] Add regression tests for new shell and media publication gates.
+- [ ] Redesign individual watch detail page and player action surfaces.
+- [ ] Verify mobile, desktop, Arabic RTL and actual media playback in preview.
+
+
+## 2026-11-08 — Priority 3 continued: watch detail and discussion surfaces
+- [x] Rebuild individual watch detail shell with a player-first layout and Raye2 header.
+- [x] Restyle reaction picker, save/share controls, description, tags and comments.
+- [x] Add mobile layout and Arabic RTL layout direction.
+- [x] Preserve existing reaction, bookmark, comment moderation and view-recording behavior.
+- [ ] Verify actual video playback, keyboard interaction, visual breakpoints and CI on latest commit.
+
+
+## 2026-11-08 — Priority 4: creator/member profile redesign
+- [x] Align profile header, brand mark, search and navigation with the Raye2 shell.
+- [x] Improve cover, avatar overlap, creator identity hierarchy, stats and achievement cards.
+- [x] Add sticky profile content navigation for videos, Mini's and community posts.
+- [x] Add anchor targets, responsive mobile layout and RTL styling.
+- [x] Preserve existing follow, block, edit-profile and content interactions.
+- [ ] Verify profile ownership, public/private content policy, image loading and responsive behavior in preview.
+
+
+## 2026-11-09 — Priority 5: Creator Studio workflow dashboard
+- [x] Add a clear asset-to-watch-page-to-analytics workflow with role-gated shortcuts to existing tools.
+- [x] Add a recent-media list using the existing server-authorized creator media RPC result; no new data access path.
+- [x] Display publication and processing states without implying failed or pending assets are ready.
+- [x] Add responsive layouts, mobile status treatment and reduced-motion support.
+- [x] Add static regression contracts for role-aware links, server-scoped media data and responsive behavior.
+- [ ] Confirm CI and preview build for this exact commit.
+- [ ] Continue the broader Creator Studio redesign and runtime verification; this dashboard batch does not complete upload-to-publish acceptance.
+
+
+## 2026-11-09 — Priority 5 continued: Creator Control Room redesign
+- [x] Restyle the legacy creator dashboard under a strictly scoped Raye2 shell without changing shared/other route styles.
+- [x] Redesign workspace header, brand mark, role/session indicator and sign-out controls.
+- [x] Rebuild welcome hierarchy, draft indicator and three operational status panels.
+- [x] Redesign role-aware module navigation cards with clearer hierarchy and hover/focus affordance.
+- [x] Add compact mobile layout, RTL arrow placement and reduced-motion support.
+- [x] Add regression checks for scoped selectors, mobile, RTL and motion preference.
+- [ ] Verify CI and inspect all embedded creator modules in the latest preview.
+- [ ] Continue upload/editor workflow improvements and isolated Supabase runtime verification.
+
+
+## 2026-11-09 — Priority 5 continued: Creator Media Library redesign
+- [x] Restyle upload and external-video source forms inside the Raye2 creator shell.
+- [x] Improve storage quota/health notes and upload progress presentation.
+- [x] Rebuild processing counters, filters and media rows with thumbnail/player previews.
+- [x] Differentiate ready, waiting, processing and failed states; preserve retry/publish safeguards.
+- [x] Add tablet/mobile layouts, RTL alignment and reduced-motion support.
+- [x] Add scoped styling regression contracts tied to existing upload/retry behavior.
+- [ ] Confirm CI and preview for the current commit.
+- [ ] Exercise resumable upload, retry, thumbnail publication and delete rollback against isolated Supabase/Storage before beta.
+
+
+## 2026-11-09 — Raye2 Creator Studio brand and palette unification
+- [x] Replace the locked legacy Nhen? identity in Creator Settings with Raye2 / رايق.
+- [x] Replace the lime default accent with Raye2 blue and migrate the old #C8FF4D default to the new blue when loading saved drafts.
+- [x] Relabel the legacy stored violet theme as Raye2 Blue and restyle its preview without changing stored theme identifiers.
+- [x] Update logo studio user-facing name and generated logo alt text to Raye2 / رايق.
+- [x] Update creator login identity and route its back link to Raye2.
+- [x] Replace green administration palette with the shared dark/neutral/blue system.
+- [x] Add scoped shared-token overrides for Creator Settings, Video Studio, Logo Studio, analytics, achievement/reward cards and form controls.
+- [x] Normalize shared root blue token and public theme-custom defaults.
+- [ ] Verify the full CI suite and visual preview for the latest commit.
+- [ ] Continue route-by-route visual integration, including sponsorship, team, moderation and remaining public surfaces.
+
+
+## 2026-11-09 — Public brand and shared design-system correction
+- [x] Replace public-home visible NHEN/Nhen? wordmarks, discovery labels and creator fallback identity with Raye2 / رايق.
+- [x] Rename the visible short-video label from Nhenbits to Mini’s (Arabic: مقاطع قصيرة) while retaining internal keys/routes.
+- [x] Change the public site-config fallback siteName to Raye2.
+- [x] Remove later lime-accent overrides from the shared design system; normalize base, logo and player-loading accents to Raye2 blue.
+- [x] Replace old coral/purple and forest-green hero/community accents with the Raye2 dark-blue palette.
+- [x] Migrate existing saved Creator Settings drafts that still use #C8FF4D to the Raye2 blue default.
+- [x] Update legacy brand regression tests to assert Raye2 identity and blue accents.
+- [ ] Verify CI and inspect the deployed homepage, Creator Settings, logo studio and admin screens.
+
+
+## 2026-11-09 — Creator Studio / Video publishing batch
+- [x] Add at-a-glance counts for owned eligible video sources, ready sources, processing sources and private watch-page drafts.
+- [x] Add catalog search across video title, slug, description, category and tags.
+- [x] Add All / Published / Draft filters with accessible pressed-state controls.
+- [x] Highlight the currently selected video without changing publishing or ownership rules.
+- [x] Add responsive metrics and catalog-control styling.
+- [x] Add regression tests for readiness metrics, filtering behavior and responsive controls.
+- [ ] Run CI and inspect preview before marking the batch verified.
+
+
+## 2026-11-09 — Creator Studio / publication readiness batch
+- [x] Add a live publishing checklist for source selection, public visibility, processing completion, slug validity/uniqueness and description limits.
+- [x] Prevent enabling public publication while required checks fail.
+- [x] Check slug collisions before publishing and keep the guarded Supabase RPC as the authoritative write.
+- [x] Localize readiness and slug-conflict feedback in English and Arabic.
+- [x] Add responsive, accessible readiness presentation and regression tests.
+- [ ] Verify CI and preview before marking the workflow beta-ready.
+
+
+## 2026-11-09 — Creator Studio / upload operations UX batch
+- [x] Distinguish secure storage preparation, active transfer and metadata-save stages.
+- [x] Show transfer progress only during the actual transfer stage.
+- [x] Replace the misleading "Pause upload" label with an explicit pause-and-resume-later action.
+- [x] Detect user-triggered aborts and report a paused state without implying the upload failed.
+- [x] Preserve resumable session state so selecting the same file can continue the upload.
+- [x] Add English/Arabic stage labels and regression assertions.
+- [ ] Verify CI and preview before counting the upload UX batch as validated.
+
+
+## 2026-11-09 — Creator Studio multi-patch wave
+- [x] Repair four CI regressions: stale test variable names, obsolete pause-label assertion, and old publish-checkbox contract assertion.
+- [x] Add owner-scoped source preview resolution: temporary signed URLs for private media and public URLs only for published assets.
+- [x] Surface generated thumbnails in the video catalog and selected-source preview; YouTube sources use their public preview image.
+- [x] Add live watch URL preview, description length counter and tag-count feedback.
+- [x] Add responsive styling and regression coverage for the preview/editor additions.
+- [ ] Run full CI, TypeScript, lint and Next.js build before calling this wave verified.
+
+
+## 2026-11-09 — Creator control-room navigation wave
+- [x] Add direct dashboard navigation to the existing creator rewards and progression workspace.
+- [x] Correct role-aware active-area totals to include rewards and conditional owner/admin modules (creator/editor 8, admin 11, owner 12).
+- [x] Refresh workspace cards with consistent hierarchy, hover/focus states, mobile layouts and reduced-motion support.
+- [x] Extend dashboard resilience and accessibility regression tests.
+- [ ] Verify CI and preview for the latest commit.
+
+
+## 2026-11-09 — Creator workspace reliability follow-up
+- [x] Correct stale dashboard role-count assertion to match creator/admin/owner navigation counts.
+- [x] Distinguish analytics RPC failures from a genuinely empty creator account in highlights and video table.
+- [x] Preserve bilingual error states and avoid incorrectly instructing creators to publish when analytics service failed.
+- [x] Add regression coverage for error-versus-empty behavior.
+- [ ] Re-run full CI and verify the latest preview.
+
+ 
+## 2026-11-09 — Creator sponsorship contract validation fix
+- [x] Correct strict campaign-date validation to reject impossible calendar dates instead of relying on permissive date parsing.
+- [x] Allow a campaign that starts and ends on the same calendar day, consistent with the shared validator.
+- [x] Route campaign saves through the shared complete validator so frequency, category length, disclosure, permission confirmation and dates cannot bypass validation.
+- [x] Confirm the selected creative is still an eligible published asset before saving.
+- [x] Add regression contracts for same-day campaigns, impossible dates and shared validation.
+- [ ] Run CI and verify the development preview.
+
+ 
+## 2026-11-09 — Sponsorship validation CI contract alignment
+- [x] Update the legacy source-contract assertion to recognize the stricter real-calendar-date validator.
+- [x] Preserve rejection of impossible dates and acceptance of same-day campaign windows.
+- [ ] Re-run CI on the corrected development head.
+
+
+## 2026-11-09 — Creator Studio publishing controls
+- [x] Replace the ambiguous single save action with explicit private-draft and publish actions.
+- [x] Keep publish action disabled until all existing source, visibility, processing, slug and description checks pass.
+- [x] Prevent the private-draft action from accidentally unpublishing an already-published video in the default published state.
+- [x] Give published pages a distinct “save published changes” action label.
+- [x] Add regression coverage for draft/publish action separation.
+- [ ] Verify CI and preview for this development commit.
+
+
+## 2026-11-09 — Creator Studio publish-action CI recovery
+- [x] Resolve TypeScript mismatch introduced by explicit draft/publish buttons calling a zero-argument save function.
+- [x] Pass the requested publish intent into the save operation and use that exact intent for all validation, slug checks, RPC payload and success feedback.
+- [x] Update the published-state control after a successful save.
+- [x] Add responsive, keyboard-visible action styling for draft and publish controls.
+- [x] Add regression coverage for explicit publish intent and responsive actions.
+- [ ] Verify CI for the corrected branch head.
+
+
+## 2026-11-09 — Publishing intent test-contract alignment
+- [x] Update the owner-scoped publishing regression test to assert the explicit save intent passed to the guarded RPC.
+- [x] Add regression coverage for draft/publish intent persistence.
+- [ ] Re-run full CI, type-check, lint and build.
+
+
+## 2026-11-09 — Creator analytics failure-state accuracy
+- [x] Prevent unavailable analytics RPC results from appearing as genuine zero views, reactions, comments or interaction rate.
+- [x] Render neutral unavailable markers for all aggregate KPI values when the service request fails.
+- [x] Preserve the existing bilingual error messaging in highlights and video-performance table.
+- [x] Add regression coverage for unavailable-versus-zero KPI presentation.
+- [ ] Verify CI and preview.
+
+ 
+## 2026-11-09 — Creator Studio partial-load reliability
+- [x] Detect video-catalog query failures separately from an account with no configured videos.
+- [x] Detect playlist query failures separately from an account with no playlists.
+- [x] Show localized, accessible error states without hiding the rest of Creator Studio.
+- [x] Preserve successful media-library loading even if catalog or playlist reads fail.
+- [x] Add regression coverage for partial-load failure states.
+- [ ] Verify CI and development preview.
+
+
+## 2026-11-09 — Creator Studio visual-system integration batch
+- [x] Add a route-scoped Raye2 Creator Studio visual layer using the shared black/white/graphite/blue direction; avoid touching unrelated legacy public surfaces.
+- [x] Replace the isolated header action with a role-aware workspace navigation linking Home, Studio, Content Tools, Analytics and Moderation only where the current role permits access.
+- [x] Apply consistent hierarchy, surface contrast, metric cards, workflow actions, recent-media rows and workspace cards.
+- [x] Add responsive navigation for narrow screens, visible keyboard focus, RTL-aware navigation and reduced-motion handling.
+- [x] Keep existing server-side role checks and data queries unchanged; no publishing or permission behavior was weakened.
+- [ ] Verify full CI, TypeScript, lint, Next.js build and the exact development preview.
+- [ ] Extend the same shared visual language to Watch, Mini's, Explore, profiles, community and the remaining Creator Studio inner tools.
+
+Progress accounting: this is a focused Wave 1 design integration, not completion of the platform redesign. Overall Raye2 remains provisionally **38%** pending a fresh whole-repository audit; Wave 1 remains **31%** until the remaining primary routes are redesigned and verified. No production deployment or main-branch change.
+
+
+## 2026-11-09 — Watch + Mini's redesign batch
+- [x] Add a scoped Raye2 Watch-library design system with consistent black/graphite/white/blue surfaces, responsive layout, media cards, navigation, empty states and accessible focus behavior.
+- [x] Remove the visible legacy NHEN wordmark from the Watch-library header and connect it to the Raye2 home route.
+- [x] Preserve the existing published-media query, processing-ready gate, secure storage URL validation, YouTube privacy-enhanced embed handling and canonical video detail links.
+- [x] Add a scoped Raye2 Mini's presentation with responsive short-form cards and a Raye2 brand mark.
+- [x] Replace visible predecessor-brand copy on the Mini's surface and route its Watch navigation into the Raye2 Watch library.
+- [x] Preserve the existing official video query and community-shared Mini's client component; no fake upload, playback or engagement behavior added.
+- [ ] Run the latest full CI (tests, TypeScript, lint, production build) and verify Vercel preview is READY.
+- [ ] Browser-check Watch and Mini's at desktop/mobile widths and inspect Arabic RTL rendering.
+- [ ] Continue the remaining redesign surfaces: Series, Community, Messages, notifications and the full global shell.
+
+### Progress adjustment
+- Wave 1 (brand system and full product redesign): **34%** provisional, up from 31% after scoped Creator Studio, Watch and Mini's design integrations. This is not full redesign completion; profile, community, global shell, theme/brand assets and remaining routes still need work.
+- Wave 3 (video/feed/discovery): unchanged at **22%**; these changes are visual/navigation work and do not claim a complete native media journey.
+- Overall Raye2: **~39%** provisional. No production deployment or main-branch change. Latest batch is committed to development; verification is pending.
+
+
+## 2026-11-09 — Series + Notifications redesign batch
+- [x] Add a shared Raye2 collection visual system for the Series index and individual playlist detail route.
+- [x] Replace visible NHEN branding in the Series headers with Raye2 identity and route the brand home action to /raye2/home.
+- [x] Restyle collection cards, playlist metadata, video rows, responsive grids and keyboard focus.
+- [x] Apply Raye2 identity to the notifications page, preserving server-side authentication and notification queries.
+- [x] Add a responsive inbox visual system for unread/read states, live connection status, mark-read actions and mobile layout.
+- [x] Preserve existing notification realtime subscription and mark-read persistence.
+- [ ] Run TypeScript, lint, tests and production build; verify preview deployment and browser screenshots.
+- [ ] Continue Community and global shell redesign, then profile and messaging consistency.
+
+Progress estimates are provisional implementation estimates, not CI or acceptance-test results: Wave 1 **36%**; Wave 3 **22%**; Wave 5 (community/social) **16%**; overall Raye2 **~40%**. No production deployment and no changes to main.
+
+
+## 2026-11-09 — Community surface redesign batch
+- [x] Add a route-scoped Raye2 Community visual system for feed, composer, post cards, filters, reaction picker, discovery rail and mobile navigation.
+- [x] Replace visible legacy NHEN header identity with the Raye2 home mark and update primary community copy.
+- [x] Preserve the current authentication, post publishing, reaction, bookmark, comment, report, follow suggestion and realtime feed logic.
+- [x] Add responsive tablet/mobile layouts, accessible focus states and reduced-motion support.
+- [ ] Verify community reaction menu interaction with keyboard and touch, and check Arabic copy/RTL in browser.
+- [ ] Complete the remaining global shell, creator/member profile visual pass and messaging consistency.
+- [ ] Run full TypeScript, lint, tests and production build; confirm Vercel preview reaches READY.
+
+Progress estimates: Wave 1 redesign **38%**; Wave 5 social/community **19%**; Wave 3 videos/discovery **22%**; overall Raye2 **~41%**. These are implementation estimates only; deployment/CI verification is pending. All commits remain on development, main untouched.
+
+
+## 2026-11-09 — Community/profile connection polish
+- [x] Correct remaining visible NHEN legacy copy in the Community join, announcement, sharing and search labels.
+- [x] Route the Community home navigation back to the Raye2 home feed rather than the legacy root landing page.
+- [x] Connect member profile navigation to Series and Mini's discovery while retaining the existing videos, community posts, follows and profile editing.
+- [x] Replace the last visible legacy Nhenbits label with the Raye2 Mini's name.
+- [x] Polish member-profile focus, responsive navigation, hover states, RTL cover label and reduced-motion behavior.
+- [ ] Run full tests, type-check, lint and production build on the current HEAD.
+- [ ] Browser-verify community reaction picker with keyboard/touch, profile navigation and Arabic RTL.
+- [ ] Inspect the Vercel development preview for current HEAD; deployment status not yet confirmed.
+
+### Progress estimate refresh
+- Wave 1 — redesign: **39%** (route-scoped Community and profile connection/polish added; global shared shell and other legacy surfaces remain).
+- Wave 3 — video/feed/discovery: **23%** (cross-linking and discovery labels only; native end-to-end video delivery remains incomplete).
+- Wave 5 — social graph/community: **21%** (profile follow/block surfaces and community feed foundations exist; broader social features and acceptance remain).
+- Whole Raye2 platform: **~42% provisional**. This is a planning estimate, not a CI, runtime, database, preview, or owner-acceptance result. No production deployment and no main-branch change.
+
+
+## 2026-11-09 — Global brand and locale foundations
+- [x] Make the root document read the saved locale cookie on the server and render the initial HTML `lang` and `dir` correctly, avoiding the previous English/LTR-first document shell for Arabic users.
+- [x] Pass the server-resolved locale into the language switch so its initial state matches the rendered document.
+- [x] Unify global dark palette tokens with the current graphite / blue Raye2 direction.
+- [x] Add consistent keyboard focus, form-control typography, text-selection and reduced-motion foundations.
+- [x] Confirm the resulting development commit `4e7bc60` has a Vercel deployment in **READY** state: `creator-fan-hub-3z2siubya-modytupegaming-9846.vercel.app`.
+- [ ] Run repository test, lint, TypeScript and production build scripts against this exact HEAD; deployment READY alone does not prove all independent checks pass.
+- [ ] Browser-check locale switching and Arabic/LTR route exceptions to ensure document direction does not break explicitly LTR widgets.
+- [ ] Continue shared global navigation extraction and messaging UI integration; this batch did not implement messaging functionality.
+
+### Progress estimate refresh
+- Wave 1 — redesign and global brand foundations: **41%**.
+- Wave 3 — video/feed/discovery: **23%**.
+- Wave 5 — social/community/profile: **22%**.
+- Wave 6 — messaging: **85%** (existing messaging foundation; no new messaging behavior in this batch).
+- Overall Raye2: **~43% provisional**. Estimates are planning measures, not acceptance-test completion. Latest checked deployment is a development preview only. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator Control Room visual redesign
+- [x] Add a dedicated responsive Raye2 visual system to the authenticated Creator Workspace without replacing its server-side session/role checks or existing management modules.
+- [x] Improve workspace hierarchy: control-room welcome panel, status/permission cards, role chip, and grouped workspace navigation.
+- [x] Add clear routes back to the Raye2 platform and Studio, plus the existing sign-out action.
+- [x] Apply desktop, tablet and mobile layouts, Arabic direction support, keyboard focus and reduced-motion behavior.
+- [ ] Verify every dashboard anchor lands on its corresponding module; some existing modules are client components and must be checked in browser.
+- [ ] Run tests, type-check, lint and production build on this exact code head.
+- [ ] Confirm the latest Vercel preview is READY and smoke-test the authenticated dashboard with permitted test roles.
+- [ ] Continue Creator Studio upload workflow, creator analytics and progression UX after the visual shell is verified.
+
+Progress estimate refresh (against the entire master plan, conservative):
+- Wave 1 — brand system and redesign: **43%** (global palette/document locale foundations and additional route-scoped surfaces; shared component extraction, light theme, logo integration and many remaining routes are outstanding).
+- Wave 4 — Creator Studio and ecosystem: **36%** (workspace landing page visual pass only in this batch; upload/transcode/playback and end-to-end creator workflows remain incomplete).
+- Wave 5 — social/community: **22%**.
+- Wave 6 — messaging/chat: **85%** (existing implementation estimate; not modified in this batch).
+- Whole Raye2 platform: **~39% provisional**. The 43% figure from a previous short update was optimistic and should not replace the conservative 38% full-master-plan baseline without verified acceptance evidence. This is an implementation estimate, not a test/build/runtime metric. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator analytics visual redesign
+- [x] Add a dedicated Raye2 analytics page style without changing server-side authentication, analytics RPCs, aggregate-only data handling, or CSV export behavior.
+- [x] Establish a clearer performance overview, privacy-first hero, metric cards, ranked content highlights and responsive video performance rows.
+- [x] Improve narrow-screen behavior with a horizontally scrollable metrics table rather than compressing numeric columns.
+- [x] Preserve bilingual page content and RTL-aware layout.
+- [x] Existing automated source tests cover aggregate metric math, truthful unavailable states, CSV formula-injection protection and reward ledger boundaries.
+- [ ] Run the repository's full CI (tests, TypeScript, lint, Next.js production build) against this exact HEAD.
+- [ ] Browser-verify analytics with owner/editor/analyst roles, empty/error states, CSV download and Arabic layout.
+- [ ] Confirm newest Vercel development preview reaches READY; do not infer from an earlier deployment.
+
+Progress estimates (full ten-wave scope; conservative):
+- Wave 1 — redesign: **44%** (shared global foundations and additional Community, profile, Creator Workspace and Analytics surfaces; global shell extraction and many remaining surfaces outstanding).
+- Wave 4 — Creator ecosystem: **37%** (creator control room and analytics visual pass; upload, transcoding, playback and creator workflow acceptance remain).
+- Wave 9 — release readiness: **21%** (this visual patch does not count as runtime verification).
+- Whole Raye2 platform: **~39% provisional**, unchanged from the conservative full-plan baseline. Styling one dashboard does not justify increasing total completion. This is not a test/build/runtime metric. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Video Publishing Studio interface batch
+- [x] Add a dedicated Raye2 Video Publishing Studio visual system and wire it into the authenticated Creator workspace.
+- [x] Redesign the source/metadata editor, publication-readiness checklist, distinct draft and publish actions, live watch-page preview, searchable catalog, video thumbnails and playlist controls.
+- [x] Add responsive desktop/tablet/mobile layouts, bilingual RTL-aware direction, visible focus states and reduced-motion support.
+- [x] Add a regression test verifying the stylesheet is loaded and the core editor/readiness/preview/responsive styles remain present.
+- [x] Preserve the existing server-side role gate, asset processing requirements, publication validation, private-draft path and playlist actions; no storage/transcoding behavior was changed.
+- [ ] Execute the full Node test suite, TypeScript, ESLint and Next.js production build against this exact HEAD.
+- [ ] Browser-verify real creator/editor/analyst roles, failed/processing/ready sources, draft versus publish, playlist operations and Arabic layout.
+- [ ] Verify the newest Vercel development deployment reaches READY; no current preview claim until checked.
+- [ ] Next implementation should prioritize the media-library upload journey and actual media-worker/transcoding/playback gaps, not just further dashboard styling.
+
+### Progress estimate refresh
+- Wave 1 — redesign: **44%** (additional route-scoped Video Studio visual system; global shell extraction and redesign of remaining product surfaces remain).
+- Wave 4 — Creator Studio: **38%** (publishing studio UX now has a dedicated layout, while actual video transcoding/HLS/DASH, upload-to-watch end-to-end acceptance, exclusives and live delivery remain major gaps).
+- Wave 9 — release readiness: **21%** (new regression test authored; not executed in this environment).
+- Whole Raye2 platform: **~39% provisional**, unchanged. This is an implementation estimate against the entire master plan, not a CI/build/runtime metric. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Media intake UX and CI compatibility repair
+- [x] Fix the outdated Creator Studio regression assertion to recognize the route-scoped Analytics class while retaining the shared `raye2-creator-shell` contract.
+- [x] Add drag-and-drop media selection with the same MIME and 50 MB checks as the normal file picker.
+- [x] Add clipboard image paste support; ignore paste events inside inputs, textareas and editable content.
+- [x] Add accessible dropzone focus treatment, drag-active state, keyboard-operable file picker and reduced-motion styling.
+- [x] Add source-level regression coverage for the new upload intake and dropzone accessibility.
+- [ ] Re-run the complete CI suite; the prior HEAD failed one outdated assertion (387/388 tests passed), and this fix has not yet been executed.
+- [ ] Continue with actual storage/worker deployment checks and end-to-end upload-to-watch verification; drag/drop changes only the file selection UX.
+- [ ] Confirm latest Vercel preview state and inspect the current commit's deployment.
+
+Progress estimates (entire master plan):
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **39%** (media intake UX and publishing workspace improved; actual worker availability, storage configuration, transcoding, and end-to-end video playback remain unverified).
+- Wave 9 — release readiness: **22%** (one failing CI assertion has a targeted repair and regression coverage, pending rerun).
+- Whole Raye2 platform: **~39% provisional**, unchanged. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Isolated media worker container packaging
+- [x] Add a dedicated Docker image for the self-hosted media queue consumer, separate from the Next.js runtime.
+- [x] Pin a minimal worker-only dependency manifest for Supabase JS and Sharp; install FFmpeg/FFprobe in the image.
+- [x] Run the worker as the unprivileged Node user and add a process-liveness health check.
+- [x] Exclude Git metadata, local dependencies, Next build output and environment files from the Docker build context.
+- [x] Document private-host environment setup and container build/run commands; explicitly distinguish process health from actual queue health.
+- [x] Add source-level tests for the container/dependency/secret-safety contract.
+- [ ] Build the image and run it on an isolated development host; this repository does not prove Docker build success or deployment.
+- [ ] Apply and verify the database migrations on an isolated Supabase project; run image/audio/video processing acceptance tests.
+- [ ] Add real HLS/DASH renditions and end-to-end adaptive playback; this worker currently inspects media and creates thumbnails only.
+- [ ] Verify the latest CI and Vercel preview against the exact final commit.
+
+Progress estimates against the full ten-wave plan:
+- Wave 1 — redesign: **44%** (no new route redesign in this batch).
+- Wave 4 — Creator ecosystem: **40%** (worker now has a deployable container definition and isolated runtime manifest; no container build, deployment, database acceptance, transcoding or end-to-end playback has been verified).
+- Wave 9 — release readiness: **22%** (container contract test added but not yet executed).
+- Whole Raye2 platform: **~39% provisional**, unchanged. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Media worker build verification in CI
+- [x] Add a separate GitHub Actions job that builds `Dockerfile.raye2-media-worker` with Buildx on CI.
+- [x] Keep the image build verification-only: `push: false`, no registry login, no deployment and no production secrets.
+- [x] Cache Docker build layers with the GitHub Actions cache backend.
+- [x] Add a regression test protecting the CI job's Dockerfile path and no-push contract.
+- [ ] Observe the new workflow on this exact commit; the previous CI run had completed tests, type-check and lint successfully and was still building Next.js at last inspection.
+- [ ] Fix any Docker build issue surfaced by the new job; no image build success is claimed yet.
+- [ ] Add adaptive HLS renditions only after deciding and verifying a storage layout, playlist authorization model and cleanup lifecycle. Do not serve a generated playlist while its segments are inaccessible.
+- [ ] Verify the latest Vercel preview and browser workflows; no production deploy.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **41%** (worker image is now included in CI verification, but not built successfully yet; adaptive streaming, worker deployment and end-to-end playback remain).
+- Wave 9 — release readiness: **23%** (a dedicated image-build CI job and regression guard have been added; run still pending).
+- Whole Raye2 platform: **~39% provisional**, unchanged.
+- Branch: `development`; production and `main` remain untouched.
+
+
+## 2026-11-09 — Creator progression RPC hardening
+- [x] Normalize the Supabase progression RPC response whether it returns one object or a table-return array.
+- [x] Validate numeric level/point fields before rendering.
+- [x] Clamp progress to 0–100 and remaining points to a non-negative value.
+- [x] Clear stale progression state and show an actionable status if the response is absent or malformed.
+- [x] Add regression tests for table-return arrays, invalid summaries and progress bounds.
+- [ ] Run the full CI workflow against the resulting HEAD and confirm the media-worker Docker build.
+- [ ] Verify migration 20261107340000 and creator reward progression against a real isolated Supabase database.
+- [ ] Browser-check creator, editor and analyst roles; no live account acceptance is claimed.
+- [ ] Verify the current Vercel preview; no production deployment.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **42%** (creator progression response handling hardened; media processing deployment, actual adaptive renditions and end-to-end playback still remain).
+- Wave 9 — release readiness: **23%** (regression tests authored, exact-HEAD CI and database acceptance pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Public watch access and player regression coverage
+- [x] Add dedicated regression coverage for published-only watch catalog resolution.
+- [x] Protect the native-video ready-state gate and public-bucket requirement.
+- [x] Protect safe storage path segments and same-origin HTTPS checks for video and poster URLs.
+- [x] Protect the YouTube hostname allowlist, 11-character video ID validation and privacy-enhanced embed host.
+- [x] Protect native player controls, metadata preload, inline playback, retry and seek behavior.
+- [x] Protect accessible player loading/failure status announcements.
+- [ ] Run the newly added tests and full CI on the resulting exact HEAD.
+- [ ] Browser-verify signed-out and signed-in watch flows, expired/missing media, YouTube embeds, and Arabic locale.
+- [ ] Implement and verify actual adaptive HLS output before marking streaming complete. No HLS playlists or segments are generated by the current worker.
+- [ ] Verify worker deployment and storage/migration configuration in an isolated environment.
+
+Progress estimates (full master plan):
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **42%** (watch-route and player safeguards now have explicit regression coverage; actual adaptive processing and end-to-end creator publishing remain).
+- Wave 9 — release readiness: **24%** (additional public watch/player tests authored; execution pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator analytics data-contract hardening
+- [x] Normalize analytics RPC payloads whether returned as a row object or an array.
+- [x] Discard malformed rows without media IDs/titles before ranking or rendering.
+- [x] Normalize counts to finite, non-negative numbers to prevent malformed database values corrupting totals and rankings.
+- [x] Add regression coverage for both RPC response shapes and count normalization.
+- [ ] Run the new regression tests, type-check, lint and production build on exact HEAD.
+- [ ] Validate the analytics RPC against the deployed migration and realistic creator roles in an isolated Supabase project.
+- [ ] Browser-check analytics export, empty states, Arabic locale and permission denial.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator ecosystem: **43%** (analytics data normalization hardened; live RPC/database acceptance and the broader video pipeline remain unverified).
+- Wave 9 — release readiness: **24%** (new analytics regression tests authored; exact-HEAD CI still pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+## 2026-11-09 — Creator sponsorship workspace discoverability
+- [x] Add a dedicated Creator Studio quick-navigation card for sponsorship management, linked to the existing per-video sponsorship section.
+- [x] Add English and Arabic labels/descriptions for the sponsorship destination.
+- [x] Update role-aware active-area counts for the additional creator destination.
+- [x] Add dashboard regression coverage for the bilingual navigation and existing sponsorship component connection.
+- [ ] Execute the updated dashboard tests and full CI against exact HEAD.
+- [ ] Browser-verify owner/admin/editor/creator/analyst navigation and campaign workflows with real isolated accounts.
+- [ ] Sponsorship campaign configuration is not the same as an active ad-delivery system; automated delivery remains disabled.
+
+Progress estimates against the complete ten-wave plan:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **44%** (sponsorship controls are now easier to discover from the creator workspace; actual HLS/transcoding, live delivery and end-to-end acceptance remain).
+- Wave 9 — release readiness: **24%** (navigation regression coverage authored; exact-HEAD CI pending).
+- Whole Raye2 platform: **~39% provisional**. No production deployment and no changes to `main`.
+
+
+- Final batch HEAD: `f50932c8c58ad3e31cc4e6df12543155af82de91`.
+- Note: the dashboard-navigation CI runs were automatically cancelled as later commits superseded them. The last completed successful full run is `43e920b2`; it predates the sponsorship-navigation patch. Re-run verification on a quiet exact HEAD before claiming the new patch passed.
+
+
+## 2026-11-09 — CI regression repair
+- [x] Investigated the failed exact-HEAD CI run: 402/403 tests passed; the only failure was a stale role-aware Creator dashboard count assertion after adding the sponsorship destination.
+- [x] Updated both role-count expectations to the current nine creator destinations.
+- [x] Kept the new bilingual sponsorship navigation regression test in place.
+- [x] Confirmed the isolated media-worker Docker image build job passed on the failed workflow run.
+- [ ] Re-run full CI against the corrected exact HEAD; TypeScript, lint and Next.js build did not run in the failed attempt because the test gate stopped first.
+- [ ] Verify browser flows and isolated Supabase role behavior.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **44%**.
+- Wave 9 — release readiness: **25%** (CI root cause isolated and stale regression expectation repaired; rerun pending).
+- Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
+
+
+## 2026-11-09 — Creator sponsorship pause authorization hardening
+- [x] Fetch the signed-in user before pausing an active creator sponsorship.
+- [x] Scope the update by campaign ID, authenticated creator ID, selected video ID and current active status.
+- [x] Require a returned updated row before reporting success; stale or unauthorized records now produce a clear error.
+- [x] Add regression coverage for the owner/video/status-scoped pause update.
+- [ ] Re-run full CI on the resulting exact HEAD. The preceding CI run is still running on an earlier commit; it is not verification of this change.
+- [ ] Validate RLS and campaign state transitions against an isolated Supabase database.
+- [ ] Browser-test active-to-paused flow with two separate creator accounts.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **45%** (creator sponsor pause now has explicit owner/video/state scoping; full campaign lifecycle and real playback delivery remain).
+- Wave 9 — release readiness: **25%** (additional sponsorship authorization regression coverage authored; exact-HEAD CI pending).
+- Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
+
+
+## 2026-11-09 — Creator analytics CSV export hardening
+- [x] Normalize exported view, reaction and comment counts to finite non-negative values, including totals, ranking and per-video rows.
+- [x] Guard interaction-rate calculations against malformed and zero view counts.
+- [x] Validate publication dates before ISO formatting; invalid/missing dates export as Draft instead of breaking the download.
+- [x] Add regression coverage for malformed dates, negative counts and non-finite metrics.
+- [ ] Run the full regression suite, TypeScript, lint, production build and media-worker Docker build on the exact final HEAD.
+- [ ] Browser-test English/Arabic CSV downloads in Chrome and verify exported files open correctly in spreadsheet software.
+
+Progress estimates:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%** (analytics export now handles malformed metrics/dates safely; sponsorship lifecycle, end-to-end media processing and dashboard visual redesign remain).
+- Wave 9 — release readiness: **25%** (new export edge-case tests authored; exact-HEAD CI pending).
+- Whole Raye2 platform: **~39% provisional**. Production and `main` remain untouched.
+
+
+## 2026-11-09 — Cross-session continuation contract and verified CI handoff
+- [x] Added a mandatory session-start protocol to the full platform plan: re-read the master plan/progress log, verify the live branch HEAD and latest CI, inspect existing code/tests, then resume the highest-priority incomplete deliverable.
+- [x] Defined “go on/continue” as authorization to resume implementation without asking the user to repeat the plan.
+- [x] Set the next execution priority: end-to-end Creator Studio sponsor lifecycle + reward/achievement integration + role/authorization regression tests; then actual adaptive HLS/video pipeline; then major connected-platform redesign and remaining social/release scope.
+- [x] Added acceptance-based percentage rules, larger cohesive batch expectations, exact-HEAD verification requirements and explicit no-fabricated-progress rules.
+- [x] Preserved the development-only workflow: no merge to `main`, no production deployment, and no production data changes without explicit authorization.
+- [x] Verified current branch HEAD before the documentation update: `1adce29c61f3aa065aa68a68ec76a565f2e7f08d`.
+- [x] Verified GitHub Actions “Free CI” for that exact pre-documentation HEAD completed successfully (run `42680697742`, conclusion `success`).
+- [ ] Re-verify CI for the new documentation commit's exact HEAD; do not transfer the prior success claim to a different SHA.
+- [ ] Continue with the Creator Studio lifecycle/rewards batch; no implementation completion is claimed by this planning update alone.
+
+Progress remains acceptance-based and unchanged by this documentation-only batch:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff:
+- Branch: `development` only.
+- Production / `main`: untouched.
+- Next batch: inspect current sponsorship schema, UI and RPCs; complete creator campaign lifecycle and reward/achievement visibility with authorization, tests and docs. Keep automated ad delivery and actual payouts disabled/unclaimed until their external/legal/provider requirements are satisfied.
+
+
+## 2026-11-09 — Creator sponsorship lifecycle database enforcement
+- [x] Added a database trigger so authenticated creators can create campaigns only as drafts.
+- [x] Permit creator edits only while a campaign remains a draft; creators cannot activate campaigns through direct database updates.
+- [x] Permit only the narrowly scoped active-to-paused transition, without allowing campaign content/configuration changes in the same update.
+- [x] Make campaign owner, target video and creation identity immutable for creator-authenticated updates.
+- [x] Restrict creator deletion to unused drafts; preserve paused/completed campaign history.
+- [x] Added a sponsorship contract regression test covering the database lifecycle guard and protected transitions.
+- [ ] Execute the sponsorship test and full CI on the final exact HEAD; the run triggered by the latest test commit is queued.
+- [ ] Apply the new migration in an isolated Supabase database and test valid/invalid transitions with separate creator accounts; repository tests are not a substitute for live PostgreSQL/RLS acceptance.
+- [ ] Browser-check draft creation/edit/delete and pause behavior in the development preview.
+- [ ] Do not enable campaign activation, automated ad delivery, impression claims or payouts; those remain blocked pending verified delivery, measurement and provider/legal readiness.
+
+Progress (acceptance-based; unchanged until exact-HEAD tests and isolated DB checks pass):
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff:
+- Branch: `development`; production and `main` untouched.
+- Latest implementation batch: database-enforced creator sponsor lifecycle + regression contract.
+- Next: run exact-HEAD CI, then continue the Creator Studio rewards/achievement integration and campaign lifecycle acceptance; next major media blocker remains actual adaptive HLS generation and end-to-end playback.
+
+
+## 2026-11-09 — Creator rewards data hardening: CI regression repair
+- [x] Reviewed the completed CI failure for HEAD `51981f458884ac304b5dced9a509892e238591b3`: 407/408 tests passed; the new malformed reward-history test failed because the UI normalization code had not actually been applied in the preceding patch.
+- [x] Applied the missing normalization in `rewards-center.tsx`: reject malformed summary data, filter invalid reward ledger entries and enabled rule rows, clamp malformed point values, and display a safe fallback for invalid dates.
+- [x] Kept the test assertions tied to the actual intended runtime behavior rather than weakening/removing the regression test.
+- [ ] Verify full CI on the final exact HEAD, including type-check, lint, Next.js build and media worker Docker build.
+- [ ] Apply sponsorship lifecycle migration in an isolated Supabase database and validate creator/admin role transitions.
+- [ ] Add runtime-level tests or pure-function tests for reward normalization rather than relying only on source contract checks.
+- [ ] Continue Creator Studio lifecycle acceptance, then actual adaptive HLS transcoding and playback.
+
+Progress remains acceptance-based and unchanged until exact-HEAD CI and runtime/database acceptance:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff: `development` only; production and `main` untouched. Current next step is to verify the reward-normalization fix, then continue the larger Creator Studio batch.
+
+
+## 2026-11-09 — Creator rewards normalization extracted for focused verification
+- [x] Corrected the previous patch so normalized summary/history/rule data is applied to the actual Creator Rewards loading flow.
+- [x] Extracted dedicated normalization helpers for reward summary, reward ledger history and enabled reward rules, making the behavior independently reviewable and easier to test.
+- [x] Reject unsupported count input types rather than coercing arbitrary values; clamp negative/fractional/non-finite numeric counts to safe nonnegative integers.
+- [x] Keep malformed reward entries out of the history and invalid reward-rule entries out of the catalogue.
+- [x] Added regression coverage for the extracted normalization helpers while retaining the more specific UI contract checks.
+- [x] Verified the previous media-worker Docker image build passed on commit `fd7c395946c3e711f86abada7e766c81e49c457b`.
+- [ ] Verify the complete test/typecheck/lint/Next.js build suite on the current exact HEAD. The previous verify job was cancelled during dependency installation; a rerun was requested, but subsequent commits may supersede that run.
+- [ ] Verify the new sponsor lifecycle trigger against an isolated PostgreSQL/Supabase database and two distinct creator identities.
+- [ ] Browser-check Creator Studio sponsor draft CRUD and reward history with real authorized accounts.
+- [ ] Continue the media worker from metadata/thumbnail processing to actual video rendition generation and HLS playlist/segment publication. Current worker still does not create adaptive streaming outputs; don't claim native streaming is complete.
+
+Progress is still acceptance-based and unchanged because the latest work is code-level normalization and test coverage, not full Creator Studio acceptance:
+- Wave 1 — redesign: **44%**.
+- Wave 4 — Creator Studio: **46%**.
+- Wave 9 — release readiness: **25%**.
+- Whole Raye2 platform: **~39% provisional**.
+
+Session handoff:
+- Branch: `development`; `main` and production untouched.
+- Latest batch: reward normalization applied and extracted; sponsor lifecycle DB guard remains committed.
+- Next batch: verify exact-HEAD CI, then continue complete Creator Studio sponsor/reward workflow acceptance; afterwards implement adaptive video processing/HLS with an end-to-end playback test.
+
+
+## 2026-11-09 — Progress tracking corrected: implementation vs. test readiness
+The previous single percentage mixed two different questions and made implementation look frozen whenever manual acceptance was pending. From this handoff onward, report two separate percentages.
+
+### Current baseline (scope-based estimate)
+- **Overall implementation: 42%** — planned functionality already present in code and integrated, including account/creator foundations, initial feed/watch/media upload and processing queue, analytics, sponsorship controls, rewards foundations, messaging/voice foundations and governance. This is a build-progress estimate, not a claim that every path is production-ready.
+- **Test/release readiness: 39%** — automated and environment-dependent acceptance remains incomplete; isolated database execution, real-account checks, browser acceptance and full video playback verification remain outstanding.
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 48%.**
+- **Native video pipeline implementation: 35%** (upload, processing queue, metadata and thumbnails exist; adaptive transcoding/HLS output is still missing).
+- **Release readiness: 25%.**
+
+### User's test-stage rule
+- Target the user's first major manual testing stage at approximately **50% overall implementation**.
+- Do not ask the user to test each development batch before that point. Continue implementation, run automated CI, fix obvious regressions, and keep manual/browser/database acceptance items recorded for the later testing stage.
+- Implementation percentage may rise as code is built even when test/release readiness remains unchanged. Never conflate the two.
+
+### Verified current branch evidence before this handoff update
+- Branch: `development`.
+- Pre-documentation HEAD: `8cb4faac2ddfa16c693e93395764b974e739edd6`.
+- GitHub Actions run `42685124041` for that exact pre-documentation HEAD: **success**.
+- Latest media-worker image build evidence remains older; do not transfer that result to a newer SHA.
+- No manual database or browser acceptance is claimed.
+- `main` and production remain untouched.
+
+### Next implementation batch
+Continue implementation rather than request manual testing: complete the Creator Studio sponsor/reward workflows and connect creator achievement status; then implement the actual adaptive video pipeline (bounded HLS renditions, owner-bound storage reservations, manifest publication and native player integration). Keep HLS marked incomplete until CI and the later manual test stage verify it.
+
+
+## 2026-11-09 — Creator rewards now connects verified member achievements
+- [x] Connected the Creator Rewards center to the real `member_achievements` records for the authenticated creator account.
+- [x] Loaded achievement definitions from the existing catalog and displayed only earned records, with title, description, icon and earned date.
+- [x] Added normalization that excludes malformed and unknown achievement records; no milestone is fabricated from reward rules or aggregate counts.
+- [x] Extracted progression normalization and bounded progress values to the valid 0–100 range.
+- [x] Added regression contracts for creator-scoped achievement reads, catalog mapping, malformed record filtering and progression bounds.
+- [x] Updated the old reward test contract to match the actual authenticated creator ID flow.
+- [ ] Await CI on the resulting implementation HEAD; source-level tests are authored but must execute.
+- [ ] Manual database/browser acceptance is intentionally deferred until the overall implementation reaches approximately 50%, per user instruction.
+- [ ] Next implementation batch: continue Creator Studio end-to-end workflows (sponsor campaign review/status visibility and achievement/reward admin lifecycle), then proceed to real adaptive video processing and player support.
+
+### Updated dual progress
+- **Overall implementation: 43%** (up from 42%; verified achievement records are now connected to the creator-facing rewards workspace).
+- **Test/release readiness: 39%** (unchanged; automated CI is running and database/browser acceptance is deferred).
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 49%** (up from 48%; creator-facing earned-achievement integration delivered).
+- **Native video pipeline implementation: 35%** (source processing, queue and thumbnails exist; adaptive renditions/HLS are not implemented).
+- **Release readiness: 25%.**
+
+Session handoff:
+- Branch: `development`; `main` and production untouched.
+- Current implementation batch: creator rewards now displays actual earned achievements and normalizes progression.
+- Pre-batch exact HEAD: `720359e555808832a4fa4787a5745015e03b79a1`; the preceding documentation change triggered CI run `42685821537` which was queued at the time of handoff. Verify current exact HEAD and CI before the next change.
+- Next: complete the remaining Creator Studio campaign/reward admin lifecycle, then tackle actual adaptive video output and watch-player integration. Do not pause for user manual testing before 50% implementation.
+
+
+## 2026-11-09 — Platform sponsor lifecycle and Creator Studio admin controls
+- [x] Fixed platform campaign draft editing so the selected published creative is restored into the form; previous behavior could leave the wrong creative selected on save.
+- [x] Added owner-scoped deletion for unused platform sponsor drafts, with confirmation and a no-delete path for non-draft campaigns.
+- [x] Changed status actions to require the authenticated admin, campaign creator, expected previous state and a returned updated row. This avoids silently treating a stale campaign as successfully updated.
+- [x] Added explicit UI actions for draft edit/delete, draft or paused configuration activation, and active campaign pause; completed campaigns are not offered reactivation.
+- [x] Added a database trigger enforcing platform sponsor campaign lifecycle rules: campaigns start as owner-bound drafts; only the creating admin can edit/delete their own draft; ownership is immutable; active/paused configuration is immutable; allowed transitions are explicitly constrained.
+- [x] Added regression tests for platform sponsor ownership, lifecycle transitions, selected creative restoration, safe deletion and scoped state updates.
+- [ ] Run and pass the full CI workflow on the final exact HEAD. Do not count tests as passed merely because assertions were authored.
+- [ ] Apply the new platform lifecycle migration in an isolated Supabase/PostgreSQL database and verify admin/creator role separation. Manual database/browser checks remain deferred until the approximately 50% implementation testing gate.
+- [ ] Automatic ad delivery and impression measurement remain disabled. Campaign activation here is configuration state only; do not present this as live ad serving or revenue.
+- [ ] Next implementation: finish admin-side reward rule/grant/revoke controls and creator reward status visibility; then begin actual adaptive transcoding/HLS outputs and native player integration.
+
+### Updated dual progress (scope-based)
+- **Overall implementation: 44%** (up from 43%; platform campaign edit/delete/state workflows now have matching UI and database lifecycle enforcement).
+- **Test/release readiness: 39%** (unchanged; CI on this batch and isolated database/browser checks remain pending).
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 50%** (up from 49%; platform sponsor lifecycle controls and database enforcement implemented).
+- **Native video pipeline implementation: 35%** (worker still does not generate adaptive renditions/HLS playlists/segments).
+- **Release readiness: 25%.**
+- **Active batch implementation: 85%** (code, database guard and regression contracts authored; exact-HEAD CI and isolated database execution remain).
+
+Session handoff:
+- Branch: `development`; `main` and production untouched.
+- Code commits in this batch: `cbd8b99515ea8ca72c093cb8bdbdbaf7db5c53b8`, `d69ae6507e02c95eb8e89689e1740ca25134946e`, `33e0848b95aa87180ad4977f51599286363fabd5`.
+- Previous verified full CI: run `42686965615` on exact HEAD `12ba4dd52724e279fbfc3f5a47d0a1385eb4cf96` passed tests, type-check, lint, Next.js build and media-worker Docker build.
+- Current batch CI: not yet verified. The previous run is not evidence for these new commits.
+- No database migration execution or browser acceptance is claimed.
+- Next: add admin-side reward rule/grant/revoke management with role-scoped RPCs and tests, then implement bounded HLS transcoding and playback.
+
+
+## 2026-11-09 — Handoff correction: platform sponsor creative binding and type safety
+- [x] Exact-HEAD CI on the first platform lifecycle batch completed tests successfully but TypeScript caught a missing `sponsor_asset_media_id` field in the Campaign type.
+- [x] Corrected the Campaign type and included `sponsor_asset_media_id` in the platform campaign query, so draft editing restores the actual selected creative.
+- [x] Updated the full platform plan with the completed sponsor lifecycle work and the next implementation sequence for future sessions.
+- [ ] Verify the full CI workflow on the final documentation HEAD. The earlier CI failure is not treated as a pass; the code-level TypeScript defect is fixed, but the rerun must confirm it.
+- [ ] Apply `20261109400000_raye2_platform_sponsor_lifecycle_guard.sql` in an isolated database and test owner/admin lifecycle permissions. This remains a later acceptance task, not a user testing request now.
+- [ ] Keep automatic sponsor delivery disabled until impression tracking, policy checks, consent, frequency enforcement and revenue accounting are implemented and verified.
+
+### Current dual progress
+- **Overall implementation: 44%.**
+- **Test/release readiness: 39%.**
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 35%.**
+- **Release readiness: 25%.**
+- **Active platform sponsor lifecycle batch: 90% implementation** (UI, DB lifecycle guard and regression contracts are committed; exact-HEAD CI rerun and isolated DB execution remain).
+
+### Exact handoff
+- Branch: `development`; `main` and production remain untouched.
+- Latest code fix: `59cf8cc51d50f8f2fd8e04c03457c0c32f9021cf`.
+- Full plan handoff update: `eb8a597c6d48bf12e12dc9a255ce9ece9b0479e2`.
+- Current next step: complete exact-HEAD CI, then proceed to native adaptive video processing/HLS and watch-player integration. Existing reward admin controls are already present; only extend them where the acceptance gaps show a real need.
+- User's first manual testing stage remains targeted at approximately **50% overall implementation**. Do not ask for manual tests before then.
+
+
+## 2026-11-09 — Adaptive HLS generation and watch integration (implementation batch)
+- [x] Added bounded adaptive VOD transcoding to the self-hosted media worker: 360p and 720p H.264 renditions, six-second HLS segments, AAC audio where present, and video-only handling where audio is absent.
+- [x] Added a one-hour adaptive-transcode ceiling, per-object output size limits, two-thread encoding, safe output path validation, quota reservations, and partial-package rollback.
+- [x] Added cleanup for incomplete HLS packages when the worker cannot complete its lease-owned processing job.
+- [x] Persisted the managed HLS master path within the worker processing metadata.
+- [x] Added safe watch-page resolution for published HLS playlists, constrained to the expected public Supabase origin and safe object path segments.
+- [x] Updated the native player to prefer HLS on browsers that support the native HLS source type and retain the original MP4 as a fallback.
+- [x] Added creator-library publication handling to copy the full HLS package with the source video and poster between private/public storage, reserve capacity for each copied object, update the managed master path, and clean up the old package after database publication succeeds.
+- [x] Added a migration that preserves the trusted ready state when the only processing metadata change is the HLS master path moving between visibility buckets.
+- [x] Added regression contracts for HLS generation limits, audio handling, cleanup, publication path binding, watch-page source validation and native player fallback.
+- [ ] Full exact-HEAD CI must pass after the latest code and documentation commits. Earlier runs on superseded SHAs are not proof for this final HEAD.
+- [ ] Run the worker against a tiny generated sample video and validate actual playlists, segment count, duration and audio; source-level contract tests do not prove ffmpeg output correctness.
+- [ ] Apply the new processing-preservation migration and platform sponsor migration in an isolated database; verify storage RLS and reservation-trigger behavior.
+- [ ] Complete real browser playback acceptance. Native HLS is selected only where the browser supports the HLS MIME type; other browsers currently retain MP4 fallback, not hls.js adaptive playback.
+- [ ] The worker's adaptive rendition outputs are private until the creator publishes the media. Do not treat code generation as proof of deployed worker operation or a published stream.
+
+### Updated dual progress (scope-based)
+- **Overall implementation: 46%** (up from 44%; adaptive transcoding code, visibility-aware package handling and watch-player integration are now implemented).
+- **Test/release readiness: 39%** (unchanged; CI, isolated database execution, actual ffmpeg sample validation and browser playback remain).
+- **Wave 1 — visual redesign implementation: 44%.**
+- **Wave 4 — Creator Studio implementation: 50%.**
+- **Native video pipeline implementation: 45%** (up from 35%; adaptive output and player wiring are implemented, but runtime acceptance remains).
+- **Release readiness: 25%.**
+- **Active adaptive video batch: 80%** (implementation and regression contracts authored; exact-HEAD CI and runtime acceptance pending).
+
+### Exact handoff
+- Branch: `development`; `main` and production remain untouched.
+- Main implementation commits: `dedf472a26d6bbf059619c2ac6c73298515ee31f`, `956218d25e15e99f29b329732c6c2a99c585ca6b`, `71197998d4cc57a0d3c0b6aaa59924b4347b916e`, `ea81ef74bd86e4320d3aeee70425d674632acbe0`, `ccda6f72fdc2df83db7ef37cede2b53f6525969f`, `72e20dd2cec24b03d8649214094a5d713310ecf7`, `25b443c60f5b9fef92db2a45d1a4eef026df3a06`, `3fedf6798c769fe1fa973a9428ebaf24e377238b`.
+- Regression tests added in `tests/raye2-self-hosted-media-worker.test.mjs`, `tests/raye2-watch-video-access.test.mjs`, and `tests/raye2-creator-media-library-redesign.test.mjs`.
+- Previous successful CI run on the immediately prior batch was `42688359519` for SHA `7c089f2367d881772d3d6cceb74927b75d29846b`; it predates adaptive HLS and is not evidence for this batch.
+- Latest known CI run before this final doc update was `42689968240` for SHA `d450db66c8fe26881f61a8de4e7384146f4dd7e6`, still in progress. Verify the newest run against the exact branch HEAD before reporting results.
+- Next batch: finish CI and static corrections; add actual ffmpeg sample generation/inspection and integration validation; harden storage rollback; then verify browser playback. Continue with redesign after the video pipeline acceptance path is stable.
+- User's first major manual testing stage remains approximately **50% overall implementation**. Do not request manual tests before that threshold.
+
+
+## 2026-11-09 — Adaptive HLS verification correction and exact-HEAD CI result
+- [x] Fixed a test contract mismatch for the actual FFmpeg CLI argument representation.
+- [x] Corrected the watch page's HLS source insertion so the TypeScript source contains real line breaks (not escaped literal characters).
+- [x] Fixed the HLS output path regular expression so the worker file parses correctly under ESLint.
+- [x] Fixed the six-second segment behavior by forcing keyframes at six-second intervals; a generated 12-second source produced two six-second segments per rendition and AAC audio in the sample segment.
+- [x] Bound public HLS lookup to the exact owner folder and media UUID.
+- [x] Added a database trigger that validates HLS pointer format, owner, media identity, publication bucket and existence of the master playlist object.
+- [x] Exact-HEAD GitHub Actions run `42691479759` passed all steps on code SHA `01d1d45a5ce08fe8c4cbb36a226a4b7bf965798f`: automated tests, TypeScript, ESLint, Next.js build and isolated media-worker Docker image build.
+- [x] Local FFmpeg sample command validation completed with 360p/720p outputs, six-second segments and AAC audio.
+- [ ] Apply the new migrations in an isolated Supabase database and test actual Storage reservation triggers and RLS.
+- [ ] Run the worker with real Supabase credentials and a test media upload; verify metadata, package objects and cleanup behavior.
+- [ ] Verify HLS playback in a native-HLS browser and MP4 fallback in a non-native-HLS browser. This is not yet browser-accepted streaming.
+- [ ] Chrome/Firefox adaptive playback via hls.js is still a future improvement; these currently use the MP4 fallback when native HLS is unavailable.
+
+### Current progress
+- **Overall implementation: 46%.**
+- **Test/release readiness: 41%** (automated CI and sample FFmpeg output verified; database and browser acceptance remain).
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 45%.**
+- **Release readiness: 25%.**
+- **Adaptive video batch: 90% implementation** (source code, authorization/ownership guards, storage moves, regression contracts and CI are in place; isolated database and browser/runtime acceptance remain).
+
+### Exact next-session handoff
+- Branch: `development`; production deployment is not authorized.
+- Last fully verified code SHA: `01d1d45a5ce08fe8c4cbb36a226a4b7bf965798f`.
+- Successful CI: `42691479759` (all five verification/build stages successful).
+- Follow-up documentation commits: update this progress log and the master plan without changing application code; verify the resulting HEAD/CI status on the next session.
+- Next engineering batch: create a reproducible FFmpeg integration test script if CI environment supports it; then add hls.js for adaptive playback in browsers without native HLS, while retaining MP4 fallback; then run isolated database/worker/browser acceptance.
+- Manual user testing remains deferred until approximately **50% overall implementation**. Continue implementation without asking the user to test early.
+
+
+## 2026-11-09 — Cross-browser adaptive playback with hls.js
+- [x] Added the Apache-2.0 `hls.js` playback engine (version `1.7.4`) as a free application dependency.
+- [x] Added runtime selection: native HLS on supported browser runtimes, hls.js over Media Source Extensions where appropriate, and original-file fallback if the adaptive engine is unsupported or encounters a fatal playback error.
+- [x] Added cleanup of the hls.js instance when the player unmounts or the source changes.
+- [x] Preserved the existing watch player controls, loading/error state, retry behavior and timestamp seeking.
+- [x] Added regression tests for hls.js dependency, MSE support, native HLS selection, adaptive attachment and fallback behavior.
+- [x] Exact-HEAD GitHub Actions run `42691972242` passed on code SHA `7f5a48eff743c08273e841441e6521418e29423a`: automated tests, TypeScript, ESLint, Next.js production build and media-worker Docker build.
+- [ ] Verify adaptive rendition switching, seeking and fatal-error recovery in actual browsers; CI does not emulate browser playback.
+- [ ] Apply the HLS pointer and processing-preservation migrations in an isolated Supabase database and verify RLS/storage object visibility.
+- [ ] Run the worker against a real test upload using the configured server-only secret; verify the uploaded HLS package is reachable only after publication.
+
+### Current progress
+- **Overall implementation: 47%** (up from 46%; cross-browser adaptive playback engine and fallback logic are now integrated).
+- **Test/release readiness: 42%** (up from 41%; exact-HEAD CI passed after hls.js integration; database and browser acceptance remain).
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 49%** (up from 45%; HLS generation, owner/visibility binding, package movement and cross-browser player integration are implemented).
+- **Release readiness: 25%.**
+- **Active adaptive-video batch: 95% implementation** (code, tests, sample encoding and CI are complete; isolated database, deployed worker and browser playback acceptance remain).
+
+### Exact next-session handoff
+- Branch: `development`; production deployment is not authorized.
+- Last fully verified application-code SHA: `7f5a48eff743c08273e841441e6521418e29423a`.
+- Successful CI: `42691972242` (tests, type-check, lint, Next.js build and media-worker Docker image all passed).
+- Follow-up documentation commit updating the full plan: `7e0115c586063abbf27ce99da817b6a9508f5bcf`.
+- Next engineering batch: harden HLS package retention/orphan cleanup, add a repeatable worker-level FFmpeg integration test, and add a browser acceptance checklist/automated player test. Then proceed to the remaining major redesign and connected home/feed/watch/profile work.
+- User's first manual testing stage remains targeted at approximately **50% overall implementation**. Current overall implementation is 47%; do not ask the user to test early.
+
+
+## 2026-11-09 — Real adaptive HLS media-output smoke validation
+- [x] Added `scripts/raye2-hls-smoke-check.mjs`, a reproducible FFmpeg/FFprobe test using a generated 12-second 1280x720 source with AAC audio.
+- [x] Smoke test transcodes both 360p and 720p renditions using the worker's production encoding arguments, checks VOD playlist completion, verifies two six-second segments per rendition, probes every segment for video and audio streams, and enforces maximum rendition dimensions.
+- [x] Added the smoke check to the isolated media-worker Docker image build, so it runs in an environment that contains FFmpeg/FFprobe.
+- [x] Kept the smoke script outside Node's automatic test discovery because the general verification runner intentionally does not install FFmpeg.
+- [x] Exact-HEAD CI run `42694550539` passed: automated repository tests, TypeScript, ESLint, Next.js production build, and media-worker Docker image build including the real FFmpeg smoke check.
+- [ ] Apply `20261109460000_raye2_preserve_ready_hls_on_visibility_move.sql` and `20261109470000_raye2_validate_managed_hls_pointer.sql` in an isolated Supabase database; test storage triggers, quota reservation, RLS and visibility moves.
+- [ ] Run the deployed worker with a test upload and verify source, thumbnail, HLS objects, lease completion, retries and cleanup.
+- [ ] Verify actual browser playback: adaptive rendition switching, seeking, fatal-error fallback and publication access in real browsers. CI's FFmpeg smoke test validates media output, not the browser player or deployed storage.
+- [ ] Keep user/friend manual testing deferred until approximately 50% overall implementation progress.
+
+### Updated progress
+- **Overall implementation: 48%** (up from 47%; real media-output validation is now automated in the worker image build and the cross-browser HLS path is integrated).
+- **Test/release readiness: 43%** (up from 42%; exact-HEAD CI and generated FFmpeg playlist/segment checks pass; isolated database, deployed-worker and real-browser acceptance remain).
+- **Wave 1 — visual redesign: 44%.**
+- **Wave 4 — Creator Studio: 50%.**
+- **Native video pipeline: 55%** (HLS generation, owner/visibility binding, package movement, hls.js/native/MP4 fallback and real FFmpeg output smoke test are implemented).
+- **Release readiness: 25%.**
+- **Adaptive video implementation batch: 100% code + CI implementation**; **environment acceptance remains open** (database, deployed worker, real-browser playback).
+
+### Exact next-session handoff
+- Branch: `development`; do not merge to `main` or deploy production.
+- Latest application implementation code before documentation-only commits: `f65fb54a76a8cec07ded1d2a33c070e9f27a660d`.
+- Exact-HEAD successful CI for that code: run `42694550539` (all verification stages successful, including Next.js build and Docker image build with FFmpeg smoke test).
+- Documentation follow-up commit updating the master plan: `3d23dfcae62d5616b9d542aa9eaa6b7ae2b03e54`.
+- Continue next with isolated database migration/Storage acceptance and deployed-worker verification; then real-browser HLS playback acceptance. Once those are complete, shift the main implementation focus back to the incomplete redesign and connected home/feed/watch/profile surfaces.
+- Report implementation and test/release readiness separately in every session. The user's first major manual testing stage remains targeted at approximately **50% overall implementation**; current implementation is 48%, so continue building without asking for manual testing yet.
+- Future sessions must read this master plan and progress log, verify the live `development` HEAD and latest CI, preserve the no-production-deploy boundary, and continue from this exact handoff rather than restarting or reverting to old percentages.
+
+
+## 2026-11-09 — Publication rollback safety + Creator Workspace redesign
+- [x] Publication state changes now use an explicit database commit boundary. Pre-commit failures clean staged source, thumbnail and HLS objects; post-commit errors cannot delete files referenced by the saved media record.
+- [x] Added rollback cleanup for staged thumbnail copies as well as the main source and adaptive HLS package.
+- [x] Corrected the database HLS master-path regex to use an unambiguous PostgreSQL character class for the dot.
+- [x] Added regression coverage for pre-commit cleanup and the post-commit no-delete invariant.
+- [x] Redesigned the Creator Workspace command center: richer branded welcome panel, clearer status cards, compact four-column module navigation, layered cards, subtle visual accents, responsive breakpoints, Arabic RTL refinements and reduced-motion support.
+- [x] Added tests for the new command-center visual system and confirmed existing server-side role gates remain in the page.
+- [x] Exact-HEAD CI run `42699987429` passed on code HEAD `e3beab33013e73efeab7cd09b3bd6ac237643f52`: repository automated tests, TypeScript, ESLint, Next.js production build, and media-worker Docker image build with the real FFmpeg HLS smoke test.
+- [ ] Supabase project `Creator-Fan-Hub` is active, but it currently has no development database branch. Production migration history is behind the repo and does not contain the new media-worker/HLS migrations. Do not apply these changes to production. A separate database branch/environment is required before migration application and database acceptance; branch creation may incur cost, so do not create one without the user's explicit approval.
+- [ ] Run browser-level review of the redesigned Creator Workspace in desktop/mobile and Arabic/English. The CI build validates compilation, not visual appearance.
+- [ ] Continue the broader redesign across public home/feed, watch page, member profiles, community and remaining Creator Studio modules; do not mark Wave 1 complete based on this single workspace surface.
+- [ ] Keep full friend/manual acceptance testing in the user's hands; continue implementation unless they explicitly switch to the test stage.
+
+### Updated progress
+- **Overall implementation: 50%** (up from 48%; the media publication rollback invariant and the Creator Workspace command-center redesign are implemented and pass exact-HEAD CI).
+- **Test/release readiness: 45%** (up from 43%; exact-HEAD automated tests, TypeScript, ESLint, Next.js build and FFmpeg Docker smoke all pass; database application and browser/manual acceptance remain open).
+- **Wave 1 — visual redesign: 46%** (up from 44%; the Creator Workspace home has a redesigned visual system, while the public/member surfaces remain).
+- **Wave 4 — Creator Studio: 53%** (up from 50%; workspace overview redesign and safer media publication workflow delivered; other Creator Studio modules still need work).
+- **Native video pipeline: 58%** (up from 55%; publication rollback now protects source, thumbnail and HLS assets across the database commit boundary).
+- **Release readiness: 27%** (up from 25%; CI is green, but isolated database, deployed-worker and browser acceptance are not complete).
+- **Publication rollback batch: 100% implementation + CI**; isolated Supabase and live Storage acceptance remain open.
+- **Creator Workspace command-center redesign batch: 100% implementation + CI**; visual browser review remains open.
+
+### Exact next-session handoff
+- Branch: `development`; production branch and deployment remain untouched.
+- Application implementation HEAD: `e3beab33013e73efeab7cd09b3bd6ac237643f52`.
+- Exact-HEAD successful CI: run `42699987429` (all stages passed, including Next.js build and Docker/FFmpeg HLS smoke test).
+- Latest documentation update after this code: master plan commit `04ab045795e9e2a78aaaf7e7ccb2718574e0c4d3`; this progress-log entry is the next documentation commit.
+- Supabase project check: active project `scxkgybuodhuohcxpfat`; no development branches exist. Production migrations currently stop at `20261102215604`; do not apply repo migrations directly to production.
+- Next implementation priority: continue the broader redesign on the public home/feed and watch/member profile surfaces, then continue Creator Studio workflow completeness. Database migration acceptance must wait for an approved isolated Supabase branch/environment.
+- Future sessions must read both plan and progress log, verify live development HEAD and latest CI, preserve the no-main/no-production boundary, report implementation and test/release readiness separately, and continue from this handoff.
+
+
+## 2026-11-09 — Watch detail style-contract repair
+- [x] Reconnected the watch detail header to its actual CSS selector.
+- [x] Reconnected the Raye2 brand mark, title row, reaction picker wrapper and comment composer to their existing style selectors.
+- [x] Added a regression test that checks both JSX class names and matching global CSS selectors, preventing silent loss of layout styling after class renames.
+- [x] Exact-HEAD CI run `42700591061` passed on code HEAD `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`: automated repository tests, TypeScript, ESLint, Next.js production build, and media-worker Docker/FFmpeg smoke test.
+- [ ] Browser review remains open for player sizing, reaction picker positioning, comments and Arabic RTL. CI does not replace visual browser verification.
+
+### Updated progress
+- **Overall implementation: 50%** (held steady; this is an important UI wiring repair, but not a large new feature).
+- **Test/release readiness: 46%** (up from 45%; exact-HEAD CI green on the watch detail style-contract test).
+- **Wave 1 — visual redesign: 47%** (up from 46%; watch detail's intended branded/responsive styling is now actually connected to its markup).
+- **Wave 4 — Creator Studio: 53%.**
+- **Native video pipeline: 58%.**
+- **Release readiness: 27%.**
+- **Watch detail style-contract batch: 100% implementation + CI**; real browser appearance review remains open.
+
+### Exact next-session handoff
+- Branch: `development`; do not merge to `main`, deploy production, or apply migrations to the production Supabase project.
+- Latest application code HEAD: `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`.
+- Exact-HEAD successful CI: run `42700591061` (all verification stages passed, including Next.js build and worker Docker FFmpeg smoke test).
+- Master-plan documentation follow-up: `4e26446096af065204d614eb7ede662d27e61b5f`; progress-log update follows.
+- Continue the broader public home/feed, watch and member profile redesign, then finish remaining Creator Studio workflows. Keep the overall percentage conservative; 50% is the manual-testing milestone the user mentioned, but continue implementation as requested rather than interrupting them to test.
+- Supabase project `scxkgybuodhuohcxpfat` has no development database branch; production migration history is behind the repository. Wait for explicit approval before creating a potentially billable isolated branch, and never apply the pending migrations directly to production.
+
+
+## 2026-11-09 — Creator rewards discoverability and community reaction accessibility
+- [x] Add an explicit owner/admin-only Creator Workspace shortcut to the existing reward administration panel; creator/editor roles do not receive this administrative entry point.
+- [x] Add English and Arabic labels/descriptions and include the new role-gated destination in the workspace's active-area count.
+- [x] Convert the Community reaction picker from hover-only opening to explicit click/tap state with `aria-expanded`, Escape-to-close, focus-leave dismissal and a selected-reaction close behavior.
+- [x] Add source-level regression tests for the reward navigation role gate and the reaction picker's touch/keyboard interaction contract.
+- [ ] Run the new tests plus full CI (Node tests, TypeScript, lint, Next.js build and media-worker Docker smoke build) on the quiet exact HEAD; tests were authored but not executed in this batch.
+- [ ] Browser-check owner/admin versus creator/editor navigation, touch reaction selection, keyboard focus, and Arabic RTL.
+- [ ] Continue the priority Creator Studio integration: connect verified sponsor lifecycle events to recognition only after a trustworthy delivery/approval event exists; do not award points for drafts or imply real sponsor revenue. Then complete the remaining creator workflow and rewards acceptance.
+
+Progress estimates (full master plan; conservative):
+- Wave 1 — redesign: **44%** (this batch adds a direct role-aware entry point; it does not complete the global shell or remaining route redesign).
+- Wave 4 — Creator Studio: **46%** (existing creator rewards and sponsorship controls are connected in the workspace; real delivery events, complete campaign acceptance and isolated database verification remain).
+- Wave 5 — social/community: **22%** (reaction-picker accessibility behavior is implemented in code; browser verification remains).
+- Wave 9 — release readiness: **25%** (regression coverage authored, exact-HEAD CI still pending).
+- Whole Raye2 platform: **~39% provisional**, unchanged. This is not a test/build/runtime metric. No production deployment and no changes to `main`.
+- Branch: `development`; keep manual user/friends testing deferred until approximately 50% implementation progress.
+
+
+## 2026-11-09 — Session handoff: creator rewards navigation + reaction picker
+- Branch: `development`; latest implementation commit before this handoff: `e0d1666cea8f1df80984fe939e1658b163300416`.
+- [x] Role-gate a Creator Rewards Administration shortcut to owner/admin roles, localize it in English/Arabic, and correct the workspace active-area count.
+- [x] Make Community reactions open through explicit click/tap state; keep `aria-expanded` aligned with actual menu visibility; close on Escape, focus exit or selection.
+- [x] Add regression tests in `tests/raye2-community-reaction-picker.test.mjs` and extend `tests/raye2-creator-studio-dashboard.test.mjs`.
+- [ ] Tests were authored but not executed in this batch. Full CI, TypeScript, lint, Next.js build, media-worker Docker smoke test, browser and Arabic RTL checks remain pending on the exact resulting HEAD.
+- [ ] Isolated Supabase verification of creator/platform sponsor lifecycle guards remains pending. Do not grant recognition points for sponsor drafts or paused campaigns; only connect sponsor rewards after a trustworthy approved delivery event exists.
+- Next priority: continue Creator Studio end-to-end workflow integration and reward/achievement event design, then complete environment acceptance for adaptive HLS. Manual user/friends testing remains deferred until approximately 50% implementation.
+
+Progress snapshot (full ten-wave scope):
+- Overall implementation: **~39% provisional** (unchanged; this batch is a focused integration/accessibility improvement, not a major platform milestone).
+- Test/release readiness: **25% provisional** (no new tests executed or environment checks completed).
+- Wave 1 redesign: **44%**.
+- Wave 4 Creator Studio: **46%**.
+- Wave 5 social/community: **22%**.
+- This batch implementation: **100% of the scoped changes committed**; acceptance verification is still pending.
+- Production and `main` remain untouched.
+
+
+## 2026-11-09 — Progress correction (supersedes the mistaken 39% snapshot above)
+The immediately preceding verified project tracker was already at **50% overall implementation**. The 39% figure entered in the later continuation notes was an incorrect regression caused by reusing an older/incomplete progress snapshot and must not be used as the current baseline. Progress does not go backwards because a small batch did not add enough scope to move the overall estimate.
+
+Authoritative baseline carried forward from the prior session:
+- **Overall implementation: 50%**.
+- **Test/release readiness: 46%**.
+- **Wave 1 — visual redesign: 47%**.
+- **Wave 4 — Creator Studio: 53%**.
+- **Native video pipeline: 58%**.
+- **Release readiness: 27%**.
+- Exact-HEAD CI at the prior verified code HEAD `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`, run `42700591061`, passed automated repository tests, TypeScript, ESLint, Next.js production build and media-worker Docker/FFmpeg smoke test.
+
+This session's scoped additions (role-gated Creator Rewards shortcut, bilingual labels, explicit touch/keyboard Community reaction menu and regression tests) are implementation additions on top of that 50% baseline. They do **not** justify resetting the total to 39%. They have not yet been run through CI, so the prior green CI result must not be represented as validating these newer commits. The latest changes still need exact-HEAD CI and browser/RTL acceptance.
+
+Next-session rule: always start from the newest authoritative tracker and verified code HEAD, preserve the 50% baseline, and only change percentages using the same full-plan denominator and explicit completed deliverables. Never recalculate from an older partial wave snapshot. Continue implementation; the user has already asked to defer manual testing until later.
+
+
+## 2026-11-09 — Full progress audit and revoked-award accounting correction
+- Audited the live `development` branch, full master plan, companion chat/voice scope, progress log history, and commit comparison against the last recorded green CI code HEAD.
+- Confirmed the last documented exact-HEAD full CI success was run `42700591061` on application HEAD `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`. That run covered repository tests, TypeScript, ESLint, Next.js production build and media-worker Docker/FFmpeg smoke. It does **not** cover the subsequent commits.
+- Confirmed `development` is 11 commits ahead of that verified code HEAD; those later changes touch the community reaction picker, creator dashboard navigation, tests and documentation. The 50% implementation milestone is therefore retained as the last documented overall baseline, not falsely presented as exact-HEAD CI validation of all newer changes.
+- Corrected prior continuation reporting: 39% was an obsolete/inconsistent estimate and is not the current baseline. Keep the documented **50% overall implementation** and last recorded wave estimates: redesign **47%**, Creator Studio **53%**, native video pipeline **58%**. Readiness **46%** and release readiness **27%** are historical estimates from the last verified checkpoint; mark current exact-HEAD CI as **pending**, not green.
+- Audit finding: the existing reward summary and progression SQL subtracted revoked award points from creator totals. This contradicts the UI contract that revoked awards are excluded from the available balance. Added migration `20261109480000_raye2_exclude_revoked_awards_from_progression.sql` so only `status='awarded'` contributes to balances/levels while revoked awards remain separately counted in audit history. Added `tests/raye2-revoked-reward-balance.test.mjs`.
+- [ ] Run full CI on the resulting exact HEAD, including the new SQL contract test, all repository tests, TypeScript, lint, Next.js build and Docker/FFmpeg smoke.
+- [ ] Apply the rewards/sponsor/HLS migrations only in an approved isolated Supabase database. The active Supabase project currently has no development database branch; do not apply migrations to production and do not create a potentially billable branch without explicit approval.
+- [ ] Browser-check reaction picker touch/keyboard behavior, role-gated Creator Workspace navigation, reward administration, and Arabic RTL.
+- [ ] Continue implementation from Creator Studio lifecycle and sponsorship/reward acceptance; then finish adaptive media environment acceptance and broader home/feed/watch/profile redesign.
+- Branch remains `development`; `main` and production deployment are not targeted by this work.
+
+Audited progress (scope estimates, not telemetry):
+- **Overall implementation: 50%** — retained prior documented milestone; this audit does not invent extra progress from documentation or test authoring.
+- **Test/release readiness: 46% last recorded; current exact-HEAD verification pending.** Do not describe the new commits as CI-passed.
+- **Wave 1 redesign: 47%** (last recorded; public home/feed and member profile redesign remain).
+- **Wave 4 Creator Studio: 53%** (last recorded; sponsor delivery/acceptance, full workflows and isolated DB checks remain).
+- **Native video pipeline: 58%** (last recorded; worker/HLS code and CI smoke exist, but isolated DB, deployed-worker and real-browser playback acceptance remain).
+- **Release readiness: 27%** (last recorded; database, deployed service and browser acceptance remain).
+- Latest verified CI code HEAD: `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`; CI run: `42700591061`.
+- Current code changes after that checkpoint include the community picker, creator rewards admin navigation, and revoked-award accounting fix; they are not yet validated by that older CI run.
+
+
+### Exact continuation handoff after audit
+- Latest development HEAD after this audit: `d5be19470dffaa3818c9375cdc6d88b9bdd75270`.
+- Reward accounting fix commit: `b5447df78fe22347685d56b554d39538010d2982`; regression test commit: `658889dadd46a99933cda5d7cfe743fdad933709`.
+- CI: pending for these commits. The previous green run `42700591061` is only for `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`; never report it as verification of the current HEAD.
+- Current active batch: correct revoked-award balance/progression accounting. Implementation is committed; tests are authored, not executed.
+- Next substantial Creator Studio batch: complete creator sponsorship campaign status/approval visibility and verified creator reward workflows without awarding points from draft campaigns, simulated events or unverified sponsor delivery. Use only trusted provider/service-role verified events for any future delivery-based awards.
+- Then run exact-HEAD CI and continue the isolated database/deployed-worker/browser acceptance plan. Do not create a Supabase development branch without explicit approval due possible cost.
+
+
+## 2026-11-09 — Creator Studio sponsorship visibility batch
+- [x] Add a live campaign-state summary for draft, active, paused and other campaign statuses in each creator video sponsorship workspace.
+- [x] Explicitly label drafts as private/not delivered and active campaigns as requiring verified activation; do not imply ad delivery is operational.
+- [x] Show each campaign's contract date window and its exact viewer-facing disclosure text in the campaign list.
+- [x] Add regression assertions for campaign-state counts, non-delivery wording, date boundaries and disclosure visibility.
+- [ ] Exact-HEAD CI has not run for this batch; the GitHub commit lookup returned no workflow runs for the new test commit. Tests are authored, not executed.
+- [ ] Browser verify empty/loading/error states, narrow-screen layout, campaign statuses and Arabic/English presentation.
+- [ ] Next Creator Studio priority: implement explicit campaign review/approval state and clear audit trail for creator contract drafts. Keep activation fail-closed until a real verified delivery adapter, measurement, disclosure and frequency enforcement are operational.
+- Implementation batch is committed to `development`; no production deployment or `main` changes.
+
+Progress discipline:
+- Overall implementation remains **50% baseline**; this UI/visibility batch is an additive scoped improvement, but no full-plan percentage increase is claimed before scope-weighted review.
+- Wave 4 Creator Studio remains **53% last recorded**; new work does not change the recorded percentage pending full-plan recalculation.
+- Current exact-HEAD CI: **pending / not verified**. The prior successful run `42700591061` applies only to `ee5679ad409729e98ddb8daa1f714fa1fd434ea3`.
+- Do not state that this batch passed automated tests, TypeScript, lint or build until a new exact-HEAD CI result confirms it.
+- Batch commits: `6283126ed810c945f93e6f3d20200809bc3f8a06` (sponsorship status summary and contract details); `172d29f20adfc12ea8748879499662ba4e02dd41` (regression coverage).
+
+
+## 2026-11-09 — Creator Studio sponsor campaign search and filtering
+- [x] Add a controlled campaign search across sponsor name, category, placement and disclosure text.
+- [x] Add status filters for all, draft, active and paused campaigns, with live counts in each option.
+- [x] Derive visible rows from local state only; filtering does not update campaign records or alter delivery state.
+- [x] Add regression assertions for search fields, status options and the empty-filter result.
+- [x] Re-fetch the implementation and test files from `development` and confirm the new code and assertions are present.
+- [ ] Automated tests, TypeScript, lint and Next.js build remain unverified for this exact code. GitHub workflow lookup returned no run for the test commit; the combined commit status currently reports Vercel failure due to build-rate limit (`upgradeToPro=build-rate-limit`). This is an infrastructure limitation, not a passing build.
+- [ ] Browser review remains pending for search/filter usability, small screens and Arabic/English layouts.
+- [ ] Next: add a campaign review/request-approval lifecycle with immutable status history and server-side role checks. Keep delivery activation disabled until the verified ad-serving/measurement provider exists.
+- Branch: `development`; no merge to `main`, no production deployment, and no production database changes.
+
+Progress:
+- **Overall implementation: 50% baseline** — unchanged; this is an additive management feature, but no full-plan weighted reassessment has been completed.
+- **Wave 4 Creator Studio: 53% last recorded** — this feature adds campaign-management usability; percentage not yet recalculated against all Creator Studio requirements.
+- **Test/release readiness: historical 46%; current batch verification pending.** Vercel status is currently failed due to build-rate limit, not green.
+- **Batch implementation: 100% of the scoped search/filter UI and source-level regression assertions committed; runtime/CI acceptance pending.**
+- Code commit: `033725a067b15330acadc2a64603a55044c69661`; test commit: `c5da85d5b7702a7d82282e6c68c2314937927d97`.
+
+
+## 2026-11-10 — Creator Studio sponsor approval workflow (implementation ledger; tests pending)
+This entry records **all committed implementation work regardless of test/build status**. Verification is tracked separately and must never be used to erase implementation credit.
+
+### Implemented and committed on `development`
+- [x] Campaign list status overview: draft, active, paused/other counts; clear draft-not-delivered and active-requires-verified-activation wording.
+- [x] Campaign contract visibility: start/end window, disclosure text, sponsor/category/placement search, status filtering and empty-filter state.
+- [x] Database approval lifecycle: `not_submitted → pending → approved/rejected`, creator-owned request RPC, owner/admin decision RPC, decision timestamps, reviewer identity and bounded reviewer note.
+- [x] Creator UI: request review from eligible drafts; pending/approved campaigns cannot be edited/deleted through the visible draft controls; review result and reviewer note are shown.
+- [x] Owner/admin review page: server-side authenticated role gate, pending review queue, approval/rejection actions, required rejection reason and decision history.
+- [x] Workspace navigation: bilingual owner/admin-only link to the sponsor review queue; active-area count updated.
+- [x] Audit preservation: review events are append-only; campaigns with review history cannot be deleted.
+- [x] Guard correction: review-field trigger permits the two trusted security-definer RPC transactions through a transaction-local marker; direct client edits remain blocked.
+- [x] Regression test file authored for role gates, RPC authorization, delivery fail-closed behavior, immutable audit, creator/admin workflow and the trusted-RPC guard.
+- [x] Re-fetched all seven implementation/migration/test paths from `development` and confirmed they exist at the expected branch.
+
+### Implementation vs verification ledger
+- **Implementation status:** all items above are committed source/schema/test code and are counted as implemented even though the tests have not run.
+- **Automated verification:** pending. The latest Vercel combined status reports failure with `upgradeToPro=build-rate-limit`; this is not a green build and does not establish whether the code compiles.
+- **Node regression tests:** authored, not executed.
+- **TypeScript / ESLint / Next.js build / media-worker smoke:** not executed for this exact code.
+- **Database migrations / RLS / RPC integration:** not applied or executed in an isolated Supabase database.
+- **Browser, mobile, Arabic RTL and accessibility acceptance:** pending.
+- **Delivery:** sponsorship review approval is contractual/content review only; `delivery_enabled=false` is returned by both RPCs. No ad delivery, viewer impression, payout or reward is fabricated.
+- **Production:** no deployment and no production database operation performed.
+
+### Progress accounting (full ten-wave denominator)
+- **Overall implementation: 50% (rounded; prior audited baseline retained).** The sponsor-management and approval implementation above is included in the implementation inventory even while untested. Its contribution is too small relative to the complete ten-wave scope to justify a whole-number increase at this rounding precision. This is not a verification percentage.
+- **Wave 4 — Creator Studio: 55% provisional**, up from the last recorded 53%, counting the committed sponsorship management/review workflow. Remaining Wave 4 work includes complete upload/draft/publishing UX, end-to-end native playback, real HLS acceptance, exclusives, quotas, live ingest/delivery, analytics correctness and environment acceptance.
+- **Wave 9 — security/release readiness: implementation additions recorded; acceptance remains pending.** Do not increase readiness because tests were merely authored.
+- **Test/release readiness: 46% last recorded historical estimate; current exact-HEAD verification is blocked/pending.** Do not label this batch verified.
+- Manual user/friends testing remains deferred until the agreed approximately 50% implementation milestone is reached and the user chooses to start.
+
+### Exact files and commits
+- `src/app/creator/creator-video-sponsorship.tsx` — sponsor status, dates/disclosure, search/filter, creator review request.
+- `src/app/creator/sponsor-reviews/page.tsx` and `sponsor-review-admin.tsx` — protected review queue and decision history.
+- `src/app/creator/page.tsx` — owner/admin navigation and localized labels.
+- `supabase/migrations/20261110100000_raye2_creator_sponsor_review_workflow.sql` — review schema and RPCs.
+- `supabase/migrations/20261110110000_raye2_preserve_creator_sponsor_review_audit.sql` — immutable history and deletion guard.
+- `supabase/migrations/20261110120000_raye2_fix_sponsor_review_rpc_guard.sql` — trusted RPC transaction guard.
+- `tests/raye2-creator-sponsor-review.test.mjs` — regression assertions (not run).
+- Relevant commits: `42caa5d2cdec513cc1ed1d861a6d32de89a28c2a`, `bff8fb6d0f96de306f5e89fedcaa555b699f5cb8`, `d121926419615a1a41dcefde1dace5be65866b0a8`, `0c3b229bf728ceceea285601965fe4ed2fe902f0`, `8b022f7062ee2b6bcda7f367a6fa47919af61fa2`, `ac77420618fe728533c0bc96622dde1d33a02851`, `8e0e2b3fdb55894b173b51a9b9263933bf25eb5d`.
+
+### Branch hygiene note
+One regression-test file was briefly created on the default `main` branch because the branch argument was omitted from that single file-creation call. It was immediately deleted from `main` in commit `7e8c6f923cca59e1f2dc60813e8d158f70697bcb`, then recreated explicitly on `development` in commit `8e0e2b3fdb55894b173b51a9b9263933bf25eb5d`. The test file is absent from current `main`; no application code, migration or deployment was made on `main`. The two audit commits remain in its history; no force-reset was attempted.
+
+
+### Security refinement — 2026-11-10
+- [x] Tightened the review-field database trigger: even owner/admin users must use the trusted review RPCs; direct table updates cannot bypass audit-event creation.
+- [x] Extended the regression test to assert there is no direct owner/admin bypass.
+- [ ] This refinement and its test are committed but remain unexecuted pending Vercel/build capacity and isolated database verification.
+- Commits: `9a5b6a1f4203a1dd5494bc8e07b63ff9536286ca` (RPC-only trigger guard), `a768a13652eb0e79b5e7a9d83ae8b47175c69a54` (regression assertion).
+- Implementation credit is included in the Creator Studio ledger above; verification status is unchanged.
+
+
+## 2026-11-10 — Progress denominator correction and Creator Studio audit
+- [x] Re-read the authoritative full ten-wave progress table and master product plan on `development`.
+- [x] Corrected the chat-reported overall baseline: **50% was not supported by the repository's full-platform denominator**. The repository's ten-wave estimates average to approximately 38%; use **38% overall** as the authoritative planning estimate, not 50%.
+- [x] Corrected Wave 4: master-plan snapshot was 34%; committed Creator Studio sponsorship management, search/filter and review workflow justify a cautious **35% provisional**. The previously repeated 53–55% values came from a narrower/unverified scope and must not be represented as full Wave 4 completion.
+- [x] All sponsor approval implementation, migrations and regression-test source remain counted as implemented even while untested. Verification remains a separate ledger.
+- [x] Audited and repaired a source corruption in `src/app/creator/page.tsx`: an earlier navigation insertion had landed inside the first import line. The import is restored and the owner/admin sponsor-review navigation card now appears inside the workspace navigation, not in the import section.
+- [x] Re-fetched the corrected dashboard source and confirmed the import/navigation structure.
+- [ ] Latest exact-HEAD tests, type-check, lint, build and preview deployment remain pending. The last observed Vercel failure was `upgradeToPro=build-rate-limit`; do not treat that as a code pass or a definitive compile failure.
+- [ ] Supabase migrations remain committed but unapplied/unverified; RLS, RPC, transaction-local guard, append-only audit and creator/admin notification behavior require isolated DB acceptance.
+- [ ] Browser/mobile/RTL/accessibility review remains pending.
+- Production and `main` remain off-limits; work stays on `development`.
+
+### Authoritative progress from this point forward
+- Overall full-platform implementation: **38%** (repository-based planning estimate).
+- Wave 4 Creator Studio: **35% provisional**.
+- The old chat-only ~65% and conversational 50%/53%/55% claims are historical inaccuracies for the full ten-wave product. Do not carry them forward.
+- Implemented-but-untested work is credited in the implementation column. Testing/preview/owner acceptance are separate and do not erase implementation credit.
+- Manual testing remains deferred until the full-platform implementation reaches the agreed ~50% milestone and the owner chooses to begin.
+
+
+### Dashboard import/navigation regression guard — 2026-11-10
+- [x] Added a regression assertion that the Creator Dashboard begins with the valid Next.js navigation import and that the sponsor-review link appears inside the JSX navigation rather than the import section.
+- [x] Test source is committed; it is **not executed**.
+- Commit: `320870d65ab505e6592cf0e898e390bbb787536a`.
+
+
+## 2026-11-10 — Creator-visible sponsorship review timeline
+- [x] Added creator-side loading of review events for only the creator's currently listed campaign IDs.
+- [x] Display review-requested, resubmitted, approved and rejected events with timestamps and reviewer notes in each campaign card.
+- [x] Uses the existing creator-scoped RLS policy on `raye2_creator_sponsor_review_events`; no broad event query by creator UI and no access to other creators' campaign IDs.
+- [x] Handles the empty campaign list and review-history query failure without hiding the campaign list.
+- [x] Added source-level regression assertions for event query scoping and visible timeline rendering.
+- [ ] Test source is authored, not executed. TypeScript, lint, Next.js build and browser/RTL checks remain pending.
+- [ ] Live database verification of the creator history RLS policy and applied migrations remains pending.
+- Implementation commit: `f30d0e59c86edc348838af6e214ff6bc468f279c`.
+- Regression test commit: `8f129323f5579ea029f5806c9a72bf556f3e6676`.
+- This adds to Creator Studio's implementation inventory; it does not change the **38% full-platform / 35% provisional Wave 4** planning estimates until the next weighted review.
+
+
+## 2026-11-10 — Creator sponsorship decision notifications
+- [x] Added `raye2_creator_notifications` with creator ownership, campaign reference, unique review-event reference, notification type, title/body, creation time and read timestamp.
+- [x] Added RLS so only the assigned/publisher creator can read their own inbox; no direct client insert or update permission is granted.
+- [x] Added authenticated `raye2_mark_creator_notification_read(uuid)` RPC, scoped to the signed-in creator.
+- [x] Extended the owner/admin decision RPC so the review event and creator notification are written in the same transaction. A notification insert failure rolls back the review decision instead of silently losing the notification.
+- [x] Approval/rejection notification copy explicitly says that contract review does not activate or deliver ads.
+- [x] Added an English/Arabic creator inbox in the Creator Dashboard with unread count, timestamps, refresh and mark-as-read.
+- [x] Added regression assertions for notification creation, creator-only RLS, read RPC and dashboard integration.
+- [ ] Migration and RPC remain committed but unapplied/unexecuted. Tests are authored but not run; TypeScript, lint, Next build and browser/RTL checks remain pending.
+- [ ] Validate on an isolated database that the replacement review RPC preserves all prior authorization/locking/validation checks and that notification insert is atomic with the audit event.
+- Migration commit: `08d5dddb0f9d07bf30c59986287672dbc819afe4`.
+- Inbox component commit: `724166a6e11f49374135ac7d551984999494b550`.
+- Dashboard integration commit: `608333f68e0e2c28fb5d7bc81236a4268d7c19c0`.
+- Regression test commit: `f4069d92680b95836ec1d803ed25fa3c539c7abe`.
+- **Progress:** Wave 4 Creator Studio moves from 35% to **36% provisional** for the added creator notification capability. Full ten-wave implementation remains **38%** at current whole-number rounding. Implementation and verification remain separate.
+
+
+## 2026-11-10 — Arabic sponsor-review administration polish
+- [x] Localized the owner/admin review queue labels, counters, delivery-disabled wording, review note, approval/rejection confirmations, empty states and decision-history timestamps into Arabic.
+- [x] Localized the route back to the Creator Workspace.
+- [x] Added regression assertions for Arabic review queue, actions, history and navigation strings.
+- [ ] Arabic layout and copy still require actual RTL browser review; source localization is implemented but not visually accepted.
+- [ ] Tests, lint, type-check, build and database integration remain unexecuted.
+- Admin UI commit: `3f14cd96a9324b10108a30a561017d74c146549e`.
+- Route commit: `5e4fbb7ec45fb7e2c4128646b4d2b847209930d2`.
+- Regression test commit: `9e77752d91a9bd681d4ad88f83e6e042d56ab6a6`.
+- Wave 4 remains **36% provisional**; full platform remains **38%**. This is included in implementation tracking; no verification credit is claimed.
+
+
+## 2026-11-10 — Notification inbox usability batch
+- [x] Added an all/unread filter with live counts to the creator notification inbox.
+- [x] Added a scoped bulk mark-as-read RPC; it can update only unread notifications owned by the authenticated assigned creator.
+- [x] Added a single-action “Mark all as read” control, disabled when there is nothing to update or an action is in progress.
+- [x] Added English/Arabic labels and empty states for both filters.
+- [x] Added a numbered Creator Workspace navigation card linking directly to the notification inbox.
+- [x] Extended source regression assertions for the scoped RPC, filters, bulk action and navigation anchor.
+- [ ] Tests are authored but not executed. SQL migration, RPC permissions, client behavior, TypeScript, lint, build and RTL visual checks remain pending.
+- Migration: `c337e95609e47e39877fbc77a7b78b44d9905c3b`.
+- Inbox component: `6e6cbb3b1dbc129fda0a33b6cbcd91ecdde6eaf7`.
+- Dashboard shortcut: `d82eabd71a5c8f91196313185b8a17719961f336`.
+- Regression test: `eb3fe9d8741464a8a12c08261a6fde56bb02d49c`.
+- **Progress:** No whole-platform percentage increase claimed for this usability refinement. Wave 4 remains **36% provisional** and full-platform implementation remains **38%** until a weighted acceptance review; verification credit remains zero for this batch.
+
+
+## 2026-11-10 — Creator video publishing lifecycle: unpublish
+- [x] Added a dedicated creator watch-page unpublish action in Video Studio.
+- [x] Requires explicit confirmation before changing a public watch page back into a private catalog draft.
+- [x] Reuses the existing `save_raye2_video_catalog` RPC with `p_publish:false` and current saved metadata; does not delete, privatize, or rewrite the underlying source media asset.
+- [x] Updates local publication state only after the RPC reports success, reloads the catalog, and provides English/Arabic confirmation and result messages.
+- [x] Added source regression assertions for confirmation, RPC mode, success state and bilingual copy.
+- [ ] Regression test is authored, not executed. Confirm the RPC's false-publication behavior against the deployed schema; test direct route/cache visibility, owner scoping, TypeScript, lint, build and mobile/RTL layout when preview is available.
+- Video Studio implementation: `2b287ae8177b5d1bf533aed3feaaa2e2d819deab`.
+- Regression test: `350d163a32296d9bd18cba371cf065f2149d9f25`.
+- **Progress:** Wave 4 remains **36% provisional** and overall remains **38%**; this lifecycle improvement is included in the implementation ledger but does not yet justify a weighted percentage increase. Verification remains pending.
+
+
+### Unpublish safety follow-up — 2026-11-10
+- [x] Closed the alternate path where a creator could uncheck the published toggle and save a draft without seeing the confirmation. Every transition from an already-published watch page to draft now requires confirmation, regardless of which UI action initiates it.
+- [x] Added a regression assertion for the shared save-path guard.
+- [ ] This guard is committed but unexecuted; runtime verification remains pending.
+- Fix: `1622fdddfb866477cdf623270a777accb6987fb3`.
+- Test: `f695a5c887e05dbc43d03f3738a3544ca525a67b`.
+
+
+## 2026-11-10 — Local execution of the previously unrun regression suite
+- [x] Installed dependencies (`npm install --no-audit --no-fund`, 359 packages) and executed the full Node regression suite locally for the first time on this batch: `npm test` reports **449 tests, 449 pass, 0 fail**.
+- [x] Ran `npm run check` (repository validation, 170 assertions) — passed.
+- [x] Ran `npx tsc --noEmit` — passed with no type errors.
+- [x] Ran `npm run lint` — passed with 0 errors (25 pre-existing `no-img-element`/`exhaustive-deps`/unused-var warnings; unchanged by this batch).
+- [x] Ran `npm run build` — Next.js production build succeeded for all 33 routes.
+- [x] Fixed the five failing assertions this first run exposed:
+  - **Source defect (real bug):** the Creator Dashboard "ACTIVE AREAS" counter base was never incremented when the notification-inbox card was added (`d82eabd`). It rendered **16** module cards for an owner but displayed **15**. Corrected the base from `9` to `10` in `src/app/creator/page.tsx` so owner/admin/creator now show 16/15/10, matching the rendered cards.
+  - `tests/creator-dashboard-resilience.test.mjs` (×2) and `tests/raye2-creator-studio-dashboard.test.mjs` (×1): stale count assertions predating the sponsorship and rewards-navigation batches; aligned to the corrected `10 + (owner/admin ? 5 : 0) + (owner ? 1 : 0)` formula.
+  - `tests/raye2-creator-sponsor-review.test.mjs`: the notification anchor `id="creator-notifications"` lives in the child `creator-notifications.tsx`, not the dashboard page; the assertion now checks the component that actually owns the id (the dashboard `href` assertion is retained).
+  - `tests/site.test.mjs`: the SECURITY DEFINER scanner false-positived on a prose comment containing the words "SECURITY DEFINER". The scanner now strips `--` comments before scanning and resolves trigger-only functions across all migrations via a global `execute function` index, instead of only the current file.
+- [ ] Still pending: applying the committed migrations and running live RLS/RPC acceptance against an isolated Supabase project; browser/mobile/RTL visual review; owner acceptance; Vercel preview confirmation.
+- **Progress:** This batch is a verification and correctness pass, not new feature scope. Wave 4 Creator Studio remains **36% provisional** and the full ten-wave implementation estimate remains **38%**; no percentage increase is claimed.
+
+
+
+## 2026-11-10 — First successful migration apply against a real Supabase stack
+- [x] Stood up the local Supabase stack (Docker 29.9.3 via `sudo dockerd`; Supabase CLI 3.1.0; Postgres `major_version = 17`; `pgcrypto`) and ran the **entire 109-file migration chain to completion for the first time**. `supabase db reset` applies every migration cleanly and reports "Finished supabase db reset on branch development."
+- [x] Fixed the four defects that had prevented any migration from ever applying:
+  1. `20261031234138_nhen_community_core.sql:85` — bare `$;` dollar-quote terminator (should be `$$;`). This halted the chain around migration 34.
+  2. `20261104000500_raye2_voice_sessions.sql` — two functions used a bare `as $` / `$;` delimiter pair instead of `as $$` / `$$;`.
+  3. `20261104000500_raye2_voice_sessions.sql` — a duplicated policy block had been spliced into the `raye2_can_access_voice_topic` function body (its regex literal was truncated mid-pattern and merged with the realtime-policy text). Reconstructed the function to its intended single-expression form and restored the realtime policies to the anti-recursion design that calls the `raye2_can_access_voice_topic(realtime.topic(),false|true)` helper instead of reading the participant table directly.
+  4. `20261102182905_nhen_explicit_public_reaction_rpc_grants.sql` — granted `execute` on `get_community_short_reaction_counts(uuid[])` before that function was created in `20261102190914`. Removed the premature grant (the function is still granted in the later migration).
+  5. `20261103180000_raye2_community_chat_foundations.sql` — the `raye2_platform_rules.category` check constraint omitted `'watch'`, but `20261104040000_raye2_watch_together.sql` inserts five rows with category `'watch'`. Added `'watch'` to the allowed set.
+- [x] Verified the materialized schema on the live database: 76 public tables, 159 public functions, 127 public RLS policies, and 4 realtime policies.
+- [x] Live security acceptance (first ever for this schema):
+  - **151 of 151** `SECURITY DEFINER` functions pin `search_path` (`proconfig` includes `search_path=`).
+  - Creator RPCs (voice create/moderate, notification read) are granted to `authenticated` and `service_role` but **not** `anon`/`PUBLIC`.
+  - The only anon-executable `SECURITY DEFINER` functions are the seven intended public endpoints (poll vote, public poll results, public ideas read/submit, and the three aggregate reaction counters).
+  - RLS enforcement proven with real JWT claims: `anon` is denied at the table-privilege level; a non-owner `authenticated` user sees 0 rows; the owner sees their own row.
+- [x] Re-ran the full Node regression suite after the SQL edits: **449 tests, 449 pass, 0 fail**.
+- [x] Ran the Next.js app locally against the verified schema for the first time (`npm run dev` with a gitignored `.env.local`). Routes respond: `/` 200, `/community` 200, `/raye2/home` 200, `/series` 200; `/creator` correctly 307-redirects to `/creator/login`. No runtime errors in the dev log.
+- [x] End-to-end HTTP acceptance through PostgREST:
+  - anon calling the public aggregate RPC `get_community_reaction_counts` → **200**;
+  - anon calling creator RPC `raye2_mark_creator_notification_read` → **401** `permission denied for function`;
+  - authenticated non-creator calling it → **403** `assigned creator access required` (in-database guard);
+  - authenticated member reading `raye2_voice_preferences` → **200** with RLS-scoped rows;
+  - after granting `creator_admins` role `creator`, the same user's `raye2_mark_all_creator_notifications_read` → **200**.
+- [x] Added `supabase/.temp/` and `supabase/.branches/` to `.gitignore` (local CLI state only).
+- [x] Validated the reconstructed `raye2_can_access_voice_topic` helper at runtime: malformed topics return `false` without a UUID-cast error; an invited-only participant can receive but not send (`false`/`true` → `t`/`f`); a joined participant can do both (`t`/`t`); a non-participant gets `f`/`f`.
+- [ ] Still pending: browser/mobile/RTL visual review, owner acceptance, Vercel preview confirmation, and the remaining Raye2 backlog items.
+- **Progress:** This batch repairs the migration chain and provides the first real-schema verification. Wave 4 Creator Studio remains **36% provisional** and the full ten-wave implementation estimate remains **38%**; no percentage increase is claimed pending a weighted acceptance review.
+
+
+## 2026-11-10 — Wave 5 community post/comment lifecycle (edit, delete, pin)
+- [x] Closed a real server-side gap: the pre-existing table policies only let a member update a post/comment while `status='pending'`, and no member DELETE policy existed at all. Because posts and comments now publish instantly (`status` defaults to `published`), members had **no server-sanctioned way to edit or remove their own published content**. Added four guarded `SECURITY DEFINER` RPCs with pinned `search_path` and `authenticated`-only grants:
+  - `raye2_update_community_post(uuid,text)` — owner only; validates 1–2000 chars; touches `updated_at`.
+  - `raye2_delete_community_post(uuid)` — owner only; comments/reactions/bookmarks cascade.
+  - `raye2_delete_community_comment(uuid)` — owner only.
+  - `raye2_set_community_post_pin(uuid,boolean)` — `private.can_moderate_community()` (owner/admin/moderator) only.
+- [x] Added an `updated_at` trigger (`raye2_community_posts_touch_updated_at`) so edits keep timestamps honest.
+- [x] Wired the community client (bilingual EN/AR, RTL): owner Edit/Delete on posts, Delete on own comments, moderator Pin/Unpin, plus a pinned badge. No control is shown without the corresponding server permission.
+- [x] Added `tests/raye2-community-lifecycle.test.mjs` (7 assertions: SECURITY DEFINER + pinned search_path, ownership scoping, moderator gate, authenticated-only grants, trigger, and UI wiring).
+- [x] **Executed against a live Supabase/Postgres 17 stack**: all 136 migrations apply via `supabase db reset`; 4 new functions confirmed `SECURITY DEFINER` with pinned `search_path`; grants confirmed `authenticated=true`, `anon=false`.
+- [x] **Live behavioral matrix via PostgREST with real JWTs**: non-owner edit → 403 `you can only edit your own post`; owner edit → 204; non-moderator pin → 403 `moderator access required`; anon → 401; non-owner comment delete → 403; owner comment delete → 204; moderator pin → 204; owner post delete → 204; verified `updated_at>created_at` after edit and comment cascade on delete.
+- [x] Full gate suite green: repository validation 170 assertions, tests **456/456**, `tsc` clean, ESLint 0 errors (25 pre-existing warnings), Next.js production build OK.
+- [ ] Remaining Wave 5 work: profiles/follows depth, community publishing breadth (drafts/scheduling), events RSVP, collections, and cross-surface consistency; browser/RTL visual review still pending.
+- **Progress:** Wave 5 social/community moves from **16% to 18% provisional** for a verified, server-enforced content-lifecycle capability. Full ten-wave implementation remains **~38%** at whole-number rounding; verification credit is now recorded for this batch (applied schema + live behavioral matrix), unlike earlier batches.
+
+
+## 2026-11-10 — Wave 5 social graph + events RSVP (mega-batch)
+- [x] Closed a real gap in the member relationship flow: the profile client performed blocking as two sequential writes (insert block, then delete follow) and compensated by hand on failure, and member suggestions could include members the viewer had blocked. Replaced with transactional, guarded `SECURITY DEFINER` RPCs (pinned `search_path`, `authenticated`-only grants):
+  - `raye2_toggle_follow(uuid)` → `boolean` — atomic follow/unfollow; rejects self, unknown members and any member under an active block.
+  - `raye2_toggle_block(uuid)` → `boolean` — atomic block/unblock; blocking removes any follow in either direction so the relationship is fully severed.
+  - `raye2_get_member_connections(uuid,text,integer)` — public follower/following lists, `visibility='public'` only, symmetric block rows hidden.
+  - `raye2_get_mutual_followers(uuid,integer)` — members the viewer follows who also follow the profile being viewed.
+  - `raye2_suggest_members(integer)` — suggestions ranked by shared followers, excluding self, blocked members (either direction) and anyone already followed.
+- [x] Added `event_rsvps` (event_id/user_id PK, `going`/`interested`, cascades, owner-scoped RLS) plus:
+  - `raye2_get_public_events(integer)` — published/completed events with `going_count` and caller `my_rsvp`; granted to `anon` and `authenticated` (public calendar).
+  - `raye2_set_event_rsvp(uuid,text)` / `raye2_clear_event_rsvp(uuid)` — authenticated-only, return the updated going count; unpublished events rejected.
+- [x] UI: profile gains clickable follower/following lists (modal), a mutual-followers line, and follow/block now call the RPCs; community suggestions use `raye2_suggest_members` and follow via `raye2_toggle_follow`; the public events surface is now an RSVP client (bilingual EN/AR) with a dedicated `/events` route and the home feed reads through `raye2_get_public_events`.
+- [x] Added `tests/raye2-social-events.test.mjs` (8 tests: SECURITY DEFINER + pinned search_path, caller-bound auth guards, transactional follow/block, visibility/block filtering, authenticated-only grants, anon-readable public feed, and UI wiring). Updated `tests/site.test.mjs` and `scripts/validate-static-site.mjs` for the new server-side invariants.
+- [x] **Live execution caught two real defects**: PL/pgSQL OUT-parameter shadowing made `raye2_get_member_connections` (ambiguous `user_id`) and `raye2_get_public_events` (ambiguous `status`) fail at runtime. Fixed with `#variable_conflict use_column`; confirmed correct on a fresh `supabase db reset`.
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 36/36 pass.** Covers follow toggle + idempotency + self/unknown rejection, mutual followers, follower/following lists, mutual-ranked suggestions (excludes self/followed/blocked), block severing follows in both directions and rejecting follow, unblock restoring follow, anon denial on social RPCs, full RSVP lifecycle (going/interested/clear, counts, `my_rsvp` per viewer, unpublished rejected, anon read-only), and owner-scoped `event_rsvps` RLS.
+- [x] Full gate suite green: all **138 migrations** apply on `supabase db reset`; repository validation 171 assertions; tests **464/464**; `tsc` clean; ESLint 0 errors (25 pre-existing warnings); Next.js production build OK.
+- [ ] Remaining Wave 5 work: community publishing breadth (drafts/scheduling), polls depth, collections, richer discovery/trending, and browser/RTL visual review.
+- **Progress:** Wave 5 moves from **18% to 24% provisional**; full ten-wave estimate moves from **~38% to ~40%**. Verification credit recorded for this batch (applied schema + 36-check live behavioral matrix).
+
+## 2026-11-10 — Wave 5 community drafts/scheduling + saved-library collections (mega-batch)
+- [x] Closed a publishing gap: members could only post instantly. Added a `scheduled` status plus `publish_at`/`published_at` to `community_posts`, with a status check (`pending`/`scheduled`/`published`/`rejected`/`removed`), a `publish_at is null or status='scheduled'` invariant, a partial index, and an insert policy that accepts a staged draft (`scheduled` with no publish time) alongside instant publishing.
+- [x] Guarded `SECURITY DEFINER` RPCs (pinned `search_path`, `authenticated`-only grants, caller-scoped):
+  - `raye2_save_community_draft(uuid,text)` — creates or renames the caller's own unpublished draft.
+  - `raye2_schedule_community_post(uuid,timestamptz)` — sets a future publish time on a draft; rejects past times and re-scheduling.
+  - `raye2_publish_community_post(uuid)` — promotes a scheduled post the caller owns to published.
+  - `raye2_publish_due_community_posts()` — lazy promoter: flips any due scheduled post to published and clears `publish_at`. Granted to `anon`+`authenticated` so a public feed can self-heal without `pg_cron`.
+- [x] Added member-owned collections over saved content: `raye2_collections` and `raye2_collection_items` (RLS, owner-scoped, `anon` denied) plus guarded RPCs `raye2_create_collection`, `raye2_add_to_collection`, `raye2_remove_from_collection`, `raye2_get_my_collections`. Items may only reference the caller's own `community_bookmarks`/`video_bookmarks`, so a collection can never surface unsaved content.
+- [x] UI: the community composer gains Save draft / Schedule / Publish with a `datetime-local` picker, a "Drafts & scheduled" panel with publish-now and cancel, and an "Add to collection" picker on each post; the community page calls the due-post promoter before reading the feed; the saved library gains a collections panel and per-item add-to-collection menu.
+- [x] Added `tests/raye2-community-drafts-collections.test.mjs` (11 tests) and 5 validator assertions (now 176).
+- [x] **Live execution caught a real defect**: `raye2_publish_due_community_posts` set `status='published'` without clearing `publish_at`, violating the new `community_posts_publish_at_check` (23514). Fixed to clear `publish_at`; confirmed on a fresh `supabase db reset`.
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 33/33 pass.** Covers draft staging + author-only visibility, schedule guards (past time, re-schedule, non-owner), publish-now owner scoping, lazy promotion (due promoted with `published_at`, future untouched, anon can invoke), anon denial on staging RPCs, collection create/name validation, item membership checks against the caller's own bookmarks (post and video), idempotent adds, invalid-kind rejection, `item_count` reporting, owner-scoped RLS (non-owner sees 0 rows), removal, and anon denial on collection RPCs/tables.
+- [x] Full gate suite green: all **139 migrations** apply on `supabase db reset`; repository validation 176 assertions; tests **475/475**; `tsc` clean; ESLint 0 errors (25 pre-existing warnings); Next.js production build OK.
+- [ ] Remaining Wave 5 work: polls depth, richer discovery/trending, and browser/RTL visual review.
+- **Progress:** Wave 5 moves from **24% to 30% provisional**; full ten-wave estimate moves from **~40% to ~42%**. Verification credit recorded for this batch (applied schema + 33-check live behavioral matrix).
+
+## 2026-11-10 — Wave 5 polls depth: scheduling + lifecycle (mega-batch)
+- [x] Closed a real publishing gap: the poll schema already allowed a `scheduled` status but no RPC could move a draft into it, a draft could not be corrected or removed, and nothing opened a scheduled poll when its start time arrived.
+- [x] Guarded `SECURITY DEFINER` RPCs (pinned `search_path`, `can_edit_creator_content()` guard, `authenticated`-only grants):
+  - `raye2_update_creator_poll(uuid,text,text,jsonb,timestamptz,timestamptz)` — correct title/description/options/dates while still `draft`/`scheduled` and vote-free; replaces options in order.
+  - `raye2_schedule_creator_poll(uuid,timestamptz)` — stage a draft to open automatically; rejects past times and inconsistent close times, requires ≥2 options.
+  - `raye2_delete_creator_poll(uuid)` — remove an unpublished, vote-free poll (options cascade).
+  - `raye2_open_due_polls()` → `integer` — lazy promoter granted to `anon, authenticated`: opens at most one due scheduled poll per call and only when no other poll is open, preserving the one-open-poll invariant without `pg_cron`.
+- [x] UI: the creator poll panel gains a Schedule control (datetime picker) and a Delete action on draft/scheduled polls, shows the auto-open time, and calls `raye2_open_due_polls` before loading; the public vote page also promotes due polls before reading results.
+- [x] Added `tests/raye2-poll-scheduling.test.mjs` (7 tests) and 3 validator assertions (now 179).
+- [x] **Live execution caught a real authorization mismatch**: my first cut guarded the new RPCs with `is_active_creator()` (any active admin, including `analyst`/`moderator`), but the existing poll RPCs use the stricter `can_edit_creator_content()` (owner/admin/editor). Aligned the new RPCs to the stricter guard. The live matrix also initially failed because it seeded `role='creator'`, which `can_edit_creator_content()` does not accept — corrected the fixture to `role='owner'`.
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 21/21 pass.** Covers create + edit (options replaced in order, out-of-range rejected), schedule guards (past time rejected, idempotent re-schedule), non-creator and anon denial on every mutation, lazy auto-open (due poll opens, second due poll stays scheduled while one is open), open polls rejected for edit/delete, voted polls rejected for delete, and clean delete with option cascade. The earlier community/collections matrix re-ran green at 33/33 on the same fresh DB.
+- [x] Full gate suite green: all **140 migrations** apply on `supabase db reset`; repository validation 179 assertions; tests **482/482**; `tsc` clean; ESLint 0 errors (25 pre-existing warnings); Next.js production build OK.
+- [x] Added `AGENTS.md` capturing the gates, the live-verification workflow, the security invariants, and the two distinct creator-authorization helpers that caused the mismatch above.
+- [ ] Remaining Wave 5 work: richer discovery/trending, and browser/RTL visual review.
+- **Progress:** Wave 5 moves from **30% to 35% provisional**; full ten-wave estimate moves from **~42% to ~43%**. Verification credit recorded for this batch (applied schema + 21-check live behavioral matrix).
+
+## 2026-11-10 — Wave 5 discovery: trending feeds (mega-batch)
+- [x] Closed a real gap: the Discover page only ever searched; with no query it showed an empty state, so there was no way to discover anything on Raye2.
+- [x] Added three pinned `SECURITY DEFINER` read RPCs (`anon, authenticated`), each bounding its limit/window and exposing published content only:
+  - `raye2_get_trending_videos(p_limit, p_window_days)` — views + 3×reactions + 2×published-comments, decayed by age in days.
+  - `raye2_get_trending_posts(p_limit, p_window_hours)` — 3×reactions + 2×published-comments, decayed by age in hours, with author handle and excerpt.
+  - `raye2_get_trending_tags(p_limit, p_window_days)` — most common tags across recently published videos, lowercased and counted.
+- [x] Discover page now renders trending tags, videos and conversations when no term is typed, with EN/AR strings and RTL support and new CSS.
+- [x] Added `tests/raye2-discovery-trending.test.mjs` (4 tests) and 3 validator assertions (now 182).
+- [x] **Live execution caught two fixture issues**: `video_reactions.reaction` allows only `spark/orbit/legend/laugh/mindblown/support` (not `like`), and the matrix needed a clean DB because seeded engagement accumulates across runs. Both corrected.
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 22/22 pass.** Covers fresh-vs-old ranking, per-metric counts (published comments only), bounded limits, window filtering (videos, posts and tags), tag counting/lowercasing, unpublished media and pending posts never trending, and anonymous read access.
+- [x] **Server-render smoke test**: `/search` returns HTTP 200 and renders the trending sections with seeded content in both EN and AR (`dir="rtl"`).
+- [x] Full gate suite green: **141 migrations** on fresh `db reset`; validator 182 assertions; tests **486/486**; `tsc` clean; ESLint 0 errors; build OK.
+- [ ] Remaining Wave 5 work: browser/RTL visual review of the new surfaces.
+- **Progress:** Wave 5 moves from **35% to 40% provisional**; full ten-wave estimate moves from **~43% to ~44%**.
+
+## 2026-11-10 — Wave 3 video topics + related videos (mega-batch)
+- [x] Closed a real discovery gap: the watch page listed tags as dead text and offered no "what next", so a viewer who finished a video had nowhere to go.
+- [x] Added three pinned `SECURITY DEFINER` read RPCs (`anon, authenticated`), each bounding its limit and exposing published video/youtube media only:
+  - `raye2_get_related_videos(p_media_id, p_limit)` — ranks other published videos by shared-tag count, then category match, then recency; never returns the source video.
+  - `raye2_list_topics(p_limit, p_min_count)` — every tag across published videos, lowercased, counted, blanks/oversized tags dropped, most used first.
+  - `raye2_get_topic_videos(p_tag, p_limit)` — videos carrying a tag, case-insensitive, newest first.
+- [x] The watch detail page now loads a "More like this" related rail and each tag links through to a topic browse page.
+- [x] New bilingual, RTL-aware `/topics/[tag]` page with EN/AR strings, empty state and its own CSS.
+- [x] Added `tests/raye2-video-topics-related.test.mjs` (6 tests) and 3 validator assertions (now 185).
+- [x] **Live behavioral matrix via PostgREST with real JWTs: 27/27 pass.** Covers shared-tag vs category ranking, published-only (hidden drafts and unpublished media excluded), limit clamping, case-insensitive topic lookup, blank input, and anonymous read access.
+- [x] **Live execution caught one fixture bug**: the original matrix asserted a "same-category" video that was actually a different category; replaced with a genuine same-category, no-shared-tag video and re-ran clean.
+- [x] **Server-render smoke test**: `/topics/launch` returns HTTP 200 with seeded videos in EN and AR (`dir="rtl"`); the empty state renders for an unknown topic.
+- [x] Full gate suite green: **142 migrations** on fresh `db reset`; validator 185 assertions; tests **492/492**; `tsc` clean; ESLint 0 errors; build OK.
+- [x] Fixed a build-time CSS import path (`../topics.css`) caught by the production build.
+- **Progress:** Wave 3 moves from **23% to 26% provisional**; full ten-wave estimate moves from **~44% to ~45%**.
+
+## 2026-11-10 — Wave 3 continue-watching (mega-batch)
+- [x] Added member-private `watch_progress` (RLS on select/insert/update/delete, all scoped to `auth.uid()`) and three guarded RPCs: `raye2_record_watch_progress`, `raye2_get_continue_watching`, `raye2_clear_watch_progress`.
+- [x] `PublicVideoPlayer` gained an optional throttled `onProgress` callback (fires on timeupdate/pause/ended); the watch detail page persists progress.
+- [x] The watch library mounts a bilingual, RTL-aware "Continue watching" rail that links back with `?t=<seconds>` to resume.
+- [x] **Live matrix 17/17** with real JWTs: record/read, position clamping to duration, finished-item exclusion (>=95% or within 30s), draft/unpublished refusal, cross-member isolation, recency ordering, clear, anonymous empty read, anonymous write refusal.
+- [x] Tests +6 (498 total); validator +3 assertions (188); gates green (143 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 3 moves from **26% to 29% provisional**; full ten-wave estimate moves from **~45% to ~46%**.
+
+## 2026-11-10 — Wave 3 unified search (mega-batch)
+- [x] Replaced three separate Discover client queries (videos, people, posts) with one pinned `SECURITY DEFINER` read RPC `raye2_search(p_query, p_limit)` returning a single ranked set across videos, people, posts and tags.
+- [x] Ranking: exact match, then prefix, then loose; LIKE wildcards escaped; limit clamped to 60; blank queries return nothing. Only published videos, public members, published posts and valid tags are exposed.
+- [x] Discover gained a Tags tab and Tags section linking to topic pages, and lost its N+1 author lookups.
+- [x] **Live matrix 19/19**: four kinds returned, exact-title ranking, draft/unpublished/private/pending exclusion, `%` wildcard escaping, blank input, limit clamping, case-insensitivity.
+- [x] Tests +5 (503 total); validator +3 assertions (191); gates green (144 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 3 moves from **29% to 32% provisional**; full ten-wave estimate moves from **~46% to ~47%**.
+
+## 2026-11-10 — Wave 3 creator directory (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPC `raye2_list_creators(p_limit, p_sort)` listing public creators with at least one published video, plus published-video count, follower count and total views.
+- [x] Sortable by published / followers / views with unknown-sort fallback and a limit clamped to 60. Private profiles and creators with no published videos are never returned.
+- [x] New bilingual RTL `/creators` surface with sort tabs; each card links to `/u/<handle>`. Reachable from the home rail and the discover rail.
+- [x] **Live matrix 13/13**: public-only filtering, published-video gate, correct counts, all three sort orders, unknown-sort fallback, limit clamping.
+- [x] Tests +5 (508 total); validator +3 assertions (194); gates green (145 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 3 moves from **32% to 35% provisional**; full ten-wave estimate moves from **~47% to ~48%**.
+
+## 2026-11-10 — Wave 3 series discovery (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPCs `raye2_list_series(p_limit)` and `raye2_get_series(p_slug, p_limit)`.
+- [x] Index reports real playable video counts, summed runtime, a public cover path and creator attribution; empty playlists excluded; limit clamped to 100. Detail returns ordered episodes including external YouTube embeds; case-insensitive slug; limit clamped to 200.
+- [x] Series index rebuilt bilingual + RTL-aware with cover art, runtime and creator, and the N+1 count queries removed; detail page bilingual and marks external episodes.
+- [x] **Live matrix 22/22**: playable-only counts, runtime sum, cover path, creator attribution, position ordering, YouTube inclusion, draft/unpublished exclusion, case-insensitive slug, empty/unknown series, limit clamping.
+- [x] Tests +5 (513 total); validator +3 assertions (197); gates green (146 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 3 moves from **35% to 38% provisional**; full ten-wave estimate moves from **~48% to ~49%**.
+
+## 2026-11-10 — Wave 5 community feed (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPCs `raye2_get_community_feed(p_limit, p_sort, p_following_only)` and `raye2_get_post_comments(p_post_id, p_limit)`.
+- [x] Feed returns author, reaction count, comment count and pinned flag in one call; supports latest/hot ordering (time-decayed engagement score) and following-only filtering; viewers never see posts from members they blocked. Limit clamped to 80.
+- [x] Comment thread returns published comments with author attribution, oldest first, only for published posts. Limit clamped to 100.
+- [x] Community page calls the feed RPC (removing the per-author profile round trip); client seeds counts from it, loads comments via the RPC, renders `@handle` attribution, and offers a New/Hot sort toggle.
+- [x] **Live matrix 21/21**: draft exclusion, published-only comment counts, author attribution, block exclusion, following-only feed, pinned-first ordering, comments hidden on drafts/unknown posts, limit clamping.
+- [x] Tests +5 (518 total); validator +3 assertions (200); gates green (147 migrations, tsc, lint 0 errors, build OK); EN + AR RTL server-render verified.
+- **Progress:** Wave 5 moves from **30% to 34% provisional**; full ten-wave estimate moves from **~49% to ~50%**.
+
+## 2026-11-10 — Wave 5 notification inbox (mega-batch)
+- [x] Added pinned authenticated `SECURITY DEFINER` read RPCs `raye2_get_notifications(p_limit, p_before, p_only_unread)` and `raye2_get_notification_summary()`.
+- [x] Inbox returns the caller's own notifications with actor attribution in one call, newest first, cursor-paged by `created_at`, optionally unread-only, and excludes actors the caller blocked or who blocked the caller. Limit clamped to 100.
+- [x] Summary returns unread total plus follow/reaction/comment counts, blocked actors excluded so counts match the inbox.
+- [x] Notifications page calls the inbox RPC; client renders filter tabs with live counts, keeps realtime inserts (refreshing the summary), and offers cursor-based Load more.
+- [x] **Live matrix 21/21**: own-inbox scoping, unread filter, summary counts, both-direction block exclusion, cursor paging without overlap, limit clamp, anonymous denied.
+- [x] Tests +4 (522 total); validator +3 assertions (203); gates green (148 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **34% to 38% provisional**; full ten-wave estimate moves from **~50% to ~51%**.
+
+## 2026-11-10 — Wave 5 public group spaces (mega-batch)
+- [x] Added pinned `SECURITY DEFINER` read RPCs `raye2_list_public_groups(p_limit, p_search)`, `raye2_get_group(p_slug)` (anon + authenticated) and member-gated `raye2_get_group_members(p_group_id, p_limit)` (authenticated only).
+- [x] Directory lists public, joinable groups with active member count, message count, last activity, topics and owner attribution, newest activity first, with optional name/description search. Limit clamped to 100.
+- [x] Detail returns one group by slug with counts, owner attribution and the caller's own role/status; private groups are returned only to members or managers. Roster orders owner-first and returns nothing to non-members.
+- [x] Added public `/groups` directory (search + cards with counts, activity and membership badge) and `/groups/[slug]` detail (counts, rules, member roster, private-group notice), bilingual and RTL-aware, and linked Spaces from the home rail.
+- [x] **Live matrix 25/25**: public listing excludes private groups, counts, search, anonymous/non-member/owner detail visibility, membership reflection, unknown-slug 404, roster gating.
+- [x] Tests +5 (527 total); validator +3 assertions (206); gates green (149 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **38% to 43% provisional**; full ten-wave estimate moves from **~51% to ~52%**.
+
+## 2026-11-10 — Wave 5 saved-library collection contents (mega-batch)
+- [x] Added pinned owner-scoped `SECURITY DEFINER` RPCs `raye2_get_collection(p_collection_id, p_limit)`, `raye2_update_collection(p_collection_id, p_name, p_description)` and `raye2_delete_collection(p_collection_id)`, all authenticated-only and re-checking ownership.
+- [x] Collection contents resolve published posts (author attribution + trimmed body) and published videos (title, alt text, slug), newest first; unpublished/removed items drop out; limit clamped to 200.
+- [x] Rename/redescribe validates name (1-60) and description (≤280); delete cascades items.
+- [x] Saved library opens a collection into a detail view with inline rename, delete and per-item removal; collection rows gained an Open action.
+- [x] **Live matrix 18/18**: contents and counts, post/video resolution, owner scoping, anonymous denial, rename + blank-name validation, item removal, unpublished-content dropping, non-owner delete denial, cascade delete.
+- [x] Tests +4 (531 total); validator +3 assertions (209); gates green (150 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **43% to 48% provisional**; full ten-wave estimate moves from **~52% to ~53%**.
+
+## 2026-11-10 — Wave 6 search depth (mega-batch)
+- [x] Replaced `raye2_search(text, integer)` in place (same signature) to add a `group` kind for public, joinable groups with exact/prefix ranking, and to exclude accounts the viewer blocked in either direction from people and posts.
+- [x] Videos, tags and anonymous behaviour unchanged; still pinned `SECURITY DEFINER`, granted to anon + authenticated, exposing only published content, public members and public groups.
+- [x] Discover page renders a Spaces section and Spaces tab; group results link to `/groups/[slug]`.
+- [x] **Live matrix 12/12**: public group returned, private group hidden, anonymous sees blocked content, signed-in viewer loses blocked author's posts in both directions, own content retained, rank ordering, limit clamp, no-match empty.
+- [x] Tests +4 (535 total); validator +2 assertions (211); gates green (151 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 6 moves from **10% to 18% provisional**; full ten-wave estimate moves from **~53% to ~54%**.
+
+## 2026-11-10 — Wave 6 browsable topics directory (mega-batch)
+- [x] Grew `raye2_list_topics` in place (dropped + recreated, same `integer, integer` signature) to add `total_views` and a 90-day `recent_video_count`; still pinned `SECURITY DEFINER`, granted to anon + authenticated, aggregating only published videos with case-folded tags.
+- [x] Added a public `/topics` index page: topic cards with video/view/recent counts, an All topics / Active topics (min 2) filter, localized copy, cards linking to `/topics/[tag]`.
+- [x] Topic detail page "All topics" link now returns to `/topics`.
+- [x] **Live matrix 10/10**: per-video tag counting, summed views, recent count, unpublished videos excluded, min-count keep/drop, mixed-case folding, limit clamp.
+- [x] Tests +3 (538 total); validator +2 assertions (213); gates green (152 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 6 moves from **18% to 26% provisional**; full ten-wave estimate moves from **~54% to ~55%**.
+
+## 2026-11-10 — Wave 6 watch creator/series context + public video outage repair (mega-batch)
+- [x] Added `raye2_get_watch_context(text)` (SECURITY DEFINER, STABLE, pinned `search_path`, anon + authenticated): creator identity with follower count and viewer follow state, plus the first published playlist and its playable episode count; blocked creators withheld.
+- [x] Watch page now shows a creator card (avatar, followers, optimistic Follow via `raye2_toggle_follow`) linking to `/u/<handle>` and a series card linking to `/series/<slug>` with "Episode N / M"; localized en/ar and styled.
+- [x] **Repaired a pre-existing outage**: the anon revoke of `can_view_creator_workspace()` broke the anon SELECT policies on `video_catalog`/`video_playlists`/`video_playlist_items`/`member_profiles`, so `/watch/<slug>` 404'd and home/shorts/Raye2-home/saved silently showed no videos. Restored the anon grant (anon still sees published-only).
+- [x] **Repaired ambiguous embeds**: pinned every public `video_catalog -> media_items` embed to `media_items!video_catalog_media_id_fkey!inner(...)` (home, public videos, watch library, Raye2 home, saved, shorts, community moments picker).
+- [x] **Live matrix 13/13** watch context + **7/7** anon visibility; all seven public embeds probed OK; `/`, `/shorts`, `/raye2/home` render seeded videos again.
+- [x] Tests 545/545 (+3); validator +6 assertions (219); gates green (154 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 6 moves from **26% to 34% provisional**; full ten-wave estimate moves from **~55% to ~56%**. The outage repair is a correctness fix that also unblocks previously invisible public content.
+
+## 2026-11-10 — Wave 5 profile depth + public community outage repair (mega-batch)
+- [x] Added `raye2_get_profile_overview(text)` (SECURITY DEFINER, STABLE, pinned `search_path`, anon + authenticated): real labelled counts (published videos, views, reactions, followers, following, posts, recent posts, shorts) and an `is_creator` flag, matching `member_profiles` RLS visibility.
+- [x] Profile header now shows true, individually-labelled stats (was labelling posts+videos+shorts as "Posts"), a creator badge and a private tag; posts section shows the true post count plus recent activity.
+- [x] Pinned the profile `media_items -> video_catalog` embed (bare embed was ambiguous -> empty videos section).
+- [x] **Repaired a pre-existing outage**: the anon revoke of `is_member_blocked()` plus `private.can_moderate_community()` being granted only to authenticated broke the anon SELECT policies on community posts/comments/shorts, video comments, member follows and member profiles -> the entire public community surface rendered empty. Restored the anon grants and moved the `member_blocks` reachability check into a new `raye2_viewer_blocked()` definer helper.
+- [x] **Live matrices:** profile overview 18/18; community reads/block semantics green; anon policy sweep across 19 tables shows no remaining "permission denied for function"; `/u/<handle>` and `/community` render again.
+- [x] Tests 550/550 (+5); validator +4 assertions (223); gates green (156 migrations, tsc, lint 0 errors, build OK).
+- **Progress:** Wave 5 moves from **~70% to ~82% provisional**; full ten-wave estimate moves from **~56% to ~58%**. Two outage-class regressions fixed (workspace + block/moderation helpers), restoring all public reads.
+
+## 2026-11-10 — Wave 3/4 threaded video comments + per-comment reactions (mega-batch)
+- [x] Added `video_comments.parent_comment_id` with a guard trigger enforcing one-level threading (no self-replies, no nested replies, no cross-video replies).
+- [x] Reply visibility follows the parent comment: the public read policy requires a published, unblocked parent, so replies cannot leak while their parent is hidden.
+- [x] Added `video_comment_reactions` (member-only writes, anon-safe read policy) and a guarded `raye2_toggle_comment_reaction` RPC.
+- [x] Added pinned SECURITY DEFINER reads `raye2_get_video_comment_thread` and `raye2_get_video_comment_replies` (author identity, reply/reaction counts, the viewer's own reaction) granted to anon.
+- [x] Added `video_comment_reply` / `video_comment_reaction` notifications for the parent comment author and comment author.
+- [x] Watch client now renders author avatars/handles, per-comment reactions, a reply composer and expandable reply lists, with optimistic updates and bilingual strings.
+- [x] **Live matrix:** 21/21 (anon thread read, reply moderation gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
+- [x] Gates: validator 227 assertions; tests 556/556 (+6); tsc clean; lint 0 errors/24 warnings; build OK (157 migrations).
+- **Progress:** Wave 3 moves from **38% to 41% provisional**; full ten-wave estimate moves from **~58% to ~59%**.
+
+## 2026-11-10 — Threaded community Shorts comments + per-comment reactions (mega-batch)
+- [x] Added `community_short_comments.parent_comment_id` with a guard trigger enforcing one-level threading (no self-replies, no nested replies, no cross-short replies).
+- [x] Reply visibility follows the parent comment (published, unblocked parent required), so replies cannot leak while their parent is hidden.
+- [x] Added `community_short_comment_reactions` (member-only writes, anon-safe read policy) and a guarded `raye2_toggle_short_comment_reaction` RPC.
+- [x] Added pinned SECURITY DEFINER reads `raye2_get_short_comment_thread` / `raye2_get_short_comment_replies` (author identity, reply/reaction counts, the viewer's own reaction) granted to anon.
+- [x] Added `community_short_comment_reply` / `community_short_comment_reaction` notifications.
+- [x] Shorts client now renders author initials, per-comment reactions, a reply composer and expandable reply lists, with optimistic updates and bilingual strings.
+- [x] **Live matrix:** 20/20 (anon thread read, reply moderation gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
+- [x] Gates: validator 231 assertions; tests 562/562 (+6); tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Shorts comment depth complete; full ten-wave estimate moves from **~59% to ~60%**.
+
+## 2026-11-10 — Threaded community post comments + per-comment reactions (mega-batch)
+- [x] Added `community_comments.parent_comment_id` with a guard trigger enforcing one-level threading (no self-replies, no nested replies, no cross-post replies).
+- [x] Reply visibility follows the parent comment (published, unblocked parent required).
+- [x] Added `community_comment_reactions` (member-only writes, anon-safe read policy) and a guarded `raye2_toggle_post_comment_reaction` RPC.
+- [x] Extended `raye2_get_post_comments` with `reply_count`/`reaction_count`/`my_reaction` while keeping its existing columns, and closed a gap where the definer read did not exclude blocked authors.
+- [x] Added `raye2_get_post_comment_replies` (author identity, reaction count, the viewer's own reaction) granted to anon.
+- [x] Added `community_comment_reply` / `community_comment_reaction` notifications.
+- [x] Community client now renders per-comment reactions, a reply composer and expandable reply lists, with optimistic updates and bilingual strings.
+- [x] **Live matrix:** 19/19 (anon thread read, reply gating, nested-reply rejection, reaction insert/change/clear, anon denied, block-aware visibility, notifications).
+- [x] Gates: validator 236 assertions; tests 569/569 (+7); tsc clean; lint 0 errors/24 warnings; build OK (159 migrations).
+- **Progress:** All three community/video comment surfaces now have replies + per-comment reactions. Wave 5 moves from **~82% to ~85% provisional**; Wave 3 (watch comment depth) from **41% to 42% provisional**; full ten-wave estimate moves from **~60% to ~61%**.
+
+## 2026-11-10 — Notification center completeness + threaded home feed comments (mega-batch)
+- [x] `raye2_get_notification_summary` now counts all eleven notification types (the six threaded reply/reaction types were previously invisible in the filter badges).
+- [x] `raye2_get_notifications` gained a `p_filter` (`all`/`follow`/`reaction`/`comment`); the comment bucket excludes reaction types so the list length matches its badge.
+- [x] Notifications client localizes all eleven types (the threaded types fell back to raw English in Arabic), pages within the active filter, and offers "Load more" for every filter.
+- [x] The Raye2 home feed comment panel now renders author identity, per-comment reactions, a reply composer and expandable replies, closing the last flat comment surface.
+- [x] **Live matrix:** 13/13 (summary counts, per-filter isolation, list/badge parity, filtered cursor paging, blocked-actor exclusion, anon denial).
+- [x] Gates: validator 240 assertions; tests 574/574 (+5); tsc clean; lint 0 errors/24 warnings; build OK (160 migrations).
+- **Progress:** Wave 5 moves from **~85% to ~88% provisional**; full ten-wave estimate moves from **~61% to ~62%**.
+
+## 2026-11-10 — Community feed polls (mega-batch)
+- [x] Added a post-scoped poll model: `community_post_polls`, `community_post_poll_options` and `community_post_poll_votes` (one vote per member), all RLS-enabled and revoked from direct client access.
+- [x] `raye2_create_community_poll` validates 2–6 unique options, a future closing time and option length; `raye2_vote_community_poll` enforces a published, unblocked parent, an open poll and a single vote; `raye2_get_community_poll` exposes an anon-safe tally without individual votes.
+- [x] `raye2_get_community_feed` now carries poll id, question, options, total, closing time and the viewer's own vote.
+- [x] Community composer gains a poll builder; poll posts render option bars that reveal results only after voting, with optimistic updates. New `community_poll_vote` notifications are localized in the inbox.
+- [x] **Live matrix:** 19/19 (creation, feed exposure, tally isolation before voting, voting, double-vote refusal, invalid creation, unknown option, second member, anonymous read/deny, notification).
+- [x] Gates: validator 244 assertions; tests 580/580 (+6); tsc clean; lint 0 errors/24 warnings; build OK (161 migrations).
+- **Progress:** Wave 5 moves from **~88% to ~91% provisional**; full ten-wave estimate moves from **~62% to ~63%**.
+
+## 2026-11-10 — Group bans (mega-batch)
+- [x] Added `raye2_ban_group_member` / `raye2_unban_group_member` (authenticated, hierarchy-aware, owner/self targets refused, audited) and a manager-only `raye2_get_group_bans` read; `raye2_group_members` gained `restricted_at`.
+- [x] Bans are durable: the existing join, invite and join-request review paths already refuse `banned` members, so a banned person can no longer rejoin a public group or reuse an invite — the gap that made removal temporary.
+- [x] Group manage modal now bans/unbans members and lists restricted members, with bilingual copy.
+- [x] **Live matrix:** 18/18 (member denied, owner ban, status/restricted_at, rejoin blocked, manager-only list, admin-vs-admin hierarchy, unban + rejoin, self-ban refused, audit, anon denied).
+- [x] Gates: validator 247 assertions; tests 585/585 (+5); tsc clean; lint 0 errors/24 warnings; build OK (162 migrations).
+- **Progress:** Wave 5 moves from **~91% to ~93% provisional**; full ten-wave estimate moves from **~63% to ~64%**.
+
+## 2026-11-10 — Community announcements (mega-batch)
+- [x] Added `raye2_create_community_announcement` (active-creator only, guarded, validates body and linked video) so official posts can finally be authored — the schema and feed already supported them but no write path existed.
+- [x] A trigger notifies the author's followers through the inbox (`community_announcement`), and the notification summary counts it as unread while keeping it out of the follow/reaction/comment buckets.
+- [x] New creator-workspace announcement composer (body, pin toggle, counter, bilingual) plus inbox localization.
+- [x] **Live matrix:** 16/16 (non-creator/anon denied, publish + official/published/pinned, feed + pinned-first ordering, follower notification and stranger exclusion, summary bucket isolation, validation).
+- [x] Gates: validator 250 assertions; tests 590/590 (+5); tsc clean; lint 0 errors/24 warnings; build OK (163 migrations).
+- **Progress:** Wave 5 moves from **~93% to ~95% provisional**; full ten-wave estimate moves from **~64% to ~65%**.
+
+## 2026-11-10 — Event reminders, host roles and event types (mega-batch)
+- [x] Events gained `event_type` (community/office_hours/qa/collab/watch_party/other), `reminder_minutes_before` and `reminder_sent_at`.
+- [x] New `event_hosts` (one host per event via partial unique index, many co-hosts) with creator-only `raye2_set_event_host`/`raye2_remove_event_host` and a public `raye2_get_event_hosts` limited to published events.
+- [x] `save_creator_event` now accepts type + reminder; `raye2_get_public_events` returns type, host count and exact RSVP status; notification preferences gained an event-reminders opt-out.
+- [x] `raye2_dispatch_event_reminders()` notifies going members once (claim + `FOR UPDATE SKIP LOCKED`), honouring opt-out and quiet hours.
+- [x] Creator form: type/reminder selectors + host/co-host editor; public calendar: type badge + "Hosted by" line; settings: event-reminders toggle.
+- [x] **Live matrix:** 18/18 (auth, typed event + reminder, validation, host/co-host + guard, single-host, feed shape, RSVP status, idempotent dispatch, opt-out).
+- [x] Gates: validator 257 assertions; tests 596/596 (+6); tsc clean; lint 0 errors/24 warnings; build OK (164 migrations).
+- **Progress:** Wave 5 moves from **~95% to ~97% provisional**; full ten-wave estimate moves from **~65% to ~66%**.
+
+## 2026-11-10 — Community feed topic channels (mega-batch)
+- [x] New `community_topics` curated channel set (seeded: general/feedback/help/behind-the-scenes/clips), publicly readable when active.
+- [x] `community_posts.topic_slug` with FK; `raye2_set_post_topic` lets only the author assign a channel.
+- [x] `raye2_list_community_topics` lists active channels with published-post counts; `raye2_get_community_feed` gained `p_topic` and returns `topic_slug`/`topic_name`.
+- [x] Composer channel selector; feed channel filter row with counts; per-post `#channel` badge.
+- [x] **Live matrix:** 12/12 (anon listing + counts, author assign, non-author/anon denied, unknown channel rejected, feed shape, channel filter, count tracking).
+- [x] Gates: validator 261 assertions; tests 601/601 (+5); tsc clean; lint 0 errors/24 warnings; build OK (165 migrations).
+- **Progress:** Wave 5 moves from **~97% to ~98%**; full ten-wave estimate moves from **~66% to ~67%**.
+
+## 2026-11-10 — Group chat topic channels (mega-batch)
+- [x] New `raye2_group_topics` (per-group, unique slug, manager-created) with member/manager read policy.
+- [x] `raye2_messages.topic_id` with a guard trigger rejecting cross-conversation topics.
+- [x] `raye2_create_group_topic` (manager-only, derived unique slug), `raye2_delete_group_topic` (manager-only, history kept), `raye2_list_group_topics` (membership-guarded, counts).
+- [x] Group chat channel bar (All + channels with counts), manager-only channel manager, per-message channel chip, and channel-scoped message list.
+- [x] **Live matrix:** 15/15 (create + unique slugs, member/outsider denied, member list, scoped message + count, cross-group rejected, manager-only delete, history kept).
+- [x] Gates: validator 265 assertions; tests 605/605 (+4); tsc clean; lint 0 errors/24 warnings; build OK (166 migrations).
+- **Progress:** Wave 5 moves from **~98% to ~99%**; full ten-wave estimate moves from **~67% to ~68%**.
+
+## 2026-11-10 — Community moderation toolkit (mega-batch)
+- [x] `content_reports` resolution metadata; `community_posts`/`community_comments` moderation metadata.
+- [x] `raye2_report_community_content` (validates target type, reason, target existence).
+- [x] `raye2_moderate_community_post` / `_comment` (remove/reject/restore, moderator-only, audit row, auto-resolve reports).
+- [x] `raye2_get_community_moderation_queue`, `raye2_get_moderated_community_posts`, `raye2_resolve_content_report` (moderator-only).
+- [x] Report modal with reason chips; moderator workspace (report queue + removed-content restore); per-post remove action.
+- [x] **Live matrix:** 23/23 (report validation, moderator-only reads, remove/restore post + comment, audit rows, auto-resolve, manual dismiss with note).
+- [x] Gates: validator 269 assertions; tests 609/609 (+4); tsc clean; lint 0 errors/24 warnings; build OK (167 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) moves from **~35% to ~45%**; full ten-wave estimate **~68% to ~69%**.
+
+## 2026-11-10 — Platform admin dashboards + role management (mega-batch)
+- [x] Storage warning/critical thresholds seeded into `raye2_platform_rules` (rules engine).
+- [x] `raye2_get_platform_health()` — 14 aggregate counters, storage classified (admin-only).
+- [x] `raye2_list_platform_admins()` — creator roster joined to member profiles (admin-only).
+- [x] Admin UI: new "Platform health" tab (metric grid with OK/warning/critical) and "Roles & access" tab (role reassignment + suspend/reactivate, owner protected).
+- [x] Admin page loads both datasets server-side.
+- [x] **Live matrix:** 15/15 (health/roster admin-only, moderator rejected, classified storage, seeded thresholds, audited role change + suspension).
+- [x] Gates: validator 273 assertions; tests 613/613 (+4); tsc clean; lint 0 errors/24 warnings; build OK (168 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~45% to ~58%**; full ten-wave estimate **~69% to ~71%**.
+
+## 2026-11-10 — Rules-engine enforcement: quotas, cooldowns, caps (mega-batch)
+- [x] `raye2_rule_int(key, default)` guarded reader; activates the previously proposed caps.
+- [x] Group creation capped per rolling 30 days (`groups.created.normal_user.monthly`).
+- [x] Group membership capped via trigger (`groups.members.default`); existing members may re-activate.
+- [x] Group message length capped via trigger (`chat.message.max_characters`); DMs keep the column limit.
+- [x] New direct-conversation requests capped per rolling 24 hours (`chat.dm.new_conversations.daily`).
+- [x] `raye2_list_active_rules()` visibility surface (member-only); group manage modal lists active limits.
+- [x] **Live matrix:** 16/16 (creation/membership/message caps block and stay within limit, DM exempt from group cap, DM daily cap, rule reader fallback, member-only visibility).
+- [x] Gates: validator 279 assertions; tests 619/619 (+6); tsc clean; lint 0 errors/24 warnings; build OK (169 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~58% to ~72%**; full ten-wave estimate **~71% to ~73%**.
+
+## 2026-11-10 — Safety-report review queue + audit-log filtering (mega-batch)
+- [x] `raye2_get_safety_report_queue()` — status-filtered queue with reporter handle + target preview (moderator/platform-admin).
+- [x] `raye2_resolve_safety_report()` — reviewing/resolved/dismissed/open with append-only audit entry.
+- [x] `raye2_get_admin_audit_log()` — action/actor filters, bounded limit, platform-admin only.
+- [x] Community moderation workspace shows the safety queue with resolve/dismiss actions.
+- [x] Admin audit tab gains action/actor filters.
+- [x] **Live matrix:** 17/17 (queue/resolve/audit access control, resolution audited, leaves open queue, filters by action/actor).
+- [x] Gates: validator 283 assertions; tests 623/623 (+4); tsc clean; lint 0 errors/24 warnings; build OK (170 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~72% to ~85%**; full ten-wave estimate **~73% to ~76%**.
+
+## 2026-11-10 — Cleanup execution + retention sweep (mega-batch)
+- [x] `raye2_cleanup_candidates()` — single candidate resolver honouring enabled policy + preserve flags.
+- [x] `raye2_estimate_cleanup_scope()` — scope-wide item/byte estimate.
+- [x] `raye2_queue_cleanup_job()` / `raye2_run_cleanup_job()` / `raye2_cancel_cleanup_job()` — lifecycle with audit entries; deletes only for `delete` policies, skips `archive`, per-category breakdown.
+- [x] `raye2_preview_retention_sweep()` — candidates + oldest per enabled policy.
+- [x] Admin cleanup tab gains queue/run/cancel per job + retention sweep preview.
+- [x] **Live matrix:** 20/20 (admin-only queue/run/cancel, frozen estimate matches deletions, old removed/recent kept, archive skipped, cancelled jobs inert).
+- [x] Gates: validator 287 assertions; tests 627/627 (+4); tsc clean; lint 0 errors/24 warnings; build OK (171 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~85% to ~93%**; full ten-wave estimate **~76% to ~78%**.
+
+## 2026-11-10 — Moderation actions, enforcement and appeals (mega-batch)
+- [x] `raye2_member_restrictions` + `raye2_moderation_appeals` tables.
+- [x] `raye2_apply_member_restriction` / `raye2_lift_member_restriction` — warning/timeout/rate_reduction/feature_restriction/suspension/ban, audited; platform admins protected from moderators.
+- [x] `raye2_has_active_restriction` — single expiry-aware check; `raye2_enforce_restrictions` triggers on posts, comments and messages.
+- [x] `raye2_submit_moderation_appeal` (own restriction, one open) / `raye2_review_moderation_appeal` (grant lifts).
+- [x] Community moderation workspace lists active restrictions (timeout/restrict-posting/ban/lift) + open appeal queue (grant/deny).
+- [x] **Live matrix:** 20/20 (access control, enforcement on post/comment, appeal ownership + dedupe, grant lifts, admin protection).
+- [x] Gates: validator 291 assertions; tests 631/631 (+4); tsc clean; lint 0 errors/24 warnings; build OK (172 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~93% to ~98%**; full ten-wave estimate **~78% to ~80%**.
+
+## 2026-11-10 — Quota usage and rejected-attempt tracking (mega-batch)
+- [x] `raye2_quota_rejections` table + `raye2_record_quota_rejection` — server-verified rejections only.
+- [x] `raye2_quota_used` (authoritative usage; null for unmeasurable rules) + `raye2_get_quota_usage` (caller usage/remaining).
+- [x] `raye2_get_quota_overview` — platform-admin rejection totals + distinct affected accounts per rule.
+- [x] Admin dashboard Quotas tab (limit, rejections, accounts, last rejection).
+- [x] **Live matrix:** 15/15 (usage accuracy, no false rejections, overview totals, unmeasurable rules excluded).
+- [x] Gates: validator 295 assertions; tests 635/635 (+4); tsc clean; lint 0 errors/24 warnings; build OK (173 migrations).
+- **Progress:** Wave 5 ~99%; Wave 8 (Admin/Moderation) **~98% to ~100%**; full ten-wave estimate **~80% to ~82%**.
+
+## 2026-11-10 — Durable background-job framework (mega-batch)
+- [x] `raye2_background_jobs` — durable queue with priority, run_at, lease, attempts, idempotency key, result/error.
+- [x] `raye2_enqueue_background_job` (admin/worker) + idempotent enqueue.
+- [x] `raye2_claim_background_job` (service-role worker only, `FOR UPDATE SKIP LOCKED`, expired-lease reclaim).
+- [x] `raye2_complete_background_job` — lease-token checked; exponential backoff requeue, fail at ceiling.
+- [x] `raye2_cancel_background_job` / `raye2_retry_background_job` (audited) + stats/list observability RPCs.
+- [x] Admin dashboard Jobs tab (backlog by status/kind, stuck leases, retry/cancel).
+- [x] **Live matrix:** 28/28 (access control, idempotency, lease guards, backoff→fail, manual retry, cancel rules, stats).
+- [x] Gates: validator 299 assertions; tests 639/639 (+4); tsc clean; lint 0 errors/24 warnings; build OK (174 migrations).
+- **Progress:** Wave 8 ~100%; Wave 9 (Security/reliability/ops) **~40% to ~55%**; full ten-wave estimate **~82% to ~84%**.
+
+## 2026-11-10 — Content takedown and copyright workflow (mega-batch)
+- [x] `raye2_content_takedowns` — target, reason, claimant, evidence, prior state, actor, reinstatement.
+- [x] `raye2_apply_content_takedown` — records prior state, immediately makes posts/comments `removed` and unpublishes media; copyright requires a claimant; duplicate active takedowns blocked.
+- [x] `raye2_reinstate_content_takedown` — restores prior state; both directions audited.
+- [x] `raye2_get_takedown_queue` — moderator queue.
+- [x] Community moderation workspace takedowns panel with reinstatement.
+- [x] **Live matrix:** 19/19 (access control, immediate inaccessibility, claimant rule, duplicate guard, reinstate, audit).
+- [x] Gates: validator 303 assertions; tests 643/643 (+4); tsc clean; lint 0 errors/24 warnings; build OK (175 migrations).
+- **Progress:** Wave 8 ~100%; Wave 9 (Security/reliability/ops) **~55% to ~68%**; full ten-wave estimate **~84% to ~86%**.
+
+## 2026-11-10 — Rate limits + comment-policy recursion fix (mega-batch)
+- [x] `raye2_rate_limit_counters` + `raye2_rate_limit` (atomic fixed window) + `raye2_enforce_rate_limit` trigger on posts/comments/messages/safety reports.
+- [x] Configurable rules `rate.community.post.hourly` / `rate.community.comment.hourly` / `rate.chat.message.hourly` / `rate.safety.report.hourly`; non-positive disables.
+- [x] `raye2_get_rate_limit_usage` (caller) + `raye2_get_rate_limit_stats` (admin).
+- [x] **Critical fix:** comment-thread SELECT policies self-referenced their own table → infinite recursion that broke all community comments. Parent visibility moved to security-definer helpers; community_comments / community_short_comments / video_comments policies recreated.
+- [x] **Live matrix:** 11/11 (enforcement, window usage, disable, admin stats, comment read/insert after fix).
+- [x] Gates: validator 306 assertions; tests 646/646 (+3); tsc clean; lint 0 errors/24 warnings; build OK (176 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~68% to ~76%**; full ten-wave estimate **~86% to ~87%**.
+
+## 2026-11-10 — Telemetry for client errors, API latency, realtime quality (mega-batch)
+- [x] `raye2_telemetry_events` — bounded event store (type, surface, severity, message, duration, metric, context).
+- [x] `raye2_record_telemetry` — signed-in user events + service-role system events, with guards.
+- [x] `raye2_get_telemetry_summary` (counts by type/severity + p50/p95 latency), `raye2_list_telemetry_events` (filters), `raye2_prune_telemetry` (audited retention) — admin-only.
+- [x] `TelemetryReporter` client component (window `error` + `unhandledrejection`) mounted in the root layout.
+- [x] Admin dashboard Telemetry tab (errors, p50/p95 latency, recent events, prune).
+- [x] **Live matrix:** 17/17 (access control, validation, percentiles, admin gating, prune + audit).
+- [x] Gates: validator 310 assertions; tests 650/650 (+4); tsc clean; lint 0 errors/24 warnings; build OK (177 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~76% to ~85%**; full ten-wave estimate **~87% to ~89%**.
+
+## 2026-11-10 — Cost and capacity accounting with backpressure (mega-batch)
+- [x] `raye2_capacity_limits` — configurable metrics (unit, limit, warning %, enabled), seeded for storage bytes, job queue, realtime connections, encoding queue.
+- [x] `raye2_capacity_used` — authoritative usage from real sources (or null; never invents numbers).
+- [x] `raye2_assert_capacity` (raises `53100` before exhaustion) + `raye2_enforce_job_capacity` trigger on the background-job queue.
+- [x] `raye2_get_capacity_report` (usage/limit/%/state/headroom, admin) + `raye2_set_capacity_limit` (tunable, audited).
+- [x] Admin dashboard Capacity tab (usage, limit, headroom, state).
+- [x] **Live matrix:** 14/14 (admin gating, real usage, exact headroom, queue backpressure + disable, tuning validation, critical state, audit).
+- [x] Gates: validator 314 assertions; tests 654/654 (+4); tsc clean; lint 0 errors/24 warnings; build OK (178 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~85% to ~92%**; full ten-wave estimate **~89% to ~90%**.
+
+## 2026-11-10 — Role-based publishing permissions + quota matrix (mega-batch)
+- [x] **Streamer role** added to `creator_admins`/`creator_invites`; owner/admin assign it (no self-assign).
+- [x] `raye2_creator_tier` → creator / streamer / combined (owner,admin) / none.
+- [x] `raye2_role_quotas` seeded from the plan matrix (creator 5/4d; streamer 5/2; combined 3/3/20 non-additive; 30 Moments).
+- [x] `raye2_assert_creator_action` enforces action permission + monthly quota + long-video cooldown server-side, with reasons.
+- [x] `raye2_get_creator_capabilities` (allowed actions + reasons + quotas + real usage); admin `raye2_get_creator_permission_matrix` + `raye2_set_role_quota` (audited).
+- [x] Creator Studio: Streamer reaches the workspace; new **Permissions & quotas** panel (permitted actions, why blocked, usage/quota).
+- [x] **Live matrix:** 26/26 (tier mapping, non-additive quotas, per-tier blocks, cooldown, quota-reached, matrix, tuning, audit, role assignment).
+- [x] Gates: validator 318 assertions; tests 658/658 (+4); tsc clean; lint 0 errors/24 warnings; build OK (179 migrations).
+- **Progress:** Wave 9 (Security/reliability/ops) **~92% to ~96%**; full ten-wave estimate **~90% to ~91%**.
+
+## 2026-11-10 — Live streaming lifecycle, quotas, moderation and replay retention (mega-batch)
+- [x] `raye2_live_streams` + `raye2_live_stream_events`; provider URLs stay null until a real provider exists (nothing invented).
+- [x] Active tunable rules: max duration 3h, max concurrent streams, replay retention 24h.
+- [x] `raye2_start_live_stream` server-authoritative: Streamer/Creator+Streamer gate + monthly/weekly quota + concurrency, serialized per streamer.
+- [x] `raye2_end_live_stream` sets the logical replay window and queues **physical deletion as a durable background job**; `raye2_expire_live_replays` enforces expiry.
+- [x] Health, visibility, moderation (audited), my-streams, public listing, visibility-aware single read, admin overview.
+- [x] Creator Studio **Live studio** panel; Admin dashboard **Live** tab; **Streamer** added to the role selector.
+- [x] Fixed a real bug found by the live matrix: `ON CONFLICT (idempotency_key)` could not target the **partial** unique index on background jobs; replaced with a guarded insert.
+- [x] **Live matrix:** 33/33 (role gating, weekly/monthly quota, concurrency, health permissions, end + ~24h replay window, queued cleanup, event log, visibility/listing, moderation, expiry).
+- [x] Gates: validator 323 assertions; tests 663/663 (+5); tsc clean; lint 0 errors/24 warnings; build OK (180 migrations).
+- **Progress:** Wave 4 (Creator Studio / exclusives / live) **~36% to ~55% provisional**; full ten-wave estimate **~65% to ~67%**.
+
+## 2026-11-10 — Long-video exclusivity and availability expiry (mega-batch)
+- [x] `video_catalog.exclusive_until` + `available_until` (null = not exclusive / no expiry).
+- [x] `raye2_video_accessible` / `raye2_can_view_video` decide access; the catalog **SELECT policy** now uses it, so exclusive/expired videos are not readable by ordinary viewers in the database.
+- [x] `raye2_set_video_exclusivity` owner/admin only, requires published, rejects windows beyond tunable caps (`video.exclusive_max_days` 7, `video.expiry_max_days` 14), audited.
+- [x] `raye2_get_my_video_exclusivity` + Creator Studio **Video exclusivity & expiry** panel.
+- [x] **Exclusivity matrix:** 18/18 (public baseline; hidden from anon/others during exclusivity; owner/admin retain access; release after exclusivity; expiry hides; caps and negatives rejected; must be published; audit).
+- [x] Gates: validator 327 assertions; tests 667/667 (+4); tsc clean; lint 0 errors/24 warnings; build OK (182 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~22% to ~33% provisional**; Wave 4 **~55% to ~62% provisional**; full ten-wave estimate **~67% to ~68%**.
+
+## 2026-11-10 — Public live discovery + anon private-stream fix (mega-batch)
+- [x] `raye2_get_live_now` (public live + in-window replays with streamer identity), granted to anon; `raye2_get_live_stream` now anon-callable.
+- [x] **Security fix:** live ownership checks compared `v_owner = auth.uid()` directly; for anon `auth.uid()` is null, so `not (null)` did not raise and **anon could read a private stream**. All four checks now require `auth.uid() is not null`.
+- [x] New `/live` listing and `/live/[id]` watch detail (player appears once a real provider is connected); home **Live now** section + nav link.
+- [x] **Live discovery matrix:** anon listing + public read; streamer identity; private hidden and unreadable by anon; anon cannot report health/end; owner still works; moderated hidden; replays appear.
+- [x] Gates: validator 330 assertions; tests 671/671 (+4); tsc clean; lint 0 errors/24 warnings; build OK (183 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~33% to ~42% provisional**; full ten-wave estimate **~68% to ~69%**.
+
+## 2026-11-10 — Account self-service lifecycle, data export and preferences (mega-batch)
+- [x] `raye2_account_lifecycle` (active/deactivated/deletion_requested) + `raye2_user_preferences`, owner-scoped RLS.
+- [x] Deactivate / reactivate / request deletion; deletion is **logical first** with a durable `account.purge` job at the end of the tunable grace period (30 days); reactivation cancels the purge.
+- [x] `raye2_request_data_export` queues an `account.export` job (nothing fabricated); `raye2_get_my_data_exports`; preferences get/set with validation; all lifecycle changes audited.
+- [x] New `/account` settings page (lifecycle, preferences, export).
+- [x] **Account matrix:** 20/20 (defaults + anon blocked; deactivate/reactivate; deletion grace + queued purge; cancel purge; export scoping; preference defaults/update/preserve/reject/persist; isolation).
+- [x] Gates: validator 334 assertions; tests 675/675 (+4); tsc clean; lint 0 errors/24 warnings; build OK (184 migrations).
+- **Progress:** Wave 2 (accounts/identity) **~27% to ~40% provisional**; Wave 9 **~96% to ~97%**; full ten-wave estimate **~69% to ~70%**.
+
+## 2026-11-10 — Explainable, privacy-safe video recommendations (mega-batch)
+- [x] `raye2_get_recommended_videos`: engagement-and-recency score + bounded lift from the viewer's **own** watch history; each row carries an explicit **reason** (`based_on_watch_history` + matched category, or `trending`).
+- [x] Respects exclusivity and availability expiry (no leaking exclusive/expired videos); affinity never exposed to others; `raye2_get_my_recommendation_topics` owner-scoped.
+- [x] Home page **Recommended for you** section with a reason line.
+- [x] **Recommendations matrix:** 11/11 (anon trending-reasoned; exclusive excluded; engagement ordering; personalization + reason; topics privacy; expiry + unpublished excluded).
+- [x] Gates: validator 338 assertions; tests 679/679 (+4); tsc clean; lint 0 errors/24 warnings; build OK (185 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~42% to ~50% provisional**; full ten-wave estimate **~70% to ~71%**.
+
+## 2026-11-10 — Keyset feed pagination with load-more (mega-batch)
+- [x] `raye2_get_community_feed_page`: keyset cursor `(created_at, id)` desc; no duplicate/missing items even as new posts arrive; keeps following-only + block exclusions.
+- [x] `HomeFeedMore` with explicit loading, error+retry and end states, reusing `HomeFeedPost`; mounted by the home feed when the first page is full.
+- [x] **Pagination matrix:** 9/9 (page size + newest-first; walk-all-exactly-once; stability under inserts; following filter; empty cursor).
+- [x] Gates: validator 340 assertions; tests 682/682 (+3); tsc clean; lint 0 errors/24 warnings; build OK (186 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~50% to ~58% provisional**; full ten-wave estimate **~71% to ~72%**.
+
+## 2026-11-10 — Restriction enforcement (voice/watch/comments) + member standing (mega-batch)
+- [x] Server-side enforcement closed for the previously-unenforced `voice` and `watch` features: guarded join wrappers (`raye2_join_voice_session_guarded`, `raye2_join_watch_session_guarded`); clients switched to them.
+- [x] `comment` restriction now also enforced on native video comments (new trigger).
+- [x] `raye2_get_my_restrictions`: owner-scoped self-view with latest appeal status; `/account` gains an **Account standing** card with an appeal form.
+- [x] **Restriction matrix:** 19/19 (unrestricted comment on community+video; comment restriction blocks both, not posting; self-view scope + anon blocked; appeal; voice/watch blocks; lift restores).
+- [x] Gates: validator 344 assertions; tests 686/686 (+4); tsc clean; lint 0 errors/24 warnings; build OK (187 migrations).
+- **Progress:** Wave 2 (accounts/permissions) **~40% to ~47% provisional**; Wave 8 (moderation) **~90% to ~93%**; full ten-wave estimate **~72% to ~73%**.
+
+## 2026-11-10 — Temporary role grants, capability overrides and audit (mega-batch)
+- [x] `creator_admins` gains `expires_at`/`granted_by`/`reason`; role checks (`has_creator_role`, `is_creator_owner`, `raye2_is_platform_admin`) honour expiry — a temporary grant loses access **with no write**.
+- [x] `set_creator_admin_role` accepts an optional expiry; new `set_creator_admin_expiry`; `get_creator_team` returns expiry.
+- [x] `raye2_capability_overrides` (bounded, optionally-expiring per-account values) with `raye2_set/revoke/list_capability_override`, `raye2_effective_capability`, owner-scoped `raye2_get_my_capability_overrides`; all audited.
+- [x] Team roster shows/sets access duration (permanent / 7 / 30 / 90 days); `/account` shows the member their own account-specific capabilities.
+- [x] **Grants/overrides matrix:** 19/19 (temporary grant works + listed + audited; expiry stops access with no write; future-expiry guardrail; owner-role guard; non-owner blocked; override resolve/visibility/audit/revoke/expiry; no self-grant; cross-member isolation).
+- [x] Gates: validator 348 assertions; tests 690/690 (+4); tsc clean; lint 0 errors/24 warnings; build OK (188 migrations).
+- **Progress:** Wave 2 (accounts/permissions) **~47% to ~55% provisional**; full ten-wave estimate **~73% to ~74%**.
+
+## 2026-11-10 — Watch-library keyset pagination + shared card builder (mega-batch)
+- [x] `raye2_get_watch_library_page`: keyset cursor `(published_at, media_id)` desc over `raye2_can_view_video` (never surfaces exclusive/expired), excluding unpublished and non-ready native videos.
+- [x] `watch-library-media.ts`: shared, safety-checked card builder (public storage prefix, https-origin check, youtube-nocookie embed, processing_status gate); watch page reads the page RPC and mounts a **Load more** control with loading/error+retry/end states.
+- [x] **Watch-library matrix:** 8/8 (page size + newest-first; exclusive/expired/unready/unpublished excluded; walk-all-exactly-once; stability under a new publish; empty cursor).
+- [x] Gates: validator 352 assertions; tests 694/694; tsc clean; lint 0 errors/24 warnings; build OK (189 migrations). Updated one test whose assertions moved with the refactor (behaviour unchanged).
+- **Progress:** Wave 3 (video/feed/discovery) **~58% to ~65% provisional**; full ten-wave estimate **~74% to ~75%**.
+
+## 2026-11-10 — Discovery exclusivity/expiry enforcement (security fix, mega-batch)
+- [x] Closed a real authorization leak: 8 SECURITY DEFINER discovery RPCs bypassed the catalog RLS policy and surfaced **exclusive or expired** videos. Recreated `raye2_get_related_videos`, `raye2_get_topic_videos`, `raye2_list_topics`, `raye2_get_trending_videos`, `raye2_get_trending_tags`, `raye2_search`, `raye2_get_watch_context`, `raye2_get_continue_watching` with the same `raye2_can_view_video` gate used by the catalog policy and recommendations. Signatures/return types unchanged.
+- [x] **Discovery matrix:** 18/18 (separate viewer hides exclusive+expired across topic hubs, related, trending, search, watch context; counts drop accordingly; continue-watching hides newly-exclusive; owner still sees own; anon parity).
+- [x] Gates: validator 354 assertions; tests 698/698 (+4); tsc clean; lint 0 errors/24 warnings; build OK (190 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~65% to ~70% provisional**; Wave 9 (security/reliability) **~97% to ~98%**; full ten-wave estimate **~75% to ~76%**.
+
+## 2026-11-10 — Creator/profile/watch access check + Owner/Super-Admin separation (2 mega-batches)
+- [x] **Owner/Super-Admin separation** (`186cdf2`): `raye2_is_super_admin()` (owner), `raye2_admin_capabilities()` matrix; `raye2_run_cleanup_job` and `set/revoke_capability_override` are owner-only; admin UI shows the matrix and gates the Run button. Matrix 14/14.
+- [x] **Creator/profile/watch access check**: recreated `raye2_list_creators`, `raye2_get_profile_overview`, `raye2_validate_watch_source` with `raye2_can_view_video`, so exclusive/expired videos no longer inflate creator counts or seed Watch Together. Matrix 6/6.
+- [x] Gates: validator 358 assertions; tests 705/705 (+3); tsc clean; lint 0 errors/24 warnings; build OK (192 migrations).
+- **Progress:** Wave 2 (accounts/permissions) **~55% to ~62% provisional**; Wave 3 (video/feed/discovery) **~70% to ~73%**; Wave 9 (security) **~98%**; full ten-wave estimate **~76% to ~77%**.
+
+## 2026-11-10 — Video access sweep completed (series/comments/collections/reactions/views)
+- [x] Recreated `raye2_list_series`, `raye2_get_series`, `raye2_get_video_comment_thread`, `raye2_get_video_comment_replies`, `raye2_get_collection` with `raye2_can_view_video` (matrix 6/6).
+- [x] Recreated `get_video_reaction_counts`, `record_video_view`, `raye2_video_comment_parent_visible` (matrix 4/4). The whole class of SECURITY DEFINER video reads now honours exclusivity/expiry; a re-run sweep leaves only role-scoped/self-scoped functions.
+- [x] Gates: validator 360 assertions; tests 710/710; tsc clean; lint 0 errors/24 warnings; build OK (193 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~73% to ~76%**; Wave 9 (security) **~98% to ~99%**; full ten-wave estimate **~77% to ~78%**.
+
+## 2026-11-10 — Notification completeness: mentions, live starts, group join requests (2 mega-batches)
+- [x] **@mention notifications** (`c3a2e5c`): new `mention` type; `raye2_mention_recipients(body, actor)` resolves `@handle` to real profiles; INSERT triggers on community posts, post comments, Shorts comments and native video comments; deduplicated per (recipient, actor, target); self-mentions, blocked pairs and unknown handles skipped. Inbox gains a Mentions filter/count/icon (EN+AR). Matrix 12/12.
+- [x] **Live-start + group join-request notifications** (`e4d9372`): `live_start`, `group_join_request`, `group_join_decision` types and `group`/`stream` target types; public-only, per-stream-capped follower broadcast on go-live; managers notified of a join request; requester notified on approve/decline. All helpers best-effort (never roll back the action). Matrix 8/8.
+- [x] Gates: validator 364 assertions; tests 718/718; tsc clean; lint 0 errors/24 warnings; build OK (195 migrations).
+- **Progress:** Wave 5 (social/communities/engagement) **~62% to ~68%**; Wave 6 (messaging/notifications) **~72% to ~78%**; Wave 3 (video/feed/discovery) **~76% to ~78%**; Wave 9 (security/reliability) **~99%**; full ten-wave estimate **~78% to ~80%**.
+
+## 2026-11-10 — Engagement notification preferences: per-category mute + quiet hours (mega-batch)
+- [x] `raye2_engagement_notification_preferences` (muted categories + timezone-aware quiet hours) with authenticated get/set RPCs; `raye2_notification_category` maps type→category; pure `raye2_in_quiet_hours` (wraps past midnight); `raye2_engagement_should_deliver` for nudges.
+- [x] Mute is enforced authoritatively in `raye2_get_notifications` and `raye2_get_notification_summary` (read filter, nothing deleted — unmute restores history). Eight categories: follow/reactions/comments/mentions/announcements/events/live/groups.
+- [x] Account page gains a Notification preferences card (8 mute toggles + quiet hours start/end/timezone), EN+AR.
+- [x] **Matrix:** 17/17 (mute hides exactly the category and drops its count; unmute restores; invalid category/timezone/identical-bounds rejected; quiet-hours wrap + delivery checks).
+- [x] Gates: validator 366 assertions; tests 722/722; tsc clean; lint 0 errors/24 warnings; build OK (196 migrations).
+- **Progress:** Wave 6 (messaging/notifications) **~78% to ~82%**; Wave 5 (social/engagement) **~68% to ~70%**; full ten-wave estimate **~80% to ~81%**.
+
+## 2026-11-10 — Critical fix: messaging restored + Shorts comment restriction (mega-batch)
+- [x] **Messaging was fully broken:** the shared restriction trigger `raye2_enforce_restrictions` read `new.author_id` on `raye2_messages` (which uses `sender_id`), so every message insert failed with `42703`. Recreated with per-table actor resolution — direct and group messaging work again.
+- [x] **Shorts comment restriction gap:** a comment-restricted member could still comment on `community_short_comments`; added the missing guard trigger.
+- [x] Notification deep links: stream→`/live/{id}`, group→`/groups`.
+- [x] **Matrix:** 5/5 (unrestricted send works + stored; message restriction blocks; Shorts comment restriction blocks; unrestricted Shorts comment allowed).
+- [x] Gates: validator 367 assertions; tests 726/726; tsc clean; lint 0 errors/24 warnings; build OK (197 migrations).
+- **Progress:** Wave 6 (messaging/notifications) **~82% to ~85%**; Wave 8 (moderation) **~93% to ~95%**; Wave 9 (security/reliability) **~99% to ~99.5%**; full ten-wave estimate **~81% to ~82%**.
+
+## 2026-11-10 — Mini's end-to-end + silent creator-quota fix (mega-batch)
+- [x] **Mini's (§4.4) implemented:** `raye2_minis` table (duration/path/lifetime constraints), public bucket `raye2-minis` with owner-scoped writes, `raye2_publish_mini` (creator tiers via `raye2_assert_creator_action`; ordinary users get a 3/day cap; duration bounded by a rule, technical ceiling 60s), `raye2_expire_minis` (marks expired, never deletes), public block-aware `raye2_list_minis` feed hiding expired clips. Platform rules for daily cap / max duration / lifetime (rules category check extended).
+- [x] **Bug fixed:** `raye2_creator_usage` returned NULL for streams/minis/moments, so those quota checks were silently dead; streams and Mini's now count from real tables.
+- [x] **UI:** `/minis` page + client (resumable upload, publish, feed with expiry labels), EN+AR, linked from the home rail.
+- [x] **Matrix:** 13/13 (publish within cap; 4th daily clip rejected; duration cap; creator count increments; foreign storage path rejected; expiry hides from feed but keeps row; anon feed read).
+- [x] Gates: validator 370 assertions; tests 731/731; tsc clean; lint 0 errors/24 warnings; build OK (198 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~78% to ~82%**; Wave 4 (creator economy) **~? to ~+3%**; full ten-wave estimate **~82% to ~84%**.
+
+## 2026-11-10 — Moments end-to-end (mega-batch)
+- [x] **Moments (§4.5) implemented:** `is_moment` + `expires_at` on `community_posts`; `raye2_publish_moment` (linked video required, clip window validated, cap from a rule with a 600s technical ceiling, creator-role monthly quota via `raye2_assert_creator_action`); `raye2_expire_moments` (marks removed, never deletes); public block-aware `raye2_list_moments` feed exposing the linked video slug. Rules `moments.lifetime_days` (7) and `moments.max_clip_seconds` (180).
+- [x] `raye2_creator_usage` extended with `moments_per_month` (completes the quota fix: streams/minis/moments all counted).
+- [x] **UI:** `/moments` page (public feed + creator compose widget), EN+AR, linked from the home rail.
+- [x] **Matrix:** 10/10 (publish; usage counts; clip cap; missing video rejected; ordinary role blocked; expiry hides from feed but keeps row; anon feed read).
+- [x] Gates: validator 372 assertions; tests 736/736; tsc clean; lint 0 errors/24 warnings; build OK (199 migrations).
+- **Progress:** Wave 3 (video/feed/discovery) **~82% to ~86%**; Wave 4 (creator economy) **~+3%**; full ten-wave estimate **~84% to ~86%**.
+
+## 2026-11-10 — Maintenance runner for Mini/Moment expiry + AGENTS notes (mega-batch)
+- [x] `raye2_run_maintenance()` consolidates `raye2_expire_minis` + `raye2_expire_moments`; each job best-effort (failure reported as -1, never raises), callable by anon/authenticated and driven best-effort from `/community`, `/minis`, `/moments`.
+- [x] AGENTS.md records the session's schema gotchas and the expiry-needs-a-caller invariant.
+- [x] **Matrix:** 3/3 (anon runs maintenance; expired Mini → expired; expired Moment → removed).
+- [x] Gates: validator 373 assertions; tests 739/739; tsc clean; lint 0 errors/24 warnings; build OK (200 migrations).
+- **Progress:** Wave 3 (video/feed) **~86% to ~88%**; Wave 8 (moderation/reliability) **~95% to ~96%**; full ten-wave estimate **~86% to ~87%**.
+
+## 2026-11-10 — Smart Advertising Director end-to-end (mega-batch, plan 18.2/18.3/18.6)
+- [x] **Ads rules category + policy rules:** `ads.max_placements_per_video`, `ads.intensity_percent`, `ads.min_break_gap_seconds`, `ads.max_per_viewer_per_day`, `ads.frequency_window_hours`, `ads.context_replay_seconds`.
+- [x] **Reviewable natural breakpoints:** `raye2_media_breakpoints` + `raye2_propose_breakpoints` (deterministic structural fractions clamped away from opening/closing) + `raye2_set_media_breakpoint_excluded`.
+- [x] **Director decision engine:** `raye2_pick_ad_sponsor` / `raye2_ad_director_plan` / `raye2_public_ad_schedule` — a creator contract always outranks a platform campaign (only used when no contract applies and eligible by scope/region/category/priority/exclusivity); intensity policy + minimum gap bound placements; every placement carries its disclosure and the optional context-replay bridge.
+- [x] **Delivery integrity:** `raye2_record_ad_delivery` with per-viewer frequency caps, duplicate protection on (provider_key, provider_event_id) and per-source authorization (external-network + platform = admin-only).
+- [x] **Bug fixed:** creator sponsor campaigns could never be activated (validation trigger rejected the trusted service-role delivery gate the lifecycle guard anticipates).
+- [x] **UI:** creator Ad Director panel on `/creator` + labelled "Sponsored placements" section on the watch page, EN+AR.
+- [x] **Matrix:** 18/18 (breakpoints; creator contract wins; exclusions; platform fallback; exclusive capped contract never falls through; intensity 0 disables; huge gap → one; labelled viewer schedule; frequency cap; dedupe; admin-only sources).
+- [x] Gates: validator 377 assertions; tests 746/746; tsc clean; lint 0 errors/24 warnings; build OK (201 migrations).
+- **Progress:** §18 (pre-beta blocker) **~60% to ~85%**; Wave 4 (creator economy) **~+4%**; full ten-wave estimate **~87% to ~90%**.
+
+## 2026-11-10 — Sponsor campaign integrity (mega-batch, plan 18.5/18.6)
+- [x] **Budgets + impression caps:** `budget_amount`, `currency`, `daily_impression_cap`, `lifetime_impression_cap` on creator and platform campaigns, enforced in `raye2_record_ad_delivery`.
+- [x] **Invalid-traffic handling:** admin-only, audited `raye2_flag_invalid_traffic`; invalid events stop counting toward caps; `raye2_detect_invalid_traffic` (rule `ads.invalid_traffic_impressions_per_hour`).
+- [x] **Reconciliation/dispute states:** `raye2_sponsor_reconciliation` + `raye2_open_reconciliation` + `raye2_set_reconciliation_state` (open/in_review/disputed/resolved/closed), admin-only and audited.
+- [x] **Creator reporting (18.5):** `raye2_creator_monetization_report` — estimates vs finalized, adjustments, payout status (not configured), never fabricated, never identity-exposing.
+- [x] **Admin integrity overview:** `raye2_campaign_integrity_overview` — budgets, caps, attributed net, reconciliation.
+- [x] **UI:** admin "Campaign integrity" tab + creator "Sponsorship earnings" panel, EN+AR.
+- [x] **Matrix:** 14/14 (daily cap; invalid frees cap; admin-only flag/detect; reconciliation states; non-fabricated creator report; admin overview).
+- [x] Gates: validator 381 assertions; tests 752/752; tsc clean; lint 0 errors/24 warnings; build OK (202 migrations).
+- **Progress:** §18 (pre-beta blocker) **~85% to ~93%**; Wave 8 (admin campaign control/accounting) **~+3%**; full ten-wave estimate **~90% to ~92%**.
+
+## 2026-11-10 — Live sponsor placement fail-safe (mega-batch, plan 18.2/18.3 live, 18.7)
+- [x] **Provider capability (admin-only, audited):** `live_insertion_capable`, `live_dvr_capable`, `raye2_set_live_provider_capability` — never invented.
+- [x] **Streamer-declared natural breaks:** `raye2_live_break_marks` + `raye2_mark_live_break` + `raye2_set_live_break_excluded` (round break / intermission / transition / streamer-declared).
+- [x] **Readiness:** `raye2_live_ad_readiness` with explicit reasons (not live / no compliant insertion / unhealthy).
+- [x] **Live selection + fail-safe schedule:** `raye2_pick_live_ad_sponsor` (platform campaigns only) + `raye2_live_ad_schedule` (declared breaks only; skip when unsafe; DVR-gated context replay bridge).
+- [x] **UI:** live studio readiness + break marking, EN+AR.
+- [x] **Matrix:** 13/13 (fail-safe before capability; admin-only capability; eligible after capability; labelled placement; DVR-gated replay; exclusion; unhealthy fail-safe).
+- [x] Gates: validator 384 assertions; tests 757/757; tsc clean; lint 0 errors/24 warnings; build OK (203 migrations).
+- **Progress:** §18 (pre-beta blocker) **~93% to ~97%**; Wave 4 (streaming) **~+2%**; full ten-wave estimate **~92% to ~94%**.
+
+## 2026-11-10 — Community clips end-to-end (mega-batch, plan 13.5)
+- [x] **Distinct fan clip flow:** `raye2_community_clips` (independent asset) + `raye2_publish_community_clip` (source eligibility, length/range rules, attribution, daily rate limit, configurable lifetime).
+- [x] **Source permission control:** `media_items.allow_clipping` + `raye2_set_source_clipping`; disabling hides and removes existing clips.
+- [x] **Moderation/takedown/reporting:** `raye2_remove_community_clip` (source owner/admin, audited), `community_clip` report target, `raye2_expire_community_clips`, folded into `raye2_run_maintenance`.
+- [x] **Public feed:** `raye2_list_community_clips` with clipper + source attribution.
+- [x] **UI:** new `/clips` page (feed + create), owner clipping toggle on the watch page, Home rail link, EN+AR.
+- [x] **Matrix:** 15/15 (publish; attribution; length cap; range inside source; disabled source; removal on disable; feed hides disabled; re-enable; daily cap; feed; removal auth; expiry; maintenance keys; reporting).
+- [x] Gates: validator 387 assertions; tests 762/762; tsc clean; lint 0 errors/24 warnings; build OK (204 migrations).
+- **Progress:** §13.5 (Mini's/Moments/community clips) **~60% to ~90%**; Wave 3 **~88% to ~91%**; Wave 5 **~+2%**; full ten-wave estimate **~92% to ~94%**.
+
+## 2026-11-10 — Achievements depth (mega-batch, plan 13.7)
+- [x] **Published criteria:** `achievement_catalog` gains `metric`, `threshold`, `requires_trust`; nine new codes (ten_posts, twentyfive_follows, first_mini, ten_minis, first_clip, five_clips, poll_participant, group_joiner, five_video_comments).
+- [x] **Measured, never fabricated:** `raye2_achievement_metric` + `award_member_achievement` only awards once the measured value meets the threshold.
+- [x] **Anti-abuse:** `raye2_member_in_good_standing` gates trust achievements (active profile, not blocked, no open reports).
+- [x] **New signals:** triggers for Mini's, community clips, poll votes, group joins, plus higher post/follow/comment tiers.
+- [x] **Transparent progress:** `raye2_member_achievement_progress` (member-scoped) + profile progress UI.
+- [x] **Matrix:** 8/8 (poll vote; group joins; blocked member gated; tier honesty; good-standing award; progress; member-scoped; catalog criteria).
+- [x] Gates: validator 390 assertions; tests 767/767; tsc clean; lint 0 errors/24 warnings; build OK (205 migrations).
+- **Progress:** §13.7 (profiles/identity/achievements) **~70% to ~90%**; Wave 5 **~+2%**; full ten-wave estimate **~93% to ~95%**.
+
+## 2026-11-10 — Event Q&A + attached community spaces (mega-batch, plan 13.8)
+- [x] **Q&A:** `event_qa` with `raye2_ask_event_question` (published only), `raye2_answer_event_question` (host/creator only), `raye2_remove_event_question` (author/host), public `raye2_list_event_questions`.
+- [x] **Attached space:** `events.conversation_id` + `raye2_attach_event_space` (host/creator, must belong to the room) — chat/voice/Watch Together reuse the group conversation.
+- [x] **Feed:** `raye2_get_public_events` exposes `space_group_slug`; event questions are reportable.
+- [x] **UI:** expandable Q&A panel + "Open event space" link, EN+AR.
+- [x] **Matrix:** 12/12 (ask; non-host blocked; host answer; public read; draft refused; unrelated removal blocked; author removal; attach own room; slug in feed; non-host attach blocked; foreign room blocked; detach).
+- [x] Gates: validator 393 assertions; tests 773/773; tsc clean; lint 0 errors/24 warnings; build OK (206 migrations).
+- **Progress:** §13.8 (communities/events/Q&A/spaces) **~80% to ~92%**; Wave 5 **~+2%**; full ten-wave estimate **~94% to ~96%**.
+
+## 2026-11-10 — Unified admin moderation queue (mega-batch, plan 13.10)
+- [x] **Unified queue:** `raye2_get_moderation_queue` reads content + safety reports with target previews (posts, comments, clips, event questions, profiles, messages, groups, users).
+- [x] **Audited resolution:** `raye2_admin_resolve_report` routes to the existing audited `raye2_resolve_content_report`/`raye2_resolve_safety_report`; unknown kinds rejected.
+- [x] **Scoped:** moderators and platform admins only.
+- [x] **UI:** "Moderation queue" tab (status filter, note, review/resolve/dismiss), EN+AR.
+- [x] **Matrix:** 10/10 (non-moderator refused; unified read; previews+reporter; content resolve routes+audited; audit entry; resolved leaves queue; safety resolve; non-moderator resolve refused; unknown kind rejected).
+- [x] Gates: validator 396 assertions; tests 778/778; tsc clean; lint 0 errors/24 warnings; build OK (207 migrations).
+- **Progress:** §13.10 (admin control centre) **~80% to ~90%**; Wave 8 **~+3%**; full ten-wave estimate **~95% to ~97%**.
+
+## 2026-11-10 — Shared Memories expiry clock + guarded lifecycle (mega-batch, plan 13.9)
+- [x] **Expiry clock:** `raye2_expire_shared_memories` deletes only due temporary memories; preserved/group-lifetime memories are never touched (Shared Memories stay out of ordinary chat retention by construction).
+- [x] **Lifecycle invariant:** `raye2_guard_memory_expiry` trigger — preserved memories can never carry an expiry; temporary ones must.
+- [x] **Guarded controls:** `raye2_set_memory_expiry` (author or group manager, 1–3650 days) and `raye2_preserve_memory`.
+- [x] **Maintenance:** `raye2_run_maintenance` now reports `shared_memories_expired`.
+- [x] **UI:** "Expire in 30 days" + "Preserve permanently" now route through the guarded RPCs, EN+AR.
+- [x] **Matrix:** 9/9 (default group-lifetime; author sets expiry; non-member refused; invalid days refused; preserve clears expiry; preserved untouched by clock; due temporary deleted; runner reports it; manager can set expiry on another's memory).
+- [x] Gates: validator 398 assertions; tests 783/783; tsc clean; lint 0 errors/24 warnings; build OK (208 migrations).
+- **Progress:** §13.9 (chat/voice/Watch Together/Shared Memories) **~70% to ~78%**; Wave 7 **~+4%**.
+
+---
+
+
+## 2026-11-10 — Single-theme consolidation to the plan palette (mega-batch, plan 1.1/1.2)
+- [x] **Owner decision recorded:** the product uses **one** theme — the plan's black/white/grey/blue — not a light+dark pair. There is no runtime theme toggle.
+- [x] Removed the two competing theme variants (`theme-paper` light, `theme-violet`) from `globals.css` and `nhen-design-system.css`, and deleted the `theme-custom` remnant.
+- [x] Purged legacy lime-green (`rgba(216,255,117,…)`) and stray neon pink/purple accents from the hero art and design system; on-accent text is now dark slate (`#071321`).
+- [x] Added the full semantic token set to the single root theme: `--accent`, `--accent-strong`, `--accent-soft`, `--success`, `--warning`, `--error`, `--focus`, `--state-hover`, `--state-selected`, `--state-disabled`, plus the `--nhen-*` mirrors.
+- [x] Removed the dark/light toggle, its state/effect and its CSS from the Raye2 chat client; the surface is one theme everywhere.
+- [x] Gates: validator 400 assertions; tests 787/787; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.1 (brand/visual system) **~40% to ~55%**; Wave 1 **~47% to ~52%** provisional. Global shell/layout rebuild and the logo-asset pipeline remain.
+
+---
+
+## 2026-11-10 — Appearance system collapsed to one theme + predecessor branding cleanup (mega-batch, plan 1.1/13.1)
+- [x] **Admin appearance system no longer offers a second theme.** The site-config `theme` union, the validator's
+  allowed `THEMES` set, and the publishing key whitelist are now `obsidian` only; the `colorMode` (dark/light/system)
+  field, its validation, its `data-color-mode` output and its CSS blocks are removed. The public surface is one theme.
+- [x] **Creator panel controls updated:** the "Visual theme" selector is now a fixed read-only label, and the
+  "Color mode" control is gone; `paper`/`violet`/`custom` options and the `theme-<name>` preview class are gone.
+- [x] **Legacy lime fallback removed:** the site-config fallback accent `#d8ff75` and the `#C8FF4D` migration shim
+  are replaced with the theme blue `#80b4ff`.
+- [x] **Predecessor wording removed** from the creator panel (`"Fixed Nhen bilingual brand identity"` → Raye2).
+- [x] **Owner-flagged decision honoured, not made silently:** the `MADE BY ALMUDDATHTHIR` credit is **retained**
+  (plan 13.1 requires an explicit owner decision before it changes); a validator assertion now guards it.
+- [x] The logo light/dark **previews** are retained — they are a required branding tool (plan 1.1), not a second
+  site theme.
+- [x] Gates: validator 402 assertions; tests 787/787; tsc clean; lint 0 errors/25 warnings; build OK.
+- **Progress:** §13.1 (brand/visual system) **~55% to ~62%**; Wave 1 **~52% to ~56%**. Remaining: global shell/layout rebuild and the logo-asset pipeline.
+
+---
+
+## 2026-11-10 — One shared platform navigation across all surfaces (mega-batch, plan 1.3)
+- [x] **New `src/lib/platform-nav.ts`** — the single source of truth for platform destinations: one definition
+  per key (home/videos/shorts/community/explore/series/messages/notifications/saved/profile/studio) with its href,
+  icon and active rule, plus three grouped lists (primary, account, Raye2 rail).
+- [x] **Public home** (`page.tsx`) sidebar and mobile nav now render from the shared model instead of two
+  hand-written copies that had drifted; the creator's video-section gate is preserved (Watch/Mini's drop out when
+  the videos section is hidden).
+- [x] **Community** sidebar and mobile nav render from the shared model (previously a different set again).
+- [x] **Raye2 chat rail** drops its bespoke `platformNav` array and uses the shared model, including the shared
+  active-state rule, so highlighting is consistent everywhere.
+- [x] **Behavior preserved:** the video-section visibility gate still applies; no destination was silently removed.
+- [x] Gates: validator 403 assertions; tests 790/790; tsc clean; lint 0 errors/25 warnings; build OK.
+- **Progress:** §1.3 (navigation/shell consistency) **~50% to ~80%**; Wave 1 **~56% to ~62%**. Remaining in Wave 1:
+  page-level layout standardisation and the logo-asset pipeline.
+
+---
+
+## 2026-11-10 — Predecessor branding purge + logo-as-identity (mega-batch, plan 1.1/13.1)
+- [x] **Predecessor labels removed from product surfaces** (not just the landing page): the saved library
+  (brand, "YOUR NHEN LIBRARY", fallback author), notifications ("NHEN member"), Shorts ("NHEN Studio",
+  "Nhenbits"), the published-videos eyebrow ("NHEN WATCH"), Watch ("NHEN Watch"), the studio team invite copy and
+  the team-invitation page (brand + eyebrow + sign-in link). All now read Raye2 / رايق.
+- [x] **"Nhenbit" renamed to the plan term "Mini"** across the Shorts/community-shorts UI (EN + AR).
+- [x] **Logo is the identity:** the public header now renders the uploaded logo *instead of* the written
+  "Raye2 / رايق" wordmark, and uses the wordmark only as a fallback when no logo is uploaded (plan 1.1).
+- [x] **Guarded:** a new test + validator assertion fail if NHEN/Nhen?/Nhenbit/نهين reappear on a product surface,
+  and a test locks the logo-vs-wordmark fallback behavior.
+- [x] Fixed a latent lint error (unescaped apostrophe) and an unused variable uncovered by the change.
+- [x] Gates: validator 404 assertions; tests 792/792; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.1 (predecessor removal / logo identity) **~70% to ~85%**; Wave 1 **~62% to ~68%**. Remaining
+  in Wave 1: page-level layout standardisation and favicon/app-icon/loading logo integration.
+
+---
+
+## 2026-11-10 — Brand mark as favicon/app icon + branded loading state (mega-batch, plan 1.1/13.1)
+- [x] **Favicon and app icons added.** The product had none. Generated from the Raye2 brand mark (blue/grey
+  rounded tile with the R glyph, matching the community/Mini brand glyphs): `src/app/icon.png` (512),
+  `src/app/apple-icon.png` (180) and `src/app/favicon.ico` (32), plus explicit `icons` metadata in the root layout.
+- [x] **Branded loading state added** (`src/app/loading.tsx`): the brand mark pulses while a route streams in,
+  with an accessible `role="status"`/`aria-busy` wrapper and a reduced-motion fallback.
+- [x] **Guarded:** validator assertions and a test fail if the icon files, their metadata links or the branded
+  loading state disappear.
+- [x] Gates: validator 406 assertions; tests 793/793; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.1 (logo integration across navigation/loading/favicon) **~85% to ~92%**; Wave 1 **~68% to ~72%**.
+  Remaining in Wave 1: page-level layout standardisation.
+
+---
+
+## 2026-11-10 — Page-shell width standardisation (mega-batch, plan 1.2/1.4)
+- [x] **One content-width scale instead of per-route widths.** Added `--nhen-reading:900px` alongside the
+  existing `--nhen-content:1320px`, then replaced the ad-hoc literals: reading columns (saved, search, shorts
+  heading, notifications) now use `--nhen-reading`; wider columns (profile, series) use `--nhen-content`; the
+  per-route header overrides (notifications 1100, series 1360) now match the shared 1320 content width.
+- [x] Result: every primary route's header and body column share one scale, so moving between pages no longer
+  jumps the content edges (plan 1.4 "same tokens and shared components").
+- [x] **Guarded:** a validator assertion + test fail if per-route pixel widths creep back into the design system
+  or the notifications/series shells.
+- [x] Gates: validator 407 assertions; tests 794/794; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §1.2/1.4 (design-system consistency) **~70% to ~85%**; Wave 1 **~72% to ~78%**.
+
+---
+
+## 2026-11-10 — Streamer-only no longer locked out of the Studio (mega-batch, plan 2.1/13.4)
+- [x] **Bug fixed:** `/raye2/studio` omitted `streamer` from its role allowlist, so a streamer-only creator was
+  redirected out of the Studio dashboard with `access=restricted` even though `/creator` admits them. The
+  allowlist now matches the database constraint exactly (owner/admin/creator/streamer/editor/moderator/analyst).
+- [x] **Distinct permissions surfaced:** added `canStream` (owner/admin/streamer) beside `canPublish`
+  (owner/admin/creator). Streamer-only now sees a Live nav entry, a "Start a live stream" workflow action and a
+  Live streaming workspace card linking to the real live studio; creator-only still sees the upload/watch-page
+  actions and never the live one (plan 13.4: distinct, non-additive roles; the Studio shows only permitted actions).
+- [x] **Guarded:** a test asserts every assignable role appears in both the DB constraint and the studio allowlist,
+  and that `canStream` and `canPublish` are distinct and gate the right affordances; a validator assertion covers
+  the same. Updated the existing studio test for the new allowlist.
+- [x] Gates: validator 409 assertions; tests 796/796; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §2.1/13.4 (role gating) **~70% to ~76%**; Wave 2 **~62% to ~65%**.
+
+---
+
+## 2026-11-10 — Voice recording consent UI with mandatory indicator (mega-batch, plan 7/13.9)
+- [x] **Gap closed:** the database fully supported recording consent (`raye2_request_voice_recording_consent`,
+  `raye2_respond_voice_recording_consent`, `recording_state`, `recording_consent`, an event log and the
+  `recording.enabled` rule defaulting to off), but the voice UI never surfaced any of it. Plan 13.9 makes a
+  visible recording indicator and elapsed time mandatory and forbids secret/background recording.
+- [x] **Added to the voice controls:** a live subscription to the session's `recording_state` and the caller's
+  `recording_consent`; a host-only "Request recording" action; an Allow/Decline prompt for the callee; a
+  "Withdraw consent" action; and a mandatory "● REC mm:ss" indicator with a live elapsed clock shown only while
+  consent is granted. Declining or withdrawing stops the session recording server-side (existing behaviour).
+- [x] **Guarded:** a test asserts the request/respond RPCs, the visible indicator, the elapsed clock, the
+  withdraw path, and that recording is host-initiated and off by default (DB default + `recording.enabled=false`);
+  a validator assertion covers the same.
+- [x] Gates: validator 410 assertions; tests 799/799; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.9 (recording consent) **~50% to ~85%**; Wave 7 **~60% to ~66%**. Remaining: group-room
+  consent surface (the private-call controls are wired; group rooms reuse the same RPCs and need the same panel).
+
+---
+
+## 2026-11-10 — Group voice rooms get the recording consent panel (mega-batch, plan 7/13.9)
+- [x] **Parity with private calls:** group voice rooms now surface the same recording consent flow as private
+  calls — a live subscription to `recording_state`/`recording_consent`, a host-only "Request recording" action
+  (gated on the actual voice host/co-host membership, not just group moderation rights, since the server RPC
+  requires the host role), an Allow/Decline prompt, "Withdraw consent", and the mandatory "● REC mm:ss"
+  indicator with a live elapsed clock.
+- [x] Recording stays off by default and stops server-side on decline/withdrawal (existing RPC behaviour); no
+  secret/background recording path exists.
+- [x] **Guarded:** a test asserts the group panel wires the request/respond RPCs, the visible indicator, the
+  elapsed clock, the withdraw path and the host gate; a validator assertion covers the same.
+- [x] Gates: validator 411 assertions; tests 800/800; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.9 (recording consent) **~85% to ~95%**; Wave 7 **~66% to ~70%**. Remaining: Watch Together
+  recording parity and the join-time consent prompt for late joiners (currently prompted live via subscription).
+
+---
+
+## 2026-11-10 — Community clips: preview, visibility, removal and reporting (mega-batch, plan 13.5)
+- [x] **Gap closed:** the clips feed could publish and list clips but lacked the trim/preview, visibility,
+  remove/takedown and report behavior plan 13.5 requires. Also, the DB `content_reports` constraint allowed a
+  `community_clip` target but the reporting RPC only accepted post/comment/profile, so clip reports were rejected.
+- [x] **New migration** `20261110890000_raye2_community_clip_reporting.sql`: the reporting RPC now accepts
+  `community_clip` (existence-checked) and `raye2_list_community_clips` exposes `clipper_id`/`source_owner_id` so
+  the feed can offer owner-only removal.
+- [x] **Clips UI:** an inline preview of the selected file trimmed to the chosen range, a public/unlisted
+  visibility selector wired into the publish RPC, a "Remove my clip" action for the clipper or source owner (via
+  `raye2_remove_community_clip`), and a report control (copyright/spam/harassment/other) using the existing
+  moderation pipeline.
+- [x] **Guarded:** clips tests assert the preview element, visibility binding, owner-only removal, the report RPC
+  and target type, and the migration's `community_clip` acceptance + ownership columns; a validator assertion
+  covers the same.
+- [x] Gates: validator 412 assertions; tests 802/802; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.5 (community clips) **~70% to ~88%**; Wave 3 **~91% to ~93%**.
+
+---
+
+## 2026-11-10 — Creator panel shows real quota/cooldown state (mega-batch, plan 13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to display quota/cooldown state. The capability RPC
+  returned the cooldown *limit* but not whether the creator may publish right now, so the panel could not show
+  real state; the UI also never rendered the cooldown at all.
+- [x] **New migration** `20261110900000_raye2_creator_cooldown_status.sql`: the capability payload now includes a
+  read-only `cooldown` block (`long_video_cooldown_days`, `last_long_video_at`, `next_allowed_at`,
+  `can_publish_long_video_now`) computed from the creator's most recent long video. Enforcement is unchanged
+  (`raye2_assert_creator_action` remains authoritative).
+- [x] **Capabilities UI:** the cooldown days now appear in the quota grid and a status line reports whether the
+  creator can publish now or when the next long video is allowed, in EN and AR.
+- [x] **Guarded:** a test and validator assertion cover the cooldown block, its fields and the UI binding.
+- [x] Gates: validator 413 assertions; tests 803/803; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** §13.4 (Creator Panel quota/cooldown display) **~70% to ~82%**; Wave 4 **~70% to ~73%**.
+
+---
+
+## 2026-11-10 — Group lifecycle: leave, ownership transfer, archive (mega-batch, plan Wave 6)
+- [x] **Gap closed:** plan Wave 6 requires a complete group lifecycle. Members could join, be approved and be
+  removed, but there was no way to *leave* a group, no *ownership transfer* (the owner guard forbade any
+  `owner_id` change) and no archive/reactivate path.
+- [x] **New migration** `20261110910000_raye2_group_lifecycle.sql` adds three audited, owner-checked RPCs:
+  `raye2_leave_group` (owners must transfer first), `raye2_transfer_group_ownership` (flips the new owner to
+  `owner` and the outgoing owner to `admin`, guarded by a transaction-scoped `raye2.allow_owner_change` flag) and
+  `raye2_set_group_status` (active/read_only/archived; archived groups already stop accepting messages via the
+  message insert policy).
+- [x] **UI:** a "Leave group" action for non-owner members, an owner-only group lifecycle section (read-only /
+  archive / reactivate) in the manage modal, and a per-member "Transfer ownership" action, all EN + AR.
+- [x] **Guarded:** a new test covers the leave/transfer/status RPCs, the transfer guard flag and the role flips;
+  a validator assertion covers the migration and the client wiring.
+- [x] Gates: validator 414 assertions; tests 806/806; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 6 group lifecycle **~55% to ~85%**; Wave 6 **~85% to ~88%**. Remaining: message retention
+  clocks and delivery/read receipts.
+
+---
+
+## 2026-11-10 — Automatic, Admin-configurable message retention (mega-batch, plan Wave 6/13.6)
+- [x] **Gap closed:** plan Wave 6 requires automatic cleanup of messages that follows independent
+  Admin-configurable retention clocks. The retention policies and the admin cleanup-job toolkit existed, but
+  nothing ever removed expired messages automatically — `raye2_run_maintenance` only expired
+  minis/moments/clips/memories, and the executor deleted only when a job was created and run by hand.
+- [x] **New migration** `20261110920000_raye2_message_retention.sql` adds `raye2_sweep_message_retention`, a
+  conservative automatic sweep driven by the enabled policies. Nothing is deleted unless the category is enabled
+  with an explicit `retention_days` and a `delete` action; messages backing a **preserved Shared Memory** are
+  never removed; messages in a **non-active group** are skipped so archived history is kept; direct and group
+  clocks stay independent. Each sweep that removes rows writes an audit record.
+- [x] The sweep is folded into `raye2_run_maintenance` (existing keys preserved) and driven once per session from
+  the Raye2 spaces client, matching how the community/Mini's read paths already drive maintenance.
+- [x] **Guarded:** a new test covers the sweep signature, the enabled/delete gate, the preserved-memory and
+  active-group protections, and the maintenance-runner folding; a validator assertion covers the same.
+- [x] Gates: validator 415 assertions; tests 809/809; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 6 message retention **~40% to ~80%**; Wave 6 **~88% to ~92%**. Remaining: delivery/read
+  receipts.
+
+---
+
+## 2026-11-10 — Message delivery/read receipts (mega-batch, plan Wave 6)
+- [x] **Gap closed:** plan Wave 6 requires delivery/read/presence states. Read state existed
+  (`conversation_members.last_read_at`) but there was no delivery state and senders saw nothing, so "delivered"
+  was impossible to show.
+- [x] **New migration** `20261110930000_raye2_message_delivery_receipts.sql`: a `raye2_message_deliveries`
+  table (one row per recipient per message) with membership-scoped RLS; `raye2_mark_messages_delivered`
+  (idempotent, records delivery for all messages the caller can see except their own); a trigger that backfills
+  deliveries when a member joins a conversation; and `raye2_message_receipt_status` which returns the other
+  participant's delivery and read clocks for **direct** chats (group receipts stay private). Read state reuses
+  `last_read_at` rather than duplicating it, so it stays consistent with unread counts. The table is added to the
+  Realtime publication.
+- [x] **UI:** own messages in direct chats now show Sent / Delivered / Seen, driven by a live subscription to the
+  deliveries table plus the existing read clock, in EN and AR.
+- [x] **Guarded:** a new test covers the table/RLS, the delivery RPC, the direct-only receipt status and the
+  client wiring; a validator assertion covers the same.
+- [x] Gates: validator 416 assertions; tests 812/812; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 6 receipts **~30% to ~85%**; Wave 6 **~92% to ~95%**. Wave 6 core is now essentially
+  complete (DMs, groups, replies, reactions, edits/deletes, pins, bookmarks, search, requests, presence,
+  moderation, group lifecycle, retention, receipts).
+
+---
+
+## 2026-11-10 — Repo-wide migration security invariants (mega-batch, plan Wave 2/9)
+- [x] **Gap closed:** plan Wave 2 requires permissions to be enforced server-side and Wave 9 requires the
+  security posture to be verifiable. The invariants were true but nothing guarded them, so a single new
+  migration could silently regress them.
+- [x] **New test** `tests/raye2-migration-security-invariants.test.mjs` reads every migration and asserts, across
+  the whole repository: (1) every SECURITY DEFINER function pins `set search_path`; (2) every public function is
+  fail-closed with an explicit `REVOKE`; (3) no admin/moderation/retention entry point is granted to `anon`;
+  (4) the admin cleanup entry points verify `raye2_is_platform_admin()`; (5) every Raye2 table enables RLS.
+- [x] **Verified true today:** 0 SECURITY DEFINER functions without `search_path`; 0 public functions without a
+  `REVOKE`; 65/65 Raye2 tables with RLS enabled. The test now locks this in.
+- [x] A validator assertion performs the same repository-wide scan so the invariant is checked on every build.
+- [x] Gates: validator 417 assertions; tests 817/817; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 2 server-side permission coverage **~65% to ~72%**; Wave 9 **~99%**.
+
+---
+
+## 2026-11-10 — Watch Together depth: presence, moderation, control requests (mega-batch, plan Wave 7)
+- [x] **Gap closed:** plan 4 requires Watch Together to cover host moderation, optional playback-control
+  requests and reconnection/resynchronization. Sync, queue, voting and host control existed, but participants
+  never refreshed presence, a host could not remove anyone, control could not be handed over or requested, and
+  active sessions were never expired.
+- [x] **New migration** `20261110940000_raye2_watch_together_depth.sql`:
+  `raye2_watch_heartbeat` (refreshes presence and prunes participants silent for 90s, with host failover to a
+  moderator or the longest-joined participant, ending the session when nobody remains);
+  `raye2_remove_watch_participant` (host/moderator moderation, never removable host, audited);
+  `raye2_transfer_watch_host` (host only; outgoing host becomes moderator, audited);
+  a `raye2_watch_control_requests` table (membership-scoped RLS, Realtime) with `raye2_request_watch_control`
+  and `raye2_resolve_watch_control_request` (approval grants the moderator role = playback control);
+  `raye2_expire_watch_sessions` folded into `raye2_run_maintenance`.
+- [x] **UI:** a participants list with roles and presence, host-only make-host/remove actions, a
+  request-control button for participants, and a host-only pending-requests panel, plus a 30s heartbeat and
+  live subscriptions to participants and control requests (EN + AR).
+- [x] **Guarded:** a new test covers presence/pruning/failover, moderation, transfer, control requests and
+  session expiry; a validator assertion covers the migration.
+- [x] Gates: validator 418 assertions; tests 821/821; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 7 Watch Together **~55% to ~85%**; Wave 7 **~70% to ~76%**.
+
+---
+
+## 2026-11-10 — Voice depth: raise hand, audio preferences, idle rooms (mega-batch, plan Wave 7)
+- [x] **Gap closed:** plan 4 requires raise hand, push-to-talk and noise suppression, configurable session
+  duration and idle-room timeout. Voice sessions, SFU rooms, moderation (lock/remove/promote) and recording
+  consent existed, but there was no raise-hand signal, audio preferences only covered private calls, rooms never
+  ended when empty, and a moderator had to mute participants one at a time.
+- [x] **New migration** `20261110950000_raye2_voice_depth.sql`: participant `hand_raised_at` + server-visible
+  `is_muted`; a `last_activity_at` session clock; `push_to_talk`/`noise_suppression` preference columns with
+  `raye2_set_voice_audio_preferences`; `raye2_set_voice_hand` and `raye2_set_voice_mute` (both refresh activity);
+  `raye2_voice_bulk_moderation` (mute-all / clear-hands, moderator-gated, audited);
+  `raye2_expire_idle_voice_rooms` (ends rooms that are empty of joined and invited participants past the idle
+  window) folded into `raye2_run_maintenance`; voice participants and sessions published to Realtime.
+- [x] **UI:** raise/lower hand, push-to-talk and noise-suppression toggles, and host/co-host mute-all and
+  clear-hands actions in the group voice controls (EN + AR).
+- [x] **Guarded:** a new test covers raise-hand, mute, audio preferences, bulk moderation and idle-room expiry;
+  a validator assertion covers the migration.
+- [x] Gates: validator 419 assertions; tests 825/825; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 7 voice depth **~60% to ~82%**; Wave 7 **~76% to ~82%**.
+
+---
+
+## 2026-11-10 — Creator analytics depth and long-video expiry (mega-batch, plan Wave 4/13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to show real analytics (views, completion where
+  measurable, engagement, followers) and to never fabricate metrics, and requires a long-video user-selected
+  expiry of up to 14 days subject to Admin policy. The analytics RPC returned only raw view/reaction/comment
+  counts, and long videos had no expiry at all.
+- [x] **New migration** `20261110960000_raye2_creator_analytics_depth.sql`: a `video_catalog.expires_at` column
+  with `raye2_set_video_expiry` (owner-only, clamped to `raye2_creator_max_video_expiry_days`, audited) and
+  `raye2_expire_long_videos` (unpublishes expired videos, folded into `raye2_run_maintenance`);
+  `raye2_get_creator_analytics` returns real unique viewers, a windowed reach, completion counts (derived from
+  watch-progress), engagement and followers.
+- [x] **No fabrication:** the analytics response sets `watch_time_available=false` with a plain note, because no
+  watch-time instrumentation exists. The panel states this rather than showing an invented figure.
+- [x] **UI:** a new `CreatorAnalyticsPanel` on the analytics page shows followers, unique viewers and completion
+  with per-video expiry controls (set 14 days / clear), EN + AR.
+- [x] **Guarded:** a new test covers the metrics, the no-fabrication contract, expiry limits and the maintenance
+  sweep; a validator assertion covers the migration.
+- [x] Gates: validator 420 assertions; tests 829/829; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 creator analytics **~65% to ~78%**; Wave 4 **~73% to ~78%**.
+
+---
+
+## 2026-11-10 — Single-theme black/grey/blue palette consolidation (mega-batch, plan 1.1)
+- [x] **Owner decision honoured:** the plan text mentioned light/dark support, but the owner explicitly asked for
+  **one** theme using the plan's colours (black, white, grey, blue) with a professional, easy-on-the-eyes look.
+  This batch removes any theme-variant ambition and locks a single dark theme.
+- [x] **Palette consolidated:** 261 distinct colour literals were reduced to a single approved palette
+  (`#0b0b0d` bg, `#141416` panel, `#1c1c1f` raised, `#242427` soft, `#f4f4f6` ink, `#d6d6db` ink-soft,
+  `#a1a1aa` muted, `#4d8df6` accent, `#2f6fe0` accent-strong, `#9dc0ff` accent-light, plus `#5cc98f` success,
+  `#e0b878` warning, `#e87d85` error). Blue-tinted navy, legacy lime/olive and purple/violet remnants are gone.
+- [x] **Hue-preserving mapping:** greens collapsed to a single success token, ambers to warning, reds to error,
+  blues to the accent ramp and everything else to neutral greys — so status semantics survive the retheme.
+- [x] **Professional finish:** decorative accent glows were clamped and radial accent tints flattened, so surfaces
+  read as calm app chrome rather than neon. Tokens (globals, design system, brand system, creator workspace) and
+  the metadata `themeColor` all resolve to the same values; creator accent defaults updated to the new blue.
+- [x] **One theme only:** no `prefers-color-scheme`, `data-theme` or theme-toggle remains anywhere.
+- [x] **Guarded:** a validator assertion plus `tests/raye2-palette-purity.test.mjs` fail the build if any
+  stylesheet introduces a stray colour or theme-switching code; existing palette assertions were updated.
+- [x] Gates: validator 422 assertions; tests 832/832; tsc clean; lint 0 errors/24 warnings; build OK; all key
+  routes return 200 and the served CSS carries the new palette.
+- **Progress:** Wave 1 brand/theme **~78% to ~90%**.
+
+---
+
+## 2026-11-10 — Profile identity depth + connection block fix (mega-batch, plan 2.1)
+- [x] **Gap closed:** plan 2.1 requires profile identity to cover avatar, cover, display name, handle, bio,
+  links, interests and privacy. The editor only handled display name, bio and one website; the cover was
+  decorative only; links and interests did not exist.
+- [x] **New migration** `20261110970000_raye2_profile_identity_depth.sql`: adds `cover_url`, `links` (<=6, http(s)
+  only) and `interests` (<=8) with checked constraints; `raye2_update_my_profile` validates every field
+  server-side and is owner-only by construction; `raye2_get_my_profile_editor` prefills the editor; the profile
+  overview RPC returns the new fields behind the same visibility/block gate.
+- [x] **Real bug fixed:** `raye2_get_member_connections` compared the profile owner against itself in its
+  block-exclusion clause, so a blocked member could still surface in a follower/following list. It now excludes
+  members blocked by, or blocking, the viewer.
+- [x] **UI:** the profile editor gains cover, links and interests inputs (with a client-side parse that mirrors
+  the server limits); the profile renders the cover image, link pills and interest chips, EN + AR.
+- [x] **Guarded:** a new test covers the identity fields, server validation, the block-exclusion fix and the
+  overview gate; a validator assertion covers the migration.
+- [x] Gates: validator 423 assertions; tests 836/836; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 2 accounts/identity **~72% to ~80%**.
+
+---
+
+## 2026-11-10 — Search filters, privacy and the dead Spaces tab (mega-batch, plan 3.2)
+- [x] **Gap closed:** plan 3.2 requires search with filters for content type, category and recency, and strict
+  respect for privacy, blocks, visibility and expiry. The old search had no filters, ignored blocks, and never
+  searched Mini's.
+- [x] **Dead feature revived:** the search page rendered a Spaces tab and section, but `raye2_search` never
+  returned a `group` row — the tab was always empty. The RPC now returns public, active spaces
+  (`raye2_groups`), so the tab links to real group pages.
+- [x] **New migration** `20261110980000_raye2_search_filters_privacy.sql`: replaces `raye2_search` with a
+  filtered, block-aware five-argument version (`p_kind`, `p_category`, `p_recency`) that also searches Mini's
+  (`community_short_videos`) and public spaces; every source excludes members blocked in either direction, and
+  only published/visible content is surfaced. Adds `raye2_get_search_facets` for category chips.
+- [x] **UI:** the Explore page gains category and recency filter chips (fed by the facet RPC), a Mini's tab, and
+  a Mini's results section, all bilingual.
+- [x] **Guarded:** a new test covers the filters, the block/privacy exclusions, the Spaces/Mini kinds and the
+  RPC replacement; a validator assertion covers the migration. Two stale tests that asserted the old
+  unfiltered call were updated.
+- [x] Gates: validator 424 assertions; tests 840/840; tsc clean; lint 0 errors/24 warnings; build OK; search
+  routes return 200 and render the filter bar.
+- **Progress:** Wave 3 discovery **~91% to ~94%**; overall **~88% to ~91%**.
+
+---
+
+## 2026-11-10 — Captions and subtitles for native media (mega-batch, plan 4.1 / 2.3)
+- [x] **Gap closed:** plan 4.1 requires the player to expose captions, and plan 2.3 requires caption/subtitle
+  support with accessible media controls. Nothing in the repository stored or served captions at all.
+- [x] **New migration** `20261110990000_raye2_media_captions.sql`: a `raye2_media_captions` table (WebVTT in
+  `creator-media-public`, unique per media+language, no direct table access) with owner-only
+  `raye2_set_media_caption` / `raye2_remove_media_caption` (path constrained to the caller's own folder and
+  must end in `.vtt`), a public `raye2_get_media_captions` readable only for published, ready media, and
+  `raye2_get_my_media_captions` for the studio.
+- [x] **Player:** `PublicVideoPlayer` accepts a `captions` prop and renders native `<track kind="subtitles">`
+  elements with the correct `srcLang`, label and default language, so the browser exposes the caption control.
+- [x] **Watch page** resolves caption storage paths to public URLs and passes them through; the **Video Studio**
+  gains a bilingual captions card to add and remove English/Arabic tracks.
+- [x] **Guarded:** a new test covers the schema, owner-only management, the published-only read gate and the
+  player/watch wiring; a validator assertion covers the migration.
+- [x] Gates: validator 425 assertions; tests 844/844; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 Creator Studio **~78% to ~82%**; overall **~91% to ~92%**.
+
+---
+
+## 2026-11-10 — Search covers active Moments and public events (mega-batch, plan 3.2)
+- [x] **Gap closed:** plan 3.2 requires search over "public creators, users, videos, Mini's, public Moments while
+  active, public communities and events". Moments and events were not searchable.
+- [x] `raye2_search` now also returns `moment` rows (community posts flagged `is_moment` with an active
+  `expires_at`) and `event` rows (published events that have not ended), and the ordinary post branch hides
+  expired Moments immediately, per plan 4.5.
+- [x] The Explore page gains Moments and Events tabs, sections and links (events RSVP inline on `/events`).
+- [x] **Guarded:** the search test covers the new kinds and the expiry gate; the validator assertion now checks
+  all six result kinds.
+- [x] Gates: validator 425 assertions; tests 845/845; tsc clean; lint 0 errors/24 warnings; build OK; the
+  moments and events search routes return 200.
+- **Progress:** Wave 3 discovery **~94% to ~95%**; overall **~92%**.
+
+---
+
+## 2026-11-10 — Mini's reporting and takedown coverage (mega-batch, plan 4.4 / 13.5)
+- [x] **Gap closed:** plan 4.4 requires Mini's to support "reporting", and plan 13.5/13.11 require reported
+  content to be removable and auditable. Mini's could not be reported at all, and the takedown workflow only
+  covered community posts, comments and media items.
+- [x] **New migration** `20261111000000_raye2_minis_reporting_takedown.sql`: extends the content-report target
+  constraint and RPC to accept `mini`; extends `raye2_content_takedowns` and the apply/reinstate RPCs to cover
+  `mini` and `community_clip` (both already have a `removed` status); extends the admin moderation-queue
+  preview to render Mini targets; and exposes Mini ownership in the feed RPC.
+- [x] **UI:** the Mini's feed now offers Report (on other members' Mini's) and Remove (on your own), bilingual.
+- [x] **Guarded:** a new test covers the report target, the takedown apply/reinstate branches, the queue
+  preview and the client actions; a validator assertion covers the migration.
+- [x] Gates: validator 426 assertions; tests 849/849; tsc clean; lint 0 errors/24 warnings; build OK; /minis
+  returns 200.
+- **Progress:** Wave 4 Creator Studio **~82% to ~83%**; overall **~92%**.
+
+---
+
+## 2026-11-10 — Profile Moments and playlists/collections surfaces (mega-batch, plan 2.1)
+- [x] **Gap closed:** plan 2.1 requires profile surfaces for "videos, Mini's, Moments, community activity,
+  playlists/collections and achievements". Videos, Mini's, community activity and achievements existed, but
+  there was no way to show a member's active Moments or their published playlists.
+- [x] **New migration** `20261111010000_raye2_profile_collections.sql`: one privacy-gated RPC
+  `raye2_get_profile_collections` returning active Moments (with reaction counts) and published playlists
+  (with item counts), honouring profile visibility and member blocks exactly like the profile overview.
+- [x] **Profile page** gains Moments and Playlists tabs/sections (bilingual).
+- [x] **New route** `/watch/playlists/[slug]` — the profile previously had no real playlist target, so linking
+  a playlist would have been a dead link (the same class of bug as the dead Spaces tab). The page renders a
+  published playlist's videos and 404s otherwise.
+- [x] **Guarded:** a new test covers the RPC's privacy gating, the tabs and the playlist route; a validator
+  assertion covers the migration; the palette-purity test caught and enforced the single-theme palette.
+- [x] Gates: validator 427 assertions; tests 852/852; tsc clean; lint 0 errors/24 warnings; build OK; the
+  playlist route returns the expected 404 for unknown slugs.
+- **Progress:** Wave 2 accounts/identity **~80% to ~81%**; overall **~92%**.
+
+---
+
+## 2026-11-10 — Queue physical deletion of expired temporary media (mega-batch, plan 11.3 / 9)
+- [x] **Gap closed:** plan 11.3 requires that for every temporary content type "physical deletion is queued,
+  retried and observable", separate from metadata. Mini's and community clips became inaccessible on expiry,
+  but their storage objects were never queued for deletion — they lingered forever in the public buckets.
+- [x] **New migration** `20261111020000_raye2_media_expiry_cleanup.sql`: an observable
+  `raye2_media_storage_cleanup` queue; `raye2_expire_minis`/`raye2_expire_community_clips` now record the
+  binary (metadata status still flips immediately, so content hides at once); `raye2_enqueue_storage_cleanup`
+  promotes rows into retried `storage.delete` background jobs; `raye2_record_storage_cleanup` records the
+  outcome; `raye2_get_storage_cleanup_stats` exposes pending/failed/deleted for the admin centre.
+- [x] **Worker:** the media worker drains the cleanup queue against Storage and reports success/failure; the
+  background-job claim RPC now accepts a kind filter so a storage worker never steals an account-purge job.
+- [x] **Admin UI:** the Jobs tab surfaces cleanup pending/failed/deleted counts.
+- [x] **Guarded:** a new test covers the queue, the promotion/idempotency, the trusted-worker guards, the kind
+  filter and the worker drain; a validator assertion covers the migration.
+- [x] Gates: validator 428 assertions; tests 857/857; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 9 (security/reliability/ops) remains **~99%**; this closes a specific plan-11.3
+  sub-item (queued, retried, observable physical deletion). Overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Profile community clips and public communities surfaces (mega-batch, plan 2.1 / 13.7)
+- [x] **Gap closed:** plan 13.7 requires profile surfaces to connect to "community posts/clips, public
+  communities, playlists/collections and achievements". Posts and playlists existed, but a member profile
+  could not show their published community clips or their public communities.
+- [x] **Migration** `20261111030000_raye2_profile_clips_communities.sql` extends the privacy-gated
+  `raye2_get_profile_collections` RPC with clips (published, public, unexpired, block-aware, with source
+  attribution) and communities (active memberships in public, active groups). Private and expired content is
+  never returned.
+- [x] **Profile UI** gains Clips and Communities tabs (bilingual), with clips linking back to their source
+  video and communities linking to `/groups/[slug]`.
+- [x] **Guarded:** tests assert the clip/community gating and that private communities are not leaked; a
+  validator assertion covers the migration.
+- [x] Gates: validator 429 assertions; tests 858/858; tsc clean; lint 0 errors/24 warnings; build OK; the
+  profile route 404s for an unknown handle.
+- **Progress:** Wave 2 (accounts/permissions) **~80% to ~81%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Dead-link elimination + permanent link guard (mega-batch, plan 2.1 / 15 navigation)
+- [x] **Gap closed:** the acceptance matrix requires "every primary route reachable; no dead links or
+  disconnected shells". A repository-wide scan found real dead links: five `/profile` links (home page ×4,
+  Watch ×1) and two `/login` links (Mini's, Clips) — neither route exists.
+- [x] `/profile` now resolves to the viewer's own profile (`/u/<handle>`, fetched server-side) or falls back
+  to the public sign-in surface `/community#join` when signed out. `/login` now points to `/community#join`,
+  the app's real public sign-in surface (already used elsewhere).
+- [x] **Permanent guard:** a new test enumerates every App Router route (including dynamic segments) and fails
+  if any static internal `href="/..."` does not resolve, so dead links cannot silently return.
+- [x] Gates: validator 429 assertions; tests 859/859; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 2 (accounts/permissions) **~81% to ~82%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Account sessions and devices (mega-batch, plan 2.1)
+- [x] **Gap closed:** plan 2.1 requires user settings for "privacy, notifications, accessibility, language,
+  theme, sessions/devices and data export/deletion". Everything existed except sessions/devices: a member could
+  not see where they were signed in or end a session on a device they no longer control.
+- [x] **Migration** `20261111040000_raye2_account_sessions.sql`: `raye2_my_sessions` lists the caller's own
+  GoTrue sessions (marking the current one and never returning the network address);
+  `raye2_revoke_my_session` ends one owned session; `raye2_revoke_other_sessions` ends every other session.
+  Revocations are ownership-scoped and written to the audit log.
+- [x] **Account settings UI** gains a Devices & sessions card (bilingual) listing each session with its device
+  and time, an "End session" action per other session, and "End other sessions".
+- [x] **Guarded:** a test covers the ownership scoping, the audit entries, the grants and the absence of IP
+  exposure; a validator assertion covers the migration.
+- [x] Gates: validator 430 assertions; tests 862/862; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/account` returns 200.
+- **Progress:** Wave 2 (accounts/permissions) **~82% to ~84%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Scheduled watch-page publication (mega-batch, plan 4.3)
+- [x] **Gap closed:** plan 4.3 lists "scheduled release if enabled" among the publication states of long
+  videos. Watch pages could only be private drafts or live immediately.
+- [x] **Migration** `20261111050000_raye2_video_scheduling.sql`: `video_catalog.publish_at` with a check that a
+  page is never both published and scheduled; `raye2_publish_due_videos` promotes due pages (idempotent, safe
+  from a read path); the owner-scoped `save_raye2_video_catalog` gains an appended `p_publish_at` parameter so
+  the original positional signature still works, and scheduling reuses the exact processing/visibility gates
+  as immediate publishing (a draft can never be queued to go live unprocessed). The shared maintenance runner
+  now also publishes due videos.
+- [x] **Video Studio UI** gains a datetime picker, a "Schedule watch page" action, a cancel action, and a
+  SCHEDULED catalog state (bilingual).
+- [x] **Guarded:** tests assert the schedule/processing/visibility gates, the maintenance hook and the UI;
+  three earlier tests were updated for the extended save signature (behaviour unchanged).
+- [x] Gates: validator 431 assertions; tests 866/866; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 (Creator Studio) **~83% to ~85%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Password recovery + session-refresh coverage (mega-batch, plan 2.1 / 15)
+- [x] **Gap closed (password recovery):** plan 2.1 requires "secure sign-in, sign-out, session handling,
+  password recovery and account lifecycle". Sign-in, sign-out and session handling existed, but there was no
+  password recovery anywhere.
+- [x] **Password recovery UI** on the community auth surface (the app's public sign-in surface): a "Forgot
+  password?" action calls `resetPasswordForEmail` with a redirect back to `/community`; a `PASSWORD_RECOVERY`
+  event (or `#type=recovery` link) opens a set-new-password form backed by `auth.updateUser`. Bilingual.
+- [x] **Gap closed (session refresh coverage):** the middleware refreshed sessions only for `/creator/**` and
+  `/api/creator/**`, so member-aware public pages (`/account`, `/saved`, `/notifications`, `/community`,
+  `/groups`, `/watch`, `/raye2/home`) could show an expired access token as "signed out". The matcher now
+  covers those pages too; anonymous pages and static assets stay off it.
+- [x] **Guarded:** a test asserts the reset/set-new-password flow and the expanded matcher; the refresh still
+  validates with `getClaims` and never trusts unverified `getSession`.
+- [x] Gates: validator 433 assertions; tests 872/872; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/community`, `/account`, `/notifications`, `/saved` all 200.
+- **Progress:** Wave 2 (accounts/permissions) **~84% to ~86%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Unified creator content library (mega-batch, plan 4.2)
+- [x] **Gap closed:** plan 4.2 lists the content library with its states (draft, published, scheduled, expired,
+  taken down). Each state was computed somewhere else and no surface showed them together.
+- [x] **Migration** `20261111060000_raye2_creator_content_library.sql`: one owner-scoped, read-only RPC
+  (`raye2_creator_content_library`) derives the state of every owned long video (taken_down > processing >
+  scheduled > draft > expired > published) plus view/reaction/comment counts. A helper
+  `raye2_media_is_taken_down` exposes only a boolean, so creators never see another owner's moderation trail
+  or the claimant/evidence record.
+- [x] **Studio UI** `src/app/creator/content-library.tsx`: a filterable list with per-state counts, search,
+  state pills, scheduled/expiry dates, engagement counts and a link to each watch page (bilingual). Wired into
+  `/creator` with a quick-nav card.
+- [x] **Guarded:** tests assert the state derivation, the owner scoping and that no claimant/evidence leaks;
+  a validator assertion covers the migration. State colors stay inside the black/grey/blue palette.
+- [x] Gates: validator 434 assertions; tests 875/875; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/creator` 200.
+- **Progress:** Wave 4 (Creator Studio) **~85% to ~87%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Retryable processing errors in the content library (mega-batch, plan 13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to include "processing/publishing status, retryable
+  errors, moderation/takedown state". Takedown state and processing status now appear in the content library,
+  but a failed asset had no retry action there.
+- [x] **Studio UI:** a failed processing row in `content-library.tsx` now offers "Retry processing", calling the
+  existing guarded `retry_raye2_media_processing` RPC and surfacing the queued/limit/refused outcomes
+  (bilingual).
+- [x] **Guarded:** the retry test asserts the RPC call, the failed-row condition and the limit message.
+- [x] Gates: validator 434 assertions; tests 876/876; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 (Creator Studio) **~87% to ~88%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Quota and cooldown display in the content library (mega-batch, plan 13.4)
+- [x] **Gap closed:** plan 13.4 requires the Creator Panel to include "quota/cooldown display" alongside the
+  library, processing/takedown state and real analytics. The library showed content state but not the remaining
+  long-video quota or the long-video cooldown.
+- [x] **Studio UI:** `content-library.tsx` now reads `raye2_get_creator_capabilities` and shows a compact strip
+  with long videos left this month, the cooldown length, and either "you can publish now" or the next allowed
+  time (bilingual). Figures are the server's; nothing is computed client-side as enforcement.
+- [x] **Guarded:** the content-library test asserts the capabilities call, the quota key and the cooldown flag.
+- [x] Gates: validator 435 assertions; tests 877/877; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 4 (Creator Studio) **~88% to ~89%**; overall stays **~92%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Community shared moments link to a real watch page (mega-batch, plan 4.6)
+- [x] **Bug fixed:** plan 4.6 requires sharing a video or a timestamped moment. The community feed returned
+  only `linked_video_id`, and the client resolved it against a per-session list of moment-eligible videos.
+  For any other viewer that list does not contain the video, so the "shared moment" link rendered as
+  `/watch/undefined`. The link also dropped the moment timestamp.
+- [x] **Migration** `20261111070000_raye2_community_feed_linked_slug.sql`: the feed now returns
+  `linked_video_slug` and `moment_start_seconds`, and only exposes the slug when the viewer may open the video
+  (`raye2_can_view_video`), so no dead or access-gated links are rendered.
+- [x] **UI:** `community-client.tsx` links to `/watch/<slug>` (plus `?t=<seconds>` for a moment) using the feed
+  fields instead of the per-session lookup.
+- [x] **Guarded:** new test `tests/raye2-shared-moment-links.test.mjs` plus a validator assertion cover the feed
+  fields, the view gate and the removal of the buggy lookup.
+- [x] Gates: validator 436 assertions; tests 879/879; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/community` and `/creator` 200.
+- **Progress:** Wave 5 (Social graph and communities) **~99% to ~100%**; Wave 4 (Creator Studio) **~89% to ~90%**;
+  overall **~92% to ~93%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Group voice connection quality and reconnect state (mega-batch, plan 13.9 / Wave 7)
+- [x] **Gap closed:** plan 13.9 requires group voice rooms to include "reconnect/quality state". The private
+  one-to-one call already reported quality (RTT/packet loss) and a reconnect path, but the group voice room
+  (LiveKit) showed neither: a dropped connection or a poor link was invisible.
+- [x] **UI:** `raye2-group-voice-controls.tsx` now subscribes to `ConnectionQualityChanged`, `Reconnecting` and
+  `Reconnected`, shows the local quality (Good/Fair/Poor) in the connected status and a live "Reconnecting…"
+  notice that clears on reconnect or disconnect (bilingual).
+- [x] **Guarded:** new test `tests/raye2-voice-quality.test.mjs` plus a validator assertion cover the events,
+  the state and the reconnect notice.
+- [x] Gates: validator 437 assertions; tests 881/881; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 7 (Voice, Watch Together) **~82% to ~84%**; overall stays **~93%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Creators can attach a community space to an event (mega-batch, plan 13.2 / Wave 7)
+- [x] **Gap closed:** plan 13.2 requires "Scheduled events with ... optional attached chat/voice/Watch Together
+  rooms". The attach RPC (`raye2_attach_event_space`) existed, but nothing in the creator workspace could call
+  it: `get_creator_events` did not expose the attached space and there was no list of rooms a creator may
+  attach, so the public "Open space" link could never be set.
+- [x] **Migration** `20261111080000_raye2_creator_event_space_attach.sql`: adds
+  `raye2_creator_attachable_spaces` (active groups the caller belongs to, creator-gated) and extends
+  `get_creator_events` with `space_group_slug` (plus `event_type`/`reminder_minutes_before`).
+- [x] **UI:** `event-social-management.tsx` lists attachable spaces and attaches/detaches through the guarded
+  `raye2_attach_event_space` RPC, showing the current space with a link (bilingual).
+- [x] **Guarded:** new test `tests/raye2-event-space-attach.test.mjs` plus a validator assertion cover the
+  membership scoping, the new return shape and the wired RPC calls.
+- [x] Gates: validator 438 assertions; tests 883/883; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/creator` and `/events` 200.
+- **Progress:** Wave 7 (Voice, Watch Together) **~84% to ~86%**; overall stays **~93%** (equal-weight average).
+
+---
+
+## 2026-11-10 — Cleanup preview shows affected records and estimated storage (mega-batch, plan 13.10 / Wave 8)
+- [x] **Gap closed:** plan 13.10 requires a destructive bulk action to preview affected records, estimated
+  storage, exclusions, reason and recovery options before confirmation. `raye2_create_cleanup_preview`
+  recorded scope, preservation flags and reason, but never computed the affected-record count or estimated
+  storage; the admin UI showed "—" for both until a separate queue step.
+- [x] **Migration** `20261111090000_raye2_cleanup_preview_estimates.sql`: the preview now estimates the whole
+  scope (`raye2_estimate_cleanup_scope`), stores `estimated_items`/`estimated_bytes`, and records a per-category
+  breakdown plus the explicit chat-history/Shared-Memories exclusions in `result`.
+- [x] **UI:** `admin-client.tsx` re-reads the created preview row so the estimates and exclusions appear
+  immediately (bilingual copy corrected to match).
+- [x] **Guarded:** new test `tests/raye2-cleanup-preview-estimates.test.mjs` plus a validator assertion.
+- [x] Gates: validator 439 assertions; tests 885/885; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 8 (Admin Rules Engine and governance) **~100%**; overall stays **~93%**.
+
+---
+
+## 2026-11-10 — Watch Together in-room reactions (mega-batch, plan 13.9 / Wave 7)
+- [x] **Gap closed:** plan 13.9 requires Watch Together to support "chat/reactions". A watch session is bound to
+  a conversation, so chat already existed through the room's messages; reactions did not. There was no way to
+  react to the moment being watched and no live reaction feed.
+- [x] **Migration** `20261111100000_raye2_watch_reactions.sql`: adds `raye2_watch_reactions` (RLS-gated to
+  session members), `raye2_send_watch_reaction` (joined participants only, custom Raye2 reaction set, 20/minute
+  rate limit, optional playback position) and `raye2_list_watch_reactions` (recent reactions with reactor
+  identity). The table is added to the realtime publication.
+- [x] **UI:** `raye2-watch-together-controls.tsx` shows a reaction bar and a live reaction feed, sends the
+  current playback position and updates over realtime (bilingual).
+- [x] **Guarded:** new test `tests/raye2-watch-reactions.test.mjs` plus a validator assertion.
+- [x] Gates: validator 440 assertions; tests 887/887; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/raye2/home` and `/community` 200.
+- **Progress:** Wave 7 (Voice, Watch Together) **~86% to ~88%**; overall stays **~93%**.
+
+---
+
+## 2026-11-10 — Restore event-question reporting (mega-batch, regression fix / Wave 5 + 8)
+- [x] **Regression fixed:** the event Q&A migration (`20261110860000`) added `event_question` to
+  `content_reports` and to `raye2_report_community_content`. Two later migrations (community clips
+  `20261110890000`, Mini's `20261111000000`) each dropped and recreated the target-type constraint and
+  redefined the reporting RPC with their own target list, silently dropping `event_question`. Reporting an
+  event question therefore failed once those migrations applied.
+- [x] **Migration** `20261111110000_raye2_event_question_reporting.sql`: restores `event_question` in both the
+  constraint and the RPC (with a target-existence check against `event_qa`).
+- [x] **Regression guard:** new `tests/raye2-report-target-parity.test.mjs` asserts the final report-target
+  list and constraint are supersets of every list ever declared across migrations, so a future redefinition
+  cannot silently drop a target. Verified it fails when the fix is removed.
+- [x] Gates: validator 441 assertions; tests 888/888; tsc clean; lint 0 errors/24 warnings; build OK.
+- **Progress:** Wave 5 stays **~100%** (reporting restored); overall stays **~93%**.
+
+---
+
+## 2026-11-10 — Share a video or moment into DMs and groups (mega-batch, plan 13.3 / Wave 3)
+- [x] **Gap closed:** plan 13.3 requires sharing "a whole video, timestamp/moment, or an eligible clip into
+  DMs, groups, communities and Watch Together". Community sharing existed, but chat sharing did not: the watch
+  page could only copy a link.
+- [x] **Migration** `20261111120000_raye2_share_into_chat.sql`: `raye2_list_shareable_conversations` (active
+  direct/group conversations the viewer belongs to) and `raye2_share_video_to_chat` (posts a structured
+  `video_share` message into a conversation the sender belongs to; the body and link are server-derived and the
+  video must pass `raye2_can_view_video`, so the client cannot forge a link to an unavailable video; timestamp
+  bounded to 24h).
+- [x] **UI:** `watch-detail-client.tsx` gains a "Share to chat" action and conversation picker (bilingual);
+  the watch page passes the slug so the RPC references the canonical video.
+- [x] **Guarded:** new test `tests/raye2-share-into-chat.test.mjs` plus a validator assertion.
+- [x] Gates: validator 442 assertions; tests 890/890; tsc clean; lint 0 errors/24 warnings; build OK;
+  `/watch` and `/raye2/home` 200.
+- **Progress:** Wave 3 (Video, feed, discovery) **~95% to ~96%**; overall **~93%**.
+
+---
+
+## 2026-11-10 — Mega-batch round summary (provider-independent work complete)
+- [x] Delivered four provider-independent features/fixes this round: cleanup-preview estimates (13.10),
+  Watch Together in-room reactions (13.9), the event-question reporting regression fix, and share-a-video/moment
+  into DMs and groups (13.3). Each has a migration, UI wiring where applicable, a dedicated test and a validator
+  assertion.
+- [x] Verified shared links re-check permission at view time (the `/watch/[slug]` query is gated by
+  `raye2_can_view_video`, so takedown/expiry yields notFound).
+- [x] Confirmed already-implemented provider-independent items: server-side rate limits/anti-spam
+  (`20261110550000`), copyright reporting reason + takedown workflow, profile interests/links/cover editing.
+- [x] Remaining work is provider- or environment-dependent only: real transcoding/HLS delivery, real live
+  ingest, external ad-network SDK, LiveKit provider deployment, and isolated Supabase migration/RLS acceptance.
+- **Progress (all ten waves):** 0 ~90%, 1 ~90%, 2 ~86%, 3 ~96%, 4 ~90%, 5 ~100%, 6 ~95%, 7 ~88%, 8 ~100%,
+  9 ~99%; overall **~93%**; §18 ~97%.
+
+---
+
+## 2026-11-10 — Repository professionalization (naming, hygiene, stale prototype)
+- [x] **Push audit:** all prior work was already on `origin/development`; the apparent "53 ahead" was a stale
+  local ref (after `fetch`, 0 ahead / 0 behind). `main` remains frozen at `f97847f`.
+- [x] **Naming:** renamed every predecessor `nhen-*` CSS class to `raye2-*`, `--nhen-*` tokens to `--raye2-ds-*`,
+  the `nhen_locale` cookie to `raye2_locale`, and `NhenReactionArt` to `Raye2ReactionArt` across `src/`,
+  `tests/`, `scripts/` and `AGENTS.md` (~2,100 references, 113 files). File renames:
+  `nhen-design-system.css` → `raye2-design-system.css`, `nhen-reaction-art.tsx` → `raye2-reaction-art.tsx`.
+  Collision-handled names: `raye2-studio-shell`, `raye2-studio-columns`, `raye2-studio-row`,
+  `raye2-watch-columns`, `raye2-watch-sidebar`, `raye2-loading-glyph`.
+- [x] **Latent bug fixed:** the player loading glyph now uses the class its stylesheet defines
+  (`raye2-loading-glyph`).
+- [x] **Hygiene:** committed `package-lock.json` (lockfileVersion 3) and switched CI to `npm ci` with npm cache;
+  ignored `*.tsbuildinfo`; rewrote the README product description to match the current platform; normalized flex
+  `end` → `flex-end`, clearing all autoprefixer warnings.
+- [x] **Cleanup:** removed the dead root `index.html` ("THE INNER CIRCLE") prototype (not served or built) and
+  migrated its four tests to the real surfaces (home links, participation privacy disclosure, creator
+  signature in the shared layout, design-system responsive/reduced-motion). Added
+  `tests/raye2-naming-hygiene.test.mjs` to block predecessor branding from returning to the product source.
+- [x] **Lint:** 0 errors / 19 warnings (down from 24); fixed the unused import, unused binding, and anonymous
+  default export, and ignore intentionally `_`-prefixed unused args.
+- [x] Gates: validator 442 assertions; tests 892/892; tsc clean; build OK; runtime 200 for `/`, `/watch`,
+  `/community`, `/shorts`, `/raye2/home`, `/creator`.
+- **Progress:** no feature delta this round; all ten waves unchanged. Overall **~93%**.
+
+---
+---
+## Batch — 2026-11-10 (Batch 1): Storage pooling, dedup, multipart and capacity sync (development only)
+
+**Goal:** make Raye2 storage professional and larger without farming free tiers — add capacity by
+pooling providers we own, remove duplicate bytes, support large uploads, and derive the real ceiling
+from verified pooled capacity. Additive; `main`/production unchanged.
+
+- **Provider pooling.** `raye2_storage_providers.provider_id` is no longer a fixed 3-value enum; a new
+  `provider_kind` drives routing so several instances of one kind can be pooled (e.g. `raye2_r2_1`,
+  `raye2_r2_2`, `raye2_b2_1`). The router selects the least-full healthy, capacity-verified instance of
+  the preferred kind and fails over across kinds. Env discovery supports `RAYE2_R2_*`/`RAYE2_B2_*` plus
+  suffixed pools.
+- **Content-addressed dedup.** New `raye2_storage_blobs` (keyed by lowercase sha256 with a refcount) and
+  `raye2_storage_object_replicas` (one logical object, many physical replicas). `raye2_register_storage_object`
+  holds a per-digest advisory lock and charges zero new bytes on a hit; `raye2_release_storage_blob` decrements
+  refs. Pure planner in `src/lib/storage/dedup.mjs`.
+- **Multipart uploads.** The S3 adapter now exposes `createMultipartUpload`, `signUploadPart`,
+  `completeMultipartUpload` and `abortMultipartUpload` with real signed payloads, and advertises
+  `multipartUploads`/`resumableUploads`/`sha256Verification`. Reservation ceiling widened to 100 GiB so
+  parts may exceed the single-shot 50 MiB cap; per-file policy still fails closed at the allowance layer.
+- **Capacity sync.** `raye2_storage_capacity_summary` aggregates enabled providers and
+  `raye2_sync_platform_ceiling` raises the platform ceiling to pooled verified capacity, never below bytes
+  already used, capped by an owner `platform_ceiling_cap_bytes`. `summarizeProviderPool` mirrors it in the UI.
+- **Tests:** +2 S3 adapter tests (pooled ids, multipart), +4 router/pool tests, +6 dedup tests. Validator 463 assertions.
+- Gates: validator 463 assertions; tests 934/934; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet wired:** the chunked upload UI still uses the single-shot path, so per-file policy stays at 50 MiB until
+  Batch 2. Transcoding ladder and BYOS connectors are later batches.
+
+## Batch — 2026-11-10 (Batch 2): Chunked upload path, reconciliation, optimization ladder and BYOS (development only)
+
+**Goal:** finish wiring the large-file upload path that Batch 1 built the storage for, add a real reconciliation
+worker, make the transcode ladder codec-aware, and land the first bring-your-own-storage connector interface.
+Additive; `main`/production unchanged.
+
+- **Chunked upload path wired end to end.** New service-role route `src/app/api/raye2/storage/multipart/route.ts`
+  (`begin` / `sign` / `part` / `complete` / `abort`): authenticates the caller, checks the per-file allowance, picks
+  a pooled provider through `selectStorageProvider`, atomically reserves capacity, signs parts, records each part,
+  completes the provider multipart upload, commits the object and registers the sha256 for dedup. New browser
+  helper `src/lib/storage/chunked-upload.ts` drives it with retry + progress and raises `MultipartUnavailableError`
+  when the pool cannot serve the request so the caller can fall back. The creator media library now prefers the
+  pooled path for large files and falls back to the Supabase TUS path, so nothing regresses while providers are
+  unconfigured.
+- **Multipart ledger.** Migration `20261116140000_raye2_multipart_uploads_and_reconciliation.sql` adds
+  `raye2_multipart_uploads` plus `raye2_begin_multipart_upload`, `raye2_record_upload_part` (out-of-order safe)
+  and `raye2_finish_multipart_upload`. The reservation RPC was re-created to accept pooled instance ids and 100 GiB
+  parts, with explicit `revoke`/`grant` retained.
+- **Reconciliation.** New `raye2_reconcile_storage_provider` records a trusted worker's real used/capacity bytes,
+  marks capacity fresh and writes a usage-ledger entry. `scripts/raye2-storage-reconcile.mjs` (npm `storage:reconcile`)
+  lists each configured provider's buckets via the new adapter `listObjects`, reconciles, and re-syncs the platform
+  ceiling. It refuses to run with a publishable/anon key.
+- **Optimization ladder.** `src/lib/storage/media-optimization.mjs` chooses the best available codec (AV1 → HEVC →
+  H.264) and builds a no-upscale HLS ladder; the media worker now uses it and honours `RAYE2_VIDEO_CODEC`. It is
+  documented honestly as *visually lossless*, not lossless — no lossless re-encode shrinks a file.
+- **BYOS connectors.** `src/lib/storage/byos-connectors.mjs` defines the S3-compatible connector interface (Storj
+  first) with secret-free descriptors and a placement policy that keeps public delivery on Raye2-owned providers.
+  Raw Google Drive is deliberately not integrated (its terms forbid backend use).
+- **Tests:** +1 adapter test (`listObjects`), +6 optimization tests, +5 BYOS tests. Validator grew to 476 assertions.
+- Gates: validator 476 assertions; tests 954/954; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done:** provider accounts/keys are still unconfigured, so the pooled path is exercised by unit tests and
+  the fallback keeps production safe; live RLS/migration application and real R2/B2/Storj acceptance remain.
+
+## Batch — 2026-11-10 (Batch 3): Upload-path fix, pooled path on every surface, BYOS registry (development only)
+
+**Goal:** fix a real upload bug, extend the pooled chunked path to every member upload surface, and give
+bring-your-own-storage a persisted, owner-scoped registry with an admin surface. Additive; `main`/production unchanged.
+
+- **Bug fix (minis and clips uploads were broken).** `src/lib/supabase/resumable-upload.ts` allow-listed only
+  `creator-media-private`, `creator-media-public` and `raye2-community-shorts`, but the minis and clips clients
+  call it with `raye2-minis` and `raye2-clips`. Those uploads threw "Unsupported media storage bucket" before any
+  network work, so every Mini and community Clip upload failed. The allow-list now covers all five buckets.
+- **Pooled path on every member surface.** Minis, clips and community shorts now prefer the pooled chunked upload
+  (`uploadChunkedToPool`) for files above the single-shot threshold and fall back to the Supabase TUS path when no
+  pooled provider is configured (`MultipartUnavailableError`), matching the media library. Content-addressed dedup
+  registration applies to these surfaces too, since the pooled route commits and registers the sha256.
+- **BYOS registry.** Migration `20261116150000_raye2_byos_connections.sql` adds `raye2_byos_connections`, which
+  stores only non-secret metadata plus the NAME of a server-side environment secret — never the secret value, and
+  never a browser-readable key. RPCs: `raye2_upsert_byos_connection` (owner-scoped), `raye2_delete_byos_connection`,
+  `raye2_my_byos_connections`, `raye2_admin_byos_connections` (admin metadata list), `raye2_set_byos_connection_state`
+  (service-role only, after a real probe) and `raye2_admin_set_byos_state` (admin disable/re-arm, audit-logged).
+  The table is RLS-enabled with `anon`/`authenticated` fully revoked, mirroring the provider registry.
+- **Admin surface.** New `src/app/creator/raye2/byos-connections.tsx` and an admin "BYOS" tab listing contributor
+  connections with disable/re-arm. Contributed buckets remain private overflow only; public delivery stays on
+  Raye2-owned providers so a contributor cannot break public playback by revoking a key.
+- **Tests/validator:** +1 regression test for the bucket allow-list; validator grew to 482 assertions covering the
+  BYOS secret-free schema, owner/admin/service-role gating and the multi-surface fallback.
+- Gates: validator 482 assertions; tests 955/955; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done:** provider accounts/keys remain unconfigured, so the pooled path is exercised by unit tests and
+  the Supabase fallback keeps production working; live RLS application and real R2/B2/Storj acceptance remain. A
+  contributor-facing BYOS connect UI (beyond the admin view) and an on-demand provider probe endpoint are next.
+
+## Batch — 2026-11-10 (Batch 4): Object lifecycle, BYOS probing, provider discovery and migration (development only)
+
+**Goal:** close the remaining provider-independent storage gaps so that, once keys are added, the whole
+storage fabric works end-to-end with no further code. Additive; `main`/production unchanged.
+
+- **Owner storage lifecycle.** Migration `20261116160000_raye2_storage_lifecycle_and_migration.sql` adds
+  owner-scoped definer RPCs `raye2_my_storage_objects` and `raye2_request_object_deletion`, plus an
+  admin-gated `raye2_admin_storage_objects`. `raye2_storage_objects` stays RLS-locked with anon/authenticated
+  revoked; owners reach only their own rows and the RPCs re-apply the owner predicate themselves.
+- **Object delivery and deletion API.** New `src/app/api/raye2/storage/object/route.ts` signs playback URLs
+  (private objects are never returned as public URLs; legacy Supabase objects are handed back to the Supabase
+  client) and deletes objects: pooled objects are removed with the provider adapter, Supabase objects with the
+  storage client, then the registry row is marked deleted so provider byte counters drop.
+- **BYOS probing.** New `src/app/api/raye2/storage/byos/route.ts` reads a connection's credentials from a
+  server-side environment variable named by `secret_ref` (never a stored value), probes the bucket with the
+  S3-compatible adapter, and records verified/failed via the service-role-only RPC. Pure logic in
+  `src/lib/storage/byos-probe.mjs`.
+- **Contributor BYOS UI.** The Account page now lists stored files with delete, and connects BYOS buckets
+  (provider, endpoint, region, bucket, secret reference) with a one-click test. Bilingual EN/AR.
+- **Provider discovery.** New `src/app/api/raye2/storage/providers/discover/route.ts` (admin-only) reconciles
+  the registry with the providers actually configured in the environment via `raye2_sync_storage_providers`,
+  which upserts identity/config columns only and never overwrites usage counters. The reconcile worker also
+  performs this sync so a newly configured provider is discovered automatically.
+- **Storage migration.** New `src/app/api/raye2/storage/migrate/route.ts` (admin-only) plans a batch with the
+  conservative `src/lib/storage/migration-planner.mjs` (only draining, unprotected, active objects; never
+  exceeding destination headroom or the batch ceiling), then copies each object server-side, repoints its row
+  via `raye2_complete_object_migration`, and deletes the old copy — so a failed delete never loses data.
+  A `raye2_storage_object_migrations` ledger is service-role only.
+- **Admin surface.** The admin BYOS tab gains "Reconcile providers" and "Migrate from Supabase" actions.
+- **Tests/validator:** +19 tests (object delivery, migration planner, BYOS probe); validator grew to 500
+  assertions covering the owner/admin/service-role gating, the ledger counter moves and copy-before-delete order.
+- Gates: validator 500 assertions; tests 974/974; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (all key-dependent):** the storage keys and buckets are not configured in this environment, so
+  no provider is live and the migration moves zero objects. Live RLS acceptance on an isolated Supabase project
+  and multi-device voice/live acceptance remain. Everything else storage-related is implemented.
+
+## Batch — 2026-11-10 (Batch 5): Storage object resolution — pooled uploads are now playable (development only)
+
+**Goal:** close the gap that pooled S3-compatible uploads could not be played back, because every read surface
+resolved playback only through Supabase. Now a logical object is resolved to its physical location (pooled provider
+or legacy Supabase) before a URL is built, on both server and client. Additive; `main`/production unchanged.
+
+- **Registry resolution RPC.** Migration `20261116170000_raye2_storage_object_resolution.sql` adds the
+  service-role-only `raye2_resolve_storage_objects(p_objects)` batch resolver: given logical `{bucket_id, object_key}`
+  pairs it returns each object's `provider_id`, `object_state`, `visibility` and `owner_id`, so a caller can decide
+  public vs signed delivery without ever reading the registry directly. The table stays RLS-locked.
+- **Server resolve route.** New `src/app/api/raye2/storage/resolve/route.ts` (batched, up to 100 objects) validates
+  buckets/keys with the shared `isResolvableBucket`/`isValidObjectKey`, signs private objects for the signed-in owner
+  only (`kind:"forbidden"` otherwise), returns public URLs for pooled public objects, and marks anything not in the
+  registry (or still on Supabase) as `kind:"legacy"` so the client keeps using the Supabase storage client.
+- **Shared server resolver.** New `src/lib/storage/resolve.server.ts` centralises bucket/visibility policy
+  (`PUBLIC_DELIVERY_BUCKETS`, `PRIVATE_DELIVERY_BUCKETS`, `RESOLVE_TTL_SECONDS`), `resolveObjectsToUrls` and a
+  `resolvePublicObjectUrls` convenience wrapper that returns an empty map when the service role is not configured, so
+  pages always still render with legacy Supabase URLs.
+- **Client helper.** New `src/lib/storage/resolve-delivery.ts` (`splitStoragePath`, `resolveStorageDelivery`,
+  `resolveStorageDeliveries`) batches a request to the resolve route and degrades to the caller's legacy Supabase
+  resolver on any failure — no playback regression when the pool is unconfigured.
+- **Read surfaces wired (server):** `src/app/u/[handle]/page.tsx`, `src/app/watch/[slug]/page.tsx` (video, HLS master
+  and poster all accept a pooled origin), `src/app/videos/public-videos.tsx`, `src/app/watch/page.tsx`,
+  `src/app/watch/playlists/[slug]/page.tsx`, `src/app/series/page.tsx`, `src/app/page.tsx`,
+  `src/app/raye2/home/page.tsx`, `src/app/shorts/page.tsx`.
+- **Read surfaces wired (client):** `src/app/minis/minis-client.tsx`, `src/app/clips/clips-client.tsx`,
+  `src/app/shorts/community-shorts-client.tsx`, `src/app/creator/media-library.tsx`,
+  `src/app/creator/video-studio.tsx`, `src/app/watch/watch-library-more.tsx` and the Watch Together controls
+  (which now also accept pooled providers instead of Supabase-only). `buildWatchCard` takes an optional pooled resolver.
+- **Tests/validator:** `tests/storage-resolve-delivery.test.mjs` (8 tests: split, pooled sign, legacy fallback,
+  failure degradation, non-OK degradation, unavailable retry, invalid-drop, de-dup). Validator grew to 512 assertions
+  covering the resolve route's gating, the shared resolver, and every wired read surface.
+- Gates: validator 512 assertions; tests 982/982; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (key-dependent):** the storage keys/buckets are still unconfigured, so the pooled resolve path is
+  exercised by unit tests and the Supabase fallback keeps production working. Live RLS acceptance on an isolated
+  Supabase project remains outstanding.
+
+## Batch — 2026-11-10 (Batch 6): Scheduled Watch Together sessions and private invitation links (development only)
+
+**Goal:** close the two explicitly-listed remaining Wave 7 items — "private invitation links and scheduled
+sessions" — on top of the existing Watch Together synchronization, queue, moderation, control requests and
+reactions. Additive; `main`/production unchanged.
+
+- **Scheduled sessions.** Migration `20261116180000_raye2_watch_scheduled_and_invites.sql` adds an optional
+  `scheduled_for` to `raye2_watch_sessions` (bounded to 90 days) plus `raye2_watch_session_started()`, the single
+  source of truth for "has this session started?". A future session is visible to members but not joinable until
+  its start time, and `raye2_create_watch_session` gains a `p_scheduled_for` argument (previous signature dropped).
+- **Private invitation links.** New `raye2_watch_session_invites` stores only a sha256 token hash (never the
+  plaintext), with host/moderator-only `raye2_create_watch_session_invite` / `raye2_revoke_watch_session_invite`
+  (both audit-logged) and `raye2_join_watch_session_invite(p_token)` for redemption. Redemption is atomic against
+  expiry, use limit, a full room and an unstarted session, and re-joins a member who had left.
+- **Guarded join preserved.** `raye2_join_watch_session_guarded` keeps the `watch` account-restriction check and
+  now also refuses a not-yet-started scheduled session.
+- **UI.** The Watch Together panel gains an optional schedule picker, per-session "starts …" labels, and a host-only
+  private invite block (create / copy / revoke). New redemption route `src/app/raye2/watch-invite/page.tsx` mirrors
+  the group invite page, keeping the token through sign-in.
+- **Tests/validator:** `tests/raye2-watch-scheduled-invites.test.mjs` (7 tests). Validator grew to 515 assertions.
+- Gates: validator 515 assertions; tests 989/989; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** LiveKit provider deployment and real multi-device Watch
+  Together acceptance; live RLS application on an isolated Supabase project.
+
+## Batch — 2026-11-10 (Batch 7): Community clip permalinks and share-to-chat (development only)
+
+**Goal:** close the remaining community-clip gap from plan 13.5 — clips had publish/report/remove but no
+canonical address and no way to share them into a conversation, so "provide … share … behavior" and "clips shared
+into communities or chats must remain subject to source and clip permissions" were unmet. Additive; `main` and
+production unchanged.
+
+- **Permission-checked permalink.** Migration `20261116190000_raye2_clip_permalink_and_share.sql` adds
+  `raye2_get_community_clip(p_clip_id)`, which returns a single clip only when it is live and source-permitted,
+  or to its clipper, the source owner or a community moderator. Permissions are re-evaluated on every read, so a
+  link never outlives the clip's eligibility (source clipping disabled, expired, removed, blocked clipper).
+- **Share-to-chat.** `raye2_share_clip_to_chat(p_conversation_id, p_clip_id)` posts a structured
+  `kind:'clip_share'` message into a conversation the sender belongs to. The title and `/clips/<id>` link are
+  server-derived, and the same live/source-permission rules gate the share, so a client cannot forge a link to an
+  unavailable clip.
+- **Permalink route.** New `src/app/clips/[id]/page.tsx` server-renders the clip through the shared pooled-object
+  resolver (same path as the feed), refuses a non-live clip with `notFound()`, and validates the id as a UUID.
+  `clip-detail-client.tsx` adds copy-link, share-to-chat, report and owner/moderator remove.
+- **Feed + chat wiring.** The clips feed links each card to `/clips/<id>` and can copy the canonical address. The
+  chat client now loads and renders `attachment` for `clip_share` and `video_share` messages as real links
+  (previously a shared clip rendered as plain text with no link).
+- **Tests/validator:** `tests/raye2-clip-permalink-share.test.mjs` (6 tests). Validator grew to 518 assertions.
+- Gates: validator 518 assertions; tests 995/995; tsc clean; lint 0 errors / 19 warnings; build OK
+  (`/clips/[id]` route built, 1.87 kB / 151 kB).
+- **Not yet done (provider/environment-dependent):** live RLS application and route-guard acceptance on an
+  isolated Supabase project; source-creator "disable clipping" acceptance on live data.
+
+## Batch — 2026-11-10 (Batch 8): Community clips shared into community posts (development only)
+
+**Goal:** close the remaining plan 13.8 gap — the community feed must carry "Mini's/community clips" — and satisfy
+plan 13.5's rule that "clips shared into communities or chats must remain subject to source and clip permissions".
+A community post could attach a video moment but had no way to embed a community clip, so a clip could not be
+shared into a community at all. Additive; `main` and production unchanged.
+
+- **Optional clip link.** Migration `20261116200000_raye2_community_posts_clips.sql` adds
+  `community_posts.linked_clip_id` (FK to `raye2_community_clips`, `on delete set null`) plus a check constraint
+  making a clip link and a video moment mutually exclusive.
+- **Insert gate.** The instant-publish policy now only accepts a clip that is currently live and source-permitted
+  (`status='published'`, not expired, source `allow_clipping`), reusing the same predicate as the permalink read.
+- **Feed gate.** `raye2_get_community_feed` returns `linked_clip_id` only while the clip is still live and
+  source-permitted, so a community link never outlives the clip's eligibility (source clipping disabled, expired,
+  removed, blocked clipper).
+- **UI.** The community compose form gains an optional "attach one of your clips" picker (the member's own live
+  clips), and each post renders a `▶ Shared community clip ↗` link to `/clips/<id>` — the Batch 7 permalink.
+- **Tests/validator:** `tests/raye2-community-post-clips.test.mjs` (4 tests). Validator grew to 519 assertions.
+- Gates: validator 519 assertions; tests 999/999; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** live RLS application and route-guard acceptance on an
+  isolated Supabase project.
+
+## Batch — 2026-11-10 (Batch 9): Disappearing messages and group slow mode (development only)
+
+**Goal:** close two remaining Wave 6 gaps. Plan section 8 requires "optional disappearing messages per
+conversation, subject to the platform's minimum retention and safety/legal requirements", and the group-chat spec
+requires "slow mode, anti-spam controls, member limits and message rate limits". The messages table already had an
+unused `expires_at` column and a hidden-when-expired read policy, but nothing ever set it and nothing swept it; group
+slow mode did not exist at all. Additive; `main` and production unchanged.
+
+- **Disappearing window.** Migration `20261116210000_raye2_chat_ephemeral_slowmode.sql` adds
+  `raye2_conversations.disappearing_seconds`, bounded to 1, 7 or 30 days so it can never undercut the platform's
+  minimum retention floor. `raye2_set_conversation_disappearing` lets any member set a direct window and requires a
+  group manager for a group window.
+- **Server-stamped expiry.** A before-insert trigger (`raye2_apply_message_expiry`) stamps `expires_at` from the
+  conversation policy, so a client cannot opt out. The existing read policy already hides expired messages.
+- **Slow mode.** `raye2_groups.slow_mode_seconds` (0–3600, default 0). `raye2_set_group_slow_mode` is manager-only;
+  a before-insert trigger (`raye2_guard_message_slow_mode`) raises a clear, retryable error when the same member
+  writes again inside the window. Direct conversations are never throttled.
+- **Sweep.** `raye2_sweep_expired_messages` physically removes expired messages, never touching messages that back a
+  preserved Shared Memory, and is folded into `raye2_run_maintenance` as `disappearing_messages_expired`.
+- **UI.** The composer foot gains a disappearing-messages selector; the chat header shows a "Disappears" badge while
+  a window is active; the group manage modal gains a slow-mode section (5–300 s).
+- **Tests/validator:** `tests/raye2-chat-ephemeral-slowmode.test.mjs` (6 tests). Validator grew to 522 assertions.
+- Gates: validator 522 assertions; tests 1005/1005; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** live RLS application and trigger acceptance on an isolated
+  Supabase project.
+
+## Batch — 2026-11-10 (Batch 10): Polls inside chats and groups (development only)
+
+**Goal:** close the last Wave 6 group-chat gap. The companion plan section 3 lists "replies, reactions, polls,
+shared files and shared content collections"; the platform had site-wide polls but no way to attach a poll to a
+conversation message. Additive; `main` and production unchanged.
+
+- **Model.** Migration `20261116220000_raye2_chat_polls.sql` adds `raye2_message_polls`,
+  `raye2_message_poll_options` and `raye2_message_poll_votes`. A poll hangs off one message (its attachment kind is
+  `poll`), so it inherits message retention, expiry, edit/delete and RLS.
+- **Server rules.** `raye2_create_message_poll` requires an active, member-visible conversation, 2–10 unique
+  options (1–80 chars) and a 1–160 char question, and is rate-limited with the chat bucket. `raye2_vote_message_poll`
+  replaces the caller's votes, enforces single vs multiple choice, rejects unknown options and blocks voting on a
+  closed or expired poll. `raye2_close_message_poll` is limited to the poll author or a group manager.
+- **Reads.** `raye2_get_message_poll` returns the question, options, live tallies, the caller's own votes and the
+  closed state; member-only. The tables are select-only to authenticated with member-scoped policies.
+- **UI.** The composer gains a "New poll" tool with a question field, add/remove option rows, a multiple-choice
+  toggle and post action. Each poll message renders a `Raye2MessagePoll` with share bars, the caller's selection and
+  a close control for the author or a group manager.
+- **Tests/validator:** `tests/raye2-chat-polls.test.mjs` (5 tests). Validator grew to 524 assertions.
+- Gates: validator 524 assertions; tests 1010/1010; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** live RLS application and RPC acceptance on an isolated
+  Supabase project.
+
+## Batch — 2026-11-10 (Batch 11): Group profile editing and moderation log (development only)
+
+**Goal:** close the Wave 5 community gap where a group's profile (description, rules, image) could only be set at
+creation and moderation actions were never recorded. Additive; `main` and production unchanged.
+
+- **Model.** Migration adds `raye2_group_moderation_log` (RLS-locked, manager-read via guarded RPC) and the
+  manager-only `raye2_update_group_profile` RPC.
+- **Client.** `saveGroupProfile()` (manager-only; validates description ≤ 1000, rules ≤ 3000, https image URL) and
+  `moderationLabel()` plus the manage-section UI in `src/app/raye2/raye2-client.tsx`.
+- **Tests/validator:** `tests/raye2-group-profile-moderation.test.mjs` (4 tests). Validator grew to 525 assertions.
+- Gates: validator 525 assertions; tests 1014/1014; tsc clean; lint 0 errors / 19 warnings; build OK.
+
+## Batch — 2026-11-10 (Batch 12): Isolated PostgreSQL migration-validation harness (development only)
+
+**Goal:** prove the whole migration chain actually applies on a real PostgreSQL before any provider integration,
+and repair the genuine corruption that only a live apply exposes. Additive; `main` and production unchanged.
+
+- **Harness.** `scripts/raye2-migration-check.mjs` spins up a throwaway PostgreSQL cluster, loads a
+  Supabase-compatible stub (`scripts/raye2-stub-supabase.sql`: `auth`/`storage`/`realtime`/`private` schemas,
+  `anon`/`authenticated`/`service_role` roles, `auth.uid()`/`auth.role()`/`auth.jwt()`, `storage.objects`/
+  `buckets` with the real `owner_id text` column, `realtime.topic()`, `supabase_realtime` publication), applies
+  all 248 migrations in order with `ON_ERROR_STOP`, then runs invariant post-checks
+  (`scripts/raye2-migration-postchecks.sql`). It honours `RAYE2_PG_DSN` for an existing server and skips cleanly
+  when PostgreSQL is absent, so it is safe in CI.
+- **Genuine corruption repaired (found only by the live apply):**
+  1. `20261115193000_raye2_atomic_storage_reservations.sql` — `raye2_commit_storage_object` had a duplicated,
+     out-of-order `if … then` fragment and a truncated checksum regex (`'^[a-fA-F0-9]{64}` missing its closing
+     brace and quote). The file could not parse at all. Reconstructed the function and the following
+     `raye2_release_storage_reservation` + grants block.
+  2. `20261111070000_raye2_community_feed_linked_slug.sql` — redefined `raye2_get_community_feed` with a changed
+     return type but no `drop function`; added the drop for the 4-arg signature before the redefinition.
+  3. `20261116120000_raye2_storage_allowances_and_control.sql` — `raye2_storage_period_used` compared
+     `storage.objects.owner_id` (real Supabase type `text`) to a `uuid` argument; corrected to `p_user_id::text`.
+- **Stub fidelity:** added `auth.sessions.user_agent`/`refreshed_at`/`ip` and `storage.objects.owner_id` /
+  `storage.buckets.owner_id`, verified against the upstream `supabase/auth` and `supabase/storage` migrations.
+- **Invariants asserted after apply:** every `public` table has RLS; every `SECURITY DEFINER` function pins
+  `search_path`; Batch 9/10/11 artifacts exist and are RLS-locked; the storage reservation/commit RPCs are
+  service-role only.
+- **Gate wiring.** `npm run check` now runs the static validator **and** the live migration check
+  (`check:static` / `check:migrations` split out). Validator grew to **529 assertions**.
+- **Tests:** `tests/raye2-migration-harness.test.mjs` (6 tests). Full suite **1020 pass / 0 fail**.
+- Gates: validator 529 assertions; live check applied **248/248 migrations** on PostgreSQL 17 with 0 failures;
+  tests 1020/1020; tsc clean; lint 0 errors / 20 warnings; build OK.
+- **Progress accounting:** this batch hardens correctness/verification; it does not add broad feature coverage.
+  The canonical ten-wave table is unchanged.
+
+## Batch — 2026-11-10 (Batch 13): Behavioral RLS and RPC authorization matrix (development only)
+
+**Goal:** the largest remaining Wave 2/9 gap was *behavioral* RLS/RPC acceptance — proving the migrated
+guards actually allow and deny the right callers. The Batch 12 harness only applied SQL; this batch makes it
+exercise the guards. Additive; `main` and production unchanged.
+
+- **Matrix.** `scripts/raye2-rls-matrix.sql` seeds a deterministic dataset (owner / admin / non-manager
+  member / non-member) and, for each guarded surface, switches the session role (`set local role
+  authenticated` / `anon`) and the Supabase request-context GUCs (`request.jwt.claim.role` / `sub`) exactly
+  as PostgREST does per request. Each check proves the authorized path succeeds **and persists**, and that the
+  denied path raises the expected SQLSTATE (`42501`, `22023`, `55006`, or `insufficient_privilege`).
+- **Surfaces covered:** group profile editing (`raye2_update_group_profile`: non-manager denied, owner and
+  admin allowed and persisted, over-length/non-https rejected, anon denied at the grant level); the group
+  moderation log (trigger captures member adds and status changes; manager reads via RPC and directly through
+  RLS; non-manager denied by both; anon denied); chat polls (`raye2_create_message_poll` non-member denied,
+  `raye2_vote_message_poll` single-choice enforcement and tallies, `raye2_get_message_poll` non-member denied,
+  `raye2_close_message_poll` non-author/non-manager denied and manager close freezing votes); and a
+  denial-invariant sweep asserting `anon` holds no execute on the storage reservation/commit/release RPCs.
+- **Non-vacuous (negative control):** replacing `raye2_update_group_profile` with an unguarded body makes the
+  matrix fail at the first non-manager case — so a real regression cannot pass silently.
+- **Wiring.** The runner executes the matrix after the post-checks; `npm run check` and `check:migrations` both
+  cover it. Validator grew to **530 assertions**; `tests/raye2-migration-harness.test.mjs` grew to 7 tests.
+- Gates: validator 530 assertions; live check applied **248/248 migrations** + post-checks + RLS matrix with 0
+  failures; tests **1021/1021**; tsc clean; lint 0 errors; build OK.
+- **Progress accounting:** verification/authorization batch; the canonical ten-wave table is unchanged. The
+  isolated behavioral matrix now covers the newest guarded surfaces; a hosted Supabase project and route-level
+  acceptance remain.
+
+## Batch — 2026-11-10 (Batch 14): Broadened behavioral authorization matrix (development only)
+
+**Goal:** Batch 13 proved the newest guards; this batch broadens the same behavioral matrix across the rest of
+the guarded surface so coverage is comprehensive, not just recent. Additive; `main` and production unchanged.
+
+- **New surfaces exercised** (each with an allowed path that persists and a denied path asserting a SQLSTATE):
+  community clip permalinks and share (`raye2_get_community_clip` — unlisted reachable by link, a removed clip
+  hidden from the public but visible to its source owner; `raye2_share_clip_to_chat` — member and manager share,
+  non-member denied); storage lifecycle (`raye2_my_storage_objects` owner-scoped, `raye2_admin_storage_objects`
+  platform-admin only, `raye2_request_object_deletion` owner-only and idempotent with the object moving to
+  `deleting`, `raye2_sync_storage_providers` service-role only — both the member denial and the service-role
+  success); disappearing messages and slow mode (`raye2_set_conversation_disappearing` and
+  `raye2_set_group_slow_mode` manager-only with out-of-policy windows rejected, the expiry trigger stamping
+  `expires_at`, and slow mode blocking a rapid second message with `55006`); Watch Together
+  (`raye2_create_watch_session` host-only and gated on the platform rule, `raye2_create_watch_session_invite`
+  host-only, `raye2_revoke_watch_session_invite`, `raye2_join_watch_session_invite` redemption and revoked-link
+  rejection, `raye2_join_watch_session_guarded` refusing a not-yet-started scheduled session).
+- **Seed grew** to add a clipper, a published ready source video (with the asset-metadata trigger forcing a
+  follow-up `ready` update), a published clip, a storage object, a fifth "newcomer" member, and activation of
+  the Watch Together platform rules (the session RPC refuses to run while they are disabled).
+- **Stub fidelity fix:** the Supabase stub now creates the `extensions` schema and installs `pgcrypto` there
+  (`create extension pgcrypto with schema extensions`), matching real Supabase; the watch-invite RPCs call
+  `extensions.digest(...)`, which previously could not resolve on the stub. This was a stub gap, not a repo bug.
+- **Non-vacuous (negative control):** replacing `raye2_my_storage_objects` with an unscoped body makes the matrix
+  fail at the "non-owner saw another member's object" case.
+- **Wiring.** Validator grew to **530 assertions** (the RLS-matrix assertion now checks 19 guarded surfaces);
+  the harness test still 7 tests. `npm run check` covers the matrix.
+- Gates: validator 530 assertions; live check applied **248/248 migrations** + post-checks + the broadened RLS
+  matrix with 0 failures; tests **1021/1021**; tsc clean; lint 0 errors; build OK.
+- **Progress accounting:** verification/authorization batch; the canonical ten-wave table is unchanged.
+
+## Batch — 2026-11-10 (Batch 15): Storage object migration verified; latent ledger bug fixed (development only)
+
+**Goal:** prove the storage object-migration ledger end to end and fix the latent defect it exposed. Additive;
+`main` and production unchanged.
+
+- **Latent bug found and fixed.** `raye2_complete_object_migration` records an `object_migrated` event in
+  `raye2_storage_usage_ledger`, but that table's `event_kind` check (from
+  `20261115190000_raye2_multi_provider_storage_control_plane`) never listed the kind, so every BYOS object
+  migration failed at commit with a check-constraint violation. The original migration applied cleanly, so this
+  is a forward-only repair (`20261116240000_raye2_storage_migration_ledger_event_kind.sql`) that drops and
+  re-adds the constraint with the full kind list plus `object_migrated` — not an in-place edit.
+- **New behavioral matrix block** (`raye2-rls-matrix.sql`): a member is denied `raye2_list_draining_objects` and
+  `raye2_begin_object_migration`; the service-role worker lists the draining object, opens a migration (and
+  reopening the same idempotency key returns the same id), commits the copy, and the block asserts the object is
+  repointed (provider + key), the source provider's byte counter drops by exactly the object size, the
+  destination's rises by the same, the `object_migrated` ledger event is written, and the migration row is
+  `committed`. Seed now gives the providers non-zero byte counters.
+- **Non-vacuous:** running the matrix without the corrective migration fails at the ledger check constraint
+  (the same violation), so the block is testing real behaviour, not a tautology.
+- **Wiring.** Validator grew to **531 assertions**; the harness test grew to **9 tests**.
+- Gates: validator 531 assertions; live check applied **249/249 migrations** + post-checks + broadened RLS
+  matrix with 0 failures; tests **1023/1023**; tsc clean; lint 0 errors; build OK.
+- **Progress accounting:** verification/hardening batch; the canonical ten-wave table is unchanged.
+
+## Progress percentages — canonical table (all ten waves)
+
+Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
+
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~93% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
+
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (RLS behavioral acceptance on a hosted Supabase project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated verification is now comprehensive: the full 249-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub, all post-apply invariants hold, and 22 guarded RPC/RLS surfaces pass a role-switched behavioral authorization matrix covering group
+management, moderation logs, chat polls, clips, storage lifecycle and object migration, disappearing
+messages/slow mode and Watch Together (`npm run check:migrations`). A latent defect was found this way: the
+object-migration ledger's `event_kind` check omitted `object_migrated`, so the commit path always failed — now
+repaired by `20261116240000_raye2_storage_migration_ledger_event_kind.sql`. Wave 9's remaining gap is therefore hosted-project acceptance, load/capacity/cost checks and owner sign-off rather than migration execution or isolated guard behavior. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+
+
+---
+
+## 2026-11-15 — Free-first multi-provider storage architecture handoff
+
+- [x] Re-audited the active repository and confirmed `Mody2024/Creator-Fan-Hub`, working branch `development`; `main` and production were not modified.
+- [x] Re-read the full platform and community/chat/voice plans and reviewed the current implementation progress log.
+- [x] Added `docs/RAYE2-STORAGE-ARCHITECTURE.md` defining a provider-neutral storage control plane, Cloudflare R2 as the proposed hot/public-media provider, Backblaze B2 as the proposed secondary/overflow provider, and Supabase Storage as the legacy compatibility provider.
+- [x] The architecture explicitly separates storage allocation from expiry: monthly free-tier billing allowances must never trigger monthly deletion/reset of user content. Existing Moments, replay, Mini's, chat and recording retention rules remain independent.
+- [x] The architecture sets a conservative initial target of 8.5 GB per R2/B2 provider (subject to verified provider limits and terms), prohibits silent billable overages, and specifies admin controls, per-user/role quotas, signed uploads, checksum verification, failover, migration rollback and orphan reconciliation.
+- [x] Live Supabase project `Creator-Fan-Hub` is `ACTIVE_HEALTHY` in `eu-central-1`. The live database currently has `creator-media-private`, `creator-media-public` and legacy `nhen-community-shorts` buckets; each has a 50 MiB per-object cap. Existing app reservation logic uses a 750 MiB project-level safety ceiling and one-hour reservations.
+- [x] Confirmed the current browser resumable uploader and media worker are Supabase-specific. The existing media provider constraint supports `supabase`, `youtube`, and `external`; Cloudflare R2 and Backblaze B2 adapters are not implemented yet.
+- [x] Compared live Supabase migration history with repository history: live migration history currently ends at `20261102215604`; later repository migrations remain unverified against this live project. No migration was applied and no production storage object was moved or deleted.
+- [ ] Next implementation batch: Phase A storage inventory/contracts — enumerate every media, attachment, voice, memory and replay upload/download/delete path; define and test the shared storage adapter interface; reconcile repository migrations against an isolated development database.
+- [ ] Then implement the R2 adapter and provider-aware reservation/usage ledger, followed by B2 placement/failover, Admin Storage Control Center, migration/recovery tooling and full community integration.
+- **Progress accounting:** this was a documentation/audit batch only; it adds no feature implementation credit. Keep the canonical ten-wave implementation estimates unchanged at the existing ~93% historical snapshot until code-level storage functionality is delivered. Test/release readiness remains separate; live provider acceptance and isolated migration/RLS verification are outstanding.
+- **Exact branch commit for this storage architecture document:** `813233189be0f932470895de84f21c5d4f23ee0a`. The progress-log handoff is committed immediately after it; verify the current branch HEAD and CI on the next session before claiming exact-HEAD validation.
+
+
+---
+
+## 2026-11-15 — Storage control-plane foundation implementation batch
+
+- [x] Added `src/lib/storage/provider-policy.mjs`: deterministic asset-class/visibility routing, R2/B2/Supabase priority, failover only to enabled + healthy + recently verified-capacity providers, safety-reserve-aware headroom, lifetime user quota checks and safe idempotency-key construction.
+- [x] Added `src/lib/storage/provider-contract.ts`: server-side provider contract covering signed upload/download, object verification, copy/delete capabilities and provider configuration. No provider secrets or browser-facing credentials are represented.
+- [x] Added `tests/storage-provider-policy.test.mjs`: covers R2 preference for public video, B2 preference for private assets, capacity failover, rejection of unverified capacity, safety reserves, lifetime quota accounting, malformed inputs and duplicate provider records.
+- [x] Added migration `20261115190000_raye2_multi_provider_storage_control_plane.sql`: extends provider constraints and creates private provider registry, object inventory, upload reservation, usage ledger and per-user quota tables. Provider credentials are deliberately not stored in SQL.
+- [x] Added migration `20261115193000_raye2_atomic_storage_reservations.sql`: service-role-only atomic reservation, verified-object commit and reservation release RPCs; serializes per-user and per-provider capacity checks and verifies destination bucket visibility configuration.
+- [x] Added migration `20261115200000_raye2_storage_reconciliation_and_deletion.sql`: service-role-only provider capacity reconciliation and idempotent object-deletion accounting.
+- [x] Tightened the provider contract to match the routing policy's explicit capacity-verification flag and optional managed ceiling.
+- [x] No package dependencies were added, no credentials were requested or stored, no production migration was applied, no existing objects were moved/deleted, and neither `main` nor production was changed.
+- [ ] Tests are authored but not executed in a checked-out CI/runtime in this session. The latest Vercel status for the migration batch is **failure due to build-rate-limit / upgrade page**, not a verified code-build failure. Re-run lint, Node tests, TypeScript and build when CI capacity is available.
+- [ ] SQL migrations require isolated Supabase validation before any live application. Review function locking, service-role claim behavior, migration ordering, RLS and role quota provisioning in that isolated project.
+- [ ] R2/B2 SDK-backed adapters, signed-upload API routes, provider secret configuration, real provider capacity polling, Admin Storage Control Center, migration workers and full upload-path integration are not yet implemented. The control-plane schema is groundwork, not a completed storage rollout.
+- **Progress accounting:** code foundations and regression tests were added, but no user-facing storage integration is complete. Do not increase the canonical overall ~93% historical platform estimate on the basis of schema/contracts alone. Track storage control-plane foundation as implemented-but-untested; provider integration and admin UI remain outstanding.
+- **Latest authored storage migration commit:** `df4c5dc6487eb9d4ed04653e99921fe586e6f2ca`. Vercel reports a build-rate-limit failure for that commit; verify exact branch HEAD and CI status before claiming successful validation.
+
+
+---
+
+## 2026-11-15 — R2/B2 S3-compatible adapter implementation batch
+
+- [x] Added `src/lib/storage/s3-compatible-provider.mjs`, a dependency-free AWS Signature Version 4 adapter for Cloudflare R2 and Backblaze B2.
+- [x] Implemented presigned PUT URLs with signed Content-Type, presigned private GET URLs, signed HEAD metadata checks, server-side object copy, and object deletion.
+- [x] Added strict HTTPS endpoint checks, safe bucket/object-key validation, bounded signed URL expiry, separate public/private bucket selection, and server-only environment-based configuration.
+- [x] Added optional HTTPS public custom-domain URL support; public delivery is reported as available only when that domain is configured.
+- [x] Added `tests/s3-compatible-provider.test.mjs` for URL signing, expiry, invalid keys, HEAD, copy/delete, environment configuration and public delivery.
+- [x] Extended the provider contract and documented R2/B2 environment variables in `.env.example`.
+- [x] Updated `docs/RAYE2-STORAGE-ARCHITECTURE.md` with implemented adapter capabilities and explicit limitations.
+- [ ] Tests have not been executed in this session. Vercel's previous check was blocked by a build-rate-limit page; no passing CI claim is made.
+- [ ] Adapter is not yet wired to authenticated upload/download API routes or the database reservation/verification RPCs. Provider accounts, buckets, keys, public domains and live capacity reconciliation are not configured.
+- [ ] Multipart/resumable S3 upload and cryptographic object checksum verification remain unimplemented. The adapter explicitly does not advertise those capabilities.
+- **Progress accounting:** this is a real provider-adapter code addition, but it does not complete the upload pipeline or enable R2/B2 in production. Keep the overall historical platform estimate unchanged until the authenticated reservation → signed upload → server-side verification → metadata commit path and tests are complete.
+- **Latest adapter test commit:** `fc349f22e72d4ced51e53fdf07d3cba1fd293e62`; follow-up public-delivery test commit recorded after this entry.
+
+
+### Adapter hardening follow-up
+
+- [x] Added a `.server.ts` boundary that imports Next.js `server-only` and re-exports the S3 adapter, preventing accidental browser-side use while keeping the pure adapter directly testable under Node.
+- [x] Hardened adapter construction to reject incomplete/insecure endpoints, malformed bucket names, invalid upload byte counts and invalid content types before signing.
+- [x] Added regression cases for incomplete configuration, invalid upload parameters and public delivery configuration.
+- [ ] Current test suite contains nine S3 adapter tests, but execution is still pending. The Vercel status on the latest test commit remains a build-rate-limit failure, not a successful or code-failure result.
+- **Latest adapter test commit checked:** `07b8b4b980e320ee01182f185d3912cf4f43ea69`. Server-only boundary is committed immediately after it; verify new HEAD status in the next audit.
+
+---
+## Batch — 2026-11-10: Storage allowances, live-path fix and owner control (development only)
+
+**Goal:** give every account a real monthly storage allowance that resets, larger allowances for creators and
+streamers, and owner/admin control over allowances, providers and the platform ceiling — layered on top of the
+provider control plane that already landed on `development`.
+
+- **Bug fix (member uploads were broken):** the live reservation RPC and the object-insert trigger only allowed
+  `creator-media-*` and `nhen-community-shorts`. Member uploads to `raye2-community-shorts`, `raye2-minis` and
+  `raye2-clips` were rejected at the reservation step. A canonical `raye2_managed_buckets()` set now covers every
+  Raye2 bucket and the reservation table constraint, the reservation RPC and the trigger all use it.
+- **Monthly allowances:** new `raye2_storage_allowances` (per-role monthly bytes + per-file cap + reset period)
+  and `raye2_storage_allowance_overrides` (per-account). `raye2_storage_allowance_for` resolves override → role.
+  `raye2_my_storage_status` returns plan, period usage and reset date for any signed-in account.
+- **Live enforcement:** `reserve_nhen_media_upload` now checks the per-file cap, the per-user monthly allowance and
+  the platform ceiling (`raye2_storage_settings.platform_ceiling_bytes`, default 750 MiB under Supabase Free).
+- **Owner control:** `raye2_storage_admin_overview` plus audited setters for allowances, per-account overrides,
+  provider enable/priority and the platform ceiling; all gated by `raye2_is_platform_admin()` and written to
+  `raye2_admin_audit_log`.
+- **UI:** new admin "Storage fabric" tab (providers, allowances, overrides, ceiling); the creator media library now
+  shows the personal monthly allowance and reset date.
+- **Regression fixes found on `development`:** the S3 adapter used an escaped-slash regex (`/\\/$/`) that broke
+  TypeScript parsing and its own test file; corrected to `/\/$/` and removed an unused binding. Two provider-policy
+  tests asserted R2 failover with a byte count that still fit R2's headroom; corrected to exceed it.
+- **Tests:** `tests/raye2-storage-allowances.test.mjs` (11); validator grew to 453 assertions.
+- Gates: validator 453 assertions; tests 922/922; tsc clean; lint 0 errors / 19 warnings; build OK.

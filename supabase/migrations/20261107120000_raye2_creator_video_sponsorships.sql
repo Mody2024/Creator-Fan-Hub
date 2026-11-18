@@ -1,0 +1,235 @@
+-- Raye2 creator-owned sponsorship campaigns for native video publishing.
+-- Campaign records are configuration only: no ad is inserted or served by this migration.
+create table if not exists public.raye2_creator_sponsor_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  creator_id uuid not null references auth.users(id) on delete cascade,
+  media_id uuid not null references public.media_items(id) on delete cascade,
+  sponsor_asset_media_id uuid not null references public.media_items(id) on delete restrict,
+  sponsor_name text not null check (char_length(btrim(sponsor_name)) between 2 and 120),
+  disclosure_text text not null check (char_length(btrim(disclosure_text)) between 3 and 240),
+  placement text not null default 'intro' check (placement in ('intro','midroll','outro','overlay')),
+  starts_at timestamptz,
+  ends_at timestamptz,
+  max_per_viewer integer not null default 1 check (max_per_viewer between 1 and 5),
+  status text not null default 'draft' check (status in ('draft','active','paused','completed')),
+  creator_confirmed_rights boolean not null default false check (creator_confirmed_rights),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (ends_at is null or starts_at is null or ends_at > starts_at)
+);
+create index if not exists raye2_creator_sponsor_campaigns_creator_idx
+  on public.raye2_creator_sponsor_campaigns(creator_id,status,updated_at desc);
+create index if not exists raye2_creator_sponsor_campaigns_media_idx
+  on public.raye2_creator_sponsor_campaigns(media_id,status);
+
+alter table public.raye2_creator_sponsor_campaigns enable row level security;
+revoke all on public.raye2_creator_sponsor_campaigns from anon, public;
+grant select,insert,update,delete on public.raye2_creator_sponsor_campaigns to authenticated;
+
+drop policy if exists "Creators read own sponsorship campaigns" on public.raye2_creator_sponsor_campaigns;
+create policy "Creators read own sponsorship campaigns"
+  on public.raye2_creator_sponsor_campaigns for select to authenticated
+  using (creator_id=(select auth.uid()) and public.is_nhen_video_publisher());
+drop policy if exists "Creators create own sponsorship campaigns" on public.raye2_creator_sponsor_campaigns;
+create policy "Creators create own sponsorship campaigns"
+  on public.raye2_creator_sponsor_campaigns for insert to authenticated
+  with check (creator_id=(select auth.uid()) and public.is_nhen_video_publisher());
+drop policy if exists "Creators update own sponsorship campaigns" on public.raye2_creator_sponsor_campaigns;
+create policy "Creators update own sponsorship campaigns"
+  on public.raye2_creator_sponsor_campaigns for update to authenticated
+  using (creator_id=(select auth.uid()) and public.is_nhen_video_publisher())
+  with check (creator_id=(select auth.uid()) and public.is_nhen_video_publisher());
+drop policy if exists "Creators delete own sponsorship campaigns" on public.raye2_creator_sponsor_campaigns;
+create policy "Creators delete own sponsorship campaigns"
+  on public.raye2_creator_sponsor_campaigns for delete to authenticated
+  using (creator_id=(select auth.uid()) and public.is_nhen_video_publisher());
+
+create or replace function public.raye2_validate_creator_sponsor_campaign()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare
+  v_content_owner uuid;
+  v_content_type text;
+  v_sponsor_owner uuid;
+  v_sponsor_type text;
+  v_sponsor_public boolean;
+begin
+  if auth.uid() is null or new.creator_id<>(select auth.uid())
+     or not public.is_nhen_video_publisher() then
+    raise exception 'assigned creator access required' using errcode='42501';
+  end if;
+
+  select m.owner_id,m.media_type into v_content_owner,v_content_type
+    from public.media_items m where m.id=new.media_id;
+  if v_content_owner is distinct from new.creator_id
+     or v_content_type not in ('video','youtube')
+     or not exists(select 1 from public.video_catalog v
+       where v.media_id=new.media_id and v.published_at is not null) then
+    raise exception 'sponsorship must attach to your own published Raye2 video' using errcode='42501';
+  end if;
+
+  select m.owner_id,m.media_type,m.is_published
+    into v_sponsor_owner,v_sponsor_type,v_sponsor_public
+    from public.media_items m where m.id=new.sponsor_asset_media_id;
+  if v_sponsor_owner is distinct from new.creator_id
+     or v_sponsor_type not in ('video','image') or v_sponsor_public is distinct from true then
+    raise exception 'sponsor creative must be your own published video asset' using errcode='42501';
+  end if;
+
+  new.sponsor_name:=btrim(new.sponsor_name);
+  new.disclosure_text:=btrim(new.disclosure_text);
+  new.updated_at:=now();
+  return new;
+end;
+$$;
+revoke all on function public.raye2_validate_creator_sponsor_campaign() from public,anon,authenticated;
+drop trigger if exists raye2_validate_creator_sponsor_campaign on public.raye2_creator_sponsor_campaigns;
+create trigger raye2_validate_creator_sponsor_campaign
+  before insert or update on public.raye2_creator_sponsor_campaigns
+  for each row execute function public.raye2_validate_creator_sponsor_campaign();
+
+comment on table public.raye2_creator_sponsor_campaigns is
+  'Creator-owned sponsorship setup attached to a published native video. Configuration only; delivery and accounting are separate systems.';
+
+
+-- Platform-wide campaigns are owned separately by Raye2 admins, never by creators.
+create table if not exists public.raye2_platform_sponsor_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  created_by uuid not null references auth.users(id) on delete restrict,
+  sponsor_asset_media_id uuid not null references public.media_items(id) on delete restrict,
+  sponsor_name text not null check (char_length(btrim(sponsor_name)) between 2 and 120),
+  disclosure_text text not null check (char_length(btrim(disclosure_text)) between 3 and 240),
+  placement text not null default 'intro' check (placement in ('intro','midroll','outro','overlay')),
+  campaign_scope jsonb not null default '{"videos":true,"live":true}'::jsonb
+    check (jsonb_typeof(campaign_scope)='object'),
+  allowed_regions text[] not null default '{}',
+  category_key text not null default 'general' check (category_key ~ '^[a-z0-9_-]{1,40}$'),
+  category_exclusive boolean not null default false,
+  priority smallint not null default 50 check (priority between 1 and 100),
+  max_per_viewer integer not null default 1 check (max_per_viewer between 1 and 5),
+  starts_at timestamptz,
+  ends_at timestamptz,
+  status text not null default 'draft' check (status in ('draft','active','paused','completed')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  check (ends_at is null or starts_at is null or ends_at>starts_at)
+);
+create index if not exists raye2_platform_sponsor_campaigns_status_idx
+  on public.raye2_platform_sponsor_campaigns(status,priority desc,starts_at,ends_at);
+alter table public.raye2_platform_sponsor_campaigns enable row level security;
+revoke all on public.raye2_platform_sponsor_campaigns from public,anon;
+grant select,insert,update,delete on public.raye2_platform_sponsor_campaigns to authenticated;
+drop policy if exists "Raye2 admins manage platform sponsor campaigns" on public.raye2_platform_sponsor_campaigns;
+create policy "Raye2 admins manage platform sponsor campaigns"
+  on public.raye2_platform_sponsor_campaigns for all to authenticated
+  using (public.raye2_is_platform_admin())
+  with check (public.raye2_is_platform_admin());
+
+create or replace function public.raye2_validate_platform_sponsor_campaign()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare v_owner uuid;v_type text;v_published boolean;
+begin
+  if auth.uid() is null or not public.raye2_is_platform_admin()
+     or new.created_by<>(select auth.uid()) then
+    raise exception 'Raye2 admin access required' using errcode='42501';
+  end if;
+  select owner_id,media_type,is_published into v_owner,v_type,v_published
+    from public.media_items where id=new.sponsor_asset_media_id;
+  if v_owner is distinct from new.created_by
+     or v_type not in ('image','video') or v_published is distinct from true then
+    raise exception 'platform sponsor creative must be a published image or video owned by this admin' using errcode='42501';
+  end if;
+  new.sponsor_name:=btrim(new.sponsor_name);
+  new.disclosure_text:=btrim(new.disclosure_text);
+  new.updated_at:=now();
+  return new;
+end;
+$$;
+revoke all on function public.raye2_validate_platform_sponsor_campaign() from public,anon,authenticated;
+drop trigger if exists raye2_validate_platform_sponsor_campaign on public.raye2_platform_sponsor_campaigns;
+create trigger raye2_validate_platform_sponsor_campaign
+  before insert or update on public.raye2_platform_sponsor_campaigns
+  for each row execute function public.raye2_validate_platform_sponsor_campaign();
+
+
+-- Contract category rules and multiple approved creative variants.
+alter table public.raye2_creator_sponsor_campaigns
+  add column if not exists category_key text not null default 'general'
+    check (category_key ~ '^[a-z0-9_-]{1,40}$'),
+  add column if not exists category_exclusive boolean not null default false;
+
+create table if not exists public.raye2_sponsor_creative_variants (
+  id uuid primary key default gen_random_uuid(),
+  creator_campaign_id uuid references public.raye2_creator_sponsor_campaigns(id) on delete cascade,
+  platform_campaign_id uuid references public.raye2_platform_sponsor_campaigns(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  media_id uuid not null references public.media_items(id) on delete restrict,
+  variant_key text not null check (variant_key in ('short_5s','standard_10s','extended','alternate')),
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  check (num_nonnulls(creator_campaign_id,platform_campaign_id)=1),
+  unique(creator_campaign_id,variant_key),
+  unique(platform_campaign_id,variant_key)
+);
+create index if not exists raye2_sponsor_creative_variants_owner_idx
+  on public.raye2_sponsor_creative_variants(owner_id,active);
+alter table public.raye2_sponsor_creative_variants enable row level security;
+revoke all on public.raye2_sponsor_creative_variants from public,anon;
+grant select,insert,update,delete on public.raye2_sponsor_creative_variants to authenticated;
+
+drop policy if exists "Owners manage their sponsor creative variants" on public.raye2_sponsor_creative_variants;
+create policy "Owners manage their sponsor creative variants"
+  on public.raye2_sponsor_creative_variants for all to authenticated
+  using (owner_id=(select auth.uid()) and (
+    (creator_campaign_id is not null and exists(select 1 from public.raye2_creator_sponsor_campaigns c
+      where c.id=creator_campaign_id and c.creator_id=(select auth.uid()) and public.is_nhen_video_publisher()))
+    or
+    (platform_campaign_id is not null and public.raye2_is_platform_admin() and exists(
+      select 1 from public.raye2_platform_sponsor_campaigns p
+      where p.id=platform_campaign_id and p.created_by=(select auth.uid())))
+  ))
+  with check (owner_id=(select auth.uid()) and (
+    (creator_campaign_id is not null and exists(select 1 from public.raye2_creator_sponsor_campaigns c
+      where c.id=creator_campaign_id and c.creator_id=(select auth.uid()) and public.is_nhen_video_publisher()))
+    or
+    (platform_campaign_id is not null and public.raye2_is_platform_admin() and exists(
+      select 1 from public.raye2_platform_sponsor_campaigns p
+      where p.id=platform_campaign_id and p.created_by=(select auth.uid())))
+  ));
+
+create or replace function public.raye2_validate_sponsor_creative_variant()
+returns trigger language plpgsql security definer set search_path=''
+as $$
+declare v_media_owner uuid;v_type text;v_published boolean;v_campaign_owner uuid;
+begin
+ if auth.uid() is null or new.owner_id<>(select auth.uid()) then
+   raise exception 'authenticated campaign owner required' using errcode='42501';
+ end if;
+ if new.creator_campaign_id is not null then
+   select creator_id into v_campaign_owner from public.raye2_creator_sponsor_campaigns
+    where id=new.creator_campaign_id;
+   if v_campaign_owner is distinct from new.owner_id or not public.is_nhen_video_publisher() then
+     raise exception 'creator campaign ownership required' using errcode='42501';
+   end if;
+ else
+   select created_by into v_campaign_owner from public.raye2_platform_sponsor_campaigns
+    where id=new.platform_campaign_id;
+   if v_campaign_owner is distinct from new.owner_id or not public.raye2_is_platform_admin() then
+     raise exception 'platform admin campaign ownership required' using errcode='42501';
+   end if;
+ end if;
+ select owner_id,media_type,is_published into v_media_owner,v_type,v_published
+  from public.media_items where id=new.media_id;
+ if v_media_owner is distinct from new.owner_id or v_type not in ('image','video')
+    or v_published is distinct from true then
+   raise exception 'creative variant must use a published image or video owned by the campaign owner' using errcode='42501';
+ end if;
+ return new;
+end;
+$$;
+revoke all on function public.raye2_validate_sponsor_creative_variant() from public,anon,authenticated;
+drop trigger if exists raye2_validate_sponsor_creative_variant on public.raye2_sponsor_creative_variants;
+create trigger raye2_validate_sponsor_creative_variant
+ before insert or update on public.raye2_sponsor_creative_variants
+ for each row execute function public.raye2_validate_sponsor_creative_variant();

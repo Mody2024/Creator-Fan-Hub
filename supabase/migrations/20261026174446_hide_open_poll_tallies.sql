@@ -1,0 +1,30 @@
+-- Do not expose live tallies through the public RPC; return aggregates only
+-- for closed polls, so hiding results in the UI is backed by the database too.
+create or replace function public.get_public_poll_results()
+returns table (
+  poll_id uuid,
+  poll_title text,
+  poll_description text,
+  poll_status text,
+  poll_ends_at timestamptz,
+  option_id uuid,
+  option_label text,
+  option_position integer,
+  vote_count bigint
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p.id, p.title, p.description, p.status, p.ends_at,
+         o.id, o.label, o.position, count(v.id)::bigint
+  from public.polls p
+  join public.poll_options o on o.poll_id = p.id
+  left join public.poll_votes v on v.poll_id = p.id and v.option_id = o.id
+  where p.status = 'closed'
+  group by p.id, p.title, p.description, p.status, p.ends_at, o.id, o.label, o.position
+  order by p.ends_at desc nulls last, p.created_at desc, o.position asc;
+$$;
+revoke all on function public.get_public_poll_results() from public;
+grant execute on function public.get_public_poll_results() to anon, authenticated;

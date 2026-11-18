@@ -1,0 +1,28 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+const read = path => readFile(new URL(path, import.meta.url), "utf8");
+
+test("the single Next.js middleware refreshes sessions for creator and member-aware routes", async () => {
+  const [entrypoint, helper, serverClient] = await Promise.all([
+    read("../middleware.ts"),
+    read("../src/lib/supabase/middleware.ts"),
+    read("../src/lib/supabase/server.ts")
+  ]);
+
+  assert.ok(entrypoint.includes('from "@/lib/supabase/middleware"'));
+  assert.ok(entrypoint.includes("refreshSupabaseSession(request)"));
+  assert.ok(entrypoint.includes('"/creator/:path*"'));
+  assert.ok(entrypoint.includes('"/api/creator/:path*"'));
+  assert.ok(entrypoint.includes('"/account/:path*"'));
+  await assert.rejects(read("../src/middleware.ts"), { code: "ENOENT" });
+
+  assert.ok(helper.includes("createServerClient"));
+  assert.ok(helper.includes("request.cookies.getAll()"));
+  assert.ok(helper.includes("request.cookies.set(name, value)"));
+  assert.ok(helper.includes("response.cookies.set(name, value, options)"));
+  assert.ok(helper.includes("supabase.auth.getClaims()"));
+  assert.ok(!helper.includes("supabase.auth.getSession()"));
+  assert.ok(serverClient.includes("Server Components cannot write cookies"));
+});

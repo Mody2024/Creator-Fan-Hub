@@ -1,0 +1,85 @@
+-- Preserve a ready asset when only its managed HLS master path changes bucket
+-- during a private/public visibility move. All other processing metadata must match.
+create or replace function public.sync_nhen_creator_media_asset_metadata()
+returns trigger language plpgsql set search_path='' as $$
+begin
+ if new.media_type='youtube' then
+  new.provider:='youtube';
+  new.playback_kind:='youtube_embed';
+  new.processing_status:='ready';
+  new.asset_key:=coalesce(new.asset_key,new.source_url);
+  new.size_bytes:=null;
+  new.mime_type:=null;
+  new.processing_error:=null;
+  new.processing_completed_at:=coalesce(new.processing_completed_at,now());
+ else
+  new.provider:=coalesce(new.provider,'supabase');
+  new.playback_kind:=coalesce(new.playback_kind,'file');
+  -- A newly attached or replaced storage object is uploaded, never assumed ready.
+  if tg_op='INSERT' then
+   new.processing_status:='uploaded';
+   new.processing_attempts:=0;
+   new.processing_error:=null;
+   new.processing_completed_at:=null;
+  elsif new.storage_path is distinct from old.storage_path
+   and not (
+    old.processing_status='ready'
+    and new.is_published is distinct from old.is_published
+    and new.media_type is not distinct from old.media_type
+    and (new.metadata #- '{processing,hls,masterPath}') is not distinct from
+        (old.metadata #- '{processing,hls,masterPath}')
+   ) then
+   -- A private/public bucket move is a visibility change of the same
+   -- already-processed creator asset, not a new media upload.
+   new.processing_status:='uploaded';
+   new.processing_attempts:=0;
+   new.processing_error:=null;
+   new.processing_completed_at:=null;
+  else
+   new.processing_status:=coalesce(new.processing_status,'uploaded');
+  end if;
+  new.asset_key:=coalesce(new.asset_key,new.storage_path);
+  if coalesce(new.metadata->>'size','') ~ '^[0-9]+$' then
+   new.size_bytes:=(new.metadata->>'size')::bigint;
+  end if;
+  if nullif(new.metadata->>'mimeType','') is not null then
+   new.mime_type:=new.metadata->>'mimeType';
+  end if;
+ end if;
+ new.processing_updated_at:=now();
+ return new;
+end;
+$$;
+
+drop trigger if exists sync_nhen_creator_media_asset_metadata on public.media_items;
+create trigger sync_nhen_creator_media_asset_metadata
+before insert or update of media_type,source_url,storage_path,metadata
+on public.media_items for each row
+execute function public.sync_nhen_creator_media_asset_metadata();
+
+create or replace function public.get_creator_media_processing_status(p_media_ids uuid[])
+returns table(media_id uuid,provider text,playback_kind text,processing_status text,
+ processing_attempts integer,processing_error text,processing_updated_at timestamptz,
+ processing_completed_at timestamptz,size_bytes bigint,mime_type text,checksum_sha256 text,thumbnail_path text)
+language plpgsql stable security definer set search_path='' as $$
+begin
+ if auth.uid() is null or not exists(
+  select 1 from public.creator_admins a
+  where a.user_id=auth.uid() and a.active=true
+ ) then
+  raise exception 'creator access required' using errcode='42501';
+ end if;
+ if coalesce(cardinality(p_media_ids),0)>200 then
+  raise exception 'too many media ids' using errcode='22023';
+ end if;
+ return query
+ select m.id,m.provider,m.playback_kind,m.processing_status,m.processing_attempts,
+  m.processing_error,m.processing_updated_at,m.processing_completed_at,
+  m.size_bytes,m.mime_type,m.checksum_sha256,m.thumbnail_path
+ from public.media_items m
+ where m.owner_id=auth.uid() and m.id=any(coalesce(p_media_ids,'{}'::uuid[]))
+ order by m.created_at desc;
+end;
+$$;
+revoke all on function public.get_creator_media_processing_status(uuid[]) from public,anon;
+grant execute on function public.get_creator_media_processing_status(uuid[]) to authenticated;

@@ -1,53 +1,103 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import CreatorSettings from "./creator-settings";
+import CreatorCapabilities from "./creator-capabilities";
+import CreatorLiveStudio from "./creator-live-studio";
+import CreatorVideoExclusivity from "./creator-video-exclusivity";
+import AdDirector from "./ad-director";
+import MonetizationReport from "./monetization-report";
 import IdeaModerationQueue from "./idea-moderation-queue";
 import PollManagement from "./poll-management";
 import EventSocialManagement from "./event-social-management";
 import MediaLibrary from "./media-library";
+import ContentLibrary from "./content-library";
 import PublishingHistory from "./publishing-history";
 import VideoStudio from "./video-studio";
+import AchievementInsights from "./achievement-insights";
+import CreatorRewardsCenter from "./rewards-center";
+import CreatorRewardsAdmin from "./rewards-admin";
+import CreatorNotifications from "./creator-notifications";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
+import "./raye2-creator-workspace.css";
+import "../raye2/studio/video-publishing-studio.css";
 
 export const dynamic = "force-dynamic";
 
 
+
 export default async function CreatorDashboardPage() {
-  const [supabase, publicConfig] = await Promise.all([createSupabaseServerClient(), getPublicSiteConfig()]);
+  const [supabase, _publicConfig, cookieStore] = await Promise.all([createSupabaseServerClient(), getPublicSiteConfig(), cookies()]);
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
+  const t = isArabic ? {
+    auth:"مساحة عمل موثّقة",signOut:"تسجيل الخروج ↗",studioHome:"استوديو Raye2 ↗",eyebrow:"استوديو Raye2 / نظرة عامة",title:"اجعلها ",emphasis:"مساحتك.",intro:"أدر تجربة Raye2 من مساحة واحدة. احفظ التغييرات كمسودات خاصة ثم انشرها بعد المراجعة.",draft:"● تطوير / مسودة",publicConfig:"إعدادات الموقع",connected:"Supabase متصل",source:"النسخة المنشورة هي المصدر العام المعتمد",access:"صلاحيات المبدعين",verified:"تم التحقق من الخادم",allowlist:"التعديل متاح للحسابات المصرح بها فقط",publishing:"النشر",versions:"نسخ محفوظة",concurrent:"يتم التحقق من تعارض التعديلات",workspace:"مساحة عملك",jump:"انتقل إلى قسم العمل.",jumpBody:"افتح أي قسم مباشرة. تظل التغييرات خاصة حتى النشر.",active:"أقسام نشطة",rewards:"المكافآت والتقدم",rewardsDesc:"تابع نقاط التقدير والإنجازات ومستوى حسابك كمبدع.",rewardsAdmin:"إدارة مكافآت المبدعين",rewardsAdminDesc:"اضبط قواعد التقدير وامنح المكافآت الموثقة وراجع سجل الإلغاء.",sponsorReview:"مراجعة حملات الرعاية",sponsorReviewDesc:"راجع طلبات المبدعين وسجل قرارات الموافقة والرفض.",identity:"هوية الموقع وتخطيطه",identityDesc:"العلامة التجارية، المظهر، التعليق الصوتي، الأقسام والنشر.",polls:"إدارة التصويت",pollDesc:"أنشئ استطلاعات وأدر مواعيد التصويت والنتائج.",ideas:"مراجعة الأفكار",ideasDesc:"راجع المشاركات ووافق عليها أو ميّزها أو ارفضها أو أرشفها.",events:"الفعاليات وروابط التواصل",eventsDesc:"أدر مواعيد الفعاليات وقنوات صانع المحتوى.",media:"مكتبة الوسائط",mediaDesc:"ارفع ملفاتك وحررها وانشرها وأدرها.",analytics:"تحليلات الأداء",analyticsDesc:"راجع المشاهدات والتفاعلات ونقاشات الفيديو المعتمدة.",team:"الفريق والصلاحيات",teamDesc:"ادعُ المتعاونين وحدد أدوار مساحة العمل.",raye2Admin:"إدارة Raye2",raye2AdminDesc:"تحكم في قواعد المجتمع والاحتفاظ والتنظيف والتخزين.",moderation:"إدارة المجتمع",moderationDesc:"راجع منشورات الأعضاء والتعليقات والبلاغات.",studio:"استوديو الفيديو",studioDesc:"أنشئ صفحات المشاهدة ونظم قوائم التشغيل والنشر.",sponsorships:"رعايات المبدعين",sponsorshipsDesc:"أدر حملات الرعاية المعلنة لفيديوهاتك المنشورة.",history:"سجل النشر",historyDesc:"راجع النسخ المنشورة واستعد نسخة إلى مسودة خاصة.",disclaimer:"تعمل التصويتات والأفكار والفعاليات والوسائط وسجل النشر عبر عمليات Supabase محمية. استعادة نسخة سابقة تغيّر المسودة الخاصة فقط؛ راجعها قبل النشر."
+  } : {
+    auth:"AUTHENTICATED WORKSPACE",signOut:"Sign out ↗",eyebrow:"CREATOR CONTROL ROOM / OVERVIEW",title:"Make it ",emphasis:"yours.",intro:"Manage your Raye2 creator workspace from one place. Save drafts privately, then publish approved changes.",draft:"● DEVELOPMENT / DRAFT",publicConfig:"PUBLIC CONFIG",connected:"Supabase connected",source:"Published snapshot is the public source of truth",access:"CREATOR ACCESS",verified:"Verified server-side",allowlist:"Only allowlisted creator accounts can edit",publishing:"PUBLISHING",versions:"Versioned snapshots",concurrent:"Concurrent draft changes are checked",workspace:"YOUR WORKSPACE",jump:"Jump to a workspace.",jumpBody:"Open any management area directly. Changes stay private until published.",active:"ACTIVE AREAS",rewards:"Creator rewards & progression",rewardsDesc:"Track recognition points, achievements and your creator level.",rewardsAdmin:"Creator reward administration",rewardsAdminDesc:"Configure recognition rules, issue verified awards and review approval and rejection history.",sponsorReview:"Sponsor campaign reviews",sponsorReviewDesc:"Review creator submissions and inspect approval and rejection history.",identity:"Site identity & layout",identityDesc:"Branding, theme, narration, section visibility and publishing.",polls:"Poll management",pollDesc:"Create polls, manage voting windows and review final results.",ideas:"Idea moderation",ideasDesc:"Review submissions, approve, feature, reject or archive ideas.",events:"Events & socials",eventsDesc:"Manage event schedules and published creator channels.",media:"Media library",mediaDesc:"Upload, edit, publish and remove owned media assets.",analytics:"Performance analytics",analyticsDesc:"Review aggregate views, reactions and approved video discussions.",team:"Team & permissions",teamDesc:"Invite verified collaborators and assign workspace roles.",raye2Admin:"Raye2 platform controls",raye2AdminDesc:"Manage community rules, retention, cleanup reviews and storage.",moderation:"Community moderation",moderationDesc:"Review member posts, discussions and user reports.",studio:"Video studio",studioDesc:"Build watch pages, organize playlists and control publishing.",sponsorships:"Creator sponsorships",sponsorshipsDesc:"Manage disclosed sponsor campaigns for your published videos.",history:"Publishing history",historyDesc:"Review published snapshots and restore one to a private draft.",disclaimer:"Polls, ideas, events, socials, media and publishing history use guarded Supabase operations. Restoring a prior version only changes the private draft; review it before publishing."
+  };
   if (!supabase) redirect("/creator/login?setup=required");
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
   const userId = claims?.claims?.sub;
   if (claimsError || typeof userId !== "string") redirect("/creator/login");
   const { data: admin, error: adminError } = await supabase
-    .from("creator_admins").select("user_id").eq("user_id", userId).eq("active", true).maybeSingle();
+    .from("creator_admins").select("user_id,role").eq("user_id", userId).eq("active", true).maybeSingle();
   if (adminError || !admin) redirect("/creator/login?access=restricted");
+  if (admin.role === "moderator") redirect("/creator/community");
+  if (admin.role === "analyst") redirect("/creator/analytics");
+  if (!["owner","admin","creator","streamer","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
 
-  return <main className="dashboard-shell">
-    <header className="dashboard-topbar"><Link className="wordmark" href="/">{publicConfig.siteName}<span>®</span></Link><span className="admin-session"><i /> AUTHENTICATED WORKSPACE</span><form action="/creator/logout" method="post"><button className="logout-button" type="submit">Sign out ↗</button></form></header>
+  return <main className="dashboard-shell raye2-creator-shell" data-raye2-role={admin.role} dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"}>
+    <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home"><span><strong>Raye2</strong><small>CREATOR WORKSPACE</small></span></Link><span className="admin-session"><i /> {t.auth}</span><span className="raye2-role-chip">{admin.role.toUpperCase()}</span><nav className="raye2-creator-actions" aria-label="Creator navigation"><Link className="logout-button" href="/raye2/home">{isArabic?"عرض المنصة ↗":"View platform ↗"}</Link><Link className="logout-button" href="/raye2/studio">{t.studioHome}</Link><form action="/creator/logout" method="post"><button className="logout-button" type="submit">{t.signOut}</button></form></nav></header>
     <div className="dashboard-content">
-      <div className="dashboard-welcome"><div><span className="eyebrow">CREATOR CONTROL ROOM / OVERVIEW</span><h1>Make it <em>yours.</em></h1><p>Manage the public experience from one workspace. Save drafts privately, then publish approved changes.</p></div><span className="draft-badge">● DEVELOPMENT / DRAFT</span></div>
-      <section className="dashboard-stats"><article><span>PUBLIC CONFIG</span><strong>Supabase connected</strong><small>Published snapshot is the public source of truth</small></article><article><span>CREATOR ACCESS</span><strong>Verified server-side</strong><small>Only allowlisted creator accounts can edit</small></article><article><span>PUBLISHING</span><strong>Versioned snapshots</strong><small>Concurrent draft changes are checked</small></article></section>
-      <div className="module-heading"><div><span className="eyebrow">YOUR WORKSPACE</span><h2>Jump to a workspace.</h2><p>Open any management area directly. Changes stay private until published.</p></div><span className="module-count">08 ACTIVE AREAS</span></div>
+      <div className="dashboard-welcome"><div><span className="eyebrow">{t.eyebrow}</span><h1>{t.title}<em>{t.emphasis}</em></h1><p>{t.intro}</p></div><span className="draft-badge">{t.draft}</span></div>
+      <section className="dashboard-stats"><article><span>{t.publicConfig}</span><strong>{t.connected}</strong><small>{t.source}</small></article><article><span>{t.access}</span><strong>{t.verified}</strong><small>{t.allowlist}</small></article><article><span>{t.publishing}</span><strong>{t.versions}</strong><small>{t.concurrent}</small></article></section>
+      <div className="module-heading"><div><span className="eyebrow">{t.workspace}</span><h2>{t.jump}</h2><p>{t.jumpBody}</p></div><span className="module-count">{10 + (["owner","admin"].includes(admin.role) ? 5 : 0) + (admin.role === "owner" ? 1 : 0)} ACTIVE AREAS</span></div>
       <nav className="module-grid creator-quick-nav" aria-label="Creator workspace sections">
-        <a className="module-card" href="#creator-settings"><div className="module-card-top"><span>01 / CONTROL</span><span className="module-state">Site</span></div><h3>Site identity & layout</h3><p>Branding, theme, narration, section visibility and publishing.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="#creator-polls"><div className="module-card-top"><span>02 / COMMUNITY</span><span className="module-state">Polls</span></div><h3>Poll management</h3><p>Create polls, manage voting windows and review final results.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="#creator-ideas"><div className="module-card-top"><span>03 / COMMUNITY</span><span className="module-state">Ideas</span></div><h3>Idea moderation</h3><p>Review submissions, approve, feature, reject or archive ideas.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="#creator-events-socials"><div className="module-card-top"><span>04 / CONTENT</span><span className="module-state">Events & links</span></div><h3>Events & socials</h3><p>Manage event schedules and published creator channels.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="#creator-media"><div className="module-card-top"><span>05 / ASSETS</span><span className="module-state">Media</span></div><h3>Media library</h3><p>Upload, edit, publish and remove owned media assets.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="#creator-video-studio"><div className="module-card-top"><span>06 / WATCH</span><span className="module-state">Publishing</span></div><h3>Video publishing studio</h3><p>Build watch pages, organize series, tag videos and manage publication.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="/creator/community"><div className="module-card-top"><span>08 / TRUST & SAFETY</span><span className="module-state">Community</span></div><h3>Community moderation</h3><p>Review member posts, approve discussions and manage user reports.</p><span className="module-arrow">↗</span></a>
-        <a className="module-card" href="#creator-history"><div className="module-card-top"><span>07 / RELEASES</span><span className="module-state">Versions</span></div><h3>Publishing history</h3><p>Review published snapshots and restore one to a private draft.</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-settings"><div className="module-card-top"><span>01 / CONTROL</span><span className="module-state">Site</span></div><h3>{t.identity}</h3><p>{t.identityDesc}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-polls"><div className="module-card-top"><span>02 / COMMUNITY</span><span className="module-state">Polls</span></div><h3>{t.polls}</h3><p>{t.pollDesc}</p><span className="module-arrow">↗</span></a>
+        {["owner","admin"].includes(admin.role) && (
+<a className="module-card" href="#creator-ideas"><div className="module-card-top"><span>03 / COMMUNITY</span><span className="module-state">Ideas</span></div><h3>{t.ideas}</h3><p>{t.ideasDesc}</p><span className="module-arrow">↗</span></a>
+        )}
+        <a className="module-card" href="#creator-events-socials"><div className="module-card-top"><span>04 / CONTENT</span><span className="module-state">Events & links</span></div><h3>{t.events}</h3><p>{t.eventsDesc}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-media"><div className="module-card-top"><span>05 / ASSETS</span><span className="module-state">Media</span></div><h3>{t.media}</h3><p>{t.mediaDesc}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-content-library"><div className="module-card-top"><span>05 / CONTENT</span><span className="module-state">Library</span></div><h3>{isArabic?"مكتبة المحتوى":"Content library"}</h3><p>{isArabic?"اعرض كل فيديوهاتك الطويلة وحالتها في قائمة واحدة.":"See every long video you own and its state in one list."}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="/creator/analytics"><div className="module-card-top"><span>10 / INSIGHTS</span><span className="module-state">Analytics</span></div><h3>{t.analytics}</h3><p>{t.analyticsDesc}</p><span className="module-arrow">↗</span></a>
+        {admin.role === "owner" && (
+<a className="module-card" href="/creator/team"><div className="module-card-top"><span>09 / ACCESS</span><span className="module-state">Owner only</span></div><h3>{t.team}</h3><p>{t.teamDesc}</p><span className="module-arrow">↗</span></a>
+        )}
+        {["owner","admin"].includes(admin.role) && (
+<a className="module-card" href="/creator/raye2"><div className="module-card-top"><span>11 / PLATFORM</span><span className="module-state">Raye2</span></div><h3>{t.raye2Admin}</h3><p>{t.raye2AdminDesc}</p><span className="module-arrow">↗</span></a>
+        )}
+        {["owner","admin"].includes(admin.role) && (
+<a className="module-card" href="/creator/community"><div className="module-card-top"><span>07 / TRUST & SAFETY</span><span className="module-state">Community</span></div><h3>{t.moderation}</h3><p>{t.moderationDesc}</p><span className="module-arrow">↗</span></a>
+        )}
+        <a className="module-card" href="#creator-video-studio"><div className="module-card-top"><span>08 / VIDEO</span><span className="module-state">Studio</span></div><h3>{t.studio}</h3><p>{t.studioDesc}</p><span className="module-arrow">↗</span></a>
+        {["owner","admin"].includes(admin.role) && <a className="module-card" href="/creator/sponsor-reviews"><div className="module-card-top"><span>15 / PARTNERS</span><span className="module-state">Review queue</span></div><h3>{t.sponsorReview}</h3><p>{t.sponsorReviewDesc}</p><span className="module-arrow">↗</span></a>}
+        <a className="module-card" href="#creator-video-studio"><div className="module-card-top"><span>13 / PARTNERS</span><span className="module-state">Sponsors</span></div><h3>{t.sponsorships}</h3><p>{t.sponsorshipsDesc}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-rewards"><div className="module-card-top"><span>12 / PROGRESSION</span><span className="module-state">Rewards</span></div><h3>{t.rewards}</h3><p>{t.rewardsDesc}</p><span className="module-arrow">↗</span></a>
+        {["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin"><div className="module-card-top"><span>14 / ADMINISTRATION</span><span className="module-state">Owner & admin</span></div><h3>{t.rewardsAdmin}</h3><p>{t.rewardsAdminDesc}</p><span className="module-arrow">↗</span></a>}
+        <a className="module-card" href="#creator-notifications"><div className="module-card-top"><span>16 / INBOX</span><span className="module-state">{isArabic?"تنبيهات":"Updates"}</span></div><h3>{isArabic?"الإشعارات":"Notifications"}</h3><p>{isArabic?"قرارات المراجعة والتنبيهات الخاصة بالمبدع":"Sponsorship decisions and creator account updates"}</p><span className="module-arrow">↗</span></a>
+        <a className="module-card" href="#creator-history"><div className="module-card-top"><span>06 / RELEASES</span><span className="module-state">Versions</span></div><h3>{t.history}</h3><p>{t.historyDesc}</p><span className="module-arrow">↗</span></a>
       </nav>
 
+      <CreatorCapabilities locale={isArabic?"ar":"en"} />
+      {["streamer","admin","owner"].includes(admin.role) ? <CreatorLiveStudio locale={isArabic?"ar":"en"} /> : null}
+      <CreatorVideoExclusivity locale={isArabic?"ar":"en"} />
+      <AdDirector locale={isArabic?"ar":"en"} />
+      <MonetizationReport locale={isArabic?"ar":"en"} />
       <CreatorSettings />
       <PollManagement />
-      <IdeaModerationQueue />
+      {["owner","admin"].includes(admin.role) && <IdeaModerationQueue />}
       <EventSocialManagement />
       <MediaLibrary />
+      <ContentLibrary locale={isArabic?"ar":"en"} />
       <VideoStudio />
+      <CreatorNotifications locale={isArabic?"ar":"en"} />
+      <AchievementInsights />
+      <CreatorRewardsCenter />
+      {["owner","admin"].includes(admin.role) && <CreatorRewardsAdmin />}
       <PublishingHistory />
-      <p className="dashboard-disclaimer">Polls, ideas, events, socials, media and publishing history are connected to guarded Supabase operations. Restoring a prior version only changes the private draft; review it before publishing.</p>
+      <p className="dashboard-disclaimer">{t.disclaimer}</p>
     </div>
   </main>;
 }

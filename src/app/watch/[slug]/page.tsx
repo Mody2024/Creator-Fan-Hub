@@ -1,0 +1,94 @@
+import {notFound} from "next/navigation";
+import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
+import WatchDetailClient from "./watch-detail-client";
+
+type WatchContext={creator_user_id:string;creator_handle:string|null;creator_display_name:string|null;creator_avatar_url:string|null;follower_count:number;is_following:boolean;series_slug:string|null;series_title:string|null;series_position:number|null;series_episode_count:number|null};
+
+export const dynamic="force-dynamic";
+
+export default async function WatchVideoPage({params,searchParams}:{params:Promise<{slug:string}>;searchParams:Promise<{t?:string}>}){
+ const [{slug},{t}]=await Promise.all([params,searchParams]);
+ const parsedStart=Number(t);
+ const startAt=Number.isSafeInteger(parsedStart)&&parsedStart>=0&&parsedStart<=86400?parsedStart:0;
+ const supabase=await createSupabaseServerClient();
+ if(!supabase)notFound();
+ const {data,error}=await supabase.from("video_catalog")
+  .select("media_id,slug,description,category,tags,published_at,allow_comments,media_items!video_catalog_media_id_fkey!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,processing_status,metadata,owner_id,allow_clipping)")
+  .eq("slug",slug).not("published_at","is",null).maybeSingle();
+ if(error||!data)notFound();
+ const media=Array.isArray(data.media_items)?data.media_items[0]:data.media_items;
+ if(!media?.is_published||!["video","youtube"].includes(media.media_type))notFound();
+ if(media.media_type==="video"&&media.processing_status!=="ready")notFound();
+ let src="";
+ let poster:string|null=null;
+ let youtubeEmbedUrl:string|null=null;
+ let hlsSrc:string|null=null;
+ if(media.media_type==="video"){
+  if(!media.storage_path?.startsWith("creator-media-public/"))notFound();
+  const parts=media.storage_path.split("/");
+  if(parts.length<2||!parts.slice(1).every((part: string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part)))notFound();
+  const hlsPath=media.metadata?.processing?.hls?.masterPath;
+  const hlsParts=typeof hlsPath==="string"?hlsPath.split("/"):[];
+  const hlsKey=typeof hlsPath==="string"&&hlsPath.startsWith("creator-media-public/")&&hlsParts.length===6&&hlsParts[1]===parts[1]&&hlsParts[2]==="streams"&&hlsParts[3].startsWith(media.id+"-")&&hlsParts[4]==="master"&&hlsParts[5]==="master.m3u8"&&hlsParts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))?hlsPath.slice("creator-media-public/".length):null;
+  const thumbKey=media.thumbnail_path?.startsWith("creator-media-public/")&&media.thumbnail_path.split("/").length>=2&&media.thumbnail_path.split("/").slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))?media.thumbnail_path.slice("creator-media-public/".length):null;
+  const mediaKey=media.storage_path.slice("creator-media-public/".length);
+  const pooled=await resolvePublicObjectUrls([
+   {bucketId:"creator-media-public",objectKey:mediaKey},
+   ...(hlsKey?[{bucketId:"creator-media-public",objectKey:hlsKey}]:[]),
+   ...(thumbKey?[{bucketId:"creator-media-public",objectKey:thumbKey}]:[]),
+  ]);
+  const pooledUrl=(objectKey:string)=>pooled.get("creator-media-public\u0000"+objectKey);
+  let parsedPublicUrl: URL;
+  const pooledSrc=pooledUrl(mediaKey);
+  if(pooledSrc){
+   try { parsedPublicUrl=new URL(pooledSrc); } catch { notFound(); }
+   if(parsedPublicUrl.protocol!=="https:")notFound();
+  }else{
+   const publicUrl=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+   try { parsedPublicUrl=new URL(publicUrl); } catch { notFound(); }
+   if(parsedPublicUrl.protocol!=="https:"||parsedPublicUrl.origin!==new URL(process.env.NEXT_PUBLIC_SUPABASE_URL??"https://invalid.local").origin)notFound();
+  }
+  src=parsedPublicUrl.toString();
+  if(hlsKey){
+   const pooledHls=pooledUrl(hlsKey);
+   if(pooledHls){
+    try{const parsedHls=new URL(pooledHls);if(parsedHls.protocol==="https:")hlsSrc=parsedHls.toString();}catch{}
+   }else{
+    const candidate=supabase.storage.from("creator-media-public").getPublicUrl(hlsKey).data.publicUrl;
+    try{const parsedHls=new URL(candidate);if(parsedHls.protocol==="https:"&&parsedHls.origin===parsedPublicUrl.origin)hlsSrc=parsedHls.toString();}catch{}
+   }
+  }
+  if(thumbKey){
+   const pooledThumb=pooledUrl(thumbKey);
+   if(pooledThumb){
+    try{const parsedPoster=new URL(pooledThumb);if(parsedPoster.protocol==="https:")poster=parsedPoster.toString();}catch{}
+   }else{
+    const candidate=supabase.storage.from("creator-media-public").getPublicUrl(thumbKey).data.publicUrl;
+    try{const parsedPoster=new URL(candidate);if(parsedPoster.protocol==="https:"&&parsedPoster.origin===parsedPublicUrl.origin)poster=parsedPoster.toString();}catch{}
+   }
+  }
+ }else{
+  try{
+   const source=new URL(media.source_url??"");
+   if(!["youtube.com","www.youtube.com","m.youtube.com","youtu.be"].includes(source.hostname))notFound();
+   const pathParts=source.pathname.split("/").filter(Boolean);
+   const id=source.hostname==="youtu.be"?pathParts[0]:source.searchParams.get("v")??pathParts[pathParts.length-1];
+   if(!id||!/^[A-Za-z0-9_-]{11}$/.test(id))notFound();
+   youtubeEmbedUrl="https://www.youtube-nocookie.com/embed/"+id+"?rel=0";
+  }catch{notFound();}
+ }
+ const relatedResult=await supabase.rpc("raye2_get_related_videos",{p_media_id:data.media_id,p_limit:6});
+ const related=(relatedResult.data??[]) as {slug:string;title:string;category:string;description:string;published_at:string}[];
+ const captionsResult=await supabase.rpc("raye2_get_media_captions",{p_media_id:data.media_id});
+ const captions=((captionsResult.data??[]) as {language:string;label:string;storage_path:string}[]).flatMap(row=>{
+  if(!row.storage_path?.startsWith("creator-media-public/"))return[];
+  const parts=row.storage_path.split("/");
+  if(parts.length<2||!parts.slice(1).every((part:string)=>/^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part)))return[];
+  const candidate=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+  try{const parsed=new URL(candidate);if(parsed.protocol!=="https:")return[];return[{src:parsed.toString(),language:row.language,label:row.label}];}catch{return[];}
+ });
+ const contextResult=await supabase.rpc("raye2_get_watch_context",{p_slug:slug});
+ const context=(Array.isArray(contextResult.data)?contextResult.data[0]:null) as WatchContext|null;
+ return <WatchDetailClient slug={slug} startAt={startAt} hlsSrc={hlsSrc} mediaId={data.media_id} title={media.title} description={data.description||media.alt_text||""} src={src} poster={poster} youtubeEmbedUrl={youtubeEmbedUrl} publishedAt={data.published_at!} allowComments={data.allow_comments} category={data.category} tags={data.tags??[]} related={related} context={context} ownerId={media.owner_id??null} allowClipping={media.allow_clipping!==false} captions={captions}/>;
+}

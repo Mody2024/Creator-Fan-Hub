@@ -1,0 +1,128 @@
+import Link from "next/link";
+import { cookies } from "next/headers";
+import PublicVideoPlayer from "@/app/videos/public-video-player";
+import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
+
+function youtubeEmbedUrl(source: string | null): string | null {
+  if (!source) return null;
+  try {
+    const url = new URL(source);
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+    let id = "";
+    if (host === "youtu.be") id = url.pathname.split("/").filter(Boolean)[0] ?? "";
+    else if (host === "youtube.com" || host === "m.youtube.com" || host === "youtube-nocookie.com") {
+      const parts = url.pathname.split("/").filter(Boolean);
+      if (url.pathname === "/watch") id = url.searchParams.get("v") ?? "";
+      else if (["embed", "shorts", "live"].includes(parts[0] ?? "")) id = parts[1] ?? "";
+    }
+    if (!/^[A-Za-z0-9_-]{11}$/.test(id)) return null;
+    return "https://www.youtube-nocookie.com/embed/" + id;
+  } catch {
+    return null;
+  }
+}
+
+export default async function PublicVideos() {
+  const [supabase,cookieStore] = await Promise.all([createSupabaseServerClient(),cookies()]);
+  const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
+  const copy = isArabic ? {
+    eyebrow:"04 / RAYE2 WATCH", first:"أحدث فيديوهات", emphasis:"صنّاع المحتوى.", description:"فيديوهات رسمية منظمة في صفحات مشاهدة وسلاسل. افتح الفيديو للمشاهدة والحفظ والمشاركة في النقاش.", featured:"مميز", watch:"شاهد الآن ↗"
+  } : {
+    eyebrow:"04 / RAYE2 WATCH", first:"Fresh from", emphasis:"the creator.", description:"Official videos, organized into watch pages and series. Open a video to watch, save it and join its discussion.", featured:"✦ FEATURED", watch:"Watch now ↗"
+  };
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.from("video_catalog")
+    .select("media_id,slug,description,category,tags,featured,published_at,media_items!video_catalog_media_id_fkey!inner(id,title,storage_path,thumbnail_path,source_url,alt_text,is_published,media_type,provider,playback_kind,processing_status)")
+    .not("published_at", "is", null)
+    .eq("media_items.is_published", true)
+    .in("media_items.media_type", ["video", "youtube"])
+    .eq("media_items.processing_status", "ready")
+    .order("featured", { ascending: false })
+    .order("published_at", { ascending: false })
+    .limit(24);
+
+  if (error || !data?.length) return null;
+
+  const refs: Array<{bucketId:string;objectKey:string}> = [];
+  for (const item of data) {
+    const media = Array.isArray(item.media_items) ? item.media_items[0] : item.media_items;
+    if (!media) continue;
+    const isYoutube = media.provider === "youtube" || media.media_type === "youtube" || media.playback_kind === "youtube_embed";
+    if (isYoutube) continue;
+    if (media.storage_path?.startsWith("creator-media-public/")) refs.push({bucketId:"creator-media-public",objectKey:media.storage_path.slice("creator-media-public/".length)});
+    if (media.thumbnail_path?.startsWith("creator-media-public/")) refs.push({bucketId:"creator-media-public",objectKey:media.thumbnail_path.slice("creator-media-public/".length)});
+  }
+  const pooled = await resolvePublicObjectUrls(refs);
+  const pooledUrl = (storagePath: string) => pooled.get("creator-media-public\u0000" + storagePath.slice("creator-media-public/".length));
+
+  const videos = data.flatMap((item) => {
+    const media = Array.isArray(item.media_items) ? item.media_items[0] : item.media_items;
+    if (!media) return [];
+
+    const isYoutube = media.provider === "youtube" || media.media_type === "youtube" || media.playback_kind === "youtube_embed";
+    let url = "";
+    let embedUrl: string | null = null;
+    let poster: string | null = null;
+
+    if (isYoutube) {
+      embedUrl = youtubeEmbedUrl(media.source_url);
+      if (!embedUrl) return [];
+    } else {
+      if (!media.storage_path?.startsWith("creator-media-public/")) return [];
+      const parts = media.storage_path.split("/");
+      if (parts.length < 2 || !parts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) return [];
+      url = pooledUrl(media.storage_path) ?? supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+      if (media.thumbnail_path?.startsWith("creator-media-public/")) {
+        const thumbnailParts = media.thumbnail_path.split("/");
+        if (thumbnailParts.length >= 2 && thumbnailParts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) {
+          const pooledPoster = pooledUrl(media.thumbnail_path);
+          if (pooledPoster) {
+            try { const parsedPoster = new URL(pooledPoster); if (parsedPoster.protocol === "https:") poster = parsedPoster.toString(); } catch { /* pooled poster unavailable */ }
+          } else {
+            const candidate = supabase.storage.from(thumbnailParts[0]).getPublicUrl(thumbnailParts.slice(1).join("/")).data.publicUrl;
+            try {
+              const parsedVideoUrl = new URL(url);
+              const parsedPosterUrl = new URL(candidate);
+              if (parsedVideoUrl.protocol === "https:" && parsedPosterUrl.protocol === "https:" && parsedPosterUrl.origin === parsedVideoUrl.origin) poster = parsedPosterUrl.toString();
+            } catch { /* unavailable thumbnail falls back to the browser's player poster */ }
+          }
+        }
+      }
+    }
+
+    return [{
+      id: item.media_id,
+      slug: item.slug,
+      title: media.title,
+      description: item.description || media.alt_text || "",
+      category: item.category || "VIDEO",
+      featured: item.featured,
+      url,
+      embedUrl,
+      poster,
+    }];
+  });
+
+  if (!videos.length) return null;
+
+  return <section className="public-videos content-section" id="videos" dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"} aria-labelledby="public-videos-title">
+    <div className="section-heading">
+      <div><span className="eyebrow">{copy.eyebrow}</span><h2 id="public-videos-title">{copy.first}<br /><em>{copy.emphasis}</em></h2></div>
+      <p>{copy.description}</p>
+    </div>
+    <div className="public-video-grid">{videos.map((video, index) => <article className="public-video-card" key={video.id}>
+      <div className="public-video-frame">
+        <PublicVideoPlayer src={video.url} poster={video.poster} youtubeEmbedUrl={video.embedUrl} title={video.title} description={video.description} locale={isArabic?"ar":"en"} />
+        <span className="public-video-index">{video.featured ? copy.featured : String(index + 1).padStart(2, "0")}</span>
+      </div>
+      <div className="public-video-meta">
+        <span className="eyebrow">{video.category.toUpperCase()} / VIDEO</span>
+        <h3>{video.title}</h3>
+        {video.description && <p>{video.description}</p>}
+        <Link href={"/watch/" + video.slug} className="raye2-watch-link-label">{copy.watch}</Link>
+      </div>
+    </article>)}</div>
+  </section>;
+}
