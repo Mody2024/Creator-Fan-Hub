@@ -1,13 +1,14 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicSiteConfig } from "@/lib/public-site-config";
 import Raye2AdminClient, { type RuleRow, type RetentionRow, type CleanupRow, type StorageRow, type AuditRow, type HealthRow, type AdminRow, type CapRow, type FabricRow } from "./admin-client";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Raye2 Admin — Platform Rules & Retention" };
 
 export default async function Raye2AdminPage() {
-  const [supabase, cookieStore] = await Promise.all([createSupabaseServerClient(), cookies()]);
+  const [supabase, cookieStore, siteConfig] = await Promise.all([createSupabaseServerClient(), cookies(), getPublicSiteConfig()]);
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   if (!supabase) redirect("/creator/login?setup=required");
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
@@ -27,5 +28,5 @@ export default async function Raye2AdminPage() {
     supabase.rpc("raye2_admin_capabilities"),
     supabase.rpc("raye2_storage_admin_overview")
   ]);
-  return <Raye2AdminClient locale={locale} initialRules={(rules.data ?? []) as RuleRow[]} initialRetention={(retention.data ?? []) as RetentionRow[]} initialJobs={(jobs.data ?? []) as CleanupRow[]} initialStorage={(storage.data ?? []) as StorageRow[]} initialAudit={(audit.data ?? []) as AuditRow[]} initialHealth={(health.data ?? []) as HealthRow[]} initialAdmins={(admins.data ?? []) as AdminRow[]} initialCaps={(caps.data ?? []) as CapRow[]} initialFabric={(fabric.data ?? []) as FabricRow[]} />;
+  return <Raye2AdminClient locale={locale} logoUrl={siteConfig.logoUrl} initialRules={(rules.data ?? []) as RuleRow[]} initialRetention={(retention.data ?? []) as RetentionRow[]} initialJobs={(jobs.data ?? []) as CleanupRow[]} initialStorage={(storage.data ?? []) as StorageRow[]} initialAudit={(audit.data ?? []) as AuditRow[]} initialHealth={(health.data ?? []) as HealthRow[]} initialAdmins={(admins.data ?? []) as AdminRow[]} initialCaps={(caps.data ?? []) as CapRow[]} initialFabric={(fabric.data ?? []) as FabricRow[]} />;
 }
