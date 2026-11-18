@@ -22,6 +22,7 @@ const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const migrationsDir = join(root, "supabase", "migrations");
 const stubFile = join(root, "scripts", "raye2-stub-supabase.sql");
 const postChecksFile = join(root, "scripts", "raye2-migration-postchecks.sql");
+const rlsMatrixFile = join(root, "scripts", "raye2-rls-matrix.sql");
 
 function fail(message) {
   console.error(`\n✖ migration check failed: ${message}`);
@@ -50,7 +51,8 @@ function run(command, args, options = {}) {
 function psql(bin, dsn, extraArgs) {
   const result = run(join(bin, "psql"), [dsn, "-q", "-v", "ON_ERROR_STOP=1", ...extraArgs]);
   if (result.status !== 0) {
-    fail(`${result.args.join(" ")}\n${result.stdout ?? ""}${result.stderr ?? ""}`);
+    const target = extraArgs[extraArgs.length - 1];
+    fail(`psql ${extraArgs[0]} ${target}\n${result.stdout ?? ""}${result.stderr ?? ""}`);
   }
   return result.stdout ?? "";
 }
@@ -104,6 +106,7 @@ for (const migration of migrations) {
   psql(bin, dsn, ["-f", join(migrationsDir, migration)]);
 }
 psql(bin, dsn, ["-f", postChecksFile]);
+psql(bin, dsn, ["-f", rlsMatrixFile]);
 
 const mode = externalDsn ? "external server" : "throwaway cluster";
-console.log(`✓ applied ${migrations.length} migrations and post-checks on ${mode}`);
+console.log(`✓ applied ${migrations.length} migrations, post-checks and the RLS matrix on ${mode}`);

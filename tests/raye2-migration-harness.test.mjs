@@ -3,14 +3,15 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [atomic, feed, allowances, runner, stub, postchecks, pkg] = await Promise.all([
+const [atomic, feed, allowances, runner, stub, postchecks, pkg, matrix] = await Promise.all([
   read("../supabase/migrations/20261115193000_raye2_atomic_storage_reservations.sql"),
   read("../supabase/migrations/20261111070000_raye2_community_feed_linked_slug.sql"),
   read("../supabase/migrations/20261116120000_raye2_storage_allowances_and_control.sql"),
   read("../scripts/raye2-migration-check.mjs"),
   read("../scripts/raye2-stub-supabase.sql"),
   read("../scripts/raye2-migration-postchecks.sql"),
-  read("../package.json")
+  read("../package.json"),
+  read("../scripts/raye2-rls-matrix.sql")
 ]);
 
 test("the atomic storage migration is structurally intact", () => {
@@ -68,4 +69,28 @@ test("the post-checks assert the platform's core invariants", () => {
   assert.match(postchecks, /raye2_group_moderation_log/);
   assert.match(postchecks, /raye2_message_polls/);
   assert.match(postchecks, /storage reservation RPCs must be service-role only/);
+});
+
+test("the RLS matrix drives the real authorization guards as each role", () => {
+  assert.match(matrix, /set local role authenticated/);
+  assert.match(matrix, /set local role anon/);
+  assert.match(matrix, /request\.jwt\.claim\.sub/);
+  // Each guarded surface is exercised with both an allowed and a denied path.
+  for (const surface of [
+    "raye2_update_group_profile",
+    "raye2_list_group_moderation_log",
+    "raye2_create_message_poll",
+    "raye2_vote_message_poll",
+    "raye2_close_message_poll",
+    "raye2_get_message_poll"
+  ]) {
+    assert.ok(matrix.includes(surface), `matrix does not exercise ${surface}`);
+  }
+  // Denials are asserted by SQLSTATE, and a broken guard must fail loudly.
+  assert.match(matrix, /when sqlstate '42501' then/);
+  assert.match(matrix, /MATRIX FAIL/);
+  // Every run resets the role so one check cannot leak privilege into the next.
+  assert.ok((matrix.match(/reset role/g) ?? []).length >= 6, "each role switch must reset");
+  // Anonymous callers must not hold execute on the guarded RPCs.
+  assert.match(matrix, /has_function_privilege\('anon'/);
 });

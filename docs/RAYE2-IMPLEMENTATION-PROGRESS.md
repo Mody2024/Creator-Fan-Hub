@@ -3599,6 +3599,34 @@ and repair the genuine corruption that only a live apply exposes. Additive; `mai
 - **Progress accounting:** this batch hardens correctness/verification; it does not add broad feature coverage.
   The canonical ten-wave table is unchanged.
 
+## Batch — 2026-11-10 (Batch 13): Behavioral RLS and RPC authorization matrix (development only)
+
+**Goal:** the largest remaining Wave 2/9 gap was *behavioral* RLS/RPC acceptance — proving the migrated
+guards actually allow and deny the right callers. The Batch 12 harness only applied SQL; this batch makes it
+exercise the guards. Additive; `main` and production unchanged.
+
+- **Matrix.** `scripts/raye2-rls-matrix.sql` seeds a deterministic dataset (owner / admin / non-manager
+  member / non-member) and, for each guarded surface, switches the session role (`set local role
+  authenticated` / `anon`) and the Supabase request-context GUCs (`request.jwt.claim.role` / `sub`) exactly
+  as PostgREST does per request. Each check proves the authorized path succeeds **and persists**, and that the
+  denied path raises the expected SQLSTATE (`42501`, `22023`, `55006`, or `insufficient_privilege`).
+- **Surfaces covered:** group profile editing (`raye2_update_group_profile`: non-manager denied, owner and
+  admin allowed and persisted, over-length/non-https rejected, anon denied at the grant level); the group
+  moderation log (trigger captures member adds and status changes; manager reads via RPC and directly through
+  RLS; non-manager denied by both; anon denied); chat polls (`raye2_create_message_poll` non-member denied,
+  `raye2_vote_message_poll` single-choice enforcement and tallies, `raye2_get_message_poll` non-member denied,
+  `raye2_close_message_poll` non-author/non-manager denied and manager close freezing votes); and a
+  denial-invariant sweep asserting `anon` holds no execute on the storage reservation/commit/release RPCs.
+- **Non-vacuous (negative control):** replacing `raye2_update_group_profile` with an unguarded body makes the
+  matrix fail at the first non-manager case — so a real regression cannot pass silently.
+- **Wiring.** The runner executes the matrix after the post-checks; `npm run check` and `check:migrations` both
+  cover it. Validator grew to **530 assertions**; `tests/raye2-migration-harness.test.mjs` grew to 7 tests.
+- Gates: validator 530 assertions; live check applied **248/248 migrations** + post-checks + RLS matrix with 0
+  failures; tests **1021/1021**; tsc clean; lint 0 errors; build OK.
+- **Progress accounting:** verification/authorization batch; the canonical ten-wave table is unchanged. The
+  isolated behavioral matrix now covers the newest guarded surfaces; a hosted Supabase project and route-level
+  acceptance remain.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3618,7 +3646,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (Supabase RLS behavioral acceptance on a hosted project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated migration application is now **verified**: the full 248-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub and all post-apply invariants hold (`npm run check:migrations`), so Wave 9's remaining gap is RLS/route behavioral acceptance, load/capacity/cost checks and owner sign-off rather than migration execution. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (RLS behavioral acceptance on a hosted Supabase project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated verification is now stronger: the full 248-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub, all post-apply invariants hold, and the newest guarded RPCs/RLS policies pass a role-switched behavioral authorization matrix (`npm run check:migrations`). Wave 9's remaining gap is therefore hosted-project acceptance, load/capacity/cost checks and owner sign-off rather than migration execution or isolated guard behavior. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

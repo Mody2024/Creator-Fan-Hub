@@ -1083,11 +1083,19 @@ check("the shared server resolver exposes a public-object convenience wrapper", 
 const migrationCheckScript = await read("../scripts/raye2-migration-check.mjs");
 const migrationStub = await read("../scripts/raye2-stub-supabase.sql");
 const migrationPostchecks = await read("../scripts/raye2-migration-postchecks.sql");
+const rlsMatrix = await read("../scripts/raye2-rls-matrix.sql");
 const packageManifest = JSON.parse(await read("../package.json"));
 check("the live migration check applies every migration on a throwaway cluster",
   migrationCheckScript.includes("supabase") && migrationCheckScript.includes("migrations") &&
   migrationCheckScript.includes("ON_ERROR_STOP") && migrationCheckScript.includes("raye2-stub-supabase.sql") &&
-  migrationCheckScript.includes("raye2-migration-postchecks.sql"));
+  migrationCheckScript.includes("raye2-migration-postchecks.sql") &&
+  migrationCheckScript.includes("raye2-rls-matrix.sql"));
+check("the RLS matrix exercises the real role-switched authorization guards",
+  rlsMatrix.includes("set local role authenticated") && rlsMatrix.includes("set local role anon") &&
+  rlsMatrix.includes("raye2_update_group_profile") && rlsMatrix.includes("raye2_list_group_moderation_log") &&
+  rlsMatrix.includes("raye2_create_message_poll") && rlsMatrix.includes("raye2_vote_message_poll") &&
+  rlsMatrix.includes("raye2_close_message_poll") && rlsMatrix.includes("has_function_privilege('anon'") &&
+  rlsMatrix.includes("MATRIX FAIL") && rlsMatrix.includes("when sqlstate '42501' then"));
 check("the Supabase stub mirrors the auth/storage/realtime surfaces the migrations use",
   migrationStub.includes("create table if not exists auth.users") &&
   migrationStub.includes("create or replace function auth.uid()") &&

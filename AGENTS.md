@@ -35,9 +35,16 @@ npm run build     # next build
 `npm run check` chains `check:static` (the assertion validator) and `check:migrations`. The migration
 check (`scripts/raye2-migration-check.mjs`) stands up an ephemeral PostgreSQL cluster, loads the
 Supabase-compatible stub (`scripts/raye2-stub-supabase.sql`) and applies every migration in order with
-`ON_ERROR_STOP`, then asserts invariants (`scripts/raye2-migration-postchecks.sql`). It needs no Docker
-and skips cleanly when no PostgreSQL is installed or `RAYE2_PG_DSN` is unset, so it is safe in CI. Run it
-alone with `npm run check:migrations`. Set `RAYE2_PGBIN` if the server binaries are in a non-standard place.
+`ON_ERROR_STOP`, then asserts invariants (`scripts/raye2-migration-postchecks.sql`) and runs the
+behavioral RLS/RPC authorization matrix (`scripts/raye2-rls-matrix.sql`). It needs no Docker and skips
+cleanly when no PostgreSQL is installed or `RAYE2_PG_DSN` is unset, so it is safe in CI. Run it alone
+with `npm run check:migrations`. Set `RAYE2_PGBIN` if the server binaries are in a non-standard place.
+
+The RLS matrix seeds a deterministic dataset and, for each guarded surface, switches the session role
+(`set local role authenticated`/`anon`) and the Supabase request-context GUCs
+(`request.jwt.claim.role`/`sub`), then proves the authorized path succeeds and persists and the denied
+path raises the expected SQLSTATE. When you add or change a guarded RPC, add a case here: a broken guard
+must make `npm run check:migrations` fail (verified by negative control).
 
 ### Editing migrations
 
