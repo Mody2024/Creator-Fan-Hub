@@ -97,7 +97,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
   const headerTitle=siteConfig.navigation.contextTitle.trim()||(isArabic?"اكتشف وتواصل":"Discover & connect");
   return <main className={styles.shell} dir={isArabic?"rtl":"ltr"} lang={locale}>
     <header className={styles.topbar}>
-      <Link className={styles.brandMark} href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}><span className={styles.brandGlyph}>R</span><span className={styles.brandPulse}/></Link>
+      <Link className={styles.brandMark} href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}>{siteConfig.logoUrl ? <Image src={siteConfig.logoUrl} alt="" width={42} height={42} className={styles.brandImage} priority /> : null}<span className={styles.brandPulse}/></Link>
       <div className={styles.topbarContext}><span className={styles.topbarEyebrow}>{headerEyebrow}</span><strong>{headerTitle}</strong></div>
       <form className={styles.topbarSearch} action="/search"><span aria-hidden="true">⌕</span><input name="q" placeholder={isArabic?"ابحث عن فيديوهات وصُنّاع محتوى":"Search videos, creators and communities"} aria-label={isArabic?"بحث":"Search"}/><kbd>↵</kbd></form>
       <div className={styles.topbarActions}><LanguageSwitch initialLocale={locale} variant="header" label={siteConfig.navigation.languageLabel}/><Link href="/notifications" aria-label={isArabic?"الإشعارات":"Notifications"} className={styles.topbarIcon}>♧</Link><Link href={profileHref} className={styles.profileShortcut}>{isArabic?"ملفي الشخصي":"My profile"} <span>↗</span></Link></div>
