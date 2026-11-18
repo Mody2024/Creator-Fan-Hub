@@ -3482,6 +3482,28 @@ production unchanged.
 - **Not yet done (provider/environment-dependent):** live RLS application and route-guard acceptance on an
   isolated Supabase project; source-creator "disable clipping" acceptance on live data.
 
+## Batch — 2026-11-10 (Batch 8): Community clips shared into community posts (development only)
+
+**Goal:** close the remaining plan 13.8 gap — the community feed must carry "Mini's/community clips" — and satisfy
+plan 13.5's rule that "clips shared into communities or chats must remain subject to source and clip permissions".
+A community post could attach a video moment but had no way to embed a community clip, so a clip could not be
+shared into a community at all. Additive; `main` and production unchanged.
+
+- **Optional clip link.** Migration `20261116200000_raye2_community_posts_clips.sql` adds
+  `community_posts.linked_clip_id` (FK to `raye2_community_clips`, `on delete set null`) plus a check constraint
+  making a clip link and a video moment mutually exclusive.
+- **Insert gate.** The instant-publish policy now only accepts a clip that is currently live and source-permitted
+  (`status='published'`, not expired, source `allow_clipping`), reusing the same predicate as the permalink read.
+- **Feed gate.** `raye2_get_community_feed` returns `linked_clip_id` only while the clip is still live and
+  source-permitted, so a community link never outlives the clip's eligibility (source clipping disabled, expired,
+  removed, blocked clipper).
+- **UI.** The community compose form gains an optional "attach one of your clips" picker (the member's own live
+  clips), and each post renders a `▶ Shared community clip ↗` link to `/clips/<id>` — the Batch 7 permalink.
+- **Tests/validator:** `tests/raye2-community-post-clips.test.mjs` (4 tests). Validator grew to 519 assertions.
+- Gates: validator 519 assertions; tests 999/999; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** live RLS application and route-guard acceptance on an
+  isolated Supabase project.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.

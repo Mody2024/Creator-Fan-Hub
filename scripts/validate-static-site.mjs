@@ -708,6 +708,15 @@ check("the clips feed links to the permalink and chat renders shared clip/video 
   clipsFeedClient.includes("copyClipLink") &&
   (await read("../src/app/raye2/raye2-client.tsx")).includes('message.attachment?.kind === "clip_share"') &&
   (await read("../src/app/raye2/raye2-client.tsx")).includes('message.attachment?.kind === "video_share"'));
+const communityPostClipsMigration = await read("../supabase/migrations/20261116200000_raye2_community_posts_clips.sql");
+check("community posts can embed a live, source-permitted community clip",
+  communityPostClipsMigration.includes("add column if not exists linked_clip_id uuid references public.raye2_community_clips(id)") &&
+  communityPostClipsMigration.includes("community_posts_clip_link_check") &&
+  communityPostClipsMigration.includes("c.id=linked_clip_id and c.status='published' and c.expires_at > now()") &&
+  communityPostClipsMigration.includes("left join public.raye2_community_clips cc on cc.id = s.linked_clip_id") &&
+  communityClient.includes('from("raye2_community_clips").select("id,title").eq("clipper_id", member.id)') &&
+  communityClient.includes('post.linkedClipId && <Link className="raye2-action" href={"/clips/"+post.linkedClipId}') &&
+  communityPage.includes("linkedClipId: row.linked_clip_id"));
 const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
 const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
 check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));
