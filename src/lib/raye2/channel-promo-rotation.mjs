@@ -43,7 +43,7 @@ export function normalizeRaye2ChannelPromo(input) {
  */
 export function selectRaye2ChannelPromo({ promos = [], placement, recentPromoIds = [], random = Math.random } = {}) {
   const eligible = promos.map(normalizeRaye2ChannelPromo)
-    .filter(p => p && p.active && p.placements.includes(placement));
+    .filter(p => p && p.active && p.placements.includes(placement) && ((placement !== "video" && placement !== "live") || (p.durationSeconds !== null && p.durationSeconds >= 60)));
   if (!eligible.length) return null;
   const recent = new Set(recentPromoIds.map(String));
   let candidates = eligible.filter(p => !recent.has(p.id));
