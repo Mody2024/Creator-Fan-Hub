@@ -4018,3 +4018,47 @@ Env naming (bucket names must be non-empty): `RAYE2_TIGRIS_ACCESS_KEY_ID`, `RAYE
 "THE INNER CIRCLE — Creator Hub" build, not this Raye2 app. The Raye2 deployment URL is behind Vercel
 authentication (`creator-fan-hub-3gjkdncrd-…vercel.app` → 302 to Vercel SSO). Verify which Vercel
 project/deployment owns the domain and point it at the Raye2 build.
+
+---
+
+## Batch — 2026-11-21 (Batch 21): Watch Together drift correction + real group-voice audio preferences (Wave 7)
+
+**Goal:** raise Wave 7 (voice, Watch Together, shared experiences) from "works" to "holds up under a long
+session and a slow client".
+
+- **Watch Together sync hardened.** The playback math moved into a shared, framework-free module
+  (`src/lib/voice/watch-together-sync.mjs`) that clamps an absurd extrapolated position (a stale or
+  clock-skewed session can no longer fast-forward a viewer), so the rules are unit-tested directly instead
+  of living inline. On top of that:
+  - **Guest watchdog:** every 2 s a guest re-computes the room's expected wall-clock position and self-corrects
+    when drift passes the 1.5 s threshold, so a backgrounded tab or a slow network cannot leave one viewer
+    minutes behind between host updates.
+  - **Host heartbeat:** the host re-broadcasts its position every 5 s while playing, so long sessions do not
+    slowly diverge.
+  - **Visible sync state:** guests now see "In sync / Catching up… / Holding… / Paused" with the local
+    position and signed drift in seconds, plus a one-tap **Resync** button.
+- **Group voice preferences are real.** `push_to_talk` and `noise_suppression` were stored but inert. Now the
+  saved values are loaded on join, and:
+  - **Push-to-talk:** while enabled the microphone opens only while **Space** (or the on-screen *Hold to talk*
+    button) is held, and closes on release, on window blur, and while typing in an input.
+  - **Noise suppression:** toggling re-publishes the microphone with the new capture options so the setting
+    actually reaches the track.
+- Gates: validator **542 assertions**; `check:migrations` **251 migrations** + post-checks + RLS matrix;
+  tests **1037/1037** (9 new); tsc clean; lint 0 errors (20 warnings); build OK. No database migration
+  required (all data structures already existed).
+
+### Canonical ten-wave table
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~96% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization | ~97% |

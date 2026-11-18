@@ -35,6 +35,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   const [pushToTalk, setPushToTalk] = useState(false);
   const [noiseSuppression, setNoiseSuppression] = useState(true);
   const [audioPrefsBusy, setAudioPrefsBusy] = useState(false);
+  const [transmittingState, setTransmittingState] = useState(false);
   const [quality, setQuality] = useState<"unknown" | "good" | "fair" | "poor">("unknown");
   const [reconnecting, setReconnecting] = useState(false);
   const [error, setError] = useState("");
@@ -59,6 +60,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     clearHands: isAr ? "خفض كل الأيدي" : "Clear hands",
     pushToTalk: isAr ? "اضغط للتحدث" : "Push to talk",
     noiseSuppression: isAr ? "إخماد الضوضاء" : "Noise suppression",
+    pttHint: isAr ? "اضغط مطولًا على مسافة (أو زر التحدث) للتحدث." : "Hold Space (or the Talk button) to speak.",
+    holdToTalk: isAr ? "اضغط للتحدث الآن" : "Hold to talk",
     quality: isAr ? "الجودة" : "Quality",
     qualityGood: isAr ? "جيدة" : "Good",
     qualityFair: isAr ? "متوسطة" : "Fair",
@@ -241,6 +244,18 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     return () => window.clearInterval(timer);
   }, [recordingState]);
 
+  useEffect(() => {
+    if (!connected) return;
+    let active = true;
+    void supabase.from("raye2_voice_preferences").select("push_to_talk,noise_suppression").eq("user_id", userId).maybeSingle()
+      .then(({ data }) => {
+        if (!active || !data) return;
+        setPushToTalk(Boolean(data.push_to_talk));
+        setNoiseSuppression(data.noise_suppression !== false);
+      });
+    return () => { active = false; };
+  }, [connected, supabase, userId]);
+
   const requestRecordingConsent = async () => {
     const sessionId = sessionRef.current;
     if (!sessionId) return;
@@ -301,7 +316,71 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     if (rpcError) { setError(copy.failed); return; }
     setPushToTalk(nextPushToTalk);
     setNoiseSuppression(nextNoise);
+    if (!nextPushToTalk) {
+      setTransmittingState(false);
+      if (!muted) await roomRef.current?.localParticipant.setMicrophoneEnabled(true).catch(() => undefined);
+    }
+    await applyNoiseSuppression(nextNoise);
   };
+
+  // Toggling noise suppression only matters if it actually reaches the microphone, so the
+  // mic is re-published with the new capture options when a track already exists.
+  const applyNoiseSuppression = async (enabled: boolean) => {
+    const room = roomRef.current;
+    if (!room) return;
+    const published = room.localParticipant.getTrackPublications().some(item => (item.source as string) === "microphone" && item.track);
+    if (!published) return;
+    try {
+      await room.localParticipant.setMicrophoneEnabled(!muted, { noiseSuppression: enabled, echoCancellation: true, autoGainControl: true });
+    } catch {
+      // The stored preference still applies on the next join if the live re-publish is rejected.
+    }
+  };
+
+  const setTransmitting = async (transmitting: boolean) => {
+    const room = roomRef.current;
+    if (!room) return;
+    try {
+      await room.localParticipant.setMicrophoneEnabled(transmitting);
+      setTransmittingState(transmitting);
+    } catch {
+      setError(copy.failed);
+    }
+  };
+  // Keep the latest handler in a ref so the push-to-talk listener effect does not
+  // need to re-register on every render.
+  const transmitRef = useRef(setTransmitting);
+  transmitRef.current = setTransmitting;
+
+  // Push-to-talk: while enabled, the mic only opens while Space or the Talk button is held.
+  useEffect(() => {
+    if (!connected || !pushToTalk) return;
+    const room = roomRef.current;
+    if (room) void room.localParticipant.setMicrophoneEnabled(false);
+    setTransmittingState(false);
+    const isTypingTarget = (target: EventTarget | null) => {
+      const element = target as HTMLElement | null;
+      return !!element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.isContentEditable);
+    };
+    const down = (event: KeyboardEvent) => {
+      if (event.code !== "Space" || event.repeat || isTypingTarget(event.target)) return;
+      event.preventDefault();
+      void transmitRef.current(true);
+    };
+    const up = (event: KeyboardEvent) => {
+      if (event.code !== "Space") return;
+      void transmitRef.current(false);
+    };
+    const blur = () => { void transmitRef.current(false); };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    window.addEventListener("blur", blur);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+      window.removeEventListener("blur", blur);
+    };
+  }, [connected, pushToTalk]);
 
   return (
     <div className={styles.groupVoiceControls}>
@@ -318,6 +397,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
           <button type="button" aria-pressed={handRaised} onClick={() => void toggleHand()}>{handRaised ? copy.lowerHand : copy.raiseHand}</button>
           <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={pushToTalk} onChange={event => void saveAudioPreferences(event.target.checked, noiseSuppression)}/>{copy.pushToTalk}</label>
           <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={noiseSuppression} onChange={event => void saveAudioPreferences(pushToTalk, event.target.checked)}/>{copy.noiseSuppression}</label>
+          {pushToTalk && <button type="button" className={transmittingState ? styles.voiceEnd : undefined} aria-pressed={transmittingState} title={copy.pttHint} onPointerDown={event => { event.preventDefault(); void transmitRef.current(true); }} onPointerUp={() => void setTransmitting(false)} onPointerLeave={() => void setTransmitting(false)} onPointerCancel={() => void setTransmitting(false)}>{copy.holdToTalk}</button>}
           {recordingState === "consent_granted" && <span className={styles.voiceRecording} role="status" aria-live="polite">{isAr ? "● تسجيل" : "● REC"} {recordingClock}</span>}
           {recordingState === "consent_pending" && myConsent === "pending" && <span className={styles.voiceConsent}><span>{isAr ? "طلب تسجيل هذه الغرفة" : "This room is requesting recording consent"}</span><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("accepted")}>{isAr ? "أوافق" : "Allow"}</button><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("declined")}>{isAr ? "أرفض" : "Decline"}</button></span>}
           {recordingState === "off" && isVoiceHost && <button type="button" disabled={recordingBusy} onClick={() => void requestRecordingConsent()}>{isAr ? "طلب تسجيل" : "Request recording"}</button>}

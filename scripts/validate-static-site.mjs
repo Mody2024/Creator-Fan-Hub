@@ -1102,6 +1102,12 @@ check("the watch detail page accepts a pooled origin for videos, HLS and posters
 check("the creator studio and watch-together client surfaces resolve pooled playback", (await read("../src/app/creator/video-studio.tsx")).includes("resolveStorageDeliveries") && (await read("../src/app/raye2/raye2-watch-together-controls.tsx")).includes("resolveStorageDelivery") && (await read("../src/app/watch/watch-library-more.tsx")).includes("resolveStorageDeliveries"));
 check("the shared server resolver exposes a public-object convenience wrapper", (await read("../src/lib/storage/resolve.server.ts")).includes("export async function resolvePublicObjectUrls"));
 
+const watchSyncLib = await read("../src/lib/voice/watch-together-sync.mjs");
+const watchSyncComponent = await read("../src/app/raye2/raye2-watch-together-controls.tsx");
+check("Watch Together playback math lives in a shared, unit-tested module", watchSyncLib.includes("export function computeTargetPosition") && watchSyncLib.includes("export function shouldResync") && watchSyncLib.includes("export function describePlaybackState") && watchSyncLib.includes("MAX_STALE_ELAPSED_SECONDS"));
+check("Watch Together guests self-correct drift and hosts re-broadcast playback", watchSyncComponent.includes('from "@/lib/voice/watch-together-sync.mjs"') && watchSyncComponent.includes("shouldResync(player.currentTime, target)") && /raye2_update_watch_playback[\s\S]*?\}, 5000\)/.test(watchSyncComponent) && watchSyncComponent.includes("const forceResync = () =>") && watchSyncComponent.includes("styles.watchSyncStatus"));
+check("group voice applies stored push-to-talk and noise-suppression preferences", groupVoiceControls.includes('from("raye2_voice_preferences")') && groupVoiceControls.includes('event.code !== "Space"') && groupVoiceControls.includes("setMicrophoneEnabled(!muted, { noiseSuppression: enabled") && groupVoiceControls.includes("setMicrophoneEnabled(false)"));
+
 const migrationCheckScript = await read("../scripts/raye2-migration-check.mjs");
 const migrationStub = await read("../scripts/raye2-stub-supabase.sql");
 const migrationPostchecks = await read("../scripts/raye2-migration-postchecks.sql");

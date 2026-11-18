@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { resolveStorageDelivery, splitStoragePath } from "@/lib/storage/resolve-delivery";
+import { computePlaybackDrift, computeTargetPosition, describePlaybackState, formatPlaybackClock, shouldResync } from "@/lib/voice/watch-together-sync.mjs";
 import styles from "./raye2.module.css";
 
 type WatchVideo = {
@@ -90,6 +91,8 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [needsPlaybackTap, setNeedsPlaybackTap] = useState(false);
+  const [playbackDrift, setPlaybackDrift] = useState<number | null>(null);
+  const [localPosition, setLocalPosition] = useState(0);
   const [reactions, setReactions] = useState<WatchReaction[]>([]);
   const [scheduleAt, setScheduleAt] = useState("");
   const [inviteUrl, setInviteUrl] = useState("");
@@ -97,6 +100,7 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   const [inviteCopied, setInviteCopied] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const sessionRef = useRef<string | null>(null);
+  const sessionDataRef = useRef<WatchSession | null>(null);
   const syncingRef = useRef(false);
   const lastAppliedVersionRef = useRef<number>(-1);
   const lastAppliedSessionRef = useRef<string | null>(null);
@@ -139,7 +143,14 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     revokeInvite: isAr ? "إلغاء" : "Revoke",
     inviteCopied: isAr ? "تم نسخ رابط الدعوة." : "Invite link copied.",
     inviteError: isAr ? "تعذر إنشاء رابط الدعوة." : "Could not create the invite link.",
-    joinByInvite: isAr ? "الانضمام برابط الدعوة" : "Join with invite link"
+    joinByInvite: isAr ? "الانضمام برابط الدعوة" : "Join with invite link",
+    syncSynced: isAr ? "متزامن" : "In sync",
+    syncBehind: isAr ? "متأخر قليلًا…" : "Catching up…",
+    syncAhead: isAr ? "متقدم قليلًا…" : "Holding…",
+    syncPaused: isAr ? "متوقف" : "Paused",
+    syncUnknown: isAr ? "جارٍ المزامنة" : "Syncing",
+    resync: isAr ? "إعادة المزامنة" : "Resync",
+    position: isAr ? "الموضع" : "Position"
   };
 
   const selectedVideo = useMemo(() => videos.find(video => video.id === selectedVideoId) ?? null, [selectedVideoId, videos]);
@@ -189,6 +200,7 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
       supabase.from("raye2_watch_control_requests").select("id,user_id,status").eq("session_id", sessionId).eq("status", "pending")
     ]);
     if (!sessionRow) return;
+    sessionDataRef.current = sessionRow as WatchSession;
     const voteCounts: Record<string, number> = {};
     for (const vote of voteRows ?? []) voteCounts[vote.queue_item_id] = (voteCounts[vote.queue_item_id] ?? 0) + 1;
     const nextQueue = (queueRows ?? []).map(item => ({ ...item, votes: voteCounts[item.id] ?? 0 })) as WatchQueueItem[];
@@ -465,10 +477,14 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     const version = Number(session.playback_version);
     if (lastAppliedVersionRef.current === version) return;
     lastAppliedVersionRef.current = version;
-    const elapsed = session.is_playing ? Math.max(0, (Date.now() - new Date(session.playback_updated_at).getTime()) / 1000) : 0;
-    const target = Number(session.current_position_seconds) + elapsed;
+    const target = computeTargetPosition({
+      positionSeconds: session.current_position_seconds,
+      isPlaying: session.is_playing,
+      updatedAt: session.playback_updated_at
+    });
     syncingRef.current = true;
-    if (Math.abs(player.currentTime - target) > 1.5) player.currentTime = target;
+    if (shouldResync(player.currentTime, target)) player.currentTime = target;
+    setPlaybackDrift(computePlaybackDrift(player.currentTime, target));
     if (session.is_playing) {
       void player.play().then(() => setNeedsPlaybackTap(false)).catch(() => setNeedsPlaybackTap(true));
     } else {
@@ -476,6 +492,65 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     }
     window.setTimeout(() => { syncingRef.current = false; }, 250);
   }, [currentVideo, isHost, session]);
+
+  // Guests keep a running drift estimate and self-correct between host updates, so a
+  // slow tab or a clock skew cannot leave one viewer minutes behind the room.
+  useEffect(() => {
+    if (!session?.id || isHost || !currentVideo) return;
+    const timer = window.setInterval(() => {
+      const player = videoRef.current;
+      const live = sessionDataRef.current;
+      if (!player || !live) return;
+      const target = computeTargetPosition({
+        positionSeconds: live.current_position_seconds,
+        isPlaying: live.is_playing,
+        updatedAt: live.playback_updated_at
+      });
+      setPlaybackDrift(computePlaybackDrift(player.currentTime, target));
+      setLocalPosition(player.currentTime);
+      if (live.is_playing && shouldResync(player.currentTime, target)) {
+        syncingRef.current = true;
+        player.currentTime = target;
+        void player.play().catch(() => setNeedsPlaybackTap(true));
+        window.setTimeout(() => { syncingRef.current = false; }, 250);
+      }
+    }, 2000);
+    return () => window.clearInterval(timer);
+  }, [currentVideo, isHost, session?.id]);
+
+  // The host re-broadcasts its position periodically so long sessions do not drift apart.
+  useEffect(() => {
+    if (!session?.id || !isHost || !currentVideo) return;
+    const id = session.id;
+    const timer = window.setInterval(() => {
+      const player = videoRef.current;
+      if (!player || player.paused) return;
+      setLocalPosition(player.currentTime);
+      void supabase.rpc("raye2_update_watch_playback", {
+        p_session_id: id,
+        p_position_seconds: player.currentTime,
+        p_is_playing: true
+      });
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [currentVideo, isHost, session?.id, supabase]);
+
+  const forceResync = () => {
+    const player = videoRef.current;
+    const live = sessionDataRef.current;
+    if (!player || !live) return;
+    const target = computeTargetPosition({
+      positionSeconds: live.current_position_seconds,
+      isPlaying: live.is_playing,
+      updatedAt: live.playback_updated_at
+    });
+    syncingRef.current = true;
+    player.currentTime = target;
+    if (live.is_playing) void player.play().catch(() => setNeedsPlaybackTap(true));
+    setPlaybackDrift(0);
+    setLocalPosition(target);
+    window.setTimeout(() => { syncingRef.current = false; }, 250);
+  };
 
   useEffect(() => () => {
     const id = sessionRef.current;
@@ -527,6 +602,12 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
               <div className={styles.watchPlayerHeader}>
                 <b>{session.title}</b>
                 <span>{isHost ? copy.host : copy.sync}</span>
+                {!isHost && <span className={styles.watchSyncStatus} role="status" aria-live="polite">{(() => {
+                  const state = describePlaybackState({ isPlaying: session.is_playing, drift: playbackDrift ?? NaN });
+                  const label = state === "synced" ? copy.syncSynced : state === "behind" ? copy.syncBehind : state === "ahead" ? copy.syncAhead : state === "paused" ? copy.syncPaused : copy.syncUnknown;
+                  return label + " · " + formatPlaybackClock(localPosition) + (playbackDrift != null ? " (" + (playbackDrift > 0 ? "+" : "") + playbackDrift.toFixed(1) + "s)" : "");
+                })()}</span>}
+                {!isHost && <button type="button" onClick={forceResync}>{copy.resync}</button>}
                 <button type="button" onClick={() => void leaveSession()}>{copy.leave}</button>
               </div>
               {currentUrl ? (

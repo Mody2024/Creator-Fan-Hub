@@ -266,3 +266,4 @@
 .page .pollOptions small{position:relative;z-index:1;color:var(--r-muted);font-size:9px}
 .page .pollFoot{display:flex;align-items:center;justify-content:space-between;color:var(--r-muted);font-size:9px}
 .page .pollFoot button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-accent);padding:5px 9px;font-size:9px;cursor:pointer}
+.watchSyncStatus{font-size:9px;color:var(--r-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
