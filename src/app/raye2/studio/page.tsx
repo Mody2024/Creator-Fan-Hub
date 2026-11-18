@@ -4,6 +4,20 @@ import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import LanguageSwitch from "@/app/language-switch";
 import styles from "./studio.module.css";
+import CreatorCapabilities from "@/app/creator/creator-capabilities";
+import CreatorLiveStudio from "@/app/creator/creator-live-studio";
+import CreatorVideoExclusivity from "@/app/creator/creator-video-exclusivity";
+import AdDirector from "@/app/creator/ad-director";
+import MonetizationReport from "@/app/creator/monetization-report";
+import MediaLibrary from "@/app/creator/media-library";
+import ContentLibrary from "@/app/creator/content-library";
+import VideoStudio from "@/app/creator/video-studio";
+import CreatorNotifications from "@/app/creator/creator-notifications";
+import AchievementInsights from "@/app/creator/achievement-insights";
+import CreatorRewardsCenter from "@/app/creator/rewards-center";
+import PublishingHistory from "@/app/creator/publishing-history";
+import "@/app/creator/raye2-creator-workspace.css";
+import "@/app/raye2/studio/video-publishing-studio.css";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Creator Studio — Raye2" };
@@ -69,7 +83,7 @@ export default async function Raye2CreatorStudioPage() {
       <nav data-slot="nav" aria-label={isArabic ? "تنقل مساحة المبدع" : "Creator workspace navigation"}>
         <Link href="/raye2/home">{isArabic ? "الرئيسية" : "Home"}</Link>
         <Link href="/raye2/studio" aria-current="page">{isArabic ? "الاستوديو" : "Studio"}</Link>
-        {canPublish && <Link href="/creator">{isArabic ? "إدارة المحتوى" : "Content tools"}</Link>}{canStream && <Link href="/creator#creator-live-studio">{isArabic ? "البث المباشر" : "Live"}</Link>}
+        {canStream && <Link href="#creator-live-studio">{isArabic ? "البث المباشر" : "Live"}</Link>}
         {canAnalyze && <Link href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}
       </nav>
       <div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
@@ -88,13 +102,13 @@ export default async function Raye2CreatorStudioPage() {
     <section className={styles.workflow} data-slot="workflow">
       <div className={styles.workflowIntro}><span className={styles.eyebrow}>{isArabic ? "مسار النشر" : "PUBLISHING WORKFLOW"}</span><h2>{isArabic ? "من الملف إلى صفحة المشاهدة." : "From asset to watch page."}</h2><p>{isArabic ? "ارفع الوسائط أولًا، ثم جهّز صفحة المشاهدة، وبعدها تابع الأداء." : "Upload an asset, prepare its watch page, then follow its performance."}</p></div>
       <div className={styles.workflowActions}>
-        {canPublish && <Link href="/creator#creator-media" className={styles.primaryAction}><span>01</span><strong>{t.uploadNow}</strong><i>↗</i></Link>}
-        {canPublish && <Link href="/creator#creator-video-studio" className={styles.primaryAction}><span>02</span><strong>{t.videoNow}</strong><i>↗</i></Link>}{canStream && <Link href="/creator#creator-live-studio" className={styles.primaryAction}><span>03</span><strong>{t.liveNow}</strong><i>↗</i></Link>}
+        {canPublish && <Link href="#creator-media" className={styles.primaryAction}><span>01</span><strong>{t.uploadNow}</strong><i>↗</i></Link>}
+        {canPublish && <Link href="#creator-video-studio" className={styles.primaryAction}><span>02</span><strong>{t.videoNow}</strong><i>↗</i></Link>}{canStream && <Link href="#creator-live-studio" className={styles.primaryAction}><span>03</span><strong>{t.liveNow}</strong><i>↗</i></Link>}
         {canAnalyze && <Link href="/creator/analytics" className={styles.primaryAction}><span>03</span><strong>{isArabic ? "مراجعة الأداء" : "Review performance"}</strong><i>↗</i></Link>}
       </div>
     </section>
     <section className={styles.section} data-slot="recent">
-      <div className={styles.sectionHead}><div><span className={styles.eyebrow}>{t.recent}</span><h2>{t.recentDesc}</h2></div>{canPublish && <Link className={styles.viewAll} href="/creator#creator-media">{t.viewAll} ↗</Link>}</div>
+      <div className={styles.sectionHead}><div><span className={styles.eyebrow}>{t.recent}</span><h2>{t.recentDesc}</h2></div>{canPublish && <Link className={styles.viewAll} href="#creator-media">{t.viewAll} ↗</Link>}</div>
       <div className={styles.recentList}>
         {recentMedia.map((item) => {
           const status = item.processing_status === "failed" ? t.failedLabel : ["waiting","queued","processing"].includes(item.processing_status ?? "") ? t.waitingLabel : item.is_published ? t.publicLabel : t.privateLabel;
@@ -109,9 +123,23 @@ export default async function Raye2CreatorStudioPage() {
       <div className={styles.grid}>
         {canPublish && <article className={styles.card}><span className={styles.cardIndex}>01 / PUBLISH</span><h3>{t.manage}</h3><p>{t.manageDesc}</p><Link className={styles.action} href="/creator">{t.open} ↗</Link></article>}
         {canAnalyze && <article className={styles.card}><span className={styles.cardIndex}>02 / INSIGHTS</span><h3>{t.analytics}</h3><p>{t.analyticsDesc}</p><Link className={styles.action} href="/creator/analytics">{isArabic ? "فتح التحليلات" : "Open analytics"} ↗</Link></article>}
-        {canStream && <article className={styles.card}><span className={styles.cardIndex}>02 / LIVE</span><h3>{t.live}</h3><p>{t.liveDesc}</p><Link className={styles.action} href="/creator#creator-live-studio">{isArabic ? "فتح أدوات البث" : "Open live tools"} ↗</Link></article>}{role === "editor" && <article className={styles.card}><span className={styles.cardIndex}>01 / EDITORIAL</span><h3>{t.editorial}</h3><p>{t.editorialDesc}</p><span className={styles.action}>{t.editorialComing}</span></article>}
+        {canStream && <article className={styles.card}><span className={styles.cardIndex}>02 / LIVE</span><h3>{t.live}</h3><p>{t.liveDesc}</p><Link className={styles.action} href="#creator-live-studio">{isArabic ? "فتح أدوات البث" : "Open live tools"} ↗</Link></article>}{role === "editor" && <article className={styles.card}><span className={styles.cardIndex}>01 / EDITORIAL</span><h3>{t.editorial}</h3><p>{t.editorialDesc}</p><span className={styles.action}>{t.editorialComing}</span></article>}
       </div>
     </section>
+    <div className={styles.embeddedTools} data-slot="creator-tools">
+      <CreatorCapabilities locale={locale} />
+      {canStream ? <CreatorLiveStudio locale={locale} /> : null}
+      <CreatorVideoExclusivity locale={locale} />
+      <AdDirector locale={locale} />
+      <MonetizationReport locale={locale} />
+      {canPublish ? <MediaLibrary /> : null}
+      {canPublish ? <ContentLibrary locale={locale} /> : null}
+      {canPublish ? <VideoStudio /> : null}
+      <CreatorNotifications locale={locale} />
+      <AchievementInsights />
+      <CreatorRewardsCenter />
+      {canPublish ? <PublishingHistory /> : null}
+    </div>
     <section className={styles.beta} data-slot="beta">
       <div><span className={styles.eyebrow}>{t.coming}</span><h2>{t.beta}</h2><p>{t.betaDesc}</p></div>
       <span className={styles.betaMark} aria-hidden="true">✳</span>
