@@ -7,6 +7,13 @@
 - Production/main: unchanged; no merge or production deployment authorized.
 - Snapshot commit reviewed: `67e9e926b56e6eefd2e810af06574fb6c3a4301d` (2026-11-08; test suite passed but TypeScript caught a missing locale separator, corrected in this batch).
 
+## Multipart recovery hardening — 2026-11-18
+
+- **Commits `68d2981`, `e519a3e`, `3cab911`, `fbb41b6`, `6d4aec1`:** harden multipart completion after interrupted requests. Completion now checks the durable reservation record first; if the storage object was committed but the multipart ledger was not finalized, it repairs the ledger and returns the existing object. If the provider already completed the multipart operation but the database commit did not finish, the route checks the exact object with provider `HEAD`, verifies the byte size against the reserved upload, and resumes the database commit rather than replaying multipart completion. Provider verification errors fail closed; size mismatches are rejected. Ledger-finalization errors are surfaced explicitly so clients can retry.
+- **Regression coverage added:** static source tests cover consumed-reservation recovery, no repeated provider completion, provider-object verification, byte-size mismatch protection, and finalization error reporting.
+- **Verification limitation:** these regression tests have been added but have not been executed in this environment. The Preview deployment for the latest commit was queued when checked; build success and live upload acceptance remain unverified.
+- **Important:** this is recovery hardening, not proof of end-to-end upload reliability across every configured provider. Provider-specific multipart behaviour, concurrent completion requests, worker processing, and playback still require acceptance tests.
+
 ## Recent implementation log — 2026-11-18
 
 - **Admin usability batch (commits `4453e7b`, `226b1f7`, `ea01a6c`):** removed the Creator Studio shortcut from the Admin header to reinforce the separate publishing/admin workspaces; added live client-side search across Admin navigation sections; added clear-search and no-results states; improved mobile wrapping and search-field layout.
