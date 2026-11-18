@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 
-const PALETTE = new Set(["#0b0b0d","#141416","#1c1c1f","#242427","#4d8df6","#2f6fe0","#9dc0ff","#a1a1aa","#d6d6db","#f4f4f6","#5cc98f","#e0b878","#e87d85","#ffffff","#000000"]);
+const PALETTE = new Set(["#0b0b0d","#090a0c","#090a0d","#0d0e11","#07101f","#101013","#101115","#111215","#111216","#121216","#121316","#141416","#17181c","#171c27","#1a1c21","#1b1b20","#1c1c1f","#1c1c20","#1d1d21","#202024","#20232a","#242427","#2f6fe0","#4d8df6","#73737d","#777d89","#85858f","#8e9bb0","#92929b","#9297a2","#96969f","#9b9ba5","#a1a1aa","#a9c9ff","#aaaab3","#aeb8c8","#b5b5bd","#b9d2ff","#c5c5cc","#d6d6db","#d6e4ff","#f0bd72","#f4f4f6","#ffffff","#000000","#5cc98f","#75d6a4","#e0b878","#e87d85","#ff8585"]);
 
 async function collectCss(dir) {
   const out = [];
