@@ -53,9 +53,10 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
   async function toggle(providerId: string, enabled: boolean, priority: number) {
     const supabase = getSupabaseBrowserClient();
     if (!supabase || busy) return;
-    if (reason.trim().length < 3) { setNotice(t.reasonRequired); return; }
+    if (enabled && !testResults.some(result => result.providerId === providerId && result.ok)) { setNotice(isArabic ? "اختبر الاتصال بنجاح قبل تفعيل هذا المزود." : "Run a successful connection test before enabling this provider."); return; }
     setBusy(true); setNotice("");
-    const { error } = await supabase.rpc("raye2_set_storage_provider", { p_provider_id: providerId, p_enabled: enabled, p_priority: priority, p_reason: reason.trim() });
+    const auditReason = enabled ? "Enabled after successful read-only storage verification" : "Disabled from the Raye2 storage control center";
+    const { error } = await supabase.rpc("raye2_set_storage_provider", { p_provider_id: providerId, p_enabled: enabled, p_priority: priority, p_reason: auditReason });
     if (error) setNotice(t.fail);
     else { setNotice(t.done); setReason(""); await load(); }
     setBusy(false);
@@ -91,18 +92,17 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
   return (
     <>
       <div className={styles.sectionHead}>
-        <h2>{t.title}</h2>
-        <p>{t.note}</p>
+        <h2>{isArabic ? "إعداد التخزين" : "Storage setup"}</h2>
+        <p>{isArabic ? "اتبع الخطوات بالترتيب. لن يتم تفعيل أي مزود قبل نجاح اختبار الاتصال." : "Follow these steps in order. No provider is enabled until its connection test succeeds."}</p>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className={styles.action} disabled={busy} onClick={() => void testConnections()}>{busy ? t.testing : t.test}</button>
-          <button className={styles.action} disabled={busy} onClick={() => void reconcile()}>{t.reconcile}</button>
+          <button className={styles.action} disabled={busy} onClick={() => void reconcile()}>{isArabic ? "١. اكتشاف التخزين المُعدّ" : "1. Find configured storage"}</button>
+          <button className={styles.action} disabled={busy} onClick={() => void testConnections()}>{busy ? t.testing : (isArabic ? "٢. اختبار الاتصال" : "2. Test connections")}</button>
           <button className={styles.action} disabled={busy} onClick={() => void load()}>{t.refresh}</button>
         </div>
       </div>
       {notice ? <p className={styles.warning}>{notice}</p> : null}
-      <label>{t.reason}<textarea rows={2} value={reason} onChange={event => setReason(event.target.value)} maxLength={500} /></label>
       {testResults.length > 0 ? <div className={styles.storageGrid}>{testResults.map(result => <article className={styles.card} key={result.providerId}><div className={styles.cardHead}><h3>{result.providerId}</h3><span className={result.ok ? styles.ok : styles.warning}>{result.ok ? "Connected" : "Check failed"}</span></div>{result.checks.map(check => <small key={check.visibility}>{check.visibility}: {check.ok ? "List permission verified" : "Unavailable or permission denied"}</small>)}</article>)}</div> : null}
-      {rows.length === 0 ? <p>{t.empty}</p> : (
+      {rows.length === 0 ? <div className={styles.card}><h3>{isArabic ? "لم يتم العثور على مزود تخزين بعد" : "No storage providers found yet"}</h3><p>{isArabic ? "اضغط على اكتشاف التخزين المُعدّ للعثور على Tigris وFilebase باستخدام إعدادات Vercel الحالية." : "Choose Find configured storage to register Tigris and Filebase using the existing Vercel environment settings."}</p></div> : (
         <div className={styles.storageGrid}>
           {rows.map(row => (
             <article className={styles.card} key={row.provider_id}>
@@ -116,7 +116,7 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
               <small>{t.bucket}: {row.public_bucket ?? "—"} / {row.private_bucket ?? "—"}</small>
               <small>{t.verified}: {row.capacity_verified_at ? new Date(row.capacity_verified_at).toLocaleString(isArabic ? "ar-EG" : "en") : t.never}</small>
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                <button className={styles.action} disabled={busy} onClick={() => void toggle(row.provider_id, !row.enabled, row.priority)}>{row.enabled ? t.disable : t.enable}</button>
+                <button className={styles.action} disabled={busy || (!row.enabled && !testResults.some(result => result.providerId === row.provider_id && result.ok))} title={!row.enabled && !testResults.some(result => result.providerId === row.provider_id && result.ok) ? (isArabic ? "اختبر الاتصال أولاً" : "Test the connection first") : undefined} onClick={() => void toggle(row.provider_id, !row.enabled, row.priority)}>{row.enabled ? t.disable : t.enable}</button>
               </div>
             </article>
           ))}
