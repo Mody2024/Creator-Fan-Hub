@@ -385,7 +385,7 @@ test("Raye2 logo studio is wired into public and creator experiences", async () 
   const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.match(page, /config\.logoUrl/);
   assert.doesNotMatch(page, /portal-wordmark|رايق/);
-  assert.match(config, /siteName: "Raye2"/);
+  assert.ok(!page.includes("<strong>Raye2</strong>"));
   assert.match(settings, /LogoStudio/);
   assert.match(studio, /backgroundRemoved/);
   assert.match(studio, /creator-media-private/);
