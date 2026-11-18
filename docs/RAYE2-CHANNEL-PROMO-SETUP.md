@@ -1,56 +1,32 @@
-# Raye2 featured YouTube channel promotions
+# Raye2 YouTube channel promotions
 
-This is a house-promotion mode, not paid advertising. It does not need an ad-network account, VAST tag, or ad payment.
+Raye2 uses the public uploads of the configured channel as house promotions. This is cross-promotion, not paid advertising.
 
-## Configuration
+## Current channel
 
-Set the following public environment variable in the Raye2 Vercel project for the intended deployment:
+- Handle: `@maronizer`
+- Channel page: `https://www.youtube.com/@maronizer`
+- Every available public upload is eligible for random rotation in all four Raye2 placements: video pages, live pages, Mini feed and community feed.
 
-`NEXT_PUBLIC_RAYE2_CHANNEL_PROMOS`
+## One-time server configuration
 
-Its value is a JSON array of promo clips. Example (replace every example value with a real channel-owned video):
+Add these environment variables to the Raye2 Vercel project for the intended deployment:
 
-```json
-[
-  {
-    "id": "channel-clip-01",
-    "title": "Watch our latest highlight",
-    "description": "A short preview from our official YouTube channel.",
-    "url": "https://www.youtube.com/watch?v=VIDEO_ID_1",
-    "thumbnailUrl": "https://i.ytimg.com/vi/VIDEO_ID_1/hqdefault.jpg",
-    "cta": "Watch on YouTube",
-    "placements": ["video", "live", "minis", "community"],
-    "active": true
-  },
-  {
-    "id": "channel-clip-02",
-    "title": "Another channel highlight",
-    "url": "https://www.youtube.com/shorts/VIDEO_ID_2",
-    "thumbnailUrl": "https://i.ytimg.com/vi/VIDEO_ID_2/hqdefault.jpg",
-    "placements": ["minis", "community"],
-    "active": true
-  }
-]
-```
+- `RAYE2_YOUTUBE_HANDLE=maronizer`
+- `YOUTUBE_DATA_API_KEY=<server-side YouTube Data API key>`
 
-Each promo must have a unique stable `id`, a title, and a valid HTTPS YouTube channel/video/Shorts URL. The selector chooses randomly from active promos eligible for that placement and avoids recently shown IDs until the rotation cycle is exhausted.
+The API key must be stored as a server-only secret. Do not prefix it with `NEXT_PUBLIC_`, expose it in client code, commit it, or share it in chat. The key-owning adult/project administrator should create and manage the Google Cloud project and key, enable YouTube Data API v3, and apply API key restrictions appropriate to the deployment.
 
-## Placement behavior
+The API resolves the handle to the channel's uploads playlist and paginates through public uploads (up to 10,000 items per sync). Results are cached for one hour. New public uploads are included after cache refresh. Deleted/private videos are skipped. YouTube API quota and current Google API terms/limits apply.
 
-- Watch pages: a featured-channel card below the player.
-- Live pages: a featured-channel card below the stream player.
-- Mini feed: a featured-channel card in the feed grid.
-- Community: a featured-channel card above the post list.
+## Behavior
 
-The card is labelled “Featured channel” and opens the configured YouTube destination in a new tab. It is not inserted into the actual video stream and does not interrupt playback.
+- Raye2 selects a random eligible video from the channel's public uploads.
+- Recent video IDs are avoided within the active browser session until the rotation pool is exhausted.
+- The selected card links directly to the original YouTube video and shows its thumbnail/title.
+- Cards are labelled “Featured channel”; this is not a paid ad and creates no ad-network revenue.
+- The current placements are cards around the content, not interruptions inserted into the video or live stream.
 
-## Clip sourcing and rights
+## Fallback
 
-Raye2 does not download, cut, or re-upload arbitrary YouTube videos. Prepare short promotional videos/Shorts on the channel (or use clips you have permission to promote), then add their individual YouTube URLs and thumbnails to this list. The current rotation selects among prepared promo entries; it does not automatically edit source videos.
-
-## Important limitations
-
-- This is unpaid cross-promotion; no provider revenue or impression-based payout is generated.
-- The public environment variable contains public promo metadata only. Never put secrets, account credentials, or payout details in it.
-- This first version uses environment configuration rather than an admin-managed database screen.
-- A configured promo appears only where the corresponding page slot is mounted and only when at least one active eligible entry exists.
+If the server-side API key is not configured or the API is temporarily unavailable, the channel promo slot can fall back to manually configured `NEXT_PUBLIC_RAYE2_CHANNEL_PROMOS` entries. Never put secrets in that public variable.
