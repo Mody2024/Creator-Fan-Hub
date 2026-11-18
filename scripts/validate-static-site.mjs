@@ -763,6 +763,19 @@ check("poll voting and closing enforce choice rules and permissions",
   chatEphemeralClient.includes('message.attachment?.kind === "poll" && supabase && <Raye2MessagePoll') &&
   chatPollComponent.includes('rpc("raye2_vote_message_poll", { p_message_id: messageId, p_option_ids: [...selected] })') &&
   chatPollComponent.includes('rpc("raye2_close_message_poll", { p_message_id: messageId })'));
+const groupProfileMigration = await read("../supabase/migrations/20261116230000_raye2_group_profile_and_moderation_log.sql");
+check("group profile editing and the moderation log are manager-gated",
+  groupProfileMigration.includes("create or replace function public.raye2_update_group_profile(") &&
+  groupProfileMigration.includes("if auth.uid() is null or not public.raye2_is_group_manager(p_group_id) then") &&
+  groupProfileMigration.includes("group image must be an https URL") &&
+  groupProfileMigration.includes("at most 12 group topics are allowed") &&
+  groupProfileMigration.includes("create table if not exists public.raye2_group_moderation_log (") &&
+  groupProfileMigration.includes("revoke all on public.raye2_group_moderation_log from anon, authenticated") &&
+  groupProfileMigration.includes("create policy \"Raye2 group managers read the moderation log\"") &&
+  groupProfileMigration.includes("create trigger raye2_group_members_moderation after insert or update or delete on public.raye2_group_members") &&
+  groupProfileMigration.includes("create trigger raye2_groups_moderation after update on public.raye2_groups") &&
+  chatEphemeralClient.includes('rpc("raye2_update_group_profile", {') &&
+  chatEphemeralClient.includes('rpc("raye2_list_group_moderation_log", { p_group_id: selectedGroup.id, p_limit: 60 })'));
 const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
 const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
 check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));
