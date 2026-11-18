@@ -7,7 +7,6 @@ import PublicVideoPlayer from "@/app/videos/public-video-player";
 import PublishedPolls from "@/app/vote/published-polls";
 import PublicVideos from "@/app/videos/public-videos";
 import NarrationControl from "@/app/narration-control";
-import LanguageSwitch from "@/app/language-switch";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
@@ -87,7 +86,7 @@ export default async function HomePage() {
     <header className="raye2-app-header">
       <Link className="raye2-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null}</Link>
       <form className="raye2-search-form" action="/search"><input className="raye2-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
-      <div className="raye2-header-actions"><LanguageSwitch initialLocale={isArabic ? "ar" : "en"} variant="header"/><Link className="raye2-pill" href="/community#join">{t.join}</Link><Link className="raye2-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
+      <div className="raye2-header-actions"><Link className="raye2-pill" href="/community#join">{t.join}</Link><Link className="raye2-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
     <div className="raye2-platform-grid">
       <aside className="desktop-nav" aria-label="Main navigation">
