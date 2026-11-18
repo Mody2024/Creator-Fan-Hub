@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -53,6 +54,7 @@ export default async function LiveStreamPage({ params }: { params: Promise<{ id:
               <p style={{ opacity: 0.7, fontSize: 13, padding: 16, textAlign: "center" }}>{t.noProvider}</p>
             )}
           </div>
+          <Raye2ChannelPromoSlot placement="live"/>
           <p style={{ marginTop: 12, fontSize: 12, opacity: 0.7 }}>{t.health}: {stream.health}{stream.health_detail ? ` · ${stream.health_detail}` : ""}</p>
           {stream.replay_until ? <p style={{ fontSize: 12, opacity: 0.7 }}>{t.replayUntil} {new Date(stream.replay_until).toLocaleString(isArabic ? "ar-EG" : "en")}</p> : null}
         </section>
