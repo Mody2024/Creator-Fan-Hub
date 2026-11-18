@@ -36,7 +36,7 @@ test("Creator Studio only exposes tools permitted by the assigned role", async (
   assert.ok(page.includes("canAnalyze"));
   assert.ok(page.includes('href="/raye2/home"'));
   assert.ok(page.includes('href="/creator/analytics"'));
-  assert.ok(page.includes('href="/creator/community"'));
+  assert.ok(!page.includes('href="/creator/community"'));\n  assert.ok(page.includes('href="/raye2/home"'));
 });
 
 test("Creator Studio supports Arabic RTL and responsive Raye2 styling", async () => {
