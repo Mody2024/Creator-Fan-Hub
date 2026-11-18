@@ -6,6 +6,7 @@ import Image from "next/image";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";
+import Raye2SkippablePromoGate from "@/app/raye2-skippable-promo-gate";
 import Raye2ReactionArt from "./raye2-reaction-art";
 
 type Props={slug:string;startAt?:number;hlsSrc?:string|null;mediaId:string;title:string;description:string;src:string;poster?:string|null;youtubeEmbedUrl?:string|null;publishedAt:string;allowComments:boolean;category:string;tags:string[];related?:RelatedVideo[];context?:WatchContext|null;ownerId?:string|null;allowClipping?:boolean;captions?:{src:string;language:string;label:string}[]};
@@ -249,8 +250,7 @@ export default function WatchDetailClient(props:Props){
   <header className="raye2-detail-header"><Link className="raye2-detail-brand" href="/raye2/home">Raye2<span className="raye2-detail-brand-mark">.</span></Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/community">{t.community}</Link><Link href="/notifications">{t.notifications}</Link><Link href="/series">{t.series}</Link><Link href="/shorts">{t.shorts}</Link><Link href="/#videos">{t.videos}</Link></nav></header>
   <div className="raye2-detail-layout">
    <article className="raye2-detail-main">
-    <div className="raye2-detail-player"><PublicVideoPlayer startAt={props.startAt} hlsSrc={props.hlsSrc} src={props.src} poster={props.poster} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl} captions={props.captions} locale={locale} onProgress={saveProgress}/></div>
-    <Raye2ChannelPromoSlot placement="video"/>
+    <Raye2SkippablePromoGate placement="video"><div className="raye2-detail-player"><PublicVideoPlayer startAt={props.startAt} hlsSrc={props.hlsSrc} src={props.src} poster={props.poster} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl} captions={props.captions} locale={locale} onProgress={saveProgress}/></div></Raye2SkippablePromoGate>
     <div className="raye2-detail-title"><div><span className="raye2-section-label">{props.category} / RAYE2 WATCH</span><h1>{props.title}</h1><p className="raye2-muted">{new Date(props.publishedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")} · {t.official}</p></div><span className="raye2-pill raye2-pill-official">✦ OFFICIAL</span></div>
     {props.context?.creator_user_id&&<section className="raye2-detail-creator" aria-label={t.creator}>
      <Link className="raye2-detail-creator-id" href={"/u/"+props.context.creator_handle}>
