@@ -4,10 +4,12 @@
  * blocks matching eligible platform campaigns. External ad-network inventory is separate.
  */
 const field=(campaign,camel,snake)=>campaign?.[camel]??campaign?.[snake];
+const inventoryScopeKey={video:"videos",live:"live",minis:"minis",community:"community"};
 const supportsInventory=(campaign,inventory)=>{
  if(campaign.inventory)return campaign.inventory===inventory;
  const scope=field(campaign,"campaignScope","campaign_scope");
- if(scope)return inventory==="video"?scope.videos===true:scope.live===true;
+ if(scope)return scope[inventoryScopeKey[inventory]]===true;
+ // Backward compatibility: campaigns without an explicit scope remain video-only.
  return inventory==="video";
 };
 const activeAt=(campaign,now)=>{
@@ -30,11 +32,11 @@ const withinFrequency=(campaign,seen)=>{
 };
 
 /**
- * @param {{now?:number,region?:string,inventory?:"video"|"live",creatorCampaigns?:any[],platformCampaigns?:any[],viewerFrequency?:Record<string,number>}} input
+ * @param {{now?:number,region?:string,inventory?:"video"|"live"|"minis"|"community",creatorCampaigns?:any[],platformCampaigns?:any[],viewerFrequency?:Record<string,number>}} input
  */
 export function resolveRaye2SponsorEligibility(input={}) {
  const now=Number(input.now??Date.now());
- const inventory=input.inventory==="live"?"live":"video";
+ const inventory=["video","live","minis","community"].includes(input.inventory)?input.inventory:"video";
  const region=input.region?.toUpperCase()??"";
  const seen=input.viewerFrequency??{};
  const creator=(input.creatorCampaigns??[]).filter(c=>
