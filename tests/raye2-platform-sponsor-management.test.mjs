@@ -37,3 +37,7 @@ test("platform campaigns expose all four ad inventories",()=>{
  assert.ok(source.includes("setMinis(row.campaign_scope?.minis===true)"));
  assert.ok(source.includes("setCommunity(row.campaign_scope?.community===true)"));
 });
+
+test("campaign loading selects the inventory scope used by draft editing",()=>{
+ assert.ok(source.includes("allowed_regions,campaign_scope,sponsor_asset_media_id"));
+});
