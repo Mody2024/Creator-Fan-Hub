@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import "./raye2-skippable-promo-gate.css";
-import { selectRaye2ChannelPromo, type Raye2PromoPlacement } from "@/lib/raye2/channel-promo-rotation";
+import { selectRaye2ChannelPromo } from "@/lib/raye2/channel-promo-rotation";
 
 const recentByPlacement = new Map<string, string[]>();
 
