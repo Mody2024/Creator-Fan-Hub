@@ -3871,3 +3871,47 @@ This was a merge/verification/ship batch; no user-facing feature delta, so the c
 `scxkgybuodhuohcxpfat` (`supabase link` + `supabase db push`, or the SQL editor), set the two Vercel environment
 variables for Production, and create the owner `creator_admins` row — all documented in `docs/SUPABASE-SETUP.md`
 and `docs/OWNER-SETUP.md`.
+
+---
+
+## Batch — 2026-11-18 (Batch 17): Production deploy — Raye2 applied live; missing bucket fixed
+
+**Goal:** apply the Raye2 migration chain to the live production Supabase project and verify.
+
+- Read the live project's real state via the Supabase Management API: project `scxkgybuodhuohcxpfat`
+  (`ACTIVE_HEALTHY`, Postgres 17.11) had **89 migrations applied**, last `20261102215604`. Compared against the
+  repository's 249-migration chain: **160 pending**, no orphans (every applied version exists in the repo).
+- Applied the 160 pending migrations to production, each in its own transaction with its
+  `supabase_migrations.schema_migrations` bookkeeping row (the same pattern `supabase db push` uses), in order,
+  stopping on first failure. **160/160 applied successfully**; production now has **249 applied**, latest
+  `20261116240000`. Verified the live public RPCs (`raye2_get_community_feed`, `raye2_get_live_now`,
+  `raye2_get_search_facets`) all return **HTTP 200**.
+- **Latent bug found and fixed:** `raye2_managed_buckets()` and the upload-reservation constraint both allow the
+  `raye2-community-shorts` bucket, and the community-shorts uploader targets it, but **no migration ever created
+  the bucket** — so every community-shorts upload would fail with "bucket not found". Added
+  `20261116250000_raye2_community_shorts_bucket.sql` (idempotent), applied it to production (bucket now exists)
+  and to the isolated harness.
+- Gates on the updated tree: validator 531 assertions; `check:migrations` **250 migrations** + post-checks + RLS
+  matrix; tests **1023/1023**; tsc clean; lint 0 errors; build OK.
+
+### Canonical ten-wave table (unchanged)
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~93% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
+
+**Storage state after this batch:** Supabase Storage is live with the `creator-media-private`,
+`creator-media-public`, `nhen-community-shorts`, `raye2-minis`, `raye2-clips` and now `raye2-community-shorts`
+buckets (50 MiB per object); the platform ceiling is 750 MiB (Supabase Free). Cloudflare R2 and Backblaze B2 are
+registered but disabled — enabling them (provider env vars + `raye2_sync_storage_providers`) is the path to
+larger storage.
