@@ -30,7 +30,6 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
     : { title: "Storage providers & accounts", note: "Every provider and account pooled together. Enable or disable, set priority, and reconcile real capacity.", refresh: "Refresh", reconcile: "Reconcile providers", test: "Test connections", testing: "Testing storage…", tested: "Connection test finished", reconciled: "Providers reconciled", empty: "No providers registered yet.", provider: "Provider", kind: "Kind", enabled: "Enabled", disabled: "Disabled", enable: "Enable", disable: "Disable", priority: "Priority", capacity: "Capacity", used: "Used", reserved: "Reserved", headroom: "Headroom", percent: "Used %", verified: "Verified", never: "never", health: "Health", bucket: "Buckets", reason: "Reason (required)", reasonRequired: "Enter a clear reason first.", done: "Updated.", fail: "Could not load or update providers." };
 
   const [rows, setRows] = useState<StorageProviderRow[]>([]);
-  const [reason, setReason] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [testResults, setTestResults] = useState<Array<{providerId:string;ok:boolean;checks:Array<{visibility:string;ok:boolean;canList?:boolean}>}>>([]);
@@ -58,7 +57,7 @@ export default function StorageProviders({ isArabic }: { isArabic: boolean }) {
     const auditReason = enabled ? "Enabled after successful read-only storage verification" : "Disabled from the Raye2 storage control center";
     const { error } = await supabase.rpc("raye2_set_storage_provider", { p_provider_id: providerId, p_enabled: enabled, p_priority: priority, p_reason: auditReason });
     if (error) setNotice(t.fail);
-    else { setNotice(t.done); setReason(""); await load(); }
+    else { setNotice(t.done); await load(); }
     setBusy(false);
   }
 
