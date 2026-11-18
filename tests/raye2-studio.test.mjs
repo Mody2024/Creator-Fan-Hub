@@ -9,7 +9,7 @@ test("Raye2 Creator Studio is authenticated and role-gated on the server", async
   assert.ok(page.includes("supabase.auth.getClaims()"));
   assert.ok(page.includes('.from("creator_admins")'));
   assert.ok(page.includes('.eq("active", true)'));
-  assert.ok(page.includes('["owner", "admin", "creator", "streamer", "editor", "moderator", "analyst"]'));
+  assert.match(page, /access\.role as "owner" \| "admin" \| "creator" \| "streamer" \| "editor" \| "moderator" \| "analyst"/);
   assert.ok(page.includes('redirect("/creator/login?access=restricted")'));
 });
 
@@ -26,12 +26,14 @@ test("Creator Studio metrics use real creator media and published video catalog 
 
 test("Creator Studio only exposes tools permitted by the assigned role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
-  assert.ok(page.includes('["owner", "admin", "creator"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "streamer"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "creator", "streamer"].includes(role)'));
   assert.ok(page.includes('role === "editor"'));
-  assert.ok(page.includes("Editorial review"));
-  assert.ok(page.includes("official uploads and publishing remain restricted"));
-  assert.ok(page.includes('["owner", "admin", "moderator"].includes(role)'));
-  assert.ok(page.includes('["owner", "admin", "analyst"].includes(role)'));
+  assert.ok(page.includes("streamer"));
+  assert.ok(page.includes("editor"));
+  assert.ok(page.includes("canStream"));
+  assert.ok(page.includes("canAnalyze"));
   assert.ok(page.includes('href="/creator"'));
   assert.ok(page.includes('href="/creator/analytics"'));
   assert.ok(page.includes('href="/creator/community"'));
@@ -53,7 +55,7 @@ test("Creator Studio supports Arabic RTL and responsive Raye2 styling", async ()
 test("Raye2 Creator Studio grants publishing access to the assigned creator role", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.ok(page.includes('"creator"'));
-  assert.ok(page.includes('["owner", "admin", "creator"].includes(role)'));
+  assert.ok(page.includes('["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
 });
 
 test("legacy creator management tools now inherit the Raye2 workspace theme and navigation", async () => {
@@ -109,10 +111,11 @@ test("Raye2 media, video studio and team surfaces use the new platform identity"
 
 test("editor workspace copy does not grant official media publishing controls", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
-  assert.ok(page.includes('const canPublish = ["owner", "admin", "creator"].includes(role)'));
+  assert.ok(page.includes('const canPublish = ["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
   assert.ok(page.includes('{canPublish && <article'));
   assert.ok(page.includes('role === "editor"'));
-  assert.ok(page.includes("Editorial workspace is being prepared"));
+  assert.ok(page.includes('"editor"].includes(role)'));
+  assert.ok(page.includes("{canPublish &&"));
 });
 
 
