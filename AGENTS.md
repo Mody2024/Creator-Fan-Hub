@@ -259,3 +259,11 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
 - Apply production migrations through the Supabase Management API when the CLI is unavailable:
   `POST https://api.supabase.com/v1/projects/<ref>/database/query` with the access token, wrapping each file as
   `begin; <migration> insert into supabase_migrations.schema_migrations(version,name) values (...); commit;`.
+- The pool accepts any S3-compatible provider and several accounts of one provider. Env prefixes are
+  `RAYE2_<FAMILY>[_<ACCOUNT>]_*`; the family maps to `provider_kind` via `PROVIDER_PRESETS`
+  (`r2`, `b2`, `tigris`, `filebase`, `storj`, `wasabi`, `idrive`, `scaleway`, `linode`, `aws`), and the account
+  suffix becomes part of the instance id (e.g. `RAYE2_B2_ACCOUNT2_*` -> `backblaze_b2_account2`, kind
+  `backblaze_b2`). Known families may omit `_ENDPOINT`/`_REGION`; unknown families need an explicit `_ENDPOINT`.
+- Admin → **Providers** (`storage-providers.tsx`) lists every pooled provider/account (kind, priority, capacity,
+  used, reserved, headroom, used %, buckets, verified time) and enables/disables or reconciles them. It reads
+  `raye2_storage_provider_list()` and writes through `raye2_set_storage_provider(...)` and the discover route.

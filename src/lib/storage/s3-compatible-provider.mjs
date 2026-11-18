@@ -138,19 +138,44 @@ function presign(config, method, object, expiresInSeconds, requiredHeaders = {},
   return url;
 }
 
+// Default S3 endpoints and regions for well-known free S3-compatible providers. A provider prefix
+// that names a known provider may omit _ENDPOINT/_REGION and inherit these; an explicit value always wins.
+const PROVIDER_PRESETS = {
+  r2: { kind: "cloudflare_r2", endpoint: accountId => accountId ? "https://" + accountId + ".r2.cloudflarestorage.com" : "", region: "auto" },
+  b2: { kind: "backblaze_b2", endpoint: () => "", region: "us-west-004" },
+  tigris: { kind: "tigris", endpoint: () => "https://t3.storage.dev", region: "auto" },
+  filebase: { kind: "filebase", endpoint: () => "https://s3.filebase.com", region: "us-east-1" },
+  storj: { kind: "storj", endpoint: () => "https://gateway.storjshare.io", region: "us-east-1" },
+  wasabi: { kind: "wasabi", endpoint: () => "", region: "us-east-1" },
+  idrive: { kind: "idrive_e2", endpoint: () => "", region: "us-east-1" },
+  scaleway: { kind: "scaleway", endpoint: () => "", region: "fr-par" },
+  linode: { kind: "linode", endpoint: () => "", region: "us-east-1" },
+  aws: { kind: "aws_s3", endpoint: () => "", region: "us-east-1" },
+};
+
+// Parse an env prefix like RAYE2_B2_ACCOUNT2 into { family, account, preset }. A known preset is
+// returned when the family matches one of PROVIDER_PRESETS; any other family is still accepted as
+// long as it sets an explicit _ENDPOINT (readConfig drops it otherwise).
+function parseProviderPrefix(prefix) {
+  const match = /^RAYE2_([A-Za-z0-9]+?)(?:_([A-Za-z0-9]+))?$/.exec(prefix);
+  if (!match) return null;
+  const family = match[1].toLowerCase();
+  return { family, account: match[2] ? match[2].toLowerCase() : null, preset: PROVIDER_PRESETS[family] ?? null };
+}
+
 function readConfig(prefix, env = process.env) {
+  const parsedPrefix = parseProviderPrefix(prefix);
+  if (!parsedPrefix) return null;
+  const { preset } = parsedPrefix;
   const accountId = env[prefix + "_ACCOUNT_ID"];
-  const endpoint = env[prefix + "_ENDPOINT"] || (
-    prefix.startsWith("RAYE2_R2") && accountId
-      ? "https://" + accountId + ".r2.cloudflarestorage.com"
-      : ""
-  );
+  const endpoint = env[prefix + "_ENDPOINT"] || (preset ? preset.endpoint(accountId) : "");
   const accessKeyId = env[prefix + "_ACCESS_KEY_ID"];
   const secretAccessKey = env[prefix + "_SECRET_ACCESS_KEY"];
-  const region = env[prefix + "_REGION"] || (prefix.startsWith("RAYE2_R2") ? "auto" : "us-west-004");
+  const region = env[prefix + "_REGION"] || (preset ? preset.region : "us-east-1");
   const publicBucket = env[prefix + "_PUBLIC_BUCKET"] || "";
   const privateBucket = env[prefix + "_PRIVATE_BUCKET"] || "";
   const publicBaseUrl = env[prefix + "_PUBLIC_BASE_URL"] || "";
+  // A known preset supplies the endpoint; an unknown family must set it explicitly.
   if (!endpoint || !accessKeyId || !secretAccessKey || !publicBucket || !privateBucket) return null;
   const parsed = new URL(endpoint);
   if (parsed.protocol !== "https:" || parsed.username || parsed.password || parsed.search || parsed.hash) {
@@ -167,23 +192,32 @@ function readConfig(prefix, env = process.env) {
   return { endpoint: parsed.origin, accessKeyId, secretAccessKey, region, publicBucket, privateBucket, publicBaseUrl: normalizedPublicBaseUrl };
 }
 
-// Discover every configured S3-compatible instance. RAYE2_R2_* and RAYE2_B2_* define the base
-// instances; additional pools use a suffix (e.g. RAYE2_R2_2_ACCESS_KEY_ID -> instance raye2_r2_2).
+// Discover every configured S3-compatible instance. Each prefix ends in _ACCESS_KEY_ID:
+//   RAYE2_B2_ACCESS_KEY_ID            -> instance "backblaze_b2"        (base account)
+//   RAYE2_B2_ACCOUNT2_ACCESS_KEY_ID   -> instance "backblaze_b2_account2" (second account)
+//   RAYE2_TIGRIS_ACCESS_KEY_ID        -> instance "tigris"
+//   RAYE2_FILEBASE_HOME_ACCESS_KEY_ID -> instance "filebase_home"
+// Families come from PROVIDER_PRESETS or any custom family that sets an explicit endpoint. The same
+// provider can be added many times under different account suffixes.
 function configuredInstancePrefixes(env = process.env) {
   const prefixes = new Set();
   for (const key of Object.keys(env)) {
-    const match = /^(RAYE2_(?:R2|B2)(?:_[A-Za-z0-9]+)?)_ACCESS_KEY_ID$/.exec(key);
-    if (match) prefixes.add(match[1]);
+    const match = /^(RAYE2_[A-Za-z0-9]+(?:_[A-Za-z0-9]+)*)_ACCESS_KEY_ID$/.exec(key);
+    if (!match) continue;
+    if (parseProviderPrefix(match[1])) prefixes.add(match[1]);
   }
   return [...prefixes].sort();
 }
 
 function instanceIdFor(prefix) {
-  return prefix.toLowerCase().replace(/^raye2_/, "").replace(/^r2/, "cloudflare_r2").replace(/^b2/, "backblaze_b2");
+  const { family, account } = parseProviderPrefix(prefix) ?? {};
+  const base = PROVIDER_PRESETS[family]?.kind ?? family;
+  return account ? base + "_" + account : base;
 }
 
 function kindFor(prefix) {
-  return prefix.startsWith("RAYE2_R2") ? "cloudflare_r2" : "backblaze_b2";
+  const { family } = parseProviderPrefix(prefix) ?? {};
+  return PROVIDER_PRESETS[family]?.kind ?? family;
 }
 
 function responseError(response, providerId) {
@@ -258,6 +292,10 @@ export function createS3CompatibleProvider(providerId, config, fetchImpl = fetch
 
   return Object.freeze({
     id: providerId,
+    // Bucket names are configuration (not secrets); the admin discovery surface records them so the
+    // registry knows where a provider stores public and private objects.
+    publicBucket: config.publicBucket,
+    privateBucket: config.privateBucket,
     capabilities,
     async createSignedUpload(requestOptions) {
       const bucket = normalizeUploadRequest(requestOptions);

@@ -1033,6 +1033,14 @@ const migrateRoute = await read("../src/app/api/raye2/storage/migrate/route.ts")
 check("object route enforces owner scoping before signing or deleting", objectRoute.includes("data.owner_id !== ownerId") && objectRoute.includes("raye2_request_object_deletion") && objectRoute.includes("raye2_mark_storage_object_deleted") && objectRoute.includes("planObjectDelivery"));
 check("BYOS route resolves credentials by name and records the probe outcome", byosRoute.includes("readSecret") && byosRoute.includes("connection.owner_id !== ownerId") && byosRoute.includes("raye2_set_byos_connection_state"));
 check("discovery route is admin-gated and syncs only configured providers", discoverRoute.includes('rpc("raye2_is_platform_admin")') && discoverRoute.includes("createConfiguredStorageProviders") && discoverRoute.includes("raye2_sync_storage_providers"));
+
+// Batch 5 — pool any S3-compatible provider and several accounts of the same provider.
+const multiProviderMigration = await read("../supabase/migrations/20261116260000_raye2_multi_provider_accounts.sql");
+const storageProvidersUi = await read("../src/app/creator/raye2/storage-providers.tsx");
+check("any provider kind and several accounts may be pooled", multiProviderMigration.includes("raye2_storage_providers_kind_check") && multiProviderMigration.includes("provider_kind ~ '^[a-z0-9][a-z0-9_-]{1,62}$'") && multiProviderMigration.includes("create or replace function public.raye2_storage_provider_list"));
+check("provider list is gated to platform admins", multiProviderMigration.includes("raye2_storage_provider_list()") && multiProviderMigration.includes("if not public.raye2_is_platform_admin() then") && multiProviderMigration.includes("revoke all on function public.raye2_storage_provider_list() from public, anon"));
+check("S3 adapter discovers provider presets and pools accounts of one family", s3AdapterSource.includes("PROVIDER_PRESETS") && s3AdapterSource.includes("parseProviderPrefix") && s3AdapterSource.includes("publicBucket: config.publicBucket"));
+check("admin providers surface lists, enables and reconciles every pooled provider", storageProvidersUi.includes('rpc("raye2_storage_provider_list")') && storageProvidersUi.includes('rpc("raye2_set_storage_provider"') && storageProvidersUi.includes("/api/raye2/storage/providers/discover") && adminClientSource.includes("<StorageProviders isArabic={isAr} />"));
 check("migrate route is admin-gated and copies before repointing then deleting", migrateRoute.includes('rpc("raye2_is_platform_admin")') && migrateRoute.includes("raye2_list_draining_objects") && migrateRoute.includes("copyObject") && migrateRoute.indexOf("copyObject") < migrateRoute.indexOf("raye2_complete_object_migration"));
 
 const accountSettingsSource = await read("../src/app/account/account-settings.tsx");

@@ -8,6 +8,7 @@ import PlatformSponsorManagement from "./platform-sponsor-management";
 import PlatformRevenueOverview from "./platform-revenue-overview";
 import CampaignIntegrity from "./campaign-integrity";
 import ByosConnections from "./byos-connections";
+import StorageProviders from "./storage-providers";
 
 export type RuleRow = { rule_key: string; category: string; rule_value: unknown; status: "proposed" | "active" | "disabled"; description: string; updated_at: string };
 export type RetentionRow = { category: string; retention_days: number | null; warning_days: number; expiry_action: "archive" | "delete"; enabled: boolean; preserve_shared_memories: boolean; updated_at: string };
@@ -34,7 +35,7 @@ export default function Raye2AdminClient({ locale, initialRules, initialRetentio
   locale: Locale; initialRules: RuleRow[]; initialRetention: RetentionRow[]; initialJobs: CleanupRow[]; initialStorage: StorageRow[]; initialAudit: AuditRow[]; initialHealth: HealthRow[]; initialAdmins: AdminRow[]; initialCaps: CapRow[]; initialFabric: FabricRow[];
 }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-  const [tab, setTab] = useState<"rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "byos" | "live" | "integrity" | "moderation">("rules");
+  const [tab, setTab] = useState<"rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation">("rules");
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
   const [modStatus, setModStatus] = useState<"open"|"reviewing"|"resolved"|"dismissed">("open");
   const [modNote, setModNote] = useState("");
@@ -332,7 +333,7 @@ export default function Raye2AdminClient({ locale, initialRules, initialRetentio
     setNotice(t.modResolved); setModNote("");
     await loadModQueue();
   }
-  const tabs = [{ id: "health", label: t.health }, { id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "storage", label: t.storage }, { id: "roles", label: t.roles }, { id: "audit", label: t.audit }, { id: "quotas", label: t.quotas }, { id: "jobs", label: t.jobs }, { id: "telemetry", label: t.telemetry }, { id: "capacity", label: t.capacity }, { id: "fabric", label: t.fabric }, { id: "byos", label: isAr ? "تخزين المستخدمين" : "BYOS" }, { id: "live", label: t.live }, { id: "sponsors", label: t.sponsors }, { id: "revenue", label: t.revenue }, { id: "integrity", label: isAr ? "نزاهة الحملات" : "Campaign integrity" }, { id: "moderation", label: isAr ? "قائمة المراجعة" : "Moderation queue" }] as const;
+  const tabs = [{ id: "health", label: t.health }, { id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "storage", label: t.storage }, { id: "roles", label: t.roles }, { id: "audit", label: t.audit }, { id: "quotas", label: t.quotas }, { id: "jobs", label: t.jobs }, { id: "telemetry", label: t.telemetry }, { id: "capacity", label: t.capacity }, { id: "fabric", label: t.fabric }, { id: "providers", label: isAr ? "المزودون" : "Providers" }, { id: "byos", label: isAr ? "تخزين المستخدمين" : "BYOS" }, { id: "live", label: t.live }, { id: "sponsors", label: t.sponsors }, { id: "revenue", label: t.revenue }, { id: "integrity", label: isAr ? "نزاهة الحملات" : "Campaign integrity" }, { id: "moderation", label: isAr ? "قائمة المراجعة" : "Moderation queue" }] as const;
   return <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
     <header className={styles.header}><Link href="/raye2" className={styles.brand}>RAYE<span>2</span></Link><div><span className={styles.dot}/>{t.eyebrow}</div><Link href="/creator">{t.back}</Link></header>
     <section className={styles.intro}><span>{t.eyebrow}</span><h1>{t.title}</h1><p>{t.intro}</p></section>
@@ -364,6 +365,7 @@ export default function Raye2AdminClient({ locale, initialRules, initialRetentio
         {fabric.filter(row => row.section === "setting").map(row => <article className={styles.card} key={row.key}><div className={styles.cardHead}><span>{row.label}</span><span className={styles.ok}>{bytes(row.value_numeric ?? 0)}</span></div><small>{row.detail}</small></article>)}
         <article className={styles.card}><div className={styles.cardHead}><h3>{t.fabricSetting}</h3></div><label>{t.fabricCeiling}<input type="number" min={0} value={fabricCeilingBytes} onChange={event => setFabricCeilingBytes(event.target.value)}/></label><button className={styles.action} disabled={busy} onClick={() => void saveCeiling()}>{t.fabricSave}</button></article>
       </>}
+      {tab === "providers" && <StorageProviders isArabic={isAr} />}
       {tab === "byos" && <ByosConnections isArabic={isAr} />}
       {tab === "live" && <><div className={styles.sectionHead}><h2>{t.live}</h2><p>{t.liveNote}</p><button className={styles.action} disabled={busy} onClick={() => void loadLive()}>{t.liveLoad}</button></div>{!liveOverview ? <p>{t.noRows}</p> : <div className={styles.metrics}><span>{t.liveLive}: {liveOverview.live ?? 0}</span><span>{t.liveReplay}: {liveOverview.replay ?? 0}</span><span>{t.liveModerated}: {liveOverview.moderated ?? 0}</span><span>{t.liveDegraded}: {liveOverview.degraded ?? 0}</span><span>{t.liveReplayHours}: {liveOverview.replay_retention_hours ?? "—"}</span><span>{t.liveMaxDuration}: {liveOverview.max_duration_seconds ?? "—"}</span><span>{t.liveMaxConcurrent}: {liveOverview.max_concurrent_streams ?? "—"}</span></div>}</>}
       {tab === "sponsors" && <PlatformSponsorManagement />}

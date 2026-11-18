@@ -183,3 +183,41 @@ test("listObjects parses keys and sizes and follows continuation tokens", async 
   assert.deepEqual(second.objects, [{ key: "users/u1/b.mp4", sizeBytes: 2048 }]);
   await assert.rejects(() => provider.listObjects({ bucket: config.privateBucket, maxKeys: 5000 }), /maxKeys/);
 });
+
+test("discovers several provider families from presets without an explicit endpoint", () => {
+  const env = {
+    RAYE2_TIGRIS_ACCESS_KEY_ID: "k", RAYE2_TIGRIS_SECRET_ACCESS_KEY: "s",
+    RAYE2_TIGRIS_PUBLIC_BUCKET: "tigris-public", RAYE2_TIGRIS_PRIVATE_BUCKET: "tigris-private",
+    RAYE2_FILEBASE_HOME_ACCESS_KEY_ID: "fk", RAYE2_FILEBASE_HOME_SECRET_ACCESS_KEY: "fs",
+    RAYE2_FILEBASE_HOME_PUBLIC_BUCKET: "fb-public", RAYE2_FILEBASE_HOME_PRIVATE_BUCKET: "fb-private",
+  };
+  const providers = createConfiguredStorageProviders(env);
+  assert.deepEqual(providers.map(provider => provider.id), ["filebase_home", "tigris"]);
+  assert.deepEqual(providers.map(provider => provider.providerKind), ["filebase", "tigris"]);
+});
+
+test("pools several accounts of the same provider family", () => {
+  const base = {
+    _ENDPOINT: "https://s3.example.com", _ACCESS_KEY_ID: "k", _SECRET_ACCESS_KEY: "s",
+    _PUBLIC_BUCKET: "pub", _PRIVATE_BUCKET: "priv",
+  };
+  const env = {};
+  for (const prefix of ["RAYE2_B2", "RAYE2_B2_ACCOUNT2", "RAYE2_B2_ACCOUNT3"]) {
+    for (const [suffix, value] of Object.entries(base)) env[prefix + suffix] = value;
+  }
+  const providers = createConfiguredStorageProviders(env);
+  assert.deepEqual(providers.map(provider => provider.id), ["backblaze_b2", "backblaze_b2_account2", "backblaze_b2_account3"]);
+  assert.ok(providers.every(provider => provider.providerKind === "backblaze_b2"));
+});
+
+test("exposes configured bucket names and ignores unknown families without an endpoint", () => {
+  const provider = createS3CompatibleProvider("tigris", config);
+  assert.equal(provider.publicBucket, config.publicBucket);
+  assert.equal(provider.privateBucket, config.privateBucket);
+  const unknown = createConfiguredStorageProviders({
+    RAYE2_MYSTERY_ACCESS_KEY_ID: "k", RAYE2_MYSTERY_SECRET_ACCESS_KEY: "s",
+    RAYE2_MYSTERY_PUBLIC_BUCKET: "pub", RAYE2_MYSTERY_PRIVATE_BUCKET: "priv",
+  });
+  assert.deepEqual(unknown, []);
+});
+

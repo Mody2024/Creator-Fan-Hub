@@ -8,7 +8,15 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_CAPACITY_BYTES = 8 * 1024 * 1024 * 1024;
 const SAFETY_RESERVE_BYTES = 256 * 1024 * 1024;
-const DEFAULT_PRIORITY = { cloudflare_r2: 10, backblaze_b2: 20 } as const;
+// Lower priority number is preferred first. R2 leads public video, B2 leads private/attachments;
+// other pooled providers sit behind them and still act as failover/overflow capacity.
+const DEFAULT_PRIORITY: Record<string, number> = {
+  cloudflare_r2: 10,
+  backblaze_b2: 20,
+  tigris: 30,
+  filebase: 40,
+  storj: 50,
+};
 
 /**
  * Reconcile the provider registry with the providers actually configured in this deployment's
@@ -32,18 +40,18 @@ export async function POST() {
   if (!configured.length) return NextResponse.json({ discovered: 0, providers: [] });
 
   const payload = configured.map(provider => {
-    const kind = (provider as { providerKind?: string }).providerKind ?? provider.id.replace(/_\d+$/, "");
+    const kind = provider.providerKind ?? provider.id.replace(/_[a-z0-9]+$/, "");
     return {
       provider_id: provider.id,
       provider_kind: kind,
       enabled: true,
-      priority: (DEFAULT_PRIORITY as Record<string, number>)[kind] ?? 100,
+      priority: DEFAULT_PRIORITY[kind] ?? 100,
       health: "healthy",
       capacity_bytes: DEFAULT_CAPACITY_BYTES,
       safety_reserve_bytes: SAFETY_RESERVE_BYTES,
       max_managed_bytes: null,
-      public_bucket: (provider as unknown as { publicBucket?: string }).publicBucket ?? "",
-      private_bucket: (provider as unknown as { privateBucket?: string }).privateBucket ?? "",
+      public_bucket: provider.publicBucket ?? "",
+      private_bucket: provider.privateBucket ?? "",
     };
   });
 
