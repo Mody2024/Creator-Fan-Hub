@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createHash } from "node:crypto";
 import sharp from "sharp";
 import { planVideoLadder } from "../src/lib/storage/media-optimization.mjs";
+import { createStorageProviderForId } from "../src/lib/storage/s3-compatible-provider.mjs";
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -335,15 +336,87 @@ async function makeHlsPackage(sourcePath, workDir, durationSeconds, hasAudio, ow
   }
 }
 
+async function downloadPooledStorageObject(object) {
+  const providerId = String(object.provider_id ?? "");
+  const provider = createStorageProviderForId(providerId);
+  if (!provider) throw new Error(`Storage provider "${providerId}" is not configured on this worker.`);
+  const expectedBytes = Number(object.size_bytes);
+  if (!Number.isSafeInteger(expectedBytes) || expectedBytes < 1 || expectedBytes > MAX_SOURCE_BYTES) {
+    throw new Error("Pooled source object is outside the media worker's 50 MiB processing limit.");
+  }
+  const url = await provider.createSignedDownload(
+    { bucket: String(object.bucket_id), key: String(object.object_key) },
+    300,
+  );
+  const response = await fetch(url, { redirect: "error" });
+  if (!response.ok) throw new Error(`Pooled source download failed (${response.status}).`);
+  const declaredBytes = Number(response.headers.get("content-length"));
+  if (Number.isFinite(declaredBytes) && declaredBytes > MAX_SOURCE_BYTES) {
+    throw new Error("Pooled source response exceeds the 50 MiB processing limit.");
+  }
+  if (!response.body) throw new Error("Pooled source download returned no response body.");
+  const reader = response.body.getReader();
+  const chunks = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_SOURCE_BYTES || totalBytes > expectedBytes) {
+        await reader.cancel();
+        throw new Error("Pooled source response exceeded its verified storage size.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  if (totalBytes !== expectedBytes) {
+    throw new Error("Pooled source download size does not match its verified storage record.");
+  }
+  return new Blob(chunks, { type: String(object.mime_type ?? "application/octet-stream") });
+}
+
 async function processJob(job) {
   if (!job.owner_id || !job.storage_path) throw new Error("Media job is missing its owner or storage path.");
-  const [bucket, ...pathParts] = job.storage_path.split("/");
-  const objectPath = pathParts.join("/");
-  if (![PRIVATE_BUCKET, PUBLIC_BUCKET].includes(bucket) || !objectPath.startsWith(job.owner_id + "/")) {
+  const [legacyBucket, ...legacyPathParts] = job.storage_path.split("/");
+  const legacyObjectPath = legacyPathParts.join("/");
+  if (![PRIVATE_BUCKET, PUBLIC_BUCKET].includes(legacyBucket) || !legacyObjectPath.startsWith(job.owner_id + "/")) {
     throw new Error("Media job storage path is outside the creator's managed media folders.");
   }
-  const { data: blob, error: downloadError } = await supabase.storage.from(bucket).download(objectPath);
-  if (downloadError || !blob) throw downloadError ?? new Error("Could not download source media.");
+
+  // New pooled uploads are linked to their logical media record at commit time.
+  // Resolve the physical provider here; old uploads without a registry object keep
+  // using the legacy Supabase Storage path for backward compatibility.
+  const { data: pooledObjects, error: pooledLookupError } = await supabase
+    .from("raye2_storage_objects")
+    .select("provider_id,bucket_id,object_key,object_state,size_bytes,mime_type")
+    .eq("media_id", job.media_id)
+    .eq("owner_id", job.owner_id)
+    .in("object_state", ["active", "verified"])
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (pooledLookupError) throw pooledLookupError;
+  const pooledObject = Array.isArray(pooledObjects) ? pooledObjects[0] : null;
+
+  let blob;
+  if (pooledObject && pooledObject.provider_id !== "supabase") {
+    if (![PRIVATE_BUCKET, PUBLIC_BUCKET].includes(String(pooledObject.bucket_id)) ||
+        typeof pooledObject.object_key !== "string" || !pooledObject.object_key.startsWith(job.owner_id + "/")) {
+      throw new Error("Pooled media object is outside the creator's managed media folders.");
+    }
+    blob = await downloadPooledStorageObject(pooledObject);
+  } else {
+    const sourceBucket = pooledObject ? String(pooledObject.bucket_id) : legacyBucket;
+    const sourcePath = pooledObject ? String(pooledObject.object_key) : legacyObjectPath;
+    if (![PRIVATE_BUCKET, PUBLIC_BUCKET].includes(sourceBucket) || !sourcePath.startsWith(job.owner_id + "/")) {
+      throw new Error("Resolved media object is outside the creator's managed media folders.");
+    }
+    const { data: legacyBlob, error: downloadError } = await supabase.storage.from(sourceBucket).download(sourcePath);
+    if (downloadError || !legacyBlob) throw downloadError ?? new Error("Could not download source media.");
+    blob = legacyBlob;
+  }
   if (blob.size < 1 || blob.size > MAX_SOURCE_BYTES) throw new Error("Source media is empty or exceeds the 50 MiB processing limit.");
 
   const workDir = await mkdtemp(join(tmpdir(), "raye2-media-"));
