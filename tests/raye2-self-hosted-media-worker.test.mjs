@@ -282,3 +282,22 @@ test("media worker Docker build runs a real ffmpeg HLS smoke test against genera
  assert.ok(docker.includes("COPY scripts/raye2-hls-smoke-check.mjs"));
  assert.ok(docker.includes("RUN node scripts/raye2-hls-smoke-check.mjs"));
 });
+
+
+test("media worker resolves pooled provider objects for new uploads while preserving legacy Supabase downloads", () => {
+ assert.match(worker, /createStorageProviderForId/);
+ assert.match(worker, /\.from\("raye2_storage_objects"\)/);
+ assert.match(worker, /\.eq\("media_id", job\.media_id\)/);
+ assert.match(worker, /downloadPooledStorageObject\(pooledObject\)/);
+ assert.match(worker, /provider\.createSignedDownload/);
+ assert.match(worker, /totalBytes !== expectedBytes/);
+ assert.match(worker, /supabase\.storage\.from\(sourceBucket\)\.download\(sourcePath\)/);
+});
+
+test("pooled media worker downloads enforce byte ceilings and fail closed on missing providers", () => {
+ assert.match(worker, /if \(!provider\) throw new Error/);
+ assert.match(worker, /expectedBytes > MAX_SOURCE_BYTES/);
+ assert.match(worker, /totalBytes > MAX_SOURCE_BYTES \|\| totalBytes > expectedBytes/);
+ assert.match(worker, /fetch\(url, \{ redirect: "error" \}\)/);
+ assert.match(worker, /response\.body/);
+});
