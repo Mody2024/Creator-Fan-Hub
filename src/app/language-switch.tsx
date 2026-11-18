@@ -33,7 +33,7 @@ export default function LanguageSwitch({ initialLocale = "en", variant = "floati
     aria-label={locale === "en" ? "Switch language to Arabic" : "تغيير اللغة إلى الإنجليزية"}
     lang={locale === "en" ? "en" : "ar"}
   >
-    <span aria-hidden="true">◎</span>{text}
+    <span className="raye2-language-code" aria-hidden="true">{locale === "en" ? "AR" : "EN"}</span>{text}
   </button>;
 }
 
