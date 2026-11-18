@@ -47,3 +47,12 @@ test("publication rollback never deletes committed media, and cleans staged sour
  assert.match(catchBlock,/remove\(nextHlsPackage\.copiedPaths\)/);
  assert.ok(catchBlock.indexOf("if(!databaseSaved)")<catchBlock.indexOf("remove([nextPath])"));
 });
+
+
+test("pooled media uploads use provider-aware cleanup if saving draft metadata fails",()=>{
+ assert.match(media,/let pooledObjectId:string\|null=null/);
+ assert.match(media,/pooledObjectId=pooledResult\.objectId/);
+ assert.match(media,/fetch\("\/api\/raye2\/storage\/object"/);
+ assert.match(media,/JSON\.stringify\(\{action:"delete",objectId:pooledObjectId\}\)/);
+ assert.match(media,/assetClass:kind==="video"\?"video":"other"/);
+});
