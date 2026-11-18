@@ -34,7 +34,7 @@ export default async function Raye2CreatorStudioPage() {
   const canPublish = ["owner", "admin", "creator"].includes(role);
   const canStream = ["owner", "admin", "streamer"].includes(role);
   const canModerate = ["owner", "admin", "moderator"].includes(role);
-  const canAnalyze = ["owner", "admin", "analyst"].includes(role);
+  const canAnalyze = ["owner", "admin", "creator", "streamer", "analyst"].includes(role);
 
   const [{ data: mediaData, error: mediaError }, { data: videoData, error: videoError }] = await Promise.all([
     supabase.rpc("get_creator_media", { p_limit: 200 }),
