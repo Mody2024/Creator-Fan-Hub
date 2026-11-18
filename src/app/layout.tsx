@@ -4,7 +4,6 @@ import "./raye2-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import "./raye2-polish.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
-import LanguageSwitch from "./language-switch";
 import TelemetryReporter from "./telemetry-reporter";
 import { cookies } from "next/headers";
 
@@ -34,13 +33,21 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
+  const ideaCreditName = process.env.NEXT_PUBLIC_IDEA_CREDIT_NAME?.trim() || "";
+  const ideaCreditLogoUrl = process.env.NEXT_PUBLIC_IDEA_CREDIT_LOGO_URL?.trim() || "";
+  const ideaCreditYoutubeUrl = process.env.NEXT_PUBLIC_IDEA_CREDIT_YOUTUBE_URL?.trim() || "";
+  let safeIdeaCreditYoutubeUrl = "";
+  try {
+    const candidate = new URL(ideaCreditYoutubeUrl);
+    if (candidate.protocol === "https:" && (candidate.hostname === "youtube.com" || candidate.hostname.endsWith(".youtube.com") || candidate.hostname === "youtu.be")) safeIdeaCreditYoutubeUrl = candidate.toString();
+  } catch { /* Optional credit link is omitted until configured correctly. */ }
+  const showIdeaCredit = Boolean(ideaCreditName && ideaCreditLogoUrl && safeIdeaCreditYoutubeUrl);
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
-        <LanguageSwitch initialLocale={locale} />
         <TelemetryReporter />
         {children}
-        <footer className="creator-credit">MADE BY ALMUDDATHTHIR</footer>
+        <footer className="creator-credit"><span>MADE BY ALMUDDATHTHIR</span>{showIdeaCredit ? <span className="creator-idea-credit"> · WEBSITE IDEA BY <a href={safeIdeaCreditYoutubeUrl} target="_blank" rel="noopener noreferrer"><img src={ideaCreditLogoUrl} alt="" loading="lazy" />{ideaCreditName}</a></span> : null}</footer>
       </body>
     </html>
   );
