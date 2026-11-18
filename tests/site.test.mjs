@@ -529,7 +529,8 @@ test("the uploaded logo remains theme-aware without a text wordmark", async () =
   const styles = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null'));
-  assert.doesNotMatch(page, /رايق|portal-wordmark|<strong>Raye2<\\/strong>/);
+  assert.doesNotMatch(page, /رايق|portal-wordmark/);
+  assert.ok(!page.includes("<strong>Raye2</strong>"));
   assert.ok(styles.includes(".raye2-logo-theme-dark"));
   assert.ok(styles.includes(".raye2-logo-theme-light"));
   assert.ok(settings.includes('siteName: "Raye2"'));
