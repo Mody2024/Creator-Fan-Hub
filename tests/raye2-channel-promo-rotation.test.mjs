@@ -37,3 +37,34 @@ test("respects active state and placement targeting",()=>{
  });
  assert.equal(selected,null);
 });
+
+test("long-video promo uses a short chapter-aware segment, not the full upload",()=>{
+ const selected=selectRaye2ChannelPromo({
+  promos:[promo("long",{
+   videoId:"abcdefghijk",durationSeconds:840,
+   chapters:[{title:"Intro",startSeconds:0},{title:"Main section",startSeconds:240},{title:"Ending",startSeconds:700}]
+  })],
+  placement:"video",random:()=>0
+ });
+ assert.equal(selected.promoDurationSeconds,15);
+ assert.equal(selected.promoStartSeconds,240);
+ assert.equal(selected.promoEndSeconds,255);
+});
+
+test("long-video and live placements reject short uploads",()=>{
+ const selected=selectRaye2ChannelPromo({
+  promos:[promo("short",{videoId:"abcdefghijk",durationSeconds:45})],
+  placement:"live",random:()=>0
+ });
+ assert.equal(selected,null);
+});
+
+test("long-video promo falls back to a bounded short excerpt when no chapters exist",()=>{
+ const selected=selectRaye2ChannelPromo({
+  promos:[promo("long",{videoId:"abcdefghijk",durationSeconds:840,chapters:[]})],
+  placement:"live",random:()=>0
+ });
+ assert.equal(selected.promoDurationSeconds,15);
+ assert.ok(selected.promoStartSeconds>=10);
+ assert.ok(selected.promoEndSeconds<=840);
+});
