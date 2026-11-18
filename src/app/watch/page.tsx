@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import WatchLibraryMore from "./watch-library-more";
 import {buildWatchCard,type WatchRow} from "./watch-library-media";
@@ -14,7 +15,15 @@ export default async function WatchLibraryPage(){
  const profileHref=me?.handle?"/u/"+me.handle:"/community#join";
  const {data}=await supabase.rpc("raye2_get_watch_library_page",{p_limit:24});
  const rows=(data??[]) as WatchRow[];
- const videos=rows.flatMap(row=>{const card=buildWatchCard(supabase,row);return card?[card]:[];});
+ const pooledRefs:Array<{bucketId:string;objectKey:string}>=rows.flatMap(row=>{
+  const refs:Array<{bucketId:string;objectKey:string}>=[];
+  if(row.storage_path?.startsWith("creator-media-public/"))refs.push({bucketId:"creator-media-public",objectKey:row.storage_path.slice("creator-media-public/".length)});
+  if(row.thumbnail_path?.startsWith("creator-media-public/"))refs.push({bucketId:"creator-media-public",objectKey:row.thumbnail_path.slice("creator-media-public/".length)});
+  return refs;
+ });
+ const pooled=await resolvePublicObjectUrls(pooledRefs);
+ const pooledUrl=(storagePath:string)=>pooled.get("creator-media-public\u0000"+storagePath.slice("creator-media-public/".length))??null;
+ const videos=rows.flatMap(row=>{const card=buildWatchCard(supabase,row,pooledUrl);return card?[card]:[];});
  return <main className="raye2-watch-library" dir="ltr">
   <header className="raye2-watch-header">
    <Link className="raye2-watch-brand" href="/raye2/home" aria-label="Raye2 home"><span aria-hidden="true">R</span><span className="raye2-watch-sr-only">Raye2</span></Link>

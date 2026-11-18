@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { resolveStorageDelivery, splitStoragePath } from "@/lib/storage/resolve-delivery";
 import styles from "./raye2.module.css";
 
 type WatchVideo = {
@@ -128,10 +129,15 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
 
   const selectedVideo = useMemo(() => videos.find(video => video.id === selectedVideoId) ?? null, [selectedVideoId, videos]);
 
-  const publicVideoUrl = useCallback((video: WatchVideo) => {
+  const publicVideoUrl = useCallback(async (video: WatchVideo) => {
     if (video.source_url && /^https:\/\//i.test(video.source_url)) return video.source_url;
     if (!video.storage_path || !video.storage_path.startsWith("creator-media-public/")) return "";
     const objectPath = video.storage_path.replace(/^creator-media-public\//, "");
+    const ref = splitStoragePath(video.storage_path);
+    if (ref) {
+      const resolved = await resolveStorageDelivery(ref, (bucketId, objectKey) => supabase.storage.from(bucketId).getPublicUrl(objectKey).data.publicUrl);
+      if (resolved) return resolved;
+    }
     return supabase.storage.from("creator-media-public").getPublicUrl(objectPath).data.publicUrl;
   }, [supabase]);
 
@@ -144,7 +150,7 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
       .select("id,title,storage_path,source_url,provider,playback_kind,processing_status,is_published")
       .in("id", ids).eq("is_published", true).eq("processing_status", "ready");
     const eligible = (media ?? []).filter(item =>
-      item.provider === "supabase" && item.playback_kind === "file"
+      item.playback_kind === "file"
       && typeof item.storage_path === "string" && item.storage_path.startsWith("creator-media-public/")
     ) as WatchVideo[];
     setVideos(eligible);
@@ -402,7 +408,14 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     if (id) void supabase.rpc("raye2_leave_watch_session", { p_session_id: id });
   }, [supabase]);
 
-  const currentUrl = currentVideo ? publicVideoUrl(currentVideo) : "";
+  const [currentUrl, setCurrentUrl] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    if (!currentVideo) { setCurrentUrl(""); return; }
+    void publicVideoUrl(currentVideo).then(url => { if (!cancelled) setCurrentUrl(url); }).catch(() => { if (!cancelled) setCurrentUrl(""); });
+    return () => { cancelled = true; };
+  }, [currentVideo, publicVideoUrl]);
+
   const activeSessions = sessions.filter(item => item.status === "active");
 
   return (

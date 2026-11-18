@@ -2,6 +2,7 @@
 
 import {useCallback,useEffect,useMemo,useState} from "react";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
+import {resolveStorageDeliveries, splitStoragePath} from "@/lib/storage/resolve-delivery";
 import CreatorVideoSponsorship from "./creator-video-sponsorship";
 
 type Asset={media_id:string;title:string;media_type:string;is_published:boolean;storage_path:string|null;source_url:string|null;thumbnail_path:string|null;alt_text:string;processing_status:string;processing_error:string|null;preview_url:string|null;thumbnail_url:string|null};
@@ -43,9 +44,14 @@ export default function VideoStudio(){
   const processingById=new Map<string,ProcessingStatus>(processingRows.map(row=>[row.media_id,row]));
   // The status RPC is owner-scoped; only assets returned by it may enter this creator studio.
   const ownedAssets=rawAssets.filter(asset=>processingById.has(asset.media_id));
+  const managedRefs=ownedAssets.flatMap(asset=>[asset.storage_path,asset.thumbnail_path].flatMap(path=>{const ref=splitStoragePath(path);return ref?[ref]:[];}));
+  const pooledManaged=await resolveStorageDeliveries(managedRefs,(bucketId,objectKey)=>bucketId==="creator-media-public"?supabase.storage.from(bucketId).getPublicUrl(objectKey).data.publicUrl:null);
+  const pooledManagedUrl=(path:string|null)=>{const ref=splitStoragePath(path);return ref?pooledManaged.get(ref.bucketId+"\u0000"+ref.objectKey)??null:null;};
   const resolvedAssets=await Promise.all(ownedAssets.map(async asset=>{
    const resolveManagedUrl=async(path:string|null)=>{
     if(!path)return null;
+    const pooled=pooledManagedUrl(path);
+    if(pooled)return pooled;
     const [bucket,...parts]=path.split("/");
     const objectPath=parts.join("/");
     if(!objectPath||!["creator-media-private","creator-media-public"].includes(bucket))return null;

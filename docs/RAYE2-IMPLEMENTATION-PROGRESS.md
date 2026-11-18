@@ -3394,6 +3394,43 @@ storage fabric works end-to-end with no further code. Additive; `main`/productio
   no provider is live and the migration moves zero objects. Live RLS acceptance on an isolated Supabase project
   and multi-device voice/live acceptance remain. Everything else storage-related is implemented.
 
+## Batch — 2026-11-10 (Batch 5): Storage object resolution — pooled uploads are now playable (development only)
+
+**Goal:** close the gap that pooled S3-compatible uploads could not be played back, because every read surface
+resolved playback only through Supabase. Now a logical object is resolved to its physical location (pooled provider
+or legacy Supabase) before a URL is built, on both server and client. Additive; `main`/production unchanged.
+
+- **Registry resolution RPC.** Migration `20261116170000_raye2_storage_object_resolution.sql` adds the
+  service-role-only `raye2_resolve_storage_objects(p_objects)` batch resolver: given logical `{bucket_id, object_key}`
+  pairs it returns each object's `provider_id`, `object_state`, `visibility` and `owner_id`, so a caller can decide
+  public vs signed delivery without ever reading the registry directly. The table stays RLS-locked.
+- **Server resolve route.** New `src/app/api/raye2/storage/resolve/route.ts` (batched, up to 100 objects) validates
+  buckets/keys with the shared `isResolvableBucket`/`isValidObjectKey`, signs private objects for the signed-in owner
+  only (`kind:"forbidden"` otherwise), returns public URLs for pooled public objects, and marks anything not in the
+  registry (or still on Supabase) as `kind:"legacy"` so the client keeps using the Supabase storage client.
+- **Shared server resolver.** New `src/lib/storage/resolve.server.ts` centralises bucket/visibility policy
+  (`PUBLIC_DELIVERY_BUCKETS`, `PRIVATE_DELIVERY_BUCKETS`, `RESOLVE_TTL_SECONDS`), `resolveObjectsToUrls` and a
+  `resolvePublicObjectUrls` convenience wrapper that returns an empty map when the service role is not configured, so
+  pages always still render with legacy Supabase URLs.
+- **Client helper.** New `src/lib/storage/resolve-delivery.ts` (`splitStoragePath`, `resolveStorageDelivery`,
+  `resolveStorageDeliveries`) batches a request to the resolve route and degrades to the caller's legacy Supabase
+  resolver on any failure — no playback regression when the pool is unconfigured.
+- **Read surfaces wired (server):** `src/app/u/[handle]/page.tsx`, `src/app/watch/[slug]/page.tsx` (video, HLS master
+  and poster all accept a pooled origin), `src/app/videos/public-videos.tsx`, `src/app/watch/page.tsx`,
+  `src/app/watch/playlists/[slug]/page.tsx`, `src/app/series/page.tsx`, `src/app/page.tsx`,
+  `src/app/raye2/home/page.tsx`, `src/app/shorts/page.tsx`.
+- **Read surfaces wired (client):** `src/app/minis/minis-client.tsx`, `src/app/clips/clips-client.tsx`,
+  `src/app/shorts/community-shorts-client.tsx`, `src/app/creator/media-library.tsx`,
+  `src/app/creator/video-studio.tsx`, `src/app/watch/watch-library-more.tsx` and the Watch Together controls
+  (which now also accept pooled providers instead of Supabase-only). `buildWatchCard` takes an optional pooled resolver.
+- **Tests/validator:** `tests/storage-resolve-delivery.test.mjs` (8 tests: split, pooled sign, legacy fallback,
+  failure degradation, non-OK degradation, unavailable retry, invalid-drop, de-dup). Validator grew to 512 assertions
+  covering the resolve route's gating, the shared resolver, and every wired read surface.
+- Gates: validator 512 assertions; tests 982/982; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (key-dependent):** the storage keys/buckets are still unconfigured, so the pooled resolve path is
+  exercised by unit tests and the Supabase fallback keeps production working. Live RLS acceptance on an isolated
+  Supabase project remains outstanding.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3403,17 +3440,17 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~90% |
-| 3 | Video, feed and discovery ecosystem | ~97% |
-| 4 | Creator Studio, exclusives and live streaming | ~97% |
+| 3 | Video, feed and discovery ecosystem | ~98% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~90% |
+| 7 | Voice, Watch Together and shared experiences | ~91% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~95%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired and the migration tooling exists, but no provider key is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

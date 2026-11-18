@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import CommunityShortsClient from "./community-shorts-client";
 import "./shorts-raye2.css";
@@ -24,6 +25,8 @@ export default async function ShortsPage(){
  };
  const supabase=await createSupabaseServerClient();if(!supabase)return null;
  const {data}=await supabase.from("video_catalog").select("media_id,slug,description,category,tags,published_at,media_items!video_catalog_media_id_fkey!inner(title,storage_path,source_url,alt_text,is_published,media_type)").eq("category","Shorts").not("published_at","is",null).order("published_at",{ascending:false}).limit(30);
+ const shortsRefs=(data??[]).flatMap(item=>{const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;return media?.media_type==="video"&&media.storage_path?.startsWith("creator-media-public/")?[{bucketId:"creator-media-public",objectKey:media.storage_path.slice("creator-media-public/".length)}]:[];});
+ const pooledShorts=await resolvePublicObjectUrls(shortsRefs);
  const shorts=(data??[]).flatMap(item=>{
   const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;
   if(!media?.is_published||!["video","youtube"].includes(media.media_type))return[];
@@ -31,7 +34,7 @@ export default async function ShortsPage(){
   if(media.media_type==="video"){
    if(!media.storage_path?.startsWith("creator-media-public/"))return[];
    const parts=media.storage_path.split("/");
-   src=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+   src=pooledShorts.get("creator-media-public\u0000"+media.storage_path.slice("creator-media-public/".length))??supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
   }else{
    try{const u=new URL(media.source_url??"");if(!["youtube.com","www.youtube.com","m.youtube.com","youtu.be"].includes(u.hostname))return[];const parts=u.pathname.split("/").filter(Boolean);const id=u.hostname==="youtu.be"?parts[0]:u.searchParams.get("v")??parts[parts.length-1];if(!id||!/^[A-Za-z0-9_-]{11}$/.test(id))return[];youtubeEmbedUrl="https://www.youtube-nocookie.com/embed/"+id+"?rel=0"}catch{return[]}
   }

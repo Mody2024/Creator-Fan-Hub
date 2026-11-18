@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { resolveStorageDeliveries } from "@/lib/storage/resolve-delivery";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import { buildWatchCard, type WatchCard, type WatchRow } from "./watch-library-media";
 
@@ -35,8 +36,16 @@ export default function WatchLibraryMore({
     if (err) { setError("Could not load more videos. Try again."); setBusy(false); return; }
     const rows = (data ?? []) as WatchRow[];
     if (rows.length < PAGE) setDone(true);
+    const pooledRefs = rows.flatMap((row) => {
+      const refs: Array<{ bucketId: string; objectKey: string }> = [];
+      if (row.storage_path?.startsWith("creator-media-public/")) refs.push({ bucketId: "creator-media-public", objectKey: row.storage_path.slice("creator-media-public/".length) });
+      if (row.thumbnail_path?.startsWith("creator-media-public/")) refs.push({ bucketId: "creator-media-public", objectKey: row.thumbnail_path.slice("creator-media-public/".length) });
+      return refs;
+    });
+    const pooled = await resolveStorageDeliveries(pooledRefs, (bucketId, objectKey) => supabase.storage.from(bucketId).getPublicUrl(objectKey).data.publicUrl);
+    const pooledUrl = (storagePath: string) => pooled.get("creator-media-public\u0000" + storagePath.slice("creator-media-public/".length)) ?? null;
     const next = rows.flatMap((row) => {
-      const card = buildWatchCard(supabase, row);
+      const card = buildWatchCard(supabase, row, pooledUrl);
       return card ? [card] : [];
     });
     setCards((prev) => [...prev, ...next]);

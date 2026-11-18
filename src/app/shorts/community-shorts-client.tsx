@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
+import { resolveStorageDeliveries, splitStoragePath } from "@/lib/storage/resolve-delivery";
 
 type ShortRow={id:string;author_id:string;title:string;caption:string;storage_path:string;duration_seconds:number;created_at:string;status:string};
 type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};
@@ -58,9 +59,12 @@ export default function CommunityShortsClient(){
   const {data:profiles}=ids.length?await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id",ids):{data:[]};
   const profileRows=(profiles??[]) as ShortProfile[];
   const byId=new Map<string,ShortProfile>(profileRows.map(p=>[p.user_id,p] as const));
+  const refs=rows.map(row=>splitStoragePath("raye2-community-shorts/"+row.storage_path)).filter((ref):ref is NonNullable<typeof ref>=>ref!==null);
+  const urls=await resolveStorageDeliveries(refs,(bucketId,objectKey)=>supabase.storage.from(bucketId).getPublicUrl(objectKey).data.publicUrl);
   setItems(rows.map(row=>{
    const profile=byId.get(row.author_id);
-   return {...row,handle:profile?.handle??"member",displayName:profile?.display_name??"Raye2 member",avatarUrl:profile?.avatar_url??null,src:supabase.storage.from("raye2-community-shorts").getPublicUrl(row.storage_path).data.publicUrl};
+   const src=urls.get("raye2-community-shorts\u0000"+row.storage_path)??supabase.storage.from("raye2-community-shorts").getPublicUrl(row.storage_path).data.publicUrl;
+   return {...row,handle:profile?.handle??"member",displayName:profile?.display_name??"Raye2 member",avatarUrl:profile?.avatar_url??null,src};
   }));
   if(rows.length){
    const shortIds=rows.map(row=>row.id);

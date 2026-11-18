@@ -4,6 +4,7 @@ import HomeFeedPost from "./home-feed-post";
 import HomeFeedMore from "./home-feed-more";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolvePublicObjectUrls } from "@/lib/storage/resolve.server";
 import styles from "./home.module.css";
 
 export const dynamic = "force-dynamic";
@@ -71,6 +72,11 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
       for(const item of bookmarks.data??[])savedIds.add(item.post_id);
       for(const item of follows.data??[])followedAuthorIds.add(item.followed_id);
     }
+    const homeThumbRefs=(videoRows??[]).flatMap(row=>{
+      const thumbnail=Array.isArray(row.thumbnail)?row.thumbnail[0]:row.thumbnail;
+      return thumbnail?.is_published&&thumbnail.media_type==="image"&&thumbnail.storage_path?.startsWith("creator-media-public/")?[{bucketId:"creator-media-public",objectKey:thumbnail.storage_path.slice("creator-media-public/".length)}]:[];
+    });
+    const pooledThumbs=await resolvePublicObjectUrls(homeThumbRefs);
     videos=(videoRows??[]).flatMap(row=>{
       const media=Array.isArray(row.media_items)?row.media_items[0]:row.media_items;
       const thumbnail=Array.isArray(row.thumbnail)?row.thumbnail[0]:row.thumbnail;
@@ -78,7 +84,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
       let thumbnailUrl:string|null=null;
       if(thumbnail?.is_published&&thumbnail.media_type==="image"&&thumbnail.storage_path?.startsWith("creator-media-public/")){
         const parts=thumbnail.storage_path.split("/");
-        if(parts.length>1)thumbnailUrl=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+        if(parts.length>1)thumbnailUrl=pooledThumbs.get("creator-media-public\u0000"+thumbnail.storage_path.slice("creator-media-public/".length))??supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
       }
       return[{id:row.media_id,slug:row.slug,title:media.title,description:row.description||"",category:row.category||"Video",published_at:row.published_at!,thumbnail_url:thumbnailUrl,thumbnail_alt:thumbnail?.alt_text||media.title}];
     });

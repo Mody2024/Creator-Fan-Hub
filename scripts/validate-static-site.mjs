@@ -934,6 +934,43 @@ const objectListMigration = lifecycleMigration;
 check("owner deletion moves pooled objects out of the legacy Supabase path", objectRoute.includes('row.provider_id === "supabase"') && objectRoute.includes("service.storage.from(String(row.bucket_id)).remove"));
 check("object lifecycle RPCs set an empty search path for safety", (objectListMigration.match(/set search_path/g) || []).length >= 6);
 
+// Batch 5 — pooled object delivery resolution across every read surface.
+const resolutionMigration = await read("../supabase/migrations/20261116170000_raye2_storage_object_resolution.sql");
+check("object resolution is a batched, service-role-only point lookup", resolutionMigration.includes("create or replace function public.raye2_resolve_storage_objects") && resolutionMigration.includes("jsonb_array_length(p_objects) > 200") && resolutionMigration.includes("to service_role") && resolutionMigration.includes("revoke all on function public.raye2_resolve_storage_objects(jsonb) from public, anon, authenticated"));
+check("object resolution returns only live rows and is indexed", resolutionMigration.includes("o.object_state in ('active','verified','staged')") && resolutionMigration.includes("raye2_storage_objects_bucket_key_idx") && resolutionMigration.includes("on public.raye2_storage_objects(bucket_id,object_key)"));
+
+const resolveRoute = await read("../src/app/api/raye2/storage/resolve/route.ts");
+const resolveHelper = await read("../src/lib/storage/resolve-delivery.ts");
+const resolveTests = await read("../tests/storage-resolve-delivery.test.mjs");
+check("resolve route signs pooled objects and leaves Supabase objects to the client", resolveRoute.includes("raye2_resolve_storage_objects") && resolveRoute.includes('kind: "legacy"') && resolveRoute.includes("planObjectDelivery") && resolveRoute.includes("createSignedDownload"));
+check("resolve route never leaks a private object to a non-owner", resolveRoute.includes("isPrivate && (!viewerId || row.owner_id !== viewerId)") && resolveRoute.includes('kind: "forbidden"'));
+check("resolve route validates buckets and object keys before lookup", resolveRoute.includes("isResolvableBucket") && resolveRoute.includes("isValidObjectKey") && resolveRoute.includes("Invalid object reference"));
+check("resolve helper degrades to the legacy resolver on any failure", resolveHelper.includes("resolveStorageDeliveries") && resolveHelper.includes("splitStoragePath") && resolveHelper.includes("legacyFill") && resolveTests.includes("a failed request degrades every object to the legacy resolver") && resolveTests.includes("a pooled object resolves to the server-signed URL"));
+
+const readSurfaces = await Promise.all([
+  read("../src/app/minis/minis-client.tsx"),
+  read("../src/app/clips/clips-client.tsx"),
+  read("../src/app/shorts/community-shorts-client.tsx"),
+]);
+check("every public member feed resolves playback through the registry with a Supabase fallback", readSurfaces.every(source => source.includes("resolveStorageDeliveries") && source.includes("splitStoragePath") && source.includes("getPublicUrl")));
+check("the media library resolves previews through the registry before signing privately", (await read("../src/app/creator/media-library.tsx")).includes("resolveStorageDeliveries") && (await read("../src/app/creator/media-library.tsx")).includes("splitStoragePath"));
+
+const serverSurfaces = await Promise.all([
+  read("../src/app/u/[handle]/page.tsx"),
+  read("../src/app/watch/[slug]/page.tsx"),
+  read("../src/app/videos/public-videos.tsx"),
+  read("../src/app/watch/page.tsx"),
+  read("../src/app/watch/playlists/[slug]/page.tsx"),
+  read("../src/app/series/page.tsx"),
+  read("../src/app/page.tsx"),
+  read("../src/app/raye2/home/page.tsx"),
+  read("../src/app/shorts/page.tsx"),
+]);
+check("every server-rendered playback surface resolves pooled objects before falling back to Supabase", serverSurfaces.every(source => source.includes("resolvePublicObjectUrls") && (source.includes("getPublicUrl") || source.includes("buildWatchCard"))));
+check("the watch detail page accepts a pooled origin for videos, HLS and posters", (await read("../src/app/watch/[slug]/page.tsx")).includes("creator-media-public\\u0000"));
+check("the creator studio and watch-together client surfaces resolve pooled playback", (await read("../src/app/creator/video-studio.tsx")).includes("resolveStorageDeliveries") && (await read("../src/app/raye2/raye2-watch-together-controls.tsx")).includes("resolveStorageDelivery") && (await read("../src/app/watch/watch-library-more.tsx")).includes("resolveStorageDeliveries"));
+check("the shared server resolver exposes a public-object convenience wrapper", (await read("../src/lib/storage/resolve.server.ts")).includes("export async function resolvePublicObjectUrls"));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

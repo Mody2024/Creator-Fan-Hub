@@ -58,14 +58,14 @@ function youtubeEmbed(sourceUrl: string | null): string | null {
   }
 }
 
-export function buildWatchCard(supabase: SupabaseClient, item: WatchRow): WatchCard | null {
+export function buildWatchCard(supabase: SupabaseClient, item: WatchRow, pooledUrl?: (storagePath: string) => string | null): WatchCard | null {
   if (!["video", "youtube"].includes(item.media_type)) return null;
   if (item.media_type === "video" && item.processing_status !== "ready") return null;
 
   let src = "";
   let embed: string | null = null;
   if (item.media_type === "video") {
-    const url = safePublicUrl(supabase, item.storage_path ?? "");
+    const url = (item.storage_path ? pooledUrl?.(item.storage_path) ?? null : null) ?? safePublicUrl(supabase, item.storage_path ?? "");
     if (!url) return null;
     src = url;
   } else {
@@ -75,14 +75,19 @@ export function buildWatchCard(supabase: SupabaseClient, item: WatchRow): WatchC
 
   let poster: string | null = null;
   if (item.thumbnail_path?.startsWith("creator-media-public/")) {
-    const candidate = safePublicUrl(supabase, item.thumbnail_path);
-    if (candidate) {
-      try {
-        const parsedPoster = new URL(candidate);
-        const parsedVideo = new URL(src || embed || "https://invalid.local");
-        if (parsedPoster.protocol === "https:" && parsedPoster.origin === parsedVideo.origin) poster = parsedPoster.toString();
-      } catch {
-        poster = null;
+    const pooledCandidate = pooledUrl?.(item.thumbnail_path) ?? null;
+    if (pooledCandidate) {
+      poster = pooledCandidate;
+    } else {
+      const candidate = safePublicUrl(supabase, item.thumbnail_path);
+      if (candidate) {
+        try {
+          const parsedPoster = new URL(candidate);
+          const parsedVideo = new URL(src || embed || "https://invalid.local");
+          if (parsedPoster.protocol === "https:" && parsedPoster.origin === parsedVideo.origin) poster = parsedPoster.toString();
+        } catch {
+          poster = null;
+        }
       }
     }
   }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolvePublicObjectUrls } from "@/lib/storage/resolve.server";
 import "./playlist.css";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +36,14 @@ export default async function PlaylistPage({ params }: { params: Promise<{ slug:
     .eq("playlist_id", playlist.id)
     .order("position", { ascending: true });
 
+  const playlistRefs = (rows ?? []).flatMap((row) => {
+    const media = Array.isArray(row.media_items) ? row.media_items[0] : row.media_items;
+    if (!media?.storage_path?.startsWith("creator-media-public/")) return [];
+    return [{ bucketId: "creator-media-public", objectKey: media.storage_path.slice("creator-media-public/".length) }];
+  });
+  const pooled = await resolvePublicObjectUrls(playlistRefs);
+  const pooledUrl = (storagePath: string) => pooled.get("creator-media-public\u0000" + storagePath.slice("creator-media-public/".length));
+
   const items: Item[] = (rows ?? []).flatMap((row) => {
     const media = Array.isArray(row.media_items) ? row.media_items[0] : row.media_items;
     if (!media?.storage_path?.startsWith("creator-media-public/")) return [];
@@ -48,7 +57,7 @@ export default async function PlaylistPage({ params }: { params: Promise<{ slug:
       slug: catalog.slug,
       description: catalog.description || media.alt_text || "",
       category: catalog.category || "Video",
-      src: supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl,
+      src: pooledUrl(media.storage_path) ?? supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl,
       duration: catalog.duration_seconds ?? null
     }];
   });

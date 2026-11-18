@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { resolvePublicObjectUrls } from "@/lib/storage/resolve.server";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import PublishedPolls from "@/app/vote/published-polls";
 import PublicVideos from "@/app/videos/public-videos";
@@ -36,6 +37,11 @@ export default async function HomePage() {
       .select("media_id,slug,description,category,published_at,media_items!video_catalog_media_id_fkey!inner(title,storage_path,source_url,alt_text,is_published,media_type)")
       .not("published_at","is",null).eq("media_items.is_published",true)
       .order("published_at",{ascending:false}).limit(12);
+    const homeRefs=(videoRows??[]).flatMap(item=>{
+      const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;
+      return media?.media_type==="video"&&media.storage_path?.startsWith("creator-media-public/")?[{bucketId:"creator-media-public",objectKey:media.storage_path.slice("creator-media-public/".length)}]:[];
+    });
+    const pooledHome=await resolvePublicObjectUrls(homeRefs);
     videos=(videoRows??[]).flatMap(item=>{
       const media=Array.isArray(item.media_items)?item.media_items[0]:item.media_items;
       if(!media||!media.is_published)return[];
@@ -44,7 +50,7 @@ export default async function HomePage() {
         if(!media.storage_path?.startsWith("creator-media-public/"))return[];
         const parts=media.storage_path.split("/");
         if(parts.length<2)return[];
-        src=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+        src=pooledHome.get("creator-media-public\u0000"+media.storage_path.slice("creator-media-public/".length))??supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
       }else if(media.media_type==="youtube"){
         try{
           const u=new URL(media.source_url??"");

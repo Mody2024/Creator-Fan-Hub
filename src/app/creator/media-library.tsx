@@ -4,6 +4,7 @@ import { ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useState } fro
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
+import { resolveStorageDeliveries, splitStoragePath } from "@/lib/storage/resolve-delivery";
 
 type MediaKind = "image" | "video" | "audio" | "sprite";
 type ProcessingFilter = "all" | "waiting" | "processing" | "ready" | "failed";
@@ -125,29 +126,45 @@ export default function MediaLibrary() {
         ? await supabase.rpc("get_creator_media_processing_status",{p_media_ids:items.map(item=>item.media_id)})
         : {data:[],error:null};
       const processingById=new Map((processingRows??[]).map((entry:{media_id:string;processing_status:string;processing_attempts:number;processing_error:string|null;processing_updated_at:string;processing_completed_at:string|null;size_bytes:number|null;mime_type:string|null;thumbnail_path:string|null})=>[entry.media_id,entry]));
-      const enriched = await Promise.all(items.map(async original => {
+      const previewTargets = items.map(original => {
         const item={...original,...(processingById.get(original.media_id)??{})};
-
+        if (item.media_type === "youtube" && item.source_url) return { item, ref: null };
+        const previewPath=item.is_published && item.thumbnail_path?.startsWith("creator-media-private/") ? item.storage_path : item.thumbnail_path??item.storage_path;
+        if (!previewPath) return { item, ref: null };
+        const [bucket,...parts] = previewPath.split("/");
+        const path = parts.join("/");
+        if (!path || !["creator-media-private","creator-media-public"].includes(bucket) || path.split("/").length<2 || !path.split("/").every(segment=>/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/.test(segment))) return { item, ref: null };
+        return { item, ref: splitStoragePath(bucket + "/" + path) };
+      });
+      const legacyPreview = (bucket: string, path: string, item: MediaRow): string | null => {
+        try {
+          if (bucket === "creator-media-public" && item.is_published) return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl || null;
+          if (bucket === "creator-media-private" && !item.is_published) return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl || null;
+          return null;
+        } catch { return null; }
+      };
+      const resolved = await resolveStorageDeliveries(
+        previewTargets.map(target => target.ref).filter((ref): ref is NonNullable<typeof ref> => ref !== null),
+        () => null,
+      );
+      const enriched = await Promise.all(previewTargets.map(async ({ item, ref }) => {
         if (item.media_type === "youtube" && item.source_url) {
           const id = item.source_url.match(/[?&]v=([A-Za-z0-9_-]{11})/)?.[1];
           return {...item,preview_url:id ? "https://img.youtube.com/vi/"+id+"/hqdefault.jpg" : null};
         }
+        if (!ref) return {...item,preview_url:null};
+        const pooled = resolved.get(ref.bucketId + "\u0000" + ref.objectKey);
+        if (pooled) return {...item,preview_url:pooled};
         const previewPath=item.is_published && item.thumbnail_path?.startsWith("creator-media-private/") ? item.storage_path : item.thumbnail_path??item.storage_path;
-        if (!previewPath) return {...item,preview_url:null};
-        const [bucket,...parts] = previewPath.split("/");
-        const path = parts.join("/");
-        if (!path || !["creator-media-private","creator-media-public"].includes(bucket) || path.split("/").length<2 || !path.split("/").every(segment=>/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/.test(segment))) return {...item,preview_url:null};
+        const [bucket,...parts]=previewPath!.split("/");
+        const path=parts.join("/");
         try {
-          if (bucket === "creator-media-public" && item.is_published) {
-            const {data:publicData} = supabase.storage.from(bucket).getPublicUrl(path);
-            return {...item,preview_url:publicData.publicUrl || null};
-          }
           if (bucket === "creator-media-private" && !item.is_published) {
             const {data:signed,error:signedError} = await supabase.storage.from(bucket).createSignedUrl(path,300);
             if (signedError) return {...item,preview_url:null};
             return {...item,preview_url:signed?.signedUrl ?? null};
           }
-          return {...item,preview_url:null};
+          return {...item,preview_url:legacyPreview(bucket,path,item)};
         } catch {
           return {...item,preview_url:null};
         }

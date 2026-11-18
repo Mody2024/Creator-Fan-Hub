@@ -3,6 +3,7 @@ import Image from "next/image";
 import {cookies} from "next/headers";
 import "./raye2-series.css";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
 
 export const dynamic="force-dynamic";
 
@@ -29,7 +30,9 @@ export default async function SeriesPage(){
   const {data}=await supabase.rpc("raye2_list_series",{p_limit:60});
   series=(data??[]) as SeriesRow[];
  }
- const coverUrl=(path:string|null)=>{if(!path||!supabase)return null;const parts=path.split("/");if(parts.length<2)return null;return supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl};
+ const coverRefs=series.flatMap(item=>item.cover_path?[{bucketId:item.cover_path.split("/")[0],objectKey:item.cover_path.split("/").slice(1).join("/")}]:[]);
+ const pooledCovers=await resolvePublicObjectUrls(coverRefs);
+ const coverUrl=(path:string|null)=>{if(!path||!supabase)return null;const parts=path.split("/");if(parts.length<2)return null;return pooledCovers.get(parts[0]+"\u0000"+parts.slice(1).join("/"))??supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl};
  return <main className="raye2-series-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
   <header className="raye2-watch-top"><Link className="raye2-brand" href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}>Raye2</Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/watch">{t.watch}</Link><Link href="/creators">{t.creators}</Link><Link href="/community">{t.community}</Link></nav></header>
   <div className="raye2-series-wrap"><span className="raye2-section-label">{t.label}</span><h1>{t.headline} <em>{t.accent}</em></h1><p className="raye2-muted">{t.intro}</p>

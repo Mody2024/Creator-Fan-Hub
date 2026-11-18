@@ -5,6 +5,7 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
+import { resolveStorageDeliveries, splitStoragePath } from "@/lib/storage/resolve-delivery";
 
 type ClipRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; attribution_text: string; source_media_id: string | null; source_slug: string | null; clipper_handle: string | null; clipper_display_name: string | null; clipper_avatar_url: string | null; clipper_id: string | null; source_owner_id: string | null };
 type ClipCard = ClipRow & { src: string };
@@ -43,7 +44,10 @@ export default function ClipsClient() {
     setLoading(true);
     const { data, error } = await supabase.rpc("raye2_list_community_clips", { p_limit: 60 });
     if (error) { setStatus(t.feedError); setLoading(false); return; }
-    setItems(((data ?? []) as ClipRow[]).map((row) => ({ ...row, src: supabase.storage.from("raye2-clips").getPublicUrl(row.storage_path).data.publicUrl })));
+    const rows = (data ?? []) as ClipRow[];
+    const refs = rows.map(row => splitStoragePath("raye2-clips/" + row.storage_path)).filter((ref): ref is NonNullable<typeof ref> => ref !== null);
+    const urls = await resolveStorageDeliveries(refs, (bucketId, objectKey) => supabase.storage.from(bucketId).getPublicUrl(objectKey).data.publicUrl);
+    setItems(rows.map((row) => ({ ...row, src: urls.get("raye2-clips\u0000" + row.storage_path) ?? supabase.storage.from("raye2-clips").getPublicUrl(row.storage_path).data.publicUrl })));
     setLoading(false);
   }, [supabase, t.feedError]);
 

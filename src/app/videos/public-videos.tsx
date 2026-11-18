@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
 
 function youtubeEmbedUrl(source: string | null): string | null {
   if (!source) return null;
@@ -44,6 +45,18 @@ export default async function PublicVideos() {
 
   if (error || !data?.length) return null;
 
+  const refs: Array<{bucketId:string;objectKey:string}> = [];
+  for (const item of data) {
+    const media = Array.isArray(item.media_items) ? item.media_items[0] : item.media_items;
+    if (!media) continue;
+    const isYoutube = media.provider === "youtube" || media.media_type === "youtube" || media.playback_kind === "youtube_embed";
+    if (isYoutube) continue;
+    if (media.storage_path?.startsWith("creator-media-public/")) refs.push({bucketId:"creator-media-public",objectKey:media.storage_path.slice("creator-media-public/".length)});
+    if (media.thumbnail_path?.startsWith("creator-media-public/")) refs.push({bucketId:"creator-media-public",objectKey:media.thumbnail_path.slice("creator-media-public/".length)});
+  }
+  const pooled = await resolvePublicObjectUrls(refs);
+  const pooledUrl = (storagePath: string) => pooled.get("creator-media-public\u0000" + storagePath.slice("creator-media-public/".length));
+
   const videos = data.flatMap((item) => {
     const media = Array.isArray(item.media_items) ? item.media_items[0] : item.media_items;
     if (!media) return [];
@@ -60,16 +73,21 @@ export default async function PublicVideos() {
       if (!media.storage_path?.startsWith("creator-media-public/")) return [];
       const parts = media.storage_path.split("/");
       if (parts.length < 2 || !parts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) return [];
-      url = supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+      url = pooledUrl(media.storage_path) ?? supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
       if (media.thumbnail_path?.startsWith("creator-media-public/")) {
         const thumbnailParts = media.thumbnail_path.split("/");
         if (thumbnailParts.length >= 2 && thumbnailParts.slice(1).every((part: string) => /^[A-Za-z0-9_-][A-Za-z0-9_.-]*$/.test(part))) {
-          const candidate = supabase.storage.from(thumbnailParts[0]).getPublicUrl(thumbnailParts.slice(1).join("/")).data.publicUrl;
-          try {
-            const parsedVideoUrl = new URL(url);
-            const parsedPosterUrl = new URL(candidate);
-            if (parsedVideoUrl.protocol === "https:" && parsedPosterUrl.protocol === "https:" && parsedPosterUrl.origin === parsedVideoUrl.origin) poster = parsedPosterUrl.toString();
-          } catch { /* unavailable thumbnail falls back to the browser's player poster */ }
+          const pooledPoster = pooledUrl(media.thumbnail_path);
+          if (pooledPoster) {
+            try { const parsedPoster = new URL(pooledPoster); if (parsedPoster.protocol === "https:") poster = parsedPoster.toString(); } catch { /* pooled poster unavailable */ }
+          } else {
+            const candidate = supabase.storage.from(thumbnailParts[0]).getPublicUrl(thumbnailParts.slice(1).join("/")).data.publicUrl;
+            try {
+              const parsedVideoUrl = new URL(url);
+              const parsedPosterUrl = new URL(candidate);
+              if (parsedVideoUrl.protocol === "https:" && parsedPosterUrl.protocol === "https:" && parsedPosterUrl.origin === parsedVideoUrl.origin) poster = parsedPosterUrl.toString();
+            } catch { /* unavailable thumbnail falls back to the browser's player poster */ }
+          }
         }
       }
     }

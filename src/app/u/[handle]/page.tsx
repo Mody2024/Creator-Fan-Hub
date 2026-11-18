@@ -1,6 +1,7 @@
 import {notFound} from "next/navigation";
 import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
+import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
 import MemberProfileClient,{type ProfilePost,type ProfileOverview,type ProfileMoment,type ProfilePlaylist,type ProfileClip,type ProfileCommunity} from "./profile-client";
 
 export const dynamic="force-dynamic";
@@ -16,18 +17,22 @@ export default async function MemberProfilePage({params}:{params:Promise<{handle
  const {data:posts}=await supabase.from("community_posts").select("id,body,created_at,post_type").eq("author_id",overview.user_id).eq("status","published").order("created_at",{ascending:false}).limit(30);
  const items:ProfilePost[]=(posts??[]).map(p=>({id:p.id,body:p.body,createdAt:p.created_at,type:p.post_type}));
  const {data:shortRows}=await supabase.from("community_short_videos").select("id,title,caption,storage_path,duration_seconds,created_at").eq("author_id",overview.user_id).eq("status","published").order("created_at",{ascending:false}).limit(30);
- const communityShorts=(shortRows??[]).map(item=>({id:item.id,title:item.title,caption:item.caption,src:supabase.storage.from("raye2-community-shorts").getPublicUrl(item.storage_path).data.publicUrl,duration:item.duration_seconds}));
  const {data:mediaRows}=await supabase.from("media_items").select("id,title,storage_path,alt_text,video_catalog!video_catalog_media_id_fkey!inner(slug,description,published_at,category)").eq("owner_id",overview.user_id).eq("is_published",true).eq("media_type","video").not("video_catalog.published_at","is",null).order("created_at",{ascending:false}).limit(30);
+ const {data:collections}=await supabase.rpc("raye2_get_profile_collections",{p_handle:handle,p_limit:24});
+ const coll=(collections??{}) as {moments?:ProfileMoment[];playlists?:ProfilePlaylist[];clips?:Array<Omit<ProfileClip,"src">>;communities?:ProfileCommunity[]};
+ const refs=[...(shortRows??[]).map(r=>({bucketId:"raye2-community-shorts",objectKey:r.storage_path})),...(mediaRows??[]).filter(r=>r.storage_path?.startsWith("creator-media-public/")).map(r=>({bucketId:"creator-media-public",objectKey:r.storage_path!.slice("creator-media-public/".length)})),...(coll.clips??[]).map(c=>({bucketId:"raye2-clips",objectKey:c.storage_path}))];
+ const pooled=await resolvePublicObjectUrls(refs);
+ const pooledUrl=(bucketId:string,key:string,fallback:string)=>pooled.get(bucketId+"\u0000"+key)??fallback;
+ const communityShorts=(shortRows??[]).map(item=>({id:item.id,title:item.title,caption:item.caption,src:pooledUrl("raye2-community-shorts",item.storage_path,supabase.storage.from("raye2-community-shorts").getPublicUrl(item.storage_path).data.publicUrl),duration:item.duration_seconds}));
  const videos=(mediaRows??[]).flatMap(item=>{
   if(!item.storage_path?.startsWith("creator-media-public/"))return[];
   const parts=item.storage_path.split("/");
   if(parts.length<2)return[];
   const catalog=Array.isArray(item.video_catalog)?item.video_catalog[0]:item.video_catalog;
   if(!catalog?.slug)return[];
-  return[{id:item.id,title:item.title,slug:catalog.slug,description:catalog.description||item.alt_text||"",category:catalog.category||"Video",src:supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl}];
+  const legacy=supabase.storage.from(parts[0]).getPublicUrl(parts.slice(1).join("/")).data.publicUrl;
+  return[{id:item.id,title:item.title,slug:catalog.slug,description:catalog.description||item.alt_text||"",category:catalog.category||"Video",src:pooledUrl("creator-media-public",item.storage_path.slice("creator-media-public/".length),legacy)}];
  });
- const {data:collections}=await supabase.rpc("raye2_get_profile_collections",{p_handle:handle,p_limit:24});
- const coll=(collections??{}) as {moments?:ProfileMoment[];playlists?:ProfilePlaylist[];clips?:Array<Omit<ProfileClip,"src">>;communities?:ProfileCommunity[]};
- const clips=(coll.clips??[]).map(clip=>({...clip,src:supabase.storage.from("raye2-clips").getPublicUrl(clip.storage_path).data.publicUrl}));
+ const clips=(coll.clips??[]).map(clip=>({...clip,src:pooledUrl("raye2-clips",clip.storage_path,supabase.storage.from("raye2-clips").getPublicUrl(clip.storage_path).data.publicUrl)}));
  return <MemberProfileClient profile={profile} posts={items} videos={videos} communityShorts={communityShorts} moments={coll.moments??[]} playlists={coll.playlists??[]} clips={clips} communities={coll.communities??[]} locale={locale} overview={overview}/>;
 }
