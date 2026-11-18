@@ -225,10 +225,31 @@ async function recordPart(service: ServiceClient, ownerId: string, payload: Reco
 async function completeUpload(service: ServiceClient, ownerId: string, payload: Record<string, unknown>) {
   const upload = await loadUpload(service, ownerId, payload.uploadId);
   if (!upload) return fail("not_found", "Multipart upload not found.", 404);
-  if (upload.upload_state === "completed" && typeof payload.objectId === "string") {
-    return NextResponse.json({ objectId: payload.objectId, alreadyCompleted: true });
+  const { data: reservation, error: reservationError } = await service
+    .from("raye2_storage_reservations")
+    .select("reservation_state,object_id")
+    .eq("reservation_id", upload.reservation_id)
+    .maybeSingle();
+  if (reservationError || !reservation) return fail("reservation_unavailable", "Could not verify the upload reservation.", 503);
+
+  // A previous request may have committed the object successfully but failed
+  // before marking the multipart ledger complete. Recover from the durable
+  // reservation record instead of completing the provider upload twice.
+  if (upload.upload_state === "completed") {
+    if (typeof reservation.object_id !== "string") return fail("completion_unverified", "The completed upload has no verified storage object.", 409);
+    return NextResponse.json({ objectId: reservation.object_id, alreadyCompleted: true });
   }
   if (upload.upload_state !== "active") return fail("conflict", "This upload is no longer active.", 409);
+  if (reservation.reservation_state === "consumed" && typeof reservation.object_id === "string") {
+    const { error: finishError } = await service.rpc("raye2_finish_multipart_upload", {
+      p_upload_id: upload.upload_id,
+      p_object_id: reservation.object_id,
+      p_upload_state: "completed",
+    });
+    if (finishError) return fail("completion_recovery_failed", "The uploaded object is safe, but its upload record could not be finalized. Retry completion.", 503);
+    return NextResponse.json({ objectId: reservation.object_id, alreadyCompleted: true, recovered: true });
+  }
+  if (reservation.reservation_state !== "active") return fail("reservation_finalized", "This upload reservation is no longer active.", 409);
 
   const recorded = Array.isArray(upload.uploaded_parts) ? upload.uploaded_parts : [];
   let manifest;
@@ -260,7 +281,12 @@ async function completeUpload(service: ServiceClient, ownerId: string, payload: 
   if (sha256) {
     await service.rpc("raye2_register_storage_object", { p_object_id: objectId, p_sha256: sha256, p_idempotency_key: "dedup:" + upload.upload_id });
   }
-  await service.rpc("raye2_finish_multipart_upload", { p_upload_id: upload.upload_id, p_object_id: objectId, p_upload_state: "completed" });
+  const { error: finishError } = await service.rpc("raye2_finish_multipart_upload", {
+    p_upload_id: upload.upload_id,
+    p_object_id: objectId,
+    p_upload_state: "completed",
+  });
+  if (finishError) return fail("completion_finalize_failed", "The object is stored and recorded. Retry completion to safely finalize the upload.", 503);
 
   return NextResponse.json({ objectId, sha256 });
 }
