@@ -85,7 +85,7 @@ export default async function HomePage() {
   const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="raye2-app-shell raye2-home-shell" data-motion={config.motion}>
     <header className="raye2-app-header">
-      <Link className="raye2-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="Raye2" /> : <span className="portal-wordmark"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span>}</Link>
+      <Link className="raye2-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null}</Link>
       <form className="raye2-search-form" action="/search"><input className="raye2-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
       <div className="raye2-header-actions"><LanguageSwitch initialLocale={isArabic ? "ar" : "en"} variant="header"/><Link className="raye2-pill" href="/community#join">{t.join}</Link><Link className="raye2-icon-button" href="/creator/login" aria-label="Creator studio">＋</Link></div>
     </header>
