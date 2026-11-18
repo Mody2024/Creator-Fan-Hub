@@ -121,7 +121,7 @@ export default async function Raye2CreatorStudioPage() {
     <section className={styles.section} data-slot="workspaces">
       <div className={styles.sectionHead}><span className={styles.eyebrow}>{t.workspace}</span><h2>{t.manage}</h2></div>
       <div className={styles.grid}>
-        {canPublish && <article className={styles.card}><span className={styles.cardIndex}>01 / PUBLISH</span><h3>{t.manage}</h3><p>{t.manageDesc}</p><Link className={styles.action} href="/creator">{t.open} ↗</Link></article>}
+        {canPublish && <article className={styles.card}><span className={styles.cardIndex}>01 / PUBLISH</span><h3>{t.manage}</h3><p>{t.manageDesc}</p><Link className={styles.action} href="#creator-media">{t.open} ↗</Link></article>}
         {canAnalyze && <article className={styles.card}><span className={styles.cardIndex}>02 / INSIGHTS</span><h3>{t.analytics}</h3><p>{t.analyticsDesc}</p><Link className={styles.action} href="/creator/analytics">{isArabic ? "فتح التحليلات" : "Open analytics"} ↗</Link></article>}
         {canStream && <article className={styles.card}><span className={styles.cardIndex}>02 / LIVE</span><h3>{t.live}</h3><p>{t.liveDesc}</p><Link className={styles.action} href="#creator-live-studio">{isArabic ? "فتح أدوات البث" : "Open live tools"} ↗</Link></article>}{role === "editor" && <article className={styles.card}><span className={styles.cardIndex}>01 / EDITORIAL</span><h3>{t.editorial}</h3><p>{t.editorialDesc}</p><span className={styles.action}>{t.editorialComing}</span></article>}
       </div>
