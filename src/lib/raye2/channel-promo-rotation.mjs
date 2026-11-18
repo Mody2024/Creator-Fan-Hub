@@ -15,8 +15,16 @@ export function normalizeRaye2ChannelPromo(input) {
     return null;
   }
   const thumbnailUrl = input.thumbnailUrl ? String(input.thumbnailUrl) : null;
+  const videoId = String(input.videoId ?? (url.pathname === "/watch" ? url.searchParams.get("v") : url.pathname.split("/").filter(Boolean).pop()) ?? "").trim();
+  const durationSeconds = Number(input.durationSeconds);
+  const chapters = Array.isArray(input.chapters) ? input.chapters
+    .map(chapter => ({ title: String(chapter?.title ?? ""), startSeconds: Number(chapter?.startSeconds) }))
+    .filter(chapter => Number.isFinite(chapter.startSeconds) && chapter.startSeconds >= 0)
+    .sort((a,b) => a.startSeconds-b.startSeconds) : [];
   return {
-    id, title, url: url.toString(),
+    id, title, url: url.toString(), videoId,
+    durationSeconds: Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : null,
+    chapters,
     description: String(input.description ?? "").trim().slice(0, 240),
     thumbnailUrl,
     label: "Featured channel",
@@ -41,5 +49,18 @@ export function selectRaye2ChannelPromo({ promos = [], placement, recentPromoIds
   let candidates = eligible.filter(p => !recent.has(p.id));
   if (!candidates.length) candidates = eligible;
   const index = Math.min(candidates.length - 1, Math.max(0, Math.floor(random() * candidates.length)));
-  return candidates[index];
+  const selected = candidates[index];
+  if (placement === "video" || placement === "live") {
+    const length = 15;
+    const duration = selected.durationSeconds;
+    if (!selected.videoId || !duration || duration <= length + 5) return null;
+    const chapterStarts = selected.chapters
+      .map(chapter => chapter.startSeconds)
+      .filter(seconds => seconds >= 10 && seconds + length <= duration - 5);
+    const startSeconds = chapterStarts.length
+      ? chapterStarts[Math.min(chapterStarts.length - 1, Math.floor(random() * chapterStarts.length))]
+      : 10 + Math.floor(random() * Math.max(1, duration - length - 15));
+    return { ...selected, promoStartSeconds: startSeconds, promoEndSeconds: startSeconds + length, promoDurationSeconds: length };
+  }
+  return selected;
 }
