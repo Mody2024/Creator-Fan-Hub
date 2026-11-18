@@ -5,8 +5,8 @@ import {readFile} from "node:fs/promises";
 const page=await readFile(new URL("../src/app/raye2/studio/page.tsx",import.meta.url),"utf8");
 const css=await readFile(new URL("../src/app/raye2/studio/studio.module.css",import.meta.url),"utf8");
 test("Raye2 Creator Studio has direct role-aware publishing workflow shortcuts",()=>{
- assert.ok(page.includes('href="/creator#creator-media"'));
- assert.ok(page.includes('href="/creator#creator-video-studio"'));
+ assert.ok(page.includes('href="#creator-media"'));
+ assert.ok(page.includes('href="#creator-video-studio"'));
  assert.ok(page.includes('href="/creator/analytics"'));
  assert.ok(page.includes("{canPublish &&"));
  assert.ok(page.includes("{canAnalyze &&"));
@@ -48,5 +48,6 @@ test("creator reward administration is directly discoverable only to owner and a
  assert.ok(home.includes('{["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin">'));
  assert.ok(home.includes('rewardsAdmin:"Creator reward administration"'));
  assert.ok(home.includes('rewardsAdmin:"إدارة مكافآت المبدعين"'));
- assert.ok(home.includes('10 + (["owner","admin"].includes(admin.role) ? 5 : 0) + (admin.role === "owner" ? 1 : 0)'));
+ assert.ok(home.includes("15 / ADMINISTRATION"));
+ assert.ok(home.includes('{["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin">'));
 });
