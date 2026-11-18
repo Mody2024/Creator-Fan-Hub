@@ -111,3 +111,19 @@
 @media(max-width:720px){.header{height:auto;min-height:62px;padding:10px 14px}.intro{padding:24px 15px 18px}.shell{display:block;padding:0 13px 40px}.sidenav{position:relative;top:auto;display:flex;flex-direction:row;max-height:none;overflow-x:auto;gap:8px;margin-bottom:12px;padding:8px}.navGroup{display:flex;flex:0 0 auto;align-items:center}.navGroupTitle{display:none}.navItem{min-height:36px;white-space:nowrap}.main{padding:0}.tabs{top:62px;margin-bottom:14px;padding:7px}.sectionHead{align-items:flex-start;flex-direction:column;margin:22px 0 12px}.card{padding:14px;border-radius:12px}.storageGrid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.footer{padding:17px 14px}}
 @media(max-width:380px){.metrics{grid-template-columns:1fr}.headerActions{gap:7px}.brand{font-size:19px}}
 @media(prefers-reduced-motion:reduce){.page *{scroll-behavior:auto!important;transition:none!important}}
+
+
+/* Admin usability: compact, collapsible navigation and task-first overview */
+.navGroup{border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;margin:0 0 9px;background:rgba(255,255,255,.015)}
+.navGroupTitle{display:flex;align-items:center;justify-content:space-between;gap:12px;list-style:none;cursor:pointer;padding:12px 13px;color:var(--muted,#a1a1aa);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.navGroupTitle::-webkit-details-marker{display:none}
+.navGroup[open] .navGroupTitle{color:var(--ink,#f4f4f6);border-bottom:1px solid rgba(255,255,255,.07)}
+.navGroupTitle span{color:var(--blue,#4d8df6);font-size:15px;transition:transform .15s}
+.navGroup:not([open]) .navGroupTitle span{transform:rotate(-90deg)}
+.navGroupItems{display:grid;gap:3px;padding:7px}
+.quickActions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0 22px}
+.quickActions button{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;padding:12px 14px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.025);color:var(--ink,#f4f4f6);font:700 11px inherit;text-align:start;cursor:pointer}
+.quickActions button:hover{border-color:rgba(77,141,246,.5);background:rgba(77,141,246,.08)}
+.quickActions button span{color:var(--blue,#4d8df6)}
+@media(max-width:900px){.quickActions{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.quickActions{grid-template-columns:1fr}}
