@@ -109,7 +109,7 @@ test("Raye2 media, video studio and team surfaces use the new platform identity"
 });
 
 
-test("editor workspace copy does not grant official media publishing controls", async () => {
+test("editor is admitted to the unified Studio workspace", async () => {
   const page = await read("../src/app/raye2/studio/page.tsx");
   assert.ok(page.includes('const canPublish = ["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
   assert.ok(page.includes('{canPublish && <article'));
