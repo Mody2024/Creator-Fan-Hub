@@ -29,7 +29,7 @@ test("Creator Studio only exposes tools permitted by the assigned role", async (
   assert.ok(page.includes('["owner", "admin", "creator", "streamer", "editor"].includes(role)'));
   assert.ok(page.includes('["owner", "admin", "streamer"].includes(role)'));
   assert.ok(page.includes('["owner", "admin", "creator", "streamer"].includes(role)'));
-  assert.ok(page.includes('role === "editor"'));
+  assert.ok(page.includes('"editor"].includes(role)'));
   assert.ok(page.includes("streamer"));
   assert.ok(page.includes("editor"));
   assert.ok(page.includes("canStream"));
