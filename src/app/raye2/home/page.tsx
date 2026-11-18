@@ -2,8 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import HomeFeedPost from "./home-feed-post";
 import HomeFeedMore from "./home-feed-more";
+import LanguageSwitch from "@/app/language-switch";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicSiteConfig } from "@/lib/public-site-config";
 import { resolvePublicObjectUrls } from "@/lib/storage/resolve.server";
 import styles from "./home.module.css";
 
@@ -90,12 +92,15 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
     });
   }
   const profileHref=myHandle?"/u/"+myHandle:"/community#join";
+  const siteConfig=await getPublicSiteConfig();
+  const headerEyebrow=siteConfig.navigation.contextEyebrow.trim()||(isArabic?"مساحتك":"YOUR SPACE");
+  const headerTitle=siteConfig.navigation.contextTitle.trim()||(isArabic?"اكتشف وتواصل":"Discover & connect");
   return <main className={styles.shell} dir={isArabic?"rtl":"ltr"} lang={locale}>
     <header className={styles.topbar}>
       <Link className={styles.brandMark} href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}><span className={styles.brandGlyph}>R</span><span className={styles.brandPulse}/></Link>
-      <div className={styles.topbarContext}><span className={styles.topbarEyebrow}>{isArabic?"مساحتك":"YOUR SPACE"}</span><strong>{isArabic?"اكتشف وتواصل":"Discover & connect"}</strong></div>
+      <div className={styles.topbarContext}><span className={styles.topbarEyebrow}>{headerEyebrow}</span><strong>{headerTitle}</strong></div>
       <form className={styles.topbarSearch} action="/search"><span aria-hidden="true">⌕</span><input name="q" placeholder={isArabic?"ابحث عن فيديوهات وصُنّاع محتوى":"Search videos, creators and communities"} aria-label={isArabic?"بحث":"Search"}/><kbd>↵</kbd></form>
-      <div className={styles.topbarActions}><Link href="/notifications" aria-label={isArabic?"الإشعارات":"Notifications"} className={styles.topbarIcon}>♧</Link><Link href={profileHref} className={styles.profileShortcut}>{isArabic?"ملفي الشخصي":"My profile"} <span>↗</span></Link></div>
+      <div className={styles.topbarActions}><LanguageSwitch initialLocale={locale} variant="header" label={siteConfig.navigation.languageLabel}/><Link href="/notifications" aria-label={isArabic?"الإشعارات":"Notifications"} className={styles.topbarIcon}>♧</Link><Link href={profileHref} className={styles.profileShortcut}>{isArabic?"ملفي الشخصي":"My profile"} <span>↗</span></Link></div>
     </header>
     <div className={styles.layout}>
       <aside className={`${styles.rail} ${styles.leftRail}`}><span className={styles.railTitle}>{isArabic?"مساحتك / RAYE2":"YOUR SPACE / RAYE2"}</span>

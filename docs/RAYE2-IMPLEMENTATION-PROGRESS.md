@@ -3958,3 +3958,24 @@ same provider — to maximise free capacity, all visible and manageable from the
 
 **Free storage achievable with no credit card:** Supabase 750 MiB + Backblaze B2 10 GB + Tigris 5 GB +
 Filebase 5 GB ≈ **20.75 GB**, and each extra account (e.g. a second B2 account) adds its own free allowance.
+
+---
+
+## Batch — 2026-11-18 (Batch 19): Header language control fix + admin-editable header text
+
+**Goal:** stop the language button overlapping the UI, match big-platform header polish, and make
+more of the header editable from the admin panel.
+
+- **Language control overlap fixed.** The locale pill was `position:fixed; top:14px; right:16px`, so it
+  floated over the sticky app headers (`raye2-app-header`, the home topbar, and the studio header).
+  It now supports a `variant="header"` that renders inline inside `.raye2-header-actions`, and a
+  `body:has(.raye2-app-header) .raye2-language-switch:not(--header){display:none}` guard hides the
+  floating pill whenever a surface renders a header. Wired inline into the Raye2 home topbar, the
+  public landing header, and the community header.
+- **Admin-editable header text.** New optional `navigation` block (`contextEyebrow`, `contextTitle`,
+  `languageLabel`) in the site config: accepted by the app validator (with length caps and unknown-key
+  rejection), parsed by `public-site-config`, editable in the Creator editor, and rendered on the home
+  header. Blank values fall back to the built-in bilingual copy, so older drafts keep working and no
+  database migration is required (the config tables store arbitrary JSONB).
+- Gates: validator **538 assertions**; `check:migrations` **251 migrations** + post-checks + RLS matrix;
+  tests **1028/1028**; tsc clean; lint 0 errors; build OK.

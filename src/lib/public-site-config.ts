@@ -18,6 +18,7 @@ export type PublicSiteConfig = {
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
+  navigation: { contextEyebrow: string; contextTitle: string; languageLabel: string };
   featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
   visibleSections: string[];
   sectionOrder: string[];
@@ -42,6 +43,7 @@ const fallback: PublicSiteConfig = {
   accent: "#4d8df6",
   motion: "full",
   maintenance: { enabled: false, message: "We'll be back soon." },
+  navigation: { contextEyebrow: "", contextTitle: "", languageLabel: "" },
   featureFlags: { polls: true, ideas: true, events: true, guidedTour: true, mascot: true, voice: false, miniGames: false, store: false },
   visibleSections: ["hero","ideas","poll","events","community","socials","videos"],
   sectionOrder: ["hero","ideas","poll","events","community","socials","videos"],
@@ -65,6 +67,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const hero = (raw.hero && typeof raw.hero === "object" ? raw.hero : {}) as Record<string, unknown>;
   const appearance = (raw.appearance && typeof raw.appearance === "object" ? raw.appearance : {}) as Record<string, unknown>;
   const maintenance = (raw.maintenance && typeof raw.maintenance === "object" ? raw.maintenance : {}) as Record<string, unknown>;
+  const navigation = (raw.navigation && typeof raw.navigation === "object" ? raw.navigation : {}) as Record<string, unknown>;
   const flags = (raw.featureFlags && typeof raw.featureFlags === "object" ? raw.featureFlags : {}) as Record<string, unknown>;
   const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
   const allowedSections = ["hero","ideas","poll","events","community","socials","videos"];
@@ -104,6 +107,11 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     maintenance: {
       enabled: maintenance.enabled === true,
       message: typeof maintenance.message === "string" ? maintenance.message.slice(0, 240) : fallback.maintenance.message
+    },
+    navigation: {
+      contextEyebrow: typeof navigation.contextEyebrow === "string" ? navigation.contextEyebrow.slice(0, 40) : "",
+      contextTitle: typeof navigation.contextTitle === "string" ? navigation.contextTitle.slice(0, 60) : "",
+      languageLabel: typeof navigation.languageLabel === "string" ? navigation.languageLabel.slice(0, 20) : ""
     },
     visibleSections: Array.isArray(layout.visibleSections) ? layout.visibleSections.filter((item): item is string => typeof item === "string" && allowedSections.includes(item)) : fallback.visibleSections,
     sectionOrder: Array.isArray(layout.sectionOrder) ? [...new Set(layout.sectionOrder.filter((item): item is string => typeof item === "string" && allowedSections.includes(item)))].concat(fallback.sectionOrder.filter(item => !(layout.sectionOrder as unknown[]).includes(item))) : fallback.sectionOrder,

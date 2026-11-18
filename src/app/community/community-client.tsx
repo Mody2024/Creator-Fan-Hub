@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Raye2ReactionArt from "@/app/watch/[slug]/raye2-reaction-art";
+import LanguageSwitch from "@/app/language-switch";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import "./raye2-community.css";
 import { PLATFORM_NAV_ACCOUNT, PLATFORM_NAV_PRIMARY, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
@@ -732,7 +733,7 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
     <header className="raye2-app-header">
       <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-community-mark">R</span></Link>
       <form className="raye2-search-form" action="/search"><input className="raye2-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
-      <div className="raye2-header-actions">{member ? <><Link className="raye2-muted" href={"/u/"+member.handle}>@{member.handle}</Link><Link className="raye2-icon-button" href="/notifications" aria-label={unreadNotificationCount>0?`${t.notifications}, ${unreadNotificationCount} unread`:t.notifications} title={t.notifications} style={{position:"relative"}}>♧{unreadNotificationCount>0&&<span aria-hidden="true" style={{position:"absolute",top:-5,right:-5,minWidth:17,height:17,padding:"0 4px",borderRadius:99,background:"var(--raye2-ds-accent)",color:"white",fontSize:10,fontWeight:800,lineHeight:"17px",textAlign:"center"}}>{unreadNotificationCount>99?"99+":unreadNotificationCount}</span>}</Link><button className="raye2-icon-button" onClick={signOut} aria-label="Sign out">↗</button></> : <Link className="raye2-pill" href="#join">{t.join}</Link>}</div>
+      <div className="raye2-header-actions"><LanguageSwitch initialLocale={locale} variant="header"/>{member ? <><Link className="raye2-muted" href={"/u/"+member.handle}>@{member.handle}</Link><Link className="raye2-icon-button" href="/notifications" aria-label={unreadNotificationCount>0?`${t.notifications}, ${unreadNotificationCount} unread`:t.notifications} title={t.notifications} style={{position:"relative"}}>♧{unreadNotificationCount>0&&<span aria-hidden="true" style={{position:"absolute",top:-5,right:-5,minWidth:17,height:17,padding:"0 4px",borderRadius:99,background:"var(--raye2-ds-accent)",color:"white",fontSize:10,fontWeight:800,lineHeight:"17px",textAlign:"center"}}>{unreadNotificationCount>99?"99+":unreadNotificationCount}</span>}</Link><button className="raye2-icon-button" onClick={signOut} aria-label="Sign out">↗</button></> : <Link className="raye2-pill" href="#join">{t.join}</Link>}</div>
     </header>
     <div className="raye2-platform-grid">
       <aside className="raye2-sidebar" aria-label={t.community}>

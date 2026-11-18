@@ -45,7 +45,7 @@ export function validateSiteConfig(input) {
   }
 
   checkAllowedKeys(input, new Set([
-    "schemaVersion", "identity", "appearance", "layout", "hero",
+    "schemaVersion", "identity", "appearance", "layout", "hero", "navigation",
     "socialLinkIds", "featureFlags", "maintenance"
   ]), "$", errors);
 
@@ -121,6 +121,19 @@ export function validateSiteConfig(input) {
     }
     for (const key of ["muted", "loop"]) {
       if (typeof hero[key] !== "boolean") addError(errors, `hero.${key}`, "must be boolean");
+    }
+  }
+
+  // Navigation text is optional; older drafts omit it and fall back to built-in copy.
+  if (input.navigation !== undefined) {
+    const navigation = input.navigation;
+    if (!isRecord(navigation)) {
+      addError(errors, "navigation", "must be an object");
+    } else {
+      checkAllowedKeys(navigation, new Set(["contextEyebrow", "contextTitle", "languageLabel"]), "navigation", errors);
+      checkText(navigation.contextEyebrow, "navigation.contextEyebrow", errors, { max: 40 });
+      checkText(navigation.contextTitle, "navigation.contextTitle", errors, { max: 60 });
+      checkText(navigation.languageLabel, "navigation.languageLabel", errors, { max: 20 });
     }
   }
 

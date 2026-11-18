@@ -584,8 +584,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-language-switch:hover{border-color:var(--raye2-ds-accent);color:var(--raye2-ds-accent)}
 .raye2-language-switch:focus-visible{outline:2px solid var(--raye2-ds-accent);outline-offset:3px}
 .raye2-language-switch span{font-size:15px}
+/* Inline header control: sits inside .raye2-header-actions and never floats over content. */
+.raye2-language-switch--header{position:static;z-index:auto;min-height:38px;background:var(--raye2-ds-surface);box-shadow:none}
+/* When a surface renders an app header, hide the floating control so the two never collide. */
+body:has(.raye2-app-header) .raye2-language-switch:not(.raye2-language-switch--header){display:none}
 [dir="rtl"]{text-align:right}
-[dir="rtl"] .raye2-language-switch{right:auto;left:16px}
+[dir="rtl"] .raye2-language-switch:not(.raye2-language-switch--header){right:auto;left:16px}
 [dir="rtl"] .raye2-app-header,[dir="rtl"] .raye2-card-heading,[dir="rtl"] .raye2-post-header{direction:rtl}
 [dir="rtl"] .raye2-sidebar-link,[dir="rtl"] .raye2-home-discovery-links a{direction:rtl}
 [dir="rtl"] .raye2-search-form input{text-align:right}

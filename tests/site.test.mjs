@@ -211,6 +211,25 @@ test("configuration validator rejects duplicate social link IDs", () => {
   assert.ok(result.errors.some((error) => error.path === "socialLinkIds"));
 });
 
+test("optional header navigation text is accepted and validated", () => {
+  const accepted = structuredClone(validConfig);
+  accepted.navigation = { contextEyebrow: "YOUR SPACE", contextTitle: "Discover & connect", languageLabel: "العربية" };
+  assert.equal(validateSiteConfig(accepted).ok, true);
+
+  const invalid = structuredClone(validConfig);
+  invalid.navigation = { contextEyebrow: "x".repeat(41), contextTitle: 5, languageLabel: "ok" };
+  const result = validateSiteConfig(invalid);
+  assert.equal(result.ok, false);
+  assert.ok(result.errors.some((error) => error.path === "navigation.contextEyebrow"));
+  assert.ok(result.errors.some((error) => error.path === "navigation.contextTitle"));
+});
+
+test("older drafts without navigation text still validate", () => {
+  const legacy = structuredClone(validConfig);
+  delete legacy.navigation;
+  assert.equal(validateSiteConfig(legacy).ok, true);
+});
+
 test("published configuration history is private to server operations", async () => {
   const policy = await readFile(new URL("../supabase/rls-policies.sql", import.meta.url), "utf8");
   assert.match(policy, /alter table public\.published_site_config_versions enable row level security/i);

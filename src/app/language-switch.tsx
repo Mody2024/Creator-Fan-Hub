@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 
-export default function LanguageSwitch({ initialLocale = "en" }: { initialLocale?: "en" | "ar" }) {
+type Variant = "floating" | "header";
+
+/**
+ * Locale control. `floating` renders the fixed pill used on surfaces without an app header;
+ * `header` renders an inline control meant to sit inside `.raye2-header-actions` so it never
+ * overlaps the sticky header content.
+ */
+export default function LanguageSwitch({ initialLocale = "en", variant = "floating", label }: { initialLocale?: "en" | "ar"; variant?: Variant; label?: string }) {
   const [locale, setLocale] = useState<"en" | "ar">(initialLocale);
   useEffect(() => {
     const match = document.cookie.match(/(?:^|; )raye2_locale=(en|ar)(?:;|$)/);
@@ -18,7 +25,15 @@ export default function LanguageSwitch({ initialLocale = "en" }: { initialLocale
     setLocale(next);
     window.location.reload();
   }
-  return <button type="button" className="raye2-language-switch" onClick={toggle} aria-label={locale === "en" ? "Switch language to Arabic" : "تغيير اللغة إلى الإنجليزية"} lang={locale === "en" ? "en" : "ar"}>
-    <span aria-hidden="true">◎</span>{locale === "en" ? "العربية" : "English"}
+  const text = label && label.trim().length > 0 ? label : locale === "en" ? "العربية" : "English";
+  return <button
+    type="button"
+    className={variant === "header" ? "raye2-language-switch raye2-language-switch--header" : "raye2-language-switch"}
+    onClick={toggle}
+    aria-label={locale === "en" ? "Switch language to Arabic" : "تغيير اللغة إلى الإنجليزية"}
+    lang={locale === "en" ? "en" : "ar"}
+  >
+    <span aria-hidden="true">◎</span>{text}
   </button>;
 }
+

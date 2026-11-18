@@ -11,6 +11,7 @@ type SiteConfig = {
   socialLinkIds: string[];
   featureFlags: { polls: boolean; ideas: boolean; events: boolean; guidedTour: boolean; mascot: boolean; voice: boolean; miniGames: boolean; store: boolean };
   maintenance: { enabled: boolean; message: string };
+  navigation?: { contextEyebrow: string; contextTitle: string; languageLabel: string };
 };
 
 export default function CreatorEditor({ initialConfig, initialRevision }: { initialConfig: SiteConfig; initialRevision: number }) {
@@ -53,6 +54,8 @@ export default function CreatorEditor({ initialConfig, initialRevision }: { init
     ["guidedTour", "Guided tour"], ["mascot", "Mascot"], ["voice", "Voice narration"],
     ["miniGames", "Mini-games"], ["store", "Store (future)"]
   ];
+  const navigation = config.navigation ?? { contextEyebrow: "", contextTitle: "", languageLabel: "" };
+  const patchNavigation = (key: keyof typeof navigation, value: string) => patch("navigation", { ...navigation, [key]: value });
 
   return <section className="editor-panel">
     <div className="editor-heading"><div><span className="eyebrow">LIVE CONFIGURATION</span><h2>Shape the public site.</h2><p>Save a private draft first, then publish it when you are ready.</p></div><span className="draft-badge">REVISION {revision}</span></div>
@@ -64,6 +67,9 @@ export default function CreatorEditor({ initialConfig, initialRevision }: { init
       <div className="editor-field"><label>Visual theme</label><input value="Raye2 — black / white / grey / blue" readOnly aria-label="Fixed single Raye2 theme" /><small>The product uses one theme; the palette is fixed for consistency.</small></div>
       <div className="editor-field"><label htmlFor="accent">Accent color</label><div className="color-input"><input id="accent" type="color" value={config.appearance.accent} onChange={e=>patch("appearance",{...config.appearance,accent:e.target.value})}/><code>{config.appearance.accent}</code></div></div>
       <div className="editor-field editor-wide"><label htmlFor="maintenanceMessage">Maintenance message</label><input id="maintenanceMessage" maxLength={240} value={config.maintenance.message} onChange={e=>patch("maintenance",{...config.maintenance,message:e.target.value})}/><label className="switch-line"><input type="checkbox" checked={config.maintenance.enabled} onChange={e=>patch("maintenance",{...config.maintenance,enabled:e.target.checked})}/> Enable maintenance mode on the public website</label></div>
+      <div className="editor-field"><label htmlFor="navEyebrow">Header context eyebrow</label><input id="navEyebrow" maxLength={40} value={navigation.contextEyebrow} onChange={e=>patchNavigation("contextEyebrow",e.target.value)}/><small>Small label in the home header. Blank uses the built-in copy.</small></div>
+      <div className="editor-field"><label htmlFor="navTitle">Header context title</label><input id="navTitle" maxLength={60} value={navigation.contextTitle} onChange={e=>patchNavigation("contextTitle",e.target.value)}/><small>Primary label under the eyebrow. Blank uses the built-in copy.</small></div>
+      <div className="editor-field"><label htmlFor="navLanguage">Language button label</label><input id="navLanguage" maxLength={20} value={navigation.languageLabel} onChange={e=>patchNavigation("languageLabel",e.target.value)}/><small>Text on the language button. Blank shows the target language name.</small></div>
     </div>
     <div className="feature-editor"><span className="eyebrow">FEATURE VISIBILITY</span><div className="feature-toggle-grid">{featureLabels.map(([key,label])=><label className="switch-line" key={key}><input type="checkbox" checked={config.featureFlags[key]} onChange={e=>patch("featureFlags",{...config.featureFlags,[key]:e.target.checked})}/>{label}</label>)}</div><p>Disabled features retain their settings. Some modules remain previews until their full functionality is implemented.</p></div>
     <div className="editor-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={save}>{busy?"Working…":"Save draft"}</button><button type="button" className="button button-primary" disabled={busy} onClick={publish}>{busy?"Working…":"Publish to public site ↗"}</button></div>
