@@ -25,12 +25,26 @@ Persistent, repository-specific knowledge for agents working in this repo.
 ## Gates (run before every commit)
 
 ```bash
-npm run check     # static repository validation (assertion count grows each batch)
+npm run check     # static validation + live migration apply on a throwaway PostgreSQL cluster
 npm test          # node --test, all tests/*.test.mjs
 npx tsc --noEmit  # typecheck
 npm run lint      # eslint (warnings are pre-existing; 0 errors expected)
 npm run build     # next build
 ```
+
+`npm run check` chains `check:static` (the assertion validator) and `check:migrations`. The migration
+check (`scripts/raye2-migration-check.mjs`) stands up an ephemeral PostgreSQL cluster, loads the
+Supabase-compatible stub (`scripts/raye2-stub-supabase.sql`) and applies every migration in order with
+`ON_ERROR_STOP`, then asserts invariants (`scripts/raye2-migration-postchecks.sql`). It needs no Docker
+and skips cleanly when no PostgreSQL is installed or `RAYE2_PG_DSN` is unset, so it is safe in CI. Run it
+alone with `npm run check:migrations`. Set `RAYE2_PGBIN` if the server binaries are in a non-standard place.
+
+### Editing migrations
+
+The forward-only rule above still holds for anything that has run against a real database. Exception: a
+migration that could never have applied anywhere (it fails to parse or fails on apply) is corruption, not
+history — fix it in place, prove it with `npm run check:migrations`, and record the repair in the progress
+doc. Do not add a corrective migration on top of a file that never executed.
 
 ## Live DB verification (the important part)
 

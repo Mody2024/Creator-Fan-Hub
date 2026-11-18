@@ -106,7 +106,7 @@ as $$
   select coalesce(sum(case when (o.metadata->>'size') ~ '^[0-9]+$' then (o.metadata->>'size')::bigint else 0 end),0)
   from storage.objects o
   where o.bucket_id = any(public.raye2_managed_buckets())
-    and o.owner_id = p_user_id
+    and o.owner_id = p_user_id::text
     and o.created_at >= p_period_start;
 $$;
 revoke all on function public.raye2_storage_period_used(uuid,timestamptz) from public, anon;

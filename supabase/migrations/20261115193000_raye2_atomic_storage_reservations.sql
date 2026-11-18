@@ -144,6 +144,7 @@ begin
 end;
 $$;
 
+
 create or replace function public.raye2_commit_storage_object(
   p_reservation_id uuid,
   p_bucket_id text,
@@ -171,7 +172,12 @@ begin
     or p_object_key is null or length(p_object_key) not between 1 and 1024
     or p_size_bytes is null or p_size_bytes<1
     or p_visibility not in ('private','public')
-    or (p_checksum_sha256 is not null and p_checksum_sha256 !~ '^[a-fA-F0-9]{64}
+    or (p_checksum_sha256 is not null and p_checksum_sha256 !~ '^[a-fA-F0-9]{64}$')
+    or (p_etag is not null and length(p_etag) not between 1 and 256) then
+    raise exception 'invalid verified storage object metadata' using errcode='22023';
+  end if;
+
+  select * into v_reservation
   from public.raye2_storage_reservations
   where reservation_id=p_reservation_id
   for update;
@@ -270,94 +276,5 @@ comment on function public.raye2_reserve_storage(uuid,text,text,text,bigint,text
   'Atomically reserves provider and per-user/per-role capacity. Called only by trusted server code after it resolves the authenticated role.';
 comment on function public.raye2_commit_storage_object(uuid,text,text,bigint,text,text,text,text,uuid) is
   'Commits server-verified object metadata and consumes its reservation atomically.';
-) then
-    raise exception 'invalid verified storage object metadata' using errcode='22023';
-  end if;
-
-  select * into v_reservation
-  from public.raye2_storage_reservations
-  where reservation_id=p_reservation_id
-  for update;
-  if not found or v_reservation.reservation_state<>'active' or v_reservation.expires_at<=now() then
-    raise exception 'active storage reservation not found' using errcode='55000';
-  end if;
-  if p_size_bytes>v_reservation.expected_bytes then
-    raise exception 'verified object exceeds reserved bytes' using errcode='53100';
-  end if;
-
-  insert into public.raye2_storage_objects(
-    provider_id,bucket_id,object_key,owner_id,asset_class,visibility,object_state,
-    size_bytes,mime_type,checksum_sha256,etag,media_id,idempotency_key,verified_at
-  ) values (
-    v_reservation.provider_id,p_bucket_id,p_object_key,v_reservation.owner_id,
-    v_reservation.asset_class,p_visibility,'active',p_size_bytes,p_mime_type,
-    p_checksum_sha256,p_etag,p_media_id,'object:'||v_reservation.idempotency_key,now()
-  ) returning object_id into v_object_id;
-
-  update public.raye2_storage_reservations
-  set reservation_state='consumed',object_id=v_object_id,completed_at=now()
-  where reservation_id=p_reservation_id;
-
-  update public.raye2_storage_providers
-  set used_bytes=used_bytes+p_size_bytes,
-      reserved_bytes=greatest(0,reserved_bytes-v_reservation.expected_bytes),
-      updated_at=now()
-  where provider_id=v_reservation.provider_id;
-
-  insert into public.raye2_storage_usage_ledger(
-    idempotency_key,provider_id,owner_id,object_id,event_kind,delta_bytes,details
-  ) values (
-    'verified:'||v_reservation.idempotency_key,v_reservation.provider_id,
-    v_reservation.owner_id,v_object_id,'upload_verified',p_size_bytes,
-    jsonb_build_object('bucket',p_bucket_id,'key',p_object_key,'visibility',p_visibility)
-  );
-
-  return v_object_id;
-end;
-$$;
-
-create or replace function public.raye2_release_storage_reservation(
-  p_reservation_id uuid,
-  p_final_state text default 'released'
-)
-returns boolean
-language plpgsql
-security definer
-set search_path=''
-as $$
-declare
-  v_reservation public.raye2_storage_reservations%rowtype;
-begin
-  if coalesce(current_setting('request.jwt.claim.role',true),'') <> 'service_role' then
-    raise exception 'service role required' using errcode='42501';
-  end if;
-  if p_final_state not in ('released','expired') then
-    raise exception 'invalid reservation final state' using errcode='22023';
-  end if;
-  select * into v_reservation
-  from public.raye2_storage_reservations
-  where reservation_id=p_reservation_id
-  for update;
-  if not found or v_reservation.reservation_state<>'active' then return false; end if;
-
-  update public.raye2_storage_reservations
-  set reservation_state=p_final_state,completed_at=now()
-  where reservation_id=p_reservation_id;
-  update public.raye2_storage_providers
-  set reserved_bytes=greatest(0,reserved_bytes-v_reservation.expected_bytes),updated_at=now()
-  where provider_id=v_reservation.provider_id;
-  return true;
-end;
-$$;
-
-revoke all on function public.raye2_reserve_storage(uuid,text,text,text,bigint,text,integer) from public,anon,authenticated;
-revoke all on function public.raye2_commit_storage_object(uuid,text,text,bigint,text,text,text,text,uuid) from public,anon,authenticated;
-revoke all on function public.raye2_release_storage_reservation(uuid,text) from public,anon,authenticated;
-grant execute on function public.raye2_reserve_storage(uuid,text,text,text,bigint,text,integer) to service_role;
-grant execute on function public.raye2_commit_storage_object(uuid,text,text,bigint,text,text,text,text,uuid) to service_role;
-grant execute on function public.raye2_release_storage_reservation(uuid,text) to service_role;
-
-comment on function public.raye2_reserve_storage(uuid,text,text,text,bigint,text,integer) is
-  'Atomically reserves provider and per-user/per-role capacity. Called only by trusted server code after it resolves the authenticated role.';
-comment on function public.raye2_commit_storage_object(uuid,text,text,bigint,text,text,text,text,uuid) is
-  'Commits server-verified object metadata and consumes its reservation atomically.';
+comment on function public.raye2_release_storage_reservation(uuid,text) is
+  'Releases an active reservation, returning its bytes to provider and user capacity.';

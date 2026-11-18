@@ -3553,6 +3553,52 @@ conversation message. Additive; `main` and production unchanged.
 - **Not yet done (provider/environment-dependent):** live RLS application and RPC acceptance on an isolated
   Supabase project.
 
+## Batch — 2026-11-10 (Batch 11): Group profile editing and moderation log (development only)
+
+**Goal:** close the Wave 5 community gap where a group's profile (description, rules, image) could only be set at
+creation and moderation actions were never recorded. Additive; `main` and production unchanged.
+
+- **Model.** Migration adds `raye2_group_moderation_log` (RLS-locked, manager-read via guarded RPC) and the
+  manager-only `raye2_update_group_profile` RPC.
+- **Client.** `saveGroupProfile()` (manager-only; validates description ≤ 1000, rules ≤ 3000, https image URL) and
+  `moderationLabel()` plus the manage-section UI in `src/app/raye2/raye2-client.tsx`.
+- **Tests/validator:** `tests/raye2-group-profile-moderation.test.mjs` (4 tests). Validator grew to 525 assertions.
+- Gates: validator 525 assertions; tests 1014/1014; tsc clean; lint 0 errors / 19 warnings; build OK.
+
+## Batch — 2026-11-10 (Batch 12): Isolated PostgreSQL migration-validation harness (development only)
+
+**Goal:** prove the whole migration chain actually applies on a real PostgreSQL before any provider integration,
+and repair the genuine corruption that only a live apply exposes. Additive; `main` and production unchanged.
+
+- **Harness.** `scripts/raye2-migration-check.mjs` spins up a throwaway PostgreSQL cluster, loads a
+  Supabase-compatible stub (`scripts/raye2-stub-supabase.sql`: `auth`/`storage`/`realtime`/`private` schemas,
+  `anon`/`authenticated`/`service_role` roles, `auth.uid()`/`auth.role()`/`auth.jwt()`, `storage.objects`/
+  `buckets` with the real `owner_id text` column, `realtime.topic()`, `supabase_realtime` publication), applies
+  all 248 migrations in order with `ON_ERROR_STOP`, then runs invariant post-checks
+  (`scripts/raye2-migration-postchecks.sql`). It honours `RAYE2_PG_DSN` for an existing server and skips cleanly
+  when PostgreSQL is absent, so it is safe in CI.
+- **Genuine corruption repaired (found only by the live apply):**
+  1. `20261115193000_raye2_atomic_storage_reservations.sql` — `raye2_commit_storage_object` had a duplicated,
+     out-of-order `if … then` fragment and a truncated checksum regex (`'^[a-fA-F0-9]{64}` missing its closing
+     brace and quote). The file could not parse at all. Reconstructed the function and the following
+     `raye2_release_storage_reservation` + grants block.
+  2. `20261111070000_raye2_community_feed_linked_slug.sql` — redefined `raye2_get_community_feed` with a changed
+     return type but no `drop function`; added the drop for the 4-arg signature before the redefinition.
+  3. `20261116120000_raye2_storage_allowances_and_control.sql` — `raye2_storage_period_used` compared
+     `storage.objects.owner_id` (real Supabase type `text`) to a `uuid` argument; corrected to `p_user_id::text`.
+- **Stub fidelity:** added `auth.sessions.user_agent`/`refreshed_at`/`ip` and `storage.objects.owner_id` /
+  `storage.buckets.owner_id`, verified against the upstream `supabase/auth` and `supabase/storage` migrations.
+- **Invariants asserted after apply:** every `public` table has RLS; every `SECURITY DEFINER` function pins
+  `search_path`; Batch 9/10/11 artifacts exist and are RLS-locked; the storage reservation/commit RPCs are
+  service-role only.
+- **Gate wiring.** `npm run check` now runs the static validator **and** the live migration check
+  (`check:static` / `check:migrations` split out). Validator grew to **529 assertions**.
+- **Tests:** `tests/raye2-migration-harness.test.mjs` (6 tests). Full suite **1020 pass / 0 fail**.
+- Gates: validator 529 assertions; live check applied **248/248 migrations** on PostgreSQL 17 with 0 failures;
+  tests 1020/1020; tsc clean; lint 0 errors / 20 warnings; build OK.
+- **Progress accounting:** this batch hardens correctness/verification; it does not add broad feature coverage.
+  The canonical ten-wave table is unchanged.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3572,7 +3618,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
-Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
+Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (Supabase RLS behavioral acceptance on a hosted project and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). Isolated migration application is now **verified**: the full 248-migration chain applies on PostgreSQL 17 with the Supabase-compatible stub and all post-apply invariants hold (`npm run check:migrations`), so Wave 9's remaining gap is RLS/route behavioral acceptance, load/capacity/cost checks and owner sign-off rather than migration execution. All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.
 
 
 ---

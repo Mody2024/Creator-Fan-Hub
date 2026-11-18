@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "node --test",
-    "check": "node scripts/validate-static-site.mjs",
+    "check": "node scripts/validate-static-site.mjs && node scripts/raye2-migration-check.mjs",
+    "check:static": "node scripts/validate-static-site.mjs",
+    "check:migrations": "node scripts/raye2-migration-check.mjs",
     "media:worker": "node scripts/raye2-media-worker.mjs",
     "storage:reconcile": "node scripts/raye2-storage-reconcile.mjs"
   },

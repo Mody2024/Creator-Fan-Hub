@@ -1080,6 +1080,31 @@ check("the watch detail page accepts a pooled origin for videos, HLS and posters
 check("the creator studio and watch-together client surfaces resolve pooled playback", (await read("../src/app/creator/video-studio.tsx")).includes("resolveStorageDeliveries") && (await read("../src/app/raye2/raye2-watch-together-controls.tsx")).includes("resolveStorageDelivery") && (await read("../src/app/watch/watch-library-more.tsx")).includes("resolveStorageDeliveries"));
 check("the shared server resolver exposes a public-object convenience wrapper", (await read("../src/lib/storage/resolve.server.ts")).includes("export async function resolvePublicObjectUrls"));
 
+const migrationCheckScript = await read("../scripts/raye2-migration-check.mjs");
+const migrationStub = await read("../scripts/raye2-stub-supabase.sql");
+const migrationPostchecks = await read("../scripts/raye2-migration-postchecks.sql");
+const packageManifest = JSON.parse(await read("../package.json"));
+check("the live migration check applies every migration on a throwaway cluster",
+  migrationCheckScript.includes("supabase") && migrationCheckScript.includes("migrations") &&
+  migrationCheckScript.includes("ON_ERROR_STOP") && migrationCheckScript.includes("raye2-stub-supabase.sql") &&
+  migrationCheckScript.includes("raye2-migration-postchecks.sql"));
+check("the Supabase stub mirrors the auth/storage/realtime surfaces the migrations use",
+  migrationStub.includes("create table if not exists auth.users") &&
+  migrationStub.includes("create or replace function auth.uid()") &&
+  migrationStub.includes("create table if not exists storage.objects") &&
+  migrationStub.includes("owner_id text") &&
+  migrationStub.includes("create table if not exists realtime.messages") &&
+  migrationStub.includes("create role anon nologin noinherit"));
+check("the migration post-checks assert row level security and pinned search_path",
+  migrationPostchecks.includes("public tables without row level security") &&
+  migrationPostchecks.includes("security definer functions without a pinned search_path") &&
+  migrationPostchecks.includes("storage reservation RPCs must be service-role only"));
+check("npm run check runs the static validator and the live migration check",
+  typeof packageManifest.scripts.check === "string" &&
+  packageManifest.scripts.check.includes("validate-static-site.mjs") &&
+  packageManifest.scripts.check.includes("raye2-migration-check.mjs") &&
+  packageManifest.scripts["check:migrations"] === "node scripts/raye2-migration-check.mjs");
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);
