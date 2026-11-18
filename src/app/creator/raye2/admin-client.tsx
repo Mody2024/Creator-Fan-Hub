@@ -345,7 +345,7 @@ export default function Raye2AdminClient({ locale, initialRules, initialRetentio
   ];
   const activeLabel = navGroups.flatMap(group => group.items).find(item => item.id === tab)?.label ?? "";
   return <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
-    <header className={styles.header}><Link href="/raye2" className={styles.brand}>RAYE<span>2</span></Link><div><span className={styles.dot}/>{t.eyebrow}</div><div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link href="/creator">{t.back}</Link></div></header>
+    <header className={styles.header}><Link href="/raye2" className={styles.brand}>RAYE<span>2</span></Link><div><span className={styles.dot}/>{t.eyebrow}</div><div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link href="/raye2/studio">{isAr ? "استوديو المبدعين" : "Creator Studio"}</Link><Link href="/raye2/home">{isAr ? "المنصة" : "Platform"}</Link></div></header>
     <section className={styles.intro}><span>{t.eyebrow}</span><h1>{t.title}</h1><p>{t.intro}</p></section>
     <div className={styles.shell}>
       <nav className={styles.sidenav} aria-label="Raye2 admin sections">{navGroups.map(group => <div className={styles.navGroup} key={group.title}><span className={styles.navGroupTitle}>{group.title}</span>{group.items.map(item => <button key={item.id} type="button" className={tab === item.id ? styles.navItemActive : styles.navItem} aria-current={tab === item.id ? "page" : undefined} onClick={() => setTab(item.id)}>{item.label}</button>)}</div>)}</nav>
