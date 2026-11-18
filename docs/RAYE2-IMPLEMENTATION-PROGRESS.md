@@ -3455,6 +3455,33 @@ reactions. Additive; `main`/production unchanged.
 - **Not yet done (provider/environment-dependent):** LiveKit provider deployment and real multi-device Watch
   Together acceptance; live RLS application on an isolated Supabase project.
 
+## Batch — 2026-11-10 (Batch 7): Community clip permalinks and share-to-chat (development only)
+
+**Goal:** close the remaining community-clip gap from plan 13.5 — clips had publish/report/remove but no
+canonical address and no way to share them into a conversation, so "provide … share … behavior" and "clips shared
+into communities or chats must remain subject to source and clip permissions" were unmet. Additive; `main` and
+production unchanged.
+
+- **Permission-checked permalink.** Migration `20261116190000_raye2_clip_permalink_and_share.sql` adds
+  `raye2_get_community_clip(p_clip_id)`, which returns a single clip only when it is live and source-permitted,
+  or to its clipper, the source owner or a community moderator. Permissions are re-evaluated on every read, so a
+  link never outlives the clip's eligibility (source clipping disabled, expired, removed, blocked clipper).
+- **Share-to-chat.** `raye2_share_clip_to_chat(p_conversation_id, p_clip_id)` posts a structured
+  `kind:'clip_share'` message into a conversation the sender belongs to. The title and `/clips/<id>` link are
+  server-derived, and the same live/source-permission rules gate the share, so a client cannot forge a link to an
+  unavailable clip.
+- **Permalink route.** New `src/app/clips/[id]/page.tsx` server-renders the clip through the shared pooled-object
+  resolver (same path as the feed), refuses a non-live clip with `notFound()`, and validates the id as a UUID.
+  `clip-detail-client.tsx` adds copy-link, share-to-chat, report and owner/moderator remove.
+- **Feed + chat wiring.** The clips feed links each card to `/clips/<id>` and can copy the canonical address. The
+  chat client now loads and renders `attachment` for `clip_share` and `video_share` messages as real links
+  (previously a shared clip rendered as plain text with no link).
+- **Tests/validator:** `tests/raye2-clip-permalink-share.test.mjs` (6 tests). Validator grew to 518 assertions.
+- Gates: validator 518 assertions; tests 995/995; tsc clean; lint 0 errors / 19 warnings; build OK
+  (`/clips/[id]` route built, 1.87 kB / 151 kB).
+- **Not yet done (provider/environment-dependent):** live RLS application and route-guard acceptance on an
+  isolated Supabase project; source-creator "disable clipping" acceptance on live data.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3464,7 +3491,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
 | 2 | Core platform architecture, accounts and permissions | ~90% |
-| 3 | Video, feed and discovery ecosystem | ~98% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
 | 4 | Creator Studio, exclusives and live streaming | ~98% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |

@@ -17,7 +17,7 @@ type MemorySettings = { group_id: string; contribution_policy: "all_members" | "
 type GroupMember = { group_id: string; user_id: string; role: "owner" | "admin" | "moderator" | "member"; status: string; joined_at: string; profile?: Profile };
 type JoinRequest = { id: string; group_id: string; user_id: string; note: string; status: "pending" | "approved" | "declined" | "cancelled"; created_at: string; profile?: Profile };
 type Conversation = { id: string; conversation_type: "direct" | "group"; group_id: string | null; status: string; created_at: string };
-type Message = { id: string; conversation_id: string; sender_id: string; body: string; parent_message_id: string | null; edited_at: string | null; created_at: string; topic_id?: string | null };
+type Message = { id: string; conversation_id: string; sender_id: string; body: string; parent_message_id: string | null; edited_at: string | null; created_at: string; topic_id?: string | null; attachment?: { kind?: string; slug?: string; clip_id?: string; start_seconds?: number | null; title?: string } | null };
 type GroupTopic = { id: string; slug: string; name: string; topic_position: number; message_count: number };
 type ActiveRule = { rule_key: string; category: string; rule_value: unknown; description: string };
 type Thread = { id: string; kind: "direct" | "group"; title: string; subtitle: string; conversationId: string; groupId: string | null; otherUserId: string | null; avatar: string; updatedAt: string; lastMessage: string; unread: number; canSend: boolean };
@@ -160,7 +160,7 @@ export default function Raye2Client() {
     const conversationIds = conversationRows.map(row => row.id);
     const [{ data: roster }, { data: messageRows }] = await Promise.all([
       conversationIds.length ? supabase.from("raye2_conversation_members").select("conversation_id,user_id").in("conversation_id", conversationIds) : Promise.resolve({ data: [] }),
-      conversationIds.length ? supabase.from("raye2_messages").select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id").in("conversation_id", conversationIds).order("created_at", { ascending: false }).limit(600) : Promise.resolve({ data: [] })
+      conversationIds.length ? supabase.from("raye2_messages").select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment").in("conversation_id", conversationIds).order("created_at", { ascending: false }).limit(600) : Promise.resolve({ data: [] })
     ]);
     const rosterRows = (roster ?? []) as Array<{ conversation_id: string; user_id: string }>;
     const profileIds = [...new Set(rosterRows.map(row => row.user_id).concat((messageRows ?? []).map((row: Message) => row.sender_id)))].filter(id => id !== uid);
@@ -257,7 +257,7 @@ export default function Raye2Client() {
         if (error || !data?.length) { setPinnedMessages([]); return; }
         const ids = data.map(row => row.message_id);
         const result = await supabase.from("raye2_messages")
-          .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at")
+          .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,attachment")
           .eq("conversation_id", selected.conversationId).in("id", ids);
         if (active) setPinnedMessages(((result.data ?? []) as PinnedMessage[]).sort((a,b) => a.created_at.localeCompare(b.created_at)));
       });
@@ -354,7 +354,7 @@ export default function Raye2Client() {
     try {
       const term = messageSearch.trim().replace(/[\\%_]/g, "\\  async function blockUser(targetUserId: string) {").slice(0, 120);
       const { data, error } = await supabase.from("raye2_messages")
-        .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at")
+        .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,attachment")
         .eq("conversation_id", selected.conversationId).ilike("body", "%" + term + "%")
         .order("created_at", { ascending: false }).limit(30);
       if (error) throw error;
@@ -851,7 +851,7 @@ export default function Raye2Client() {
     const optimistic: Message = { id: tempId, conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: replyTo?.id ?? null, edited_at: null, created_at: new Date().toISOString(), topic_id: activeTopicId ?? null };
     setMessages(current => [...current, optimistic]); setCompose(""); setReplyTo(null);
     try {
-      const { data, error } = await supabase.from("raye2_messages").insert({ conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: optimistic.parent_message_id, topic_id: activeTopicId ?? null }).select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id").single();
+      const { data, error } = await supabase.from("raye2_messages").insert({ conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: optimistic.parent_message_id, topic_id: activeTopicId ?? null }).select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment").single();
       if (error) throw error;
       setMessages(current => [...current.filter(message => message.id !== tempId), data as Message]);
       setThreads(current => current.map(thread => thread.id === selected.id ? { ...thread, lastMessage: body, updatedAt: (data as Message).created_at } : thread).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
@@ -1055,7 +1055,10 @@ export default function Raye2Client() {
                   <div className={styles.messageBody}>
                     {!mine && <span className={styles.author}>{author?.display_name ?? author?.handle ?? "Member"}</span>}
                     {parent && <div className={styles.replyQuote}>{parent.body}</div>}
-                    <div className={styles.bubble}>{message.body}</div>
+                    <div className={styles.bubble}>{message.body}
+                      {message.attachment?.kind === "clip_share" && message.attachment.clip_id && <Link className={styles.sharedLink} href={"/clips/" + message.attachment.clip_id}>▶ {isAr ? "مقطع مشترك" : "Shared clip"}</Link>}
+                      {message.attachment?.kind === "video_share" && message.attachment.slug && <Link className={styles.sharedLink} href={"/watch/" + message.attachment.slug + (message.attachment.start_seconds ? "?t=" + message.attachment.start_seconds : "")}>▶ {isAr ? "فيديو مشترك" : "Shared video"}</Link>}
+                    </div>
                     {message.topic_id && <span className={styles.topicChip}>{t.postInTopic} {groupTopics.find(topic => topic.id === message.topic_id)?.name ?? ""}</span>}
                     <div className={styles.messageMeta}><time>{stamp(message.created_at, locale)}</time>{message.edited_at && <span>{t.edited}</span>}
                       <button onClick={() => setReplyTo(message)}>{t.reply}</button>{(selected?.kind === "direct" || canManageSelectedGroup) && <button onClick={() => void togglePinnedMessage(message)}>{pinnedMessages.some(item => item.id === message.id) ? t.unpinMessage : t.pinMessage}</button>}{!mine && <button onClick={() => setReportTarget({ type: "message", id: message.id, conversationId: message.conversation_id })}>{t.report}</button>}<button onClick={() => void toggleBookmark(message)}>{savedIds.includes(message.id) ? "⌑" : "＋"}</button>{selected?.kind === "group" && <button title={t.saveMemory} onClick={() => void saveSharedMemory(message)}>✦</button>}

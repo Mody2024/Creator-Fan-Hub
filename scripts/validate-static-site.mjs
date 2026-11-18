@@ -685,6 +685,29 @@ check("group voice rooms surface the same recording consent and indicator", grou
 const clipsFeedClient = await read("../src/app/clips/clips-client.tsx");
 const clipsReportingMigration = await read("../supabase/migrations/20261110890000_raye2_community_clip_reporting.sql");
 check("community clips support preview, visibility, owner removal and reporting", clipsFeedClient.includes("raye2-clip-preview") && clipsFeedClient.includes("p_visibility: visibility") && clipsFeedClient.includes("raye2_remove_community_clip") && clipsFeedClient.includes('p_target_type: "community_clip"') && clipsReportingMigration.includes("'post','comment','profile','community_clip'"));
+const clipPermalinkMigration = await read("../supabase/migrations/20261116190000_raye2_clip_permalink_and_share.sql");
+const clipDetailPage = await read("../src/app/clips/[id]/page.tsx");
+const clipDetailClient = await read("../src/app/clips/[id]/clip-detail-client.tsx");
+check("community clips have a permission-checked permalink and share-to-chat",
+  clipPermalinkMigration.includes("function public.raye2_get_community_clip(p_clip_id uuid)") &&
+  clipPermalinkMigration.includes("function public.raye2_share_clip_to_chat(p_conversation_id uuid, p_clip_id uuid)") &&
+  clipPermalinkMigration.includes("if not public.raye2_is_conversation_member(p_conversation_id) then") &&
+  clipPermalinkMigration.includes("'kind','clip_share'") &&
+  clipPermalinkMigration.includes("allow_clipping") &&
+  clipPermalinkMigration.includes("or c.source_owner_id = (select auth.uid())") &&
+  clipPermalinkMigration.includes("or private.can_moderate_community()"));
+check("the clip permalink page renders pooled media and refuses a non-live clip",
+  clipDetailPage.includes("raye2_get_community_clip") &&
+  clipDetailPage.includes("resolvePublicObjectUrls") &&
+  clipDetailPage.includes("clip.status !== \"published\"") &&
+  clipDetailClient.includes("raye2_share_clip_to_chat") &&
+  clipDetailClient.includes("raye2_list_shareable_conversations") &&
+  clipDetailClient.includes("raye2_remove_community_clip"));
+check("the clips feed links to the permalink and chat renders shared clip/video links",
+  clipsFeedClient.includes("href={`/clips/${item.id}`}") &&
+  clipsFeedClient.includes("copyClipLink") &&
+  (await read("../src/app/raye2/raye2-client.tsx")).includes('message.attachment?.kind === "clip_share"') &&
+  (await read("../src/app/raye2/raye2-client.tsx")).includes('message.attachment?.kind === "video_share"'));
 const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
 const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
 check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));
