@@ -88,7 +88,7 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   const page = await read("../src/app/creator/page.tsx");
   assert.ok(page.includes('{admin.role === "owner" && ('));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
-  assert.ok(page.includes('"17 / RELEASES"'));
+  assert.ok(page.includes("17 / RELEASES"));
   assert.ok(page.includes('href="/raye2/studio"'));
 });
 
