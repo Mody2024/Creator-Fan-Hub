@@ -39,7 +39,7 @@ async function youtubeJson<T>(url: URL): Promise<T> {
 
 function parseChapters(description = "") {
   const chapters: Array<{ startSeconds: number; title: string }> = [];
-  const pattern = /(?:^|\\s)(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})\\s+([^\\r\\n]+)/g;
+  const pattern = /(?:^|\s)(?:(\d{1,2}):)?(\d{1,2}):(\d{2})\s+([^\r\n]+)/g;
   for (const match of description.matchAll(pattern)) {
     const hours = Number(match[1] ?? 0);
     const minutes = Number(match[2] ?? 0);
