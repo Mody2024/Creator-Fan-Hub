@@ -239,3 +239,23 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   cluster, then apply the rest forward. That path was verified clean (161/161 + post-checks + RLS matrix).
 - Deployment is external (Vercel); there is no deploy workflow in `.github/workflows/`. `ci.yml` runs the gates
   on pushes/PRs to `development` and `main`.
+
+## Raye2 storage — enablement and gotchas
+- Supabase Storage is the always-on provider; `raye2_storage_providers` seeds `cloudflare_r2` and
+  `backblaze_b2` as disabled. A provider only receives uploads when it is `enabled`, `health='healthy'`, and
+  `capacity_verified_at` is fresh (within 15 minutes) — otherwise `raye2_reserve_storage` raises `55000`.
+- Pooled uploads (`/api/raye2/storage/multipart`) pick a provider with `selectStorageProvider`
+  (`src/lib/storage/provider-policy.mjs`, R2 first for public video, B2 first for private/attachments); legacy
+  resumable uploads still write to Supabase buckets directly.
+- Enabling R2/B2 requires the server-only env vars (`RAYE2_R2_*` / `RAYE2_B2_*`, see `.env.example`), then
+  `POST /api/raye2/storage/providers/discover` (platform admin) to `raye2_sync_storage_providers`, then
+  `node scripts/raye2-storage-reconcile.mjs` to measure real usage and refresh `capacity_verified_at`.
+- The platform ceiling is `raye2_storage_settings.platform_ceiling_bytes` (750 MiB default under Supabase Free,
+  capped by `platform_ceiling_cap_bytes`). `raye2_sync_platform_ceiling` recomputes it as the min of the
+  provider capacities and the cap, so raising the cap is required before the ceiling can grow past 1 TiB.
+- The `raye2-community-shorts` bucket was referenced by `raye2_managed_buckets()` and the reservation
+  constraint but never created until `20261116250000_raye2_community_shorts_bucket.sql`; when adding a bucket to
+  the managed set, always ship a migration that inserts it into `storage.buckets`.
+- Apply production migrations through the Supabase Management API when the CLI is unavailable:
+  `POST https://api.supabase.com/v1/projects/<ref>/database/query` with the access token, wrapping each file as
+  `begin; <migration> insert into supabase_migrations.schema_migrations(version,name) values (...); commit;`.
