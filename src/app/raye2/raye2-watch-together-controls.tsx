@@ -26,6 +26,7 @@ type WatchSession = {
   playback_updated_at: string;
   playback_version: number;
   max_participants: number;
+  scheduled_for: string | null;
 };
 type WatchParticipant = {
   user_id: string;
@@ -90,6 +91,10 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
   const [error, setError] = useState("");
   const [needsPlaybackTap, setNeedsPlaybackTap] = useState(false);
   const [reactions, setReactions] = useState<WatchReaction[]>([]);
+  const [scheduleAt, setScheduleAt] = useState("");
+  const [inviteUrl, setInviteUrl] = useState("");
+  const [inviteId, setInviteId] = useState<string | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const sessionRef = useRef<string | null>(null);
   const syncingRef = useRef(false);
@@ -124,7 +129,17 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     remove: isAr ? "إزالة" : "Remove",
     makeHost: isAr ? "اجعل المضيف" : "Make host",
     reactions: isAr ? "تفاعلات الغرفة" : "Room reactions",
-    reactError: isAr ? "تعذر إرسال التفاعل." : "Could not send the reaction."
+    reactError: isAr ? "تعذر إرسال التفاعل." : "Could not send the reaction.",
+    schedule: isAr ? "جدولة (اختياري)" : "Schedule (optional)",
+    startsIn: isAr ? "تبدأ" : "Starts",
+    invite: isAr ? "دعوة خاصة" : "Private invite",
+    inviteHint: isAr ? "شارك هذا الرابط ليتمكن أي شخص لديه حساب من الانضمام." : "Share this link so anyone with an account can join.",
+    createInvite: isAr ? "إنشاء رابط دعوة" : "Create invite link",
+    copyInvite: isAr ? "نسخ الرابط" : "Copy link",
+    revokeInvite: isAr ? "إلغاء" : "Revoke",
+    inviteCopied: isAr ? "تم نسخ رابط الدعوة." : "Invite link copied.",
+    inviteError: isAr ? "تعذر إنشاء رابط الدعوة." : "Could not create the invite link.",
+    joinByInvite: isAr ? "الانضمام برابط الدعوة" : "Join with invite link"
   };
 
   const selectedVideo = useMemo(() => videos.find(video => video.id === selectedVideoId) ?? null, [selectedVideoId, videos]);
@@ -214,6 +229,10 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     setBusy(true);
     setError("");
     try {
+      const scheduled = scheduleAt.trim() ? new Date(scheduleAt).toISOString() : null;
+      if (scheduleAt.trim() && (!Number.isFinite(Date.parse(scheduleAt)) || Date.parse(scheduleAt) <= Date.now())) {
+        throw new Error(isAr ? "اختر وقتًا مستقبليًا." : "Choose a future start time.");
+      }
       const { data, error: createError } = await supabase.rpc("raye2_create_watch_session", {
         p_conversation_id: conversationId,
         p_title: selectedVideo.title,
@@ -221,15 +240,69 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
         p_source_kind: "native",
         p_source_media_id: selectedVideo.id,
         p_external_url: null,
-        p_max_participants: null
+        p_max_participants: null,
+        p_scheduled_for: scheduled
       });
       if (createError || typeof data !== "string") throw createError ?? new Error(copy.unavailable);
       sessionRef.current = data;
       await loadSession(data);
+      setScheduleAt("");
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : copy.unavailable);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const createInvite = async () => {
+    const id = sessionRef.current;
+    if (!id || !isHost) return;
+    setBusy(true);
+    setError("");
+    try {
+      const bytes = new Uint8Array(32);
+      crypto.getRandomValues(bytes);
+      const token = Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+      const { data, error: inviteError } = await supabase.rpc("raye2_create_watch_session_invite", {
+        p_session_id: id, p_token: token, p_expires_at: expiresAt, p_max_uses: null
+      });
+      if (inviteError || typeof data !== "string") throw inviteError ?? new Error(copy.inviteError);
+      const url = new URL("/raye2/watch-invite", window.location.origin);
+      url.searchParams.set("token", token);
+      setInviteId(data);
+      setInviteUrl(url.toString());
+      setInviteCopied(false);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : copy.inviteError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const revokeInvite = async () => {
+    if (!inviteId || !isHost) return;
+    setBusy(true);
+    try {
+      const { error: revokeError } = await supabase.rpc("raye2_revoke_watch_session_invite", { p_invite_id: inviteId });
+      if (revokeError) throw revokeError;
+      setInviteUrl("");
+      setInviteId(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : copy.inviteError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyInvite = async () => {
+    if (!inviteUrl) return;
+    try {
+      await navigator.clipboard?.writeText(inviteUrl);
+      setInviteCopied(true);
+      setError("");
+    } catch {
+      setError(copy.inviteError);
     }
   };
 
@@ -259,6 +332,8 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
     setParticipants([]);
     setControlRequests([]);
     setControlRequested(false);
+    setInviteUrl("");
+    setInviteId(null);
     if (id) await supabase.rpc("raye2_leave_watch_session", { p_session_id: id });
     await loadSessions();
   };
@@ -437,12 +512,13 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
                   {videos.map(video => <option key={video.id} value={video.id}>{video.title}</option>)}
                 </select>
                 {groupVisibility === "public" && <select aria-label={copy.public} value={visibility} onChange={event => setVisibility(event.target.value as "private" | "public")}><option value="private">{copy.private}</option><option value="public">{copy.public}</option></select>}
+                <label>{copy.schedule}<input type="datetime-local" value={scheduleAt} onChange={event => setScheduleAt(event.target.value)}/></label>
                 <button type="button" disabled={busy || !selectedVideo} onClick={() => void createSession()}>{busy ? "…" : copy.create}</button>
               </div>
               {videos.length === 0 && <small>{copy.noVideos}</small>}
               <div className={styles.watchSessionList}>
                 {activeSessions.length === 0 && <small>{copy.noSessions}</small>}
-                {activeSessions.map(item => <button type="button" key={item.id} disabled={busy} onClick={() => void joinSession(item.id)}>{item.title} · {item.visibility} · {copy.join}</button>)}
+                {activeSessions.map(item => <button type="button" key={item.id} disabled={busy || (!!item.scheduled_for && new Date(item.scheduled_for).getTime() > Date.now())} onClick={() => void joinSession(item.id)}>{item.title} · {item.visibility}{item.scheduled_for && new Date(item.scheduled_for).getTime() > Date.now() ? " · " + copy.startsIn + " " + new Date(item.scheduled_for).toLocaleString(isAr ? "ar" : "en") : " · " + copy.join}</button>)}
               </div>
             </>
           )}
@@ -467,6 +543,11 @@ export default function Raye2WatchTogetherControls({ supabase, conversationId, g
               <div className={styles.watchParticipants}><b>{copy.participants} · {participants.length}</b>{participants.map(person => <div className={styles.watchQueueItem} key={person.user_id}><span>{person.user_id.slice(0, 8)} · {person.role}{person.user_id === myUserId ? " (you)" : ""}</span>{isHost && person.user_id !== myUserId && <><button type="button" onClick={() => void transferHost(person.user_id)}>{copy.makeHost}</button>{person.role !== "host" && <button type="button" onClick={() => void removeParticipant(person.user_id)}>{copy.remove}</button>}</>}</div>)}</div>
               <div className={styles.watchQueueHead}><b>{copy.queue}</b>{isHost && <button type="button" onClick={() => void advanceQueue()}>{copy.next}</button>}</div>
               {queue.filter(item => item.status === "queued").map(item => <div className={styles.watchQueueItem} key={item.id}><span>{item.title} · {item.votes}</span><button type="button" onClick={() => void voteForItem(item.id)}>{copy.vote}</button></div>)}
+              {isHost && <div className={styles.watchInvite}>
+                <b>{copy.invite}</b>
+                {!inviteUrl ? <button type="button" disabled={busy} onClick={() => void createInvite()}>{copy.createInvite}</button>
+                  : <><small>{copy.inviteHint}</small><input readOnly value={inviteUrl} aria-label={copy.invite}/><div className={styles.watchCreateRow}><button type="button" onClick={() => void copyInvite()}>{inviteCopied ? copy.inviteCopied : copy.copyInvite}</button><button type="button" disabled={busy} onClick={() => void revokeInvite()}>{copy.revokeInvite}</button></div></>}
+              </div>}
               <div className={styles.watchCreateRow}>
                 <select aria-label={copy.video} value={selectedVideoId} onChange={event => setSelectedVideoId(event.target.value)}>
                   <option value="">{copy.video}</option>

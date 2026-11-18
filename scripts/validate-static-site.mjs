@@ -704,6 +704,24 @@ check("migrations keep security invariants: empty search_path, fail-closed grant
   [...new Set([...allMigrations.matchAll(/create table if not exists public\.(raye2_\w+)/gi)].map(m => m[1]))].every(t => new RegExp("alter table public\\." + t + "\\s+enable row level security", "i").test(allMigrations)));
 const watchDepthMigration = await read("../supabase/migrations/20261110940000_raye2_watch_together_depth.sql");
 check("watch together depth adds presence, moderation and control requests", watchDepthMigration.includes("raye2_watch_heartbeat") && watchDepthMigration.includes("raye2_remove_watch_participant") && watchDepthMigration.includes("raye2_request_watch_control") && watchDepthMigration.includes("raye2_expire_watch_sessions"));
+const watchScheduledMigration = await read("../supabase/migrations/20261116180000_raye2_watch_scheduled_and_invites.sql");
+check("watch together gains scheduled sessions and private invitation links",
+  watchScheduledMigration.includes("add column if not exists scheduled_for timestamptz") &&
+  watchScheduledMigration.includes("raye2_watch_session_started") &&
+  watchScheduledMigration.includes("raye2_create_watch_session_invite") &&
+  watchScheduledMigration.includes("raye2_join_watch_session_invite") &&
+  watchScheduledMigration.includes("raye2_revoke_watch_session_invite") &&
+  watchScheduledMigration.includes("encode(extensions.digest(p_token,'sha256'),'hex')") &&
+  watchScheduledMigration.includes("p_scheduled_for timestamptz default null") &&
+  watchScheduledMigration.includes("create table if not exists public.raye2_watch_session_invites") &&
+  watchScheduledMigration.includes("alter table public.raye2_watch_session_invites enable row level security"));
+check("the watch scheduled/invite migration keeps the watch restriction check on join",
+  watchScheduledMigration.includes("raye2_has_active_restriction(auth.uid(), 'watch')") &&
+  watchScheduledMigration.includes("if not public.raye2_watch_session_started(p_session_id) then"));
+check("the watch panel and invite page wire scheduling and private invitation links",
+  (await read("../src/app/raye2/raye2-watch-together-controls.tsx")).includes("p_scheduled_for: scheduled") &&
+  (await read("../src/app/raye2/raye2-watch-together-controls.tsx")).includes("raye2_create_watch_session_invite") &&
+  (await read("../src/app/raye2/watch-invite/page.tsx")).includes("raye2_join_watch_session_invite"));
 const voiceDepthMigration = await read("../supabase/migrations/20261110950000_raye2_voice_depth.sql");
 check("voice depth adds raise hand, audio preferences and idle-room expiry", voiceDepthMigration.includes("raye2_set_voice_hand") && voiceDepthMigration.includes("raye2_set_voice_audio_preferences") && voiceDepthMigration.includes("raye2_voice_bulk_moderation") && voiceDepthMigration.includes("raye2_expire_idle_voice_rooms"));
 const creatorAnalyticsMigration = await read("../supabase/migrations/20261110960000_raye2_creator_analytics_depth.sql");

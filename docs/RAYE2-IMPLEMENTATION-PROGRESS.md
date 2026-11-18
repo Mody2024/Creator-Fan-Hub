@@ -3431,6 +3431,30 @@ or legacy Supabase) before a URL is built, on both server and client. Additive; 
   exercised by unit tests and the Supabase fallback keeps production working. Live RLS acceptance on an isolated
   Supabase project remains outstanding.
 
+## Batch — 2026-11-10 (Batch 6): Scheduled Watch Together sessions and private invitation links (development only)
+
+**Goal:** close the two explicitly-listed remaining Wave 7 items — "private invitation links and scheduled
+sessions" — on top of the existing Watch Together synchronization, queue, moderation, control requests and
+reactions. Additive; `main`/production unchanged.
+
+- **Scheduled sessions.** Migration `20261116180000_raye2_watch_scheduled_and_invites.sql` adds an optional
+  `scheduled_for` to `raye2_watch_sessions` (bounded to 90 days) plus `raye2_watch_session_started()`, the single
+  source of truth for "has this session started?". A future session is visible to members but not joinable until
+  its start time, and `raye2_create_watch_session` gains a `p_scheduled_for` argument (previous signature dropped).
+- **Private invitation links.** New `raye2_watch_session_invites` stores only a sha256 token hash (never the
+  plaintext), with host/moderator-only `raye2_create_watch_session_invite` / `raye2_revoke_watch_session_invite`
+  (both audit-logged) and `raye2_join_watch_session_invite(p_token)` for redemption. Redemption is atomic against
+  expiry, use limit, a full room and an unstarted session, and re-joins a member who had left.
+- **Guarded join preserved.** `raye2_join_watch_session_guarded` keeps the `watch` account-restriction check and
+  now also refuses a not-yet-started scheduled session.
+- **UI.** The Watch Together panel gains an optional schedule picker, per-session "starts …" labels, and a host-only
+  private invite block (create / copy / revoke). New redemption route `src/app/raye2/watch-invite/page.tsx` mirrors
+  the group invite page, keeping the token through sign-in.
+- **Tests/validator:** `tests/raye2-watch-scheduled-invites.test.mjs` (7 tests). Validator grew to 515 assertions.
+- Gates: validator 515 assertions; tests 989/989; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** LiveKit provider deployment and real multi-device Watch
+  Together acceptance; live RLS application on an isolated Supabase project.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3444,7 +3468,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 4 | Creator Studio, exclusives and live streaming | ~98% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
-| 7 | Voice, Watch Together and shared experiences | ~91% |
+| 7 | Voice, Watch Together and shared experiences | ~93% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~95%** |
