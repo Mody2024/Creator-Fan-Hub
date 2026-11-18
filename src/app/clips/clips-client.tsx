@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
+import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
 import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
 import { resolveStorageDeliveries, splitStoragePath } from "@/lib/storage/resolve-delivery";
@@ -222,6 +223,7 @@ export default function ClipsClient() {
 
       {loading ? <div className="raye2-card raye2-empty-state">{t.loading}</div> : items.length ? (
         <div className="raye2-clips-grid">
+          <Raye2ChannelPromoSlot placement="minis"/>
           {items.map((item) => (
             <article className="raye2-clip-card" key={item.id}>
               <video className="raye2-clip-video" src={item.src} controls preload="metadata" playsInline />
