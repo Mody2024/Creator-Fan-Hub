@@ -586,8 +586,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
 .raye2-language-switch span{font-size:15px}
 /* Inline header control: sits inside .raye2-header-actions and never floats over content. */
 .raye2-language-switch--header{position:static;z-index:auto;min-height:38px;background:var(--raye2-ds-surface);box-shadow:none}
-/* When a surface renders an app header, hide the floating control so the two never collide. */
-body:has(.raye2-app-header) .raye2-language-switch:not(.raye2-language-switch--header){display:none}
+/* When a surface renders an inline header control, hide the floating one so they never collide. */
+body:has(.raye2-language-switch--header) .raye2-language-switch:not(.raye2-language-switch--header){display:none}
 [dir="rtl"]{text-align:right}
 [dir="rtl"] .raye2-language-switch:not(.raye2-language-switch--header){right:auto;left:16px}
 [dir="rtl"] .raye2-app-header,[dir="rtl"] .raye2-card-heading,[dir="rtl"] .raye2-post-header{direction:rtl}

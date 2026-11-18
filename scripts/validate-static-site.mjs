@@ -654,7 +654,7 @@ const languageSwitchSrc = await read("../src/app/language-switch.tsx");
 const homeSurfaceSrc = await read("../src/app/raye2/home/page.tsx");
 const communitySurfaceSrc = await read("../src/app/community/community-client.tsx");
 const creatorEditorSrc = await read("../src/app/creator/editor.tsx");
-check("the language control renders inline inside app headers instead of floating over content", languageSwitchSrc.includes('variant === "header"') && languageSwitchSrc.includes("raye2-language-switch--header") && singleThemeDesign.includes(".raye2-language-switch--header{position:static") && singleThemeDesign.includes("body:has(.raye2-app-header) .raye2-language-switch:not(.raye2-language-switch--header){display:none}"));
+check("the language control renders inline inside app headers instead of floating over content", languageSwitchSrc.includes('variant === "header"') && languageSwitchSrc.includes("raye2-language-switch--header") && singleThemeDesign.includes(".raye2-language-switch--header{position:static") && singleThemeDesign.includes("body:has(.raye2-language-switch--header) .raye2-language-switch:not(.raye2-language-switch--header){display:none}"));
 check("every app header renders the shared language control inline", page.includes('variant="header"') && homeSurfaceSrc.includes('variant="header"') && communitySurfaceSrc.includes('variant="header"'));
 check("header context text and the language label are admin-editable", siteConfigLib.includes('"navigation"') && siteConfigLib.includes("navigation.contextEyebrow") && publicConfigSrc.includes("navigation: {") && creatorEditorSrc.includes("patchNavigation") && homeSurfaceSrc.includes("siteConfig.navigation.contextEyebrow"));
 const predecessorSurfaces = [
