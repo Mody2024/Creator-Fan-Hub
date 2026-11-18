@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getPublicSiteConfig } from "@/lib/public-site-config";
 import LanguageSwitch from "@/app/language-switch";
 import styles from "./studio.module.css";
 import CreatorCapabilities from "@/app/creator/creator-capabilities";
@@ -20,13 +21,13 @@ import "@/app/creator/raye2-creator-workspace.css";
 import "@/app/raye2/studio/video-publishing-studio.css";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Creator Studio — Raye2" };
+export const metadata = { title: "Creator Studio" };
 
 type MediaAsset = { media_id: string; title: string; media_type: string; is_published: boolean; created_at?: string; processing_status?: string | null };
 type VideoEntry = { media_id: string; slug: string; published_at: string | null };
 
 export default async function Raye2CreatorStudioPage() {
-  const [supabase, cookieStore] = await Promise.all([createSupabaseServerClient(), cookies()]);
+  const [supabase, cookieStore, siteConfig] = await Promise.all([createSupabaseServerClient(), cookies(), getPublicSiteConfig()]);
   if (!supabase) redirect("/creator/login?setup=required");
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
@@ -63,14 +64,14 @@ export default async function Raye2CreatorStudioPage() {
   const mediaUnavailable = !!mediaError;
   const catalogUnavailable = !!videoError;
   const t = isArabic ? {
-    eyebrow: "مساحة صُنّاع المحتوى", title: "استوديو ", accent: "Raye2.", intro: "مساحة موحّدة لإدارة مكتبة الوسائط وصفحات المشاهدة والنشر وأداء المحتوى.",
+    eyebrow: "مساحة صُنّاع المحتوى", title: "", accent: "استوديو.", intro: "مساحة موحّدة لإدارة مكتبة الوسائط وصفحات المشاهدة والنشر وأداء المحتوى.",
     home: "العودة إلى الرئيسية", role: "الصلاحية الحالية", assets: "ملفات الوسائط", publicAssets: "ملفات منشورة", drafts: "مسودات خاصة", videos: "صفحات المشاهدة", published: "منشور",
     workspace: "مساحات العمل", recent: "أحدث الملفات", recentDesc: "آخر الملفات التي أضفتها إلى مكتبتك.", emptyRecent: "لم تضف أي ملفات بعد.", uploadNow: "رفع وسائط", videoNow: "إعداد صفحة مشاهدة", liveNow: "بدء بث مباشر", live: "البث المباشر", liveDesc: "ابدأ بثًا مباشرًا وأدر حالتك من أدوات المبدع.", viewAll: "عرض المكتبة", privateLabel: "مسودة خاصة", publicLabel: "منشور", readyLabel: "جاهز", waitingLabel: "قيد المعالجة", failedLabel: "فشل", manage: "إدارة المحتوى", manageDesc: "افتح أدوات رفع الملفات وتحرير البيانات الوصفية والنشر وقوائم التشغيل وسجل الإصدارات.", open: "فتح أدوات المحتوى",
     analytics: "تحليلات الأداء", analyticsDesc: "راجع إجماليات المشاهدات والتفاعلات والتعليقات دون كشف هويات المشاهدين.",
     beta: "مختبر بيتا", betaDesc: "ميزات قيد التجهيز ستظهر هنا عند تفعيلها. لن تظهر كميزات جاهزة قبل اكتمال تنفيذها واختبارها.",
     noAccess: "تعذر تحميل بعض بيانات المكتبة. يمكنك إعادة المحاولة من أدوات المحتوى.", coming: "قريبًا / تجريبي", note: "الأرقام تعكس البيانات التي تسمح بها صلاحيات حسابك فقط."
   } : {
-    eyebrow: "CREATOR WORKSPACE", title: "Raye2 ", accent: "Studio.", intro: "One workspace for your media library, watch pages, publishing workflow and content performance.",
+    eyebrow: "CREATOR WORKSPACE", title: "", accent: "Studio.", intro: "One workspace for your media library, watch pages, publishing workflow and content performance.",
     home: "Back to home", role: "CURRENT ACCESS", assets: "MEDIA ASSETS", publicAssets: "Published assets", drafts: "Private drafts", videos: "WATCH PAGES", published: "Published",
     workspace: "WORKSPACES", recent: "RECENT MEDIA", recentDesc: "The latest assets added to your library.", emptyRecent: "You have not added any media yet.", uploadNow: "Upload media", videoNow: "Build a watch page", liveNow: "Start a live stream", live: "Live streaming", liveDesc: "Go live and manage your stream from the creator tools.", viewAll: "Open media library", privateLabel: "PRIVATE DRAFT", publicLabel: "PUBLISHED", readyLabel: "READY", waitingLabel: "PROCESSING", failedLabel: "FAILED", manage: "Content management", manageDesc: "Open the existing upload, asset metadata, publishing, playlist and version-history tools.", open: "Open content tools",
     analytics: "Performance analytics", analyticsDesc: "Review aggregate views, reactions and comments without exposing viewer identities.",
@@ -90,8 +91,8 @@ export default async function Raye2CreatorStudioPage() {
       <div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
     </header>
     <section className={styles.hero} data-slot="hero">
-      <div><span className={styles.eyebrow}>RAYE2 / CREATOR TOOLS</span><h1>{t.title}<em>{t.accent}</em></h1><p>{t.intro}</p></div>
-      <div className={styles.heroMark} aria-hidden="true"><span>R</span><i /></div>
+      <div><span className={styles.eyebrow}>CREATOR TOOLS</span><h1>{t.title}<em>{t.accent}</em></h1><p>{t.intro}</p></div>
+      <div className={styles.heroMark} aria-hidden="true">{siteConfig.logoUrl ? <img src={siteConfig.logoUrl} alt="" /> : null}</div>
     </section>
     <section className={styles.metrics} data-slot="metrics" aria-label={isArabic ? "ملخص المكتبة" : "Library overview"}>
       <article className={styles.metric}><span>{t.assets}</span><strong>{mediaUnavailable ? "—" : media.length.toLocaleString(locale)}</strong><small>{t.note}</small></article>
