@@ -21,16 +21,16 @@ type NavDef = { key: PlatformNavKey; href: string; icon: string; isActive: (path
 
 const NAV_DEFS: NavDef[] = [
   { key: "home", href: "/", icon: "⌂", isActive: p => p === "/" || p === "/raye2/home" },
-  { key: "videos", href: "/watch", icon: "▶", isActive: p => p === "/watch" || p.startsWith("/watch/") },
-  { key: "shorts", href: "/shorts", icon: "▤", isActive: p => p === "/shorts" || p.startsWith("/shorts/") },
-  { key: "community", href: "/community", icon: "◉", isActive: p => p === "/community" || p.startsWith("/community/") },
+  { key: "videos", href: "/watch", icon: "▷", isActive: p => p === "/watch" || p.startsWith("/watch/") },
+  { key: "shorts", href: "/shorts", icon: "▣", isActive: p => p === "/shorts" || p.startsWith("/shorts/") },
+  { key: "community", href: "/community", icon: "♧", isActive: p => p === "/community" || p.startsWith("/community/") },
   { key: "explore", href: "/search", icon: "⌕", isActive: p => p === "/search" || p.startsWith("/search/") },
-  { key: "series", href: "/series", icon: "▥", isActive: p => p === "/series" || p.startsWith("/series/") },
+  { key: "series", href: "/series", icon: "▤", isActive: p => p === "/series" || p.startsWith("/series/") },
   { key: "messages", href: "/raye2", icon: "✉", isActive: p => p === "/raye2" },
-  { key: "notifications", href: "/notifications", icon: "◉", isActive: p => p === "/notifications" },
-  { key: "saved", href: "/saved", icon: "▱", isActive: p => p === "/saved" },
-  { key: "profile", href: "/profile", icon: "◎", isActive: p => p === "/profile" || p.startsWith("/u/") },
-  { key: "studio", href: "/creator", icon: "✳", isActive: p => p.startsWith("/creator") }
+  { key: "notifications", href: "/notifications", icon: "♢", isActive: p => p === "/notifications" },
+  { key: "saved", href: "/saved", icon: "▣", isActive: p => p === "/saved" },
+  { key: "profile", href: "/profile", icon: "◉", isActive: p => p === "/profile" || p.startsWith("/u/") },
+  { key: "studio", href: "/creator", icon: "✦", isActive: p => p.startsWith("/creator") }
 ];
 
 export const PLATFORM_NAV_PRIMARY: PlatformNavKey[] = ["home", "videos", "shorts", "community", "explore"];
