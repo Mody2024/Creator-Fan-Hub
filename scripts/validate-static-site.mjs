@@ -717,6 +717,33 @@ check("community posts can embed a live, source-permitted community clip",
   communityClient.includes('from("raye2_community_clips").select("id,title").eq("clipper_id", member.id)') &&
   communityClient.includes('post.linkedClipId && <Link className="raye2-action" href={"/clips/"+post.linkedClipId}') &&
   communityPage.includes("linkedClipId: row.linked_clip_id"));
+const chatEphemeralMigration = await read("../supabase/migrations/20261116210000_raye2_chat_ephemeral_slowmode.sql");
+const chatEphemeralClient = await read("../src/app/raye2/raye2-client.tsx");
+const chatEphemeralCss = await read("../src/app/raye2/raye2.module.css");
+check("disappearing messages are bounded by the retention floor and server-stamped",
+  chatEphemeralMigration.includes("add column if not exists disappearing_seconds integer") &&
+  chatEphemeralMigration.includes("disappearing_seconds is null or disappearing_seconds in (86400, 604800, 2592000)") &&
+  chatEphemeralMigration.includes("create or replace function public.raye2_apply_message_expiry()") &&
+  chatEphemeralMigration.includes("create trigger raye2_messages_apply_expiry before insert on public.raye2_messages") &&
+  chatEphemeralMigration.includes("new.expires_at := now() + (v_seconds || ' seconds')::interval") &&
+  chatEphemeralMigration.includes("create or replace function public.raye2_sweep_expired_messages()") &&
+  chatEphemeralMigration.includes("sm.source_message_id=m.id and sm.retention_mode='preserved'") &&
+  chatEphemeralMigration.includes("'disappearing_messages_expired', v_expired"));
+check("group slow mode is manager-only, capped and enforced at insert",
+  chatEphemeralMigration.includes("add column if not exists slow_mode_seconds integer not null default 0") &&
+  chatEphemeralMigration.includes("slow_mode_seconds between 0 and 3600") &&
+  chatEphemeralMigration.includes("create or replace function public.raye2_set_group_slow_mode(") &&
+  chatEphemeralMigration.includes("create or replace function public.raye2_guard_message_slow_mode()") &&
+  chatEphemeralMigration.includes("create trigger raye2_messages_slow_mode before insert on public.raye2_messages") &&
+  chatEphemeralMigration.includes("raise exception 'slow mode is active; wait % seconds'"));
+check("the chat UI exposes the disappearing control, badge and slow mode",
+  chatEphemeralClient.includes('rpc("raye2_set_conversation_disappearing", { p_conversation_id: selected.conversationId, p_seconds: seconds })') &&
+  chatEphemeralClient.includes('rpc("raye2_set_group_slow_mode", { p_group_id: selectedGroup.id, p_seconds: seconds })') &&
+  chatEphemeralClient.includes("className={styles.disappearingControl}") &&
+  chatEphemeralClient.includes("className={styles.ephemeralBadge}") &&
+  chatEphemeralClient.includes("disappearingSeconds: conversation.disappearing_seconds ?? null") &&
+  chatEphemeralCss.includes(".page .disappearingControl") &&
+  chatEphemeralCss.includes(".page .ephemeralBadge"));
 const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
 const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
 check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));

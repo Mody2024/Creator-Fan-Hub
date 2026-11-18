@@ -3504,6 +3504,32 @@ shared into a community at all. Additive; `main` and production unchanged.
 - **Not yet done (provider/environment-dependent):** live RLS application and route-guard acceptance on an
   isolated Supabase project.
 
+## Batch — 2026-11-10 (Batch 9): Disappearing messages and group slow mode (development only)
+
+**Goal:** close two remaining Wave 6 gaps. Plan section 8 requires "optional disappearing messages per
+conversation, subject to the platform's minimum retention and safety/legal requirements", and the group-chat spec
+requires "slow mode, anti-spam controls, member limits and message rate limits". The messages table already had an
+unused `expires_at` column and a hidden-when-expired read policy, but nothing ever set it and nothing swept it; group
+slow mode did not exist at all. Additive; `main` and production unchanged.
+
+- **Disappearing window.** Migration `20261116210000_raye2_chat_ephemeral_slowmode.sql` adds
+  `raye2_conversations.disappearing_seconds`, bounded to 1, 7 or 30 days so it can never undercut the platform's
+  minimum retention floor. `raye2_set_conversation_disappearing` lets any member set a direct window and requires a
+  group manager for a group window.
+- **Server-stamped expiry.** A before-insert trigger (`raye2_apply_message_expiry`) stamps `expires_at` from the
+  conversation policy, so a client cannot opt out. The existing read policy already hides expired messages.
+- **Slow mode.** `raye2_groups.slow_mode_seconds` (0–3600, default 0). `raye2_set_group_slow_mode` is manager-only;
+  a before-insert trigger (`raye2_guard_message_slow_mode`) raises a clear, retryable error when the same member
+  writes again inside the window. Direct conversations are never throttled.
+- **Sweep.** `raye2_sweep_expired_messages` physically removes expired messages, never touching messages that back a
+  preserved Shared Memory, and is folded into `raye2_run_maintenance` as `disappearing_messages_expired`.
+- **UI.** The composer foot gains a disappearing-messages selector; the chat header shows a "Disappears" badge while
+  a window is active; the group manage modal gains a slow-mode section (5–300 s).
+- **Tests/validator:** `tests/raye2-chat-ephemeral-slowmode.test.mjs` (6 tests). Validator grew to 522 assertions.
+- Gates: validator 522 assertions; tests 1005/1005; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** live RLS application and trigger acceptance on an isolated
+  Supabase project.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3516,11 +3542,11 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 3 | Video, feed and discovery ecosystem | ~99% |
 | 4 | Creator Studio, exclusives and live streaming | ~98% |
 | 5 | Social graph, communities and engagement | ~100% |
-| 6 | Messaging and chat | ~95% |
+| 6 | Messaging and chat | ~97% |
 | 7 | Voice, Watch Together and shared experiences | ~93% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |
-| — | Overall (equal-weight average of Waves 0–9) | **~95%** |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
 
 Largest remaining gaps are provider/environment-dependent: Wave 4 (real transcoding/HLS delivery — the ladder is codec-aware, the chunked upload path is wired, object resolution now makes pooled uploads playable, and the migration tooling exists, but no provider key is configured), Wave 2 (isolated Supabase RLS acceptance and route-guard verification), Wave 7 (LiveKit provider deployment and multi-device acceptance), and §18.4 (external ad network — blocked on real provider approval/SDK). All provider-independent plan items identified this round are implemented. Wave 1 is now a single, fixed dark theme (black/white/grey/blue) — light/dark switching was explicitly dropped by the owner.

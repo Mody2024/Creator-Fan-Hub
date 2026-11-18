@@ -239,3 +239,7 @@
 .watchReactions>b{font-size:10px;color:var(--r-muted)}
 .watchReactionBar{display:flex;gap:6px;flex-wrap:wrap}
 .watchReactionBar>button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);width:30px;height:30px;font-size:13px;cursor:pointer}
+.page .disappearingControl{display:flex;align-items:center;gap:6px;text-transform:uppercase;color:var(--r-muted)}
+.page .disappearingControl select{border:1px solid var(--r-line);border-radius:8px;background:#0b0b0d;color:var(--r-text);font:inherit;font-size:8px;padding:3px 5px;cursor:pointer}
+.page .disappearingControl select:disabled{opacity:.5;cursor:not-allowed}
+.page .ephemeralBadge{display:inline-block;margin-inline-start:8px;padding:2px 7px;border:1px solid rgba(77,141,246,.4);border-radius:20px;background:rgba(77,141,246,.1);color:var(--r-accent);font-size:8px;letter-spacing:.06em;text-transform:uppercase}
