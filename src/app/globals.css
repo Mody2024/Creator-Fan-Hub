@@ -1104,3 +1104,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .event-space-attach>b{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .event-space-attach select{font:inherit;font-size:11px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--panel);color:inherit}
 .event-space-attach small{font-size:10px;color:var(--muted)}
+
+
+/* Optional website-idea credit, configured by the site owner. */
+.creator-credit{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px;padding:18px 16px 24px;color:var(--raye2-ds-muted,#a1a1aa);font-size:10px;letter-spacing:.08em;text-align:center}.creator-idea-credit a{display:inline-flex;align-items:center;gap:7px;color:var(--raye2-ds-ink,#f4f4f6);font-weight:700}.creator-idea-credit a:hover{color:var(--raye2-ds-accent,#4d8df6)}.creator-idea-credit img{width:20px;height:20px;object-fit:contain;border-radius:50%}
