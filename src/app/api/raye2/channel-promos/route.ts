@@ -37,6 +37,19 @@ async function youtubeJson<T>(url: URL): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+function parseChapters(description = "") {
+  const chapters = [];
+  const pattern = /(?:^|\\s)(?:(\\d{1,2}):)?(\\d{1,2}):(\\d{2})\\s+([^\\r\\n]+)/g;
+  for (const match of description.matchAll(pattern)) {
+    const hours = Number(match[1] ?? 0);
+    const minutes = Number(match[2] ?? 0);
+    const seconds = Number(match[3] ?? 0);
+    const startSeconds = hours * 3600 + minutes * 60 + seconds;
+    if (startSeconds >= 0) chapters.push({ startSeconds, title: match[4].trim().slice(0, 100) });
+  }
+  return chapters.filter((chapter, index, all) => index === 0 || chapter.startSeconds > all[index - 1].startSeconds);
+}
+
 function durationSeconds(value = "") {
   const match = value.match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/);
   if (!match) return null;
@@ -80,8 +93,10 @@ async function hydrateVideos(entries: PlaylistItem[], apiKey: string) {
     if (!id || !title || !video || video.status?.privacyStatus !== "public" || title === "Deleted video" || title === "Private video") return [];
     return [{
       id: `youtube-${id}`,
+      videoId: id,
       title,
       description: (video.snippet?.description ?? entry.snippet?.description ?? "").trim().slice(0, 240),
+      chapters: parseChapters(video.snippet?.description ?? entry.snippet?.description ?? ""),
       url: `https://www.youtube.com/watch?v=${id}`,
       thumbnailUrl: video.snippet?.thumbnails?.maxres?.url
         ?? video.snippet?.thumbnails?.high?.url
