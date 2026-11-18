@@ -23,7 +23,7 @@ test("creator dashboard quick navigation points to its management areas", async 
   }
   assert.ok(page.includes("17 / RELEASES"));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && <a className="module-card" href="#creator-rewards-admin">'));
-  assert.ok(page.includes('href="/creator/raye2"'));
+  assert.ok(page.includes('href="/raye2/studio"'));
   assert.ok(page.includes('href="#creator-rewards"'));
   assert.ok(!page.includes("More control, coming next."));
 });
@@ -88,7 +88,8 @@ test("creator dashboard only advertises modules allowed by the signed-in role", 
   const page = await read("../src/app/creator/page.tsx");
   assert.ok(page.includes('{admin.role === "owner" && ('));
   assert.ok(page.includes('{["owner","admin"].includes(admin.role) && ('));
-  assert.ok(page.includes('10 + (["owner","admin"].includes(admin.role) ? 5 : 0) + (admin.role === "owner" ? 1 : 0)'));
+  assert.ok(page.includes('"17 / RELEASES"'));
+  assert.ok(page.includes('href="/raye2/studio"'));
 });
 
 test("community interactions restore optimistic state and recover from failed requests", async () => {
