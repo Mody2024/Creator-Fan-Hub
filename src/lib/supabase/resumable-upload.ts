@@ -12,7 +12,7 @@ type ResumableUploadOptions = {
   signal?: AbortSignal;
 };
 
-const ALLOWED_BUCKETS = new Set(["creator-media-private", "creator-media-public", "raye2-community-shorts"]);
+const ALLOWED_BUCKETS = new Set(["creator-media-private", "creator-media-public", "raye2-community-shorts", "raye2-minis", "raye2-clips"]);
 const MIME_EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",

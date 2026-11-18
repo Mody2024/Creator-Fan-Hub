@@ -4,6 +4,7 @@ import { useCallback,useEffect,useMemo,useRef,useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
+import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
 
 type ShortRow={id:string;author_id:string;title:string;caption:string;storage_path:string;duration_seconds:number;created_at:string;status:string};
 type ShortProfile={user_id:string;handle:string;display_name:string;avatar_url:string|null};
@@ -195,7 +196,19 @@ export default function CommunityShortsClient(){
     uploadSession.saveReservation(newReservationId);
    }
    const path=uploadSession.objectName;
-   await uploadToSupabaseStorage({client:supabase,bucketName:"raye2-community-shorts",objectName:path,file,onProgress:setUploadProgress});
+   let pooledUploaded=false;
+   if(prefersChunkedUpload(file)){
+    try{
+     await uploadChunkedToPool({bucketId:"raye2-community-shorts",objectKey:path,file,assetClass:"mini",contentType:file.type,onProgress:setUploadProgress});
+     pooledUploaded=true;
+    }catch(poolError){
+     if(!(poolError instanceof MultipartUnavailableError)) throw poolError;
+     // Pooled multipart storage is not available yet; fall back to the Supabase path below.
+    }
+   }
+   if(!pooledUploaded){
+    await uploadToSupabaseStorage({client:supabase,bucketName:"raye2-community-shorts",objectName:path,file,onProgress:setUploadProgress});
+   }
    uploaded=true;
    const {error:saveError}=await supabase.from("community_short_videos").insert({author_id:userId,title:title.trim(),caption:caption.trim(),storage_path:path,duration_seconds:duration,status:"published",provider:"supabase",asset_key:path,playback_kind:"file",processing_status:"ready",size_bytes:file.size,mime_type:file.type});
    if(saveError){

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
+import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
 
 type ClipRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; attribution_text: string; source_media_id: string | null; source_slug: string | null; clipper_handle: string | null; clipper_display_name: string | null; clipper_avatar_url: string | null; clipper_id: string | null; source_owner_id: string | null };
 type ClipCard = ClipRow & { src: string };
@@ -130,7 +131,19 @@ export default function ClipsClient() {
         uploadSession.saveReservation(reservationId);
       }
       const path = uploadSession.objectName;
-      await uploadToSupabaseStorage({ client: supabase, bucketName: "raye2-clips", objectName: path, file, onProgress: setUploadProgress });
+      let pooledUploaded = false;
+      if (prefersChunkedUpload(file)) {
+        try {
+          await uploadChunkedToPool({ bucketId: "raye2-clips", objectKey: path, file, assetClass: "video", contentType: file.type, onProgress: setUploadProgress });
+          pooledUploaded = true;
+        } catch (poolError) {
+          if (!(poolError instanceof MultipartUnavailableError)) throw poolError;
+          // Pooled multipart storage is not available yet; fall back to the Supabase path below.
+        }
+      }
+      if (!pooledUploaded) {
+        await uploadToSupabaseStorage({ client: supabase, bucketName: "raye2-clips", objectName: path, file, onProgress: setUploadProgress });
+      }
       uploaded = true;
       const { error: saveError } = await supabase.rpc("raye2_publish_community_clip", {
         p_title: title.trim(), p_caption: caption.trim(), p_storage_path: path, p_duration_seconds: clipDuration,

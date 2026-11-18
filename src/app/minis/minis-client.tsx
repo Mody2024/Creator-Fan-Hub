@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { getResumableUploadSession, uploadToSupabaseStorage } from "@/lib/supabase/resumable-upload";
+import { MultipartUnavailableError, prefersChunkedUpload, uploadChunkedToPool } from "@/lib/storage/chunked-upload";
 
 type MiniRow = { id: string; title: string; caption: string; storage_path: string; duration_seconds: number; created_at: string; expires_at: string; author_id: string | null; author_handle: string | null; author_display_name: string | null; author_avatar_url: string | null };
 type MiniCard = MiniRow & { src: string };
@@ -90,7 +91,19 @@ export default function MinisClient() {
         uploadSession.saveReservation(reservationId);
       }
       const path = uploadSession.objectName;
-      await uploadToSupabaseStorage({ client: supabase, bucketName: "raye2-minis", objectName: path, file, onProgress: setUploadProgress });
+      let pooledUploaded = false;
+      if (prefersChunkedUpload(file)) {
+        try {
+          await uploadChunkedToPool({ bucketId: "raye2-minis", objectKey: path, file, assetClass: "mini", contentType: file.type, onProgress: setUploadProgress });
+          pooledUploaded = true;
+        } catch (poolError) {
+          if (!(poolError instanceof MultipartUnavailableError)) throw poolError;
+          // Pooled multipart storage is not available yet; fall back to the Supabase path below.
+        }
+      }
+      if (!pooledUploaded) {
+        await uploadToSupabaseStorage({ client: supabase, bucketName: "raye2-minis", objectName: path, file, onProgress: setUploadProgress });
+      }
       uploaded = true;
       const { error: saveError } = await supabase.rpc("raye2_publish_mini", { p_title: title.trim(), p_caption: caption.trim(), p_storage_path: path, p_duration_seconds: duration, p_source_media_id: null, p_visibility: "public" });
       if (saveError) {

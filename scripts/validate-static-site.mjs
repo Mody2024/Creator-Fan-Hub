@@ -883,6 +883,18 @@ const byosTests = await read("../tests/storage-byos-connectors.test.mjs");
 check("BYOS connectors are S3-compatible and never store secrets", byos.includes("BYOS_PROVIDERS") && byos.includes("hasSecret: false") && byos.includes("Storj"));
 check("BYOS placement keeps public delivery on Raye2-owned providers", byos.includes("planByosPlacement") && byos.includes("public_not_allowed") && byosTests.includes("private overflow only"));
 
+const byosMigration = await read("../supabase/migrations/20261116150000_raye2_byos_connections.sql");
+const byosAdminUi = await read("../src/app/creator/raye2/byos-connections.tsx");
+check("BYOS connections store only a secret name and never a secret value", byosMigration.includes("raye2_byos_connections") && byosMigration.includes("secret_ref text not null") && !byosMigration.includes("secret_value") && !byosMigration.includes("access_key"));
+check("BYOS connections are owner-scoped and admin metadata is gated", byosMigration.includes("public.raye2_upsert_byos_connection") && byosMigration.includes("c.owner_id=auth.uid()") && byosMigration.includes("public.raye2_is_platform_admin()"));
+check("only the service role may mark a BYOS connection verified", byosMigration.includes("public.raye2_set_byos_connection_state") && byosMigration.includes("to service_role") && byosMigration.includes("revoke all on function public.raye2_set_byos_connection_state(uuid,text,text) from public, anon, authenticated"));
+check("admin BYOS surface loads and disables connections", byosAdminUi.includes('supabase.rpc("raye2_admin_byos_connections")') && byosAdminUi.includes('supabase.rpc("raye2_admin_set_byos_state"') && adminClientSource.includes("<ByosConnections isArabic={isAr} />"));
+
+const uploadSurfaces = await Promise.all(["../src/app/minis/minis-client.tsx", "../src/app/clips/clips-client.tsx", "../src/app/shorts/community-shorts-client.tsx"].map(read));
+const uploadHelper = await read("../src/lib/supabase/resumable-upload.ts");
+check("every member upload surface prefers the pooled path with a Supabase fallback", uploadSurfaces.every(source => source.includes("prefersChunkedUpload") && source.includes("MultipartUnavailableError") && source.includes("uploadToSupabaseStorage")));
+check("the client upload allowlist covers every bucket the surfaces use", ["creator-media-private", "creator-media-public", "raye2-community-shorts", "raye2-minis", "raye2-clips"].every(bucket => uploadHelper.includes('"' + bucket + '"')));
+
 if (failures.length) {
   console.error("Repository validation failed:");
   for (const failure of failures) console.error(" - " + failure);

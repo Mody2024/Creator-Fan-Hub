@@ -15,6 +15,12 @@ test("resumable uploads validate the bucket and object path before network work"
  assert.ok(helper.includes("MIME_EXTENSIONS[file.type]"));
 });
 
+test("the upload bucket allowlist covers every surface that uploads through it",()=>{
+ // Regression: minis and clips called this helper with buckets that were missing from the
+ // allowlist, so those uploads threw before any network work.
+ for(const bucket of ["creator-media-private","creator-media-public","raye2-community-shorts","raye2-minis","raye2-clips"]) assert.ok(helper.includes('"'+bucket+'"'), bucket+" must be allowed");
+});
+
 test("long uploads refresh an expiring session token before requests",()=>{
  assert.ok(helper.includes("onBeforeRequest: async request"));
  assert.ok(helper.includes("client.auth.getSession()"));

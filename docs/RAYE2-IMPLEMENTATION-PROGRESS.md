@@ -3329,6 +3329,35 @@ Additive; `main`/production unchanged.
 - **Not yet done:** provider accounts/keys are still unconfigured, so the pooled path is exercised by unit tests and
   the fallback keeps production safe; live RLS/migration application and real R2/B2/Storj acceptance remain.
 
+## Batch — 2026-11-10 (Batch 3): Upload-path fix, pooled path on every surface, BYOS registry (development only)
+
+**Goal:** fix a real upload bug, extend the pooled chunked path to every member upload surface, and give
+bring-your-own-storage a persisted, owner-scoped registry with an admin surface. Additive; `main`/production unchanged.
+
+- **Bug fix (minis and clips uploads were broken).** `src/lib/supabase/resumable-upload.ts` allow-listed only
+  `creator-media-private`, `creator-media-public` and `raye2-community-shorts`, but the minis and clips clients
+  call it with `raye2-minis` and `raye2-clips`. Those uploads threw "Unsupported media storage bucket" before any
+  network work, so every Mini and community Clip upload failed. The allow-list now covers all five buckets.
+- **Pooled path on every member surface.** Minis, clips and community shorts now prefer the pooled chunked upload
+  (`uploadChunkedToPool`) for files above the single-shot threshold and fall back to the Supabase TUS path when no
+  pooled provider is configured (`MultipartUnavailableError`), matching the media library. Content-addressed dedup
+  registration applies to these surfaces too, since the pooled route commits and registers the sha256.
+- **BYOS registry.** Migration `20261116150000_raye2_byos_connections.sql` adds `raye2_byos_connections`, which
+  stores only non-secret metadata plus the NAME of a server-side environment secret — never the secret value, and
+  never a browser-readable key. RPCs: `raye2_upsert_byos_connection` (owner-scoped), `raye2_delete_byos_connection`,
+  `raye2_my_byos_connections`, `raye2_admin_byos_connections` (admin metadata list), `raye2_set_byos_connection_state`
+  (service-role only, after a real probe) and `raye2_admin_set_byos_state` (admin disable/re-arm, audit-logged).
+  The table is RLS-enabled with `anon`/`authenticated` fully revoked, mirroring the provider registry.
+- **Admin surface.** New `src/app/creator/raye2/byos-connections.tsx` and an admin "BYOS" tab listing contributor
+  connections with disable/re-arm. Contributed buckets remain private overflow only; public delivery stays on
+  Raye2-owned providers so a contributor cannot break public playback by revoking a key.
+- **Tests/validator:** +1 regression test for the bucket allow-list; validator grew to 482 assertions covering the
+  BYOS secret-free schema, owner/admin/service-role gating and the multi-surface fallback.
+- Gates: validator 482 assertions; tests 955/955; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done:** provider accounts/keys remain unconfigured, so the pooled path is exercised by unit tests and
+  the Supabase fallback keeps production working; live RLS application and real R2/B2/Storj acceptance remain. A
+  contributor-facing BYOS connect UI (beyond the admin view) and an on-demand provider probe endpoint are next.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3337,9 +3366,9 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | --- | --- | --- |
 | 0 | Repository audit and implementation map | ~90% |
 | 1 | Brand system and full product redesign | ~90% |
-| 2 | Core platform architecture, accounts and permissions | ~86% |
+| 2 | Core platform architecture, accounts and permissions | ~87% |
 | 3 | Video, feed and discovery ecosystem | ~96% |
-| 4 | Creator Studio, exclusives and live streaming | ~95% |
+| 4 | Creator Studio, exclusives and live streaming | ~96% |
 | 5 | Social graph, communities and engagement | ~100% |
 | 6 | Messaging and chat | ~95% |
 | 7 | Voice, Watch Together and shared experiences | ~88% |
