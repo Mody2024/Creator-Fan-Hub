@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "./raye2-design-system.css";
 import "./raye2/raye2-brand-system.css";
+import "./raye2-polish.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import LanguageSwitch from "./language-switch";
 import TelemetryReporter from "./telemetry-reporter";
