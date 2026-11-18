@@ -30,7 +30,7 @@ test("no predecessor NHEN/Nhen?/Creator Fan Hub labels remain on Raye2 product s
 
 test("the uploaded logo is the identity and the wordmark is only a fallback", async () => {
   const home = await read("../src/app/page.tsx");
-  assert.match(home, /config\.logoUrl \? <img className="site-logo-image" src=\{config\.logoUrl\} alt="Raye2" \/> : <span className="portal-wordmark">/);
+  assert.match(home, /config\.logoUrl \? <img className="site-logo-image" src=\{config\.logoUrl\} alt="" \/> : null/);\n  assert.doesNotMatch(home, /portal-wordmark|رايق/);
 });
 
 test("the brand mark integrates into favicon, app icons and a branded loading state", async () => {
