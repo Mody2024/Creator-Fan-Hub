@@ -79,7 +79,7 @@ export default function AdDirector({ locale }: { locale: "en" | "ar" }) {
   if (loaded && media.length === 0) return null;
 
   return (
-    <section className="raye2-ad-director">
+    <section id="creator-sponsorships" className="raye2-ad-director">
       <h2>{t.title}</h2>
       <p className="raye2-muted">{t.intro}</p>
       <label>{t.pick}
