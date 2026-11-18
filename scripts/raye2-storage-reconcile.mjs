@@ -33,6 +33,10 @@ async function measureProvider(provider, buckets) {
       token = page.nextContinuationToken;
       pages += 1;
     } while (token && pages < MAX_PAGES);
+    // Never publish an apparently complete usage total when pagination was truncated.
+    if (token) {
+      throw new Error(`Object listing exceeded ${MAX_PAGES} pages for bucket ${bucket} on ${provider.id}; usage total is incomplete, aborting reconciliation.`);
+    }
   }
   return { usedBytes, objectCount };
 }
