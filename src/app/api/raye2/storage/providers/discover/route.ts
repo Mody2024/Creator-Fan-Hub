@@ -46,7 +46,7 @@ export async function POST() {
       provider_kind: kind,
       enabled: true,
       priority: DEFAULT_PRIORITY[kind] ?? 100,
-      health: "healthy",
+      health: "unverified",
       capacity_bytes: DEFAULT_CAPACITY_BYTES,
       safety_reserve_bytes: SAFETY_RESERVE_BYTES,
       max_managed_bytes: null,
