@@ -3530,6 +3530,29 @@ slow mode did not exist at all. Additive; `main` and production unchanged.
 - **Not yet done (provider/environment-dependent):** live RLS application and trigger acceptance on an isolated
   Supabase project.
 
+## Batch — 2026-11-10 (Batch 10): Polls inside chats and groups (development only)
+
+**Goal:** close the last Wave 6 group-chat gap. The companion plan section 3 lists "replies, reactions, polls,
+shared files and shared content collections"; the platform had site-wide polls but no way to attach a poll to a
+conversation message. Additive; `main` and production unchanged.
+
+- **Model.** Migration `20261116220000_raye2_chat_polls.sql` adds `raye2_message_polls`,
+  `raye2_message_poll_options` and `raye2_message_poll_votes`. A poll hangs off one message (its attachment kind is
+  `poll`), so it inherits message retention, expiry, edit/delete and RLS.
+- **Server rules.** `raye2_create_message_poll` requires an active, member-visible conversation, 2–10 unique
+  options (1–80 chars) and a 1–160 char question, and is rate-limited with the chat bucket. `raye2_vote_message_poll`
+  replaces the caller's votes, enforces single vs multiple choice, rejects unknown options and blocks voting on a
+  closed or expired poll. `raye2_close_message_poll` is limited to the poll author or a group manager.
+- **Reads.** `raye2_get_message_poll` returns the question, options, live tallies, the caller's own votes and the
+  closed state; member-only. The tables are select-only to authenticated with member-scoped policies.
+- **UI.** The composer gains a "New poll" tool with a question field, add/remove option rows, a multiple-choice
+  toggle and post action. Each poll message renders a `Raye2MessagePoll` with share bars, the caller's selection and
+  a close control for the author or a group manager.
+- **Tests/validator:** `tests/raye2-chat-polls.test.mjs` (5 tests). Validator grew to 524 assertions.
+- Gates: validator 524 assertions; tests 1010/1010; tsc clean; lint 0 errors / 19 warnings; build OK.
+- **Not yet done (provider/environment-dependent):** live RLS application and RPC acceptance on an isolated
+  Supabase project.
+
 ## Progress percentages — canonical table (all ten waves)
 
 Percentages are provisional and acceptance-criteria based, per plan section 16. This table is the single source of truth for the ten-wave figures and is reported on every batch.
@@ -3542,7 +3565,7 @@ Percentages are provisional and acceptance-criteria based, per plan section 16. 
 | 3 | Video, feed and discovery ecosystem | ~99% |
 | 4 | Creator Studio, exclusives and live streaming | ~98% |
 | 5 | Social graph, communities and engagement | ~100% |
-| 6 | Messaging and chat | ~97% |
+| 6 | Messaging and chat | ~98% |
 | 7 | Voice, Watch Together and shared experiences | ~93% |
 | 8 | Admin Rules Engine, operations and governance | ~100% |
 | 9 | Security, reliability, optimization and release readiness | ~99% |

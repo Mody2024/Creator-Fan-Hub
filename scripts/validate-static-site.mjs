@@ -744,6 +744,25 @@ check("the chat UI exposes the disappearing control, badge and slow mode",
   chatEphemeralClient.includes("disappearingSeconds: conversation.disappearing_seconds ?? null") &&
   chatEphemeralCss.includes(".page .disappearingControl") &&
   chatEphemeralCss.includes(".page .ephemeralBadge"));
+const chatPollsMigration = await read("../supabase/migrations/20261116220000_raye2_chat_polls.sql");
+const chatPollComponent = await read("../src/app/raye2/raye2-message-poll.tsx");
+check("chat polls are member-scoped, validated and rate-limited",
+  chatPollsMigration.includes("create table if not exists public.raye2_message_polls (") &&
+  chatPollsMigration.includes("message_id uuid primary key references public.raye2_messages(id) on delete cascade") &&
+  chatPollsMigration.includes("create policy \"Raye2 members read conversation polls\"") &&
+  chatPollsMigration.includes("revoke all on public.raye2_message_polls, public.raye2_message_poll_options, public.raye2_message_poll_votes from anon, authenticated") &&
+  chatPollsMigration.includes("a poll needs between 2 and 10 options") &&
+  chatPollsMigration.includes("poll options must be unique") &&
+  chatPollsMigration.includes("perform public.raye2_rate_limit('chat.poll','rate.chat.message.hourly',300,3600)"));
+check("poll voting and closing enforce choice rules and permissions",
+  chatPollsMigration.includes("if not v_poll.allow_multiple and array_length(p_option_ids,1) <> 1 then") &&
+  chatPollsMigration.includes("only the poll author or a group manager may close it") &&
+  chatPollsMigration.includes("create or replace function public.raye2_get_message_poll(") &&
+  chatPollsMigration.includes("'my_votes', coalesce") &&
+  chatEphemeralClient.includes('rpc("raye2_create_message_poll", {') &&
+  chatEphemeralClient.includes('message.attachment?.kind === "poll" && supabase && <Raye2MessagePoll') &&
+  chatPollComponent.includes('rpc("raye2_vote_message_poll", { p_message_id: messageId, p_option_ids: [...selected] })') &&
+  chatPollComponent.includes('rpc("raye2_close_message_poll", { p_message_id: messageId })'));
 const cooldownMigration = await read("../supabase/migrations/20261110900000_raye2_creator_cooldown_status.sql");
 const capabilitiesUi = await read("../src/app/creator/creator-capabilities.tsx");
 check("the creator panel surfaces real quota/cooldown state", cooldownMigration.includes("can_publish_long_video_now") && cooldownMigration.includes("next_allowed_at") && capabilitiesUi.includes("caps.cooldown.can_publish_long_video_now"));

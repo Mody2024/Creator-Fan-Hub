@@ -243,3 +243,26 @@
 .page .disappearingControl select{border:1px solid var(--r-line);border-radius:8px;background:#0b0b0d;color:var(--r-text);font:inherit;font-size:8px;padding:3px 5px;cursor:pointer}
 .page .disappearingControl select:disabled{opacity:.5;cursor:not-allowed}
 .page .ephemeralBadge{display:inline-block;margin-inline-start:8px;padding:2px 7px;border:1px solid rgba(77,141,246,.4);border-radius:20px;background:rgba(77,141,246,.1);color:var(--r-accent);font-size:8px;letter-spacing:.06em;text-transform:uppercase}
+.page .composeTools{display:flex;justify-content:flex-end;padding:0 5px 8px}
+.page .pollComposer{display:flex;flex-direction:column;gap:9px;margin-bottom:10px;padding:13px;border:1px solid var(--r-line);border-radius:13px;background:#0b0b0d}
+.page .pollComposer label{display:flex;flex-direction:column;gap:6px;color:var(--r-muted);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.page .pollComposer input[type=text],.page .pollComposer label>input{padding:9px 11px;border:1px solid var(--r-line);border-radius:9px;background:#141416;color:var(--r-text);font:inherit;font-size:12px;text-transform:none;letter-spacing:0}
+.page .pollOptionRow{display:flex;align-items:center;gap:7px}
+.page .pollOptionRow input{flex:1;padding:8px 11px;border:1px solid var(--r-line);border-radius:9px;background:#141416;color:var(--r-text);font:inherit;font-size:12px}
+.page .pollOptionRow button{border:0;background:none;color:var(--r-muted);font-size:16px;cursor:pointer}
+.page .pollToggle{flex-direction:row!important;align-items:center;gap:8px;text-transform:none;letter-spacing:0}
+.page .pollToggle input{width:auto}
+.page .pollComposerActions{display:flex;justify-content:flex-end;gap:8px}
+.page .poll{display:flex;flex-direction:column;gap:9px;min-width:min(300px,72vw);padding-top:4px}
+.page .pollHead{display:flex;flex-direction:column;gap:3px}
+.page .pollHead b{font-size:12px}
+.page .pollHead span{color:var(--r-muted);font-size:8px;letter-spacing:.08em;text-transform:uppercase}
+.page .pollOptions{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.page .pollOptions button{position:relative;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 11px;border:1px solid var(--r-line);border-radius:10px;background:#141416;color:var(--r-text);font:inherit;font-size:11px;cursor:pointer;overflow:hidden}
+.page .pollOptions button:disabled{cursor:default}
+.page .pollOptions button.pollOptionMine{border-color:rgba(77,141,246,.45)}
+.page .pollBar{position:absolute;inset:0 auto 0 0;background:rgba(77,141,246,.14);z-index:0}
+.page .pollLabel{position:relative;z-index:1;text-align:start}
+.page .pollOptions small{position:relative;z-index:1;color:var(--r-muted);font-size:9px}
+.page .pollFoot{display:flex;align-items:center;justify-content:space-between;color:var(--r-muted);font-size:9px}
+.page .pollFoot button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-accent);padding:5px 9px;font-size:9px;cursor:pointer}
