@@ -3797,3 +3797,77 @@ provider control plane that already landed on `development`.
   tests asserted R2 failover with a byte count that still fit R2's headroom; corrected to exceed it.
 - **Tests:** `tests/raye2-storage-allowances.test.mjs` (11); validator grew to 453 assertions.
 - Gates: validator 453 assertions; tests 922/922; tsc clean; lint 0 errors / 19 warnings; build OK.
+
+---
+
+## Batch — 2026-11-18 (Batch 16): Ship batch — merge to `main`, live-stack E2E and production deploy simulation
+
+**Goal:** stop verifying and start shipping, as directed. Promote the fully-verified Raye2 platform from
+`development` to `main`, prove the platform runs end-to-end on a real Supabase stack, and prove the deploy
+path is safe against the actual production database state.
+
+### Merge and promotion to `main`
+- `main` and `development` are **genuinely divergent** histories: `main` was a 19-commit NHEN-era snapshot
+  (4 migrations, pre-Raye2) and `development` is the full 1716-commit Raye2 platform. They share only the
+  initial commit, so this was real integration work, not a fast-forward.
+- The merge produced 5 add/add conflicts (`src/app/creator/page.tsx`, `src/app/creator/video-studio.tsx`,
+  `src/app/saved/page.tsx`, `src/app/saved/saved-client.tsx`, `src/app/watch/[slug]/watch-detail-client.tsx`).
+  Every conflict was old-NHEN vs new-Raye2 of the same file; the Raye2 versions are strict feature supersets
+  (native reactions, comments, follow, related videos, share, bookmarks, saved-collections). Resolved to the
+  Raye2 content.
+- Removed 5 stale NHEN-only files absent from `development`: `src/app/nhen-design-system.css` (unreferenced) and
+  the four `2026110100xxxx_nhen_*.sql` migrations — the video-analytics and media-role-enforcement migrations are
+  byte-identical to later-timestamped `development` migrations (`20261101000844`, `20261101001403`), and
+  role-based-permissions is functionally equivalent to `20261101001334` (only per-function vs grouped GRANT).
+  The `20261101163000_nhen_secure_youtube_creator_sources.sql` file was superseded by the Raye2 YouTube
+  creator-source migration on `development`.
+- Result: the merged `main` tree is **byte-identical to `development`**. Fast-forward push `f97847f..3ffd395`.
+- **Rollback point:** the pre-merge `main` is `f97847f` (preserved on the remote reflog).
+- Free CI on `main` (run `44329123658`) **completed success**.
+- All gates re-run on the merged tree: validator 531 assertions; `check:migrations` 249 migrations + post-checks
+  + RLS matrix; tests 1023/1023; tsc clean; lint 0 errors; build OK.
+
+### End-to-end run on a real local Supabase stack
+- Brought up the full Supabase stack (Postgres, Auth, PostgREST, Storage, Studio) locally. The **entire
+  249-migration chain applied cleanly** to real Postgres 17 — not the stub — and post-checks + the behavioral
+  RLS matrix passed there.
+- Drove the real HTTP/PostgREST surface with real JWTs (anon, service-role, and signed-in authenticated users):
+  **12/12 checks pass** — anon can reach the public community/live RPCs but is denied `creator_admins` and
+  platform-rule mutation; a non-allowlisted account is denied creator analytics (`42501`); an active creator
+  reaches creator analytics but sees zero platform rules and is denied platform-rule mutation; a platform admin
+  reads platform rules and own-object RPCs. Direct base-table reads stay denied (RPC-only), as designed.
+- Next.js 15 dev server boots against the local stack and serves `/`, `/creator/login` and `/raye2` (HTTP 200).
+
+### Production deploy simulation (the ship blocker)
+- Probed the live production project `scxkgybuodhuohcxpfat`: the NHEN-era tables exist (HTTP 401 = present but
+  denied) but **no Raye2 RPC or table exists** (HTTP 404). Production is stuck at the pre-Raye2 schema; the
+  repo's own handoff note records live migration history ending at `20261102215604`.
+- Simulated production's exact state on a fresh cluster (Supabase stub + the 88 migrations applied through
+  `20261102215604`), then applied the **161 pending migrations forward**: **161/161 applied, zero failures**,
+  followed by post-checks and the RLS matrix — both pass. The forward deploy path is proven safe.
+- **Remaining ship blocker:** the Raye2 chain is *not* applied to production. This requires a Supabase access
+  token or the production database connection string, which is **not present in this environment** and must be
+  supplied by the owner. No production credential exists here, and no production database was modified.
+
+### Canonical ten-wave table (unchanged this batch)
+This was a merge/verification/ship batch; no user-facing feature delta, so the canonical figures are unchanged:
+
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~93% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization (pre-beta blocker) | ~97% |
+
+**Next owner action to finish and use Raye2 fully:** apply the 161 pending migrations to the production project
+`scxkgybuodhuohcxpfat` (`supabase link` + `supabase db push`, or the SQL editor), set the two Vercel environment
+variables for Production, and create the owner `creator_admins` row — all documented in `docs/SUPABASE-SETUP.md`
+and `docs/OWNER-SETUP.md`.

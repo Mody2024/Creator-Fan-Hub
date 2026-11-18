@@ -224,3 +224,18 @@ Retention/expiry RPCs (`raye2_expire_minis`, `raye2_expire_moments`) only mark r
   Shared Memories stay out of ordinary chat retention.
 - Report the ten-wave percentage table (canonical, in docs/RAYE2-IMPLEMENTATION-PROGRESS.md) on every batch;
   the per-wave acceptance-criteria figures are the source of truth, not a single blended number.
+
+## Release / ship — gotchas
+- `main` was a 19-commit NHEN-era snapshot (4 migrations, pre-Raye2) that shares only the initial commit with
+  `development` (the full Raye2 platform). Merging `development` into `main` is real integration work, not a
+  fast-forward. The merge conflicts are old-NHEN vs new-Raye2 copies of the same file; take the Raye2 content
+  and drop stale NHEN-only files (`src/app/nhen-design-system.css` and the `2026110100xxxx_nhen_*.sql`
+  migrations, which are superseded by later-timestamped `development` migrations).
+- The live production Supabase project is `scxkgybuodhuohcxpfat`. Its migration history ends at
+  `20261102215604`; the Raye2 chain (161 later migrations) is **not** applied there. Its publishable key is
+  public (it is in `.github/workflows/supabase-activity-check.yml`); a Supabase access token or the production
+  DB connection string is required to apply migrations and is not stored in the repo.
+- Before any production deploy, simulate it: apply the migrations through `20261102215604` on a throwaway
+  cluster, then apply the rest forward. That path was verified clean (161/161 + post-checks + RLS matrix).
+- Deployment is external (Vercel); there is no deploy workflow in `.github/workflows/`. `ci.yml` runs the gates
+  on pushes/PRs to `development` and `main`.
