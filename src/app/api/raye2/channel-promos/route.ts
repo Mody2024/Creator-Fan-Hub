@@ -8,7 +8,7 @@ const MAX_PLAYLIST_PAGES = 200;
 const SHORTS_MAX_SECONDS = 180;
 
 type ChannelRow = { id: string; channel_url: string; channel_handle: string; channel_title: string | null; enabled: boolean; placements: string[] };
-type PlaylistItem = { snippet?: { title?: string; description?: string; channelTitle?: string; resourceId?: { videoId?: string }; thumbnails?: { maxres?: { url?: string }; high?: { url?: string }; medium?: { url?: string } } } };
+type PlaylistItem = { snippet?: { title?: string; description?: string; channelTitle?: string; resourceId?: { videoId?: string }; thumbnails?: { maxres?: { url?: string; width?: number; height?: number }; high?: { url?: string; width?: number; height?: number }; medium?: { url?: string; width?: number; height?: number } } } };
 type PlaylistResponse = { nextPageToken?: string; items?: PlaylistItem[] };
 type ChannelResponse = { items?: Array<{ id?: string; snippet?: { title?: string }; contentDetails?: { relatedPlaylists?: { uploads?: string } } }> };
 type VideoItem = { id?: string; snippet?: { title?: string; description?: string; tags?: string[]; channelTitle?: string; thumbnails?: { maxres?: { url?: string }; high?: { url?: string }; medium?: { url?: string } } }; contentDetails?: { duration?: string }; status?: { privacyStatus?: string } };
@@ -89,9 +89,10 @@ async function hydrateUploads(entries: PlaylistItem[], apiKey: string) {
     const description = (video.snippet?.description ?? entry.snippet?.description ?? "").trim();
     const tags = video.snippet?.tags ?? [];
     const hasShortMarker = [...tags, title, description].some(value => /#shorts\b/i.test(value));
-    // Data API does not expose an authoritative Shorts flag or frame orientation.
-    // Only positively marked short-form videos enter Mini's; uncertain short videos stay out.
-    const isShort = duration !== null && duration <= SHORTS_MAX_SECONDS && hasShortMarker;
+    const thumbnail = video.snippet?.thumbnails?.maxres ?? video.snippet?.thumbnails?.high ?? video.snippet?.thumbnails?.medium;
+    const isPortraitThumbnail = Boolean(thumbnail?.width && thumbnail?.height && thumbnail.height / thumbnail.width >= 1.15);
+    // The API has no definitive Shorts flag; combine duration with available metadata signals.
+    const isShort = duration !== null && duration <= SHORTS_MAX_SECONDS && (hasShortMarker || isPortraitThumbnail);
     return [{
       id: `youtube-${id}`,
       videoId: id,
