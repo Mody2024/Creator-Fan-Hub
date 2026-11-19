@@ -12,7 +12,7 @@ Supported links:
 
 ## Automatic content classification
 
-- **Mini feed:** videos up to 180 seconds with a Shorts marker or square/portrait thumbnail signal. Ambiguous videos are excluded rather than risking a long video in Mini's.
+- **Mini feed:** all public uploads up to 180 seconds. YouTube does not expose a definitive Shorts flag through the Data API, so this favours including every short clip; an ordinary upload under three minutes may also appear in Mini's.
 - **Video and live previews:** regular uploads longer than 180 seconds, including completed public livestream recordings detected through YouTube's live-stream metadata. Raye2 selects a 15-second excerpt inside YouTube's official embedded player, preferring chapter timestamps and otherwise selecting a bounded random timestamp. The skip control appears after five seconds.
 - **Community:** any public upload from an enabled channel can appear as a featured post/card linking to the original YouTube video.
 
