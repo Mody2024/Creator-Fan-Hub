@@ -26,6 +26,7 @@ export function normalizeRaye2ChannelPromo(input) {
     durationSeconds: Number.isFinite(durationSeconds) && durationSeconds > 0 ? durationSeconds : null,
     chapters,
     description: String(input.description ?? "").trim().slice(0, 240),
+    channelTitle: String(input.channelTitle ?? "").trim().slice(0, 120),
     thumbnailUrl,
     label: "Featured channel",
     cta: String(input.cta ?? "Watch on YouTube").trim().slice(0, 40) || "Watch on YouTube",
