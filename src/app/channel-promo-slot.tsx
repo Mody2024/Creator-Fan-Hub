@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import "./channel-promo-slot.css";
-import { selectRaye2ChannelPromo, type Raye2PromoPlacement, type Raye2ChannelPromoInput } from "@/lib/raye2/channel-promo-rotation";
+import { selectRaye2ChannelPromo, type Raye2PromoPlacement, type Raye2ChannelPromoInput } from "@/lib/raye2/channel-promo-rotation.mjs";
 
 const recentByPlacement = new Map<string, string[]>();
 
