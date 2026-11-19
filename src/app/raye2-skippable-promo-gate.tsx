@@ -6,6 +6,22 @@ import { selectRaye2ChannelPromo, type Raye2ChannelPromoInput } from "@/lib/raye
 
 const recentByPlacement = new Map<string, string[]>();
 
+function getRecentPromoIds(placement: string) {
+  const memory = recentByPlacement.get(placement);
+  if (memory?.length) return memory;
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(`raye2:promo-history:${placement}`) ?? "[]");
+    return Array.isArray(parsed) ? parsed.map(String).slice(-12) : [];
+  } catch { return []; }
+}
+
+function rememberPromo(placement: string, ids: string[]) {
+  const next = ids.slice(-12);
+  recentByPlacement.set(placement, next);
+  try { sessionStorage.setItem(`raye2:promo-history:${placement}`, JSON.stringify(next)); } catch {}
+}
+
+
 export default function Raye2SkippablePromoGate({
   placement, children
 }: { placement: "video" | "live"; children: ReactNode }) {
@@ -23,10 +39,10 @@ export default function Raye2SkippablePromoGate({
         const data = await response.json();
         const list = data.promosByPlacement?.[placement];
         if (!Array.isArray(list)) return;
-        const recent = recentByPlacement.get(placement) ?? [];
+        const recent = getRecentPromoIds(placement);
         const selected = selectRaye2ChannelPromo({ promos: list as Raye2ChannelPromoInput[], placement, recentPromoIds: recent });
         if (cancelled || !selected) return;
-        recentByPlacement.set(placement, [...recent, selected.id].slice(-12));
+        rememberPromo(placement, [...recent, selected.id]);
         setPromo(selected);
       } catch {
         // If YouTube sync is unavailable, show the Raye2 player normally.
@@ -58,7 +74,8 @@ export default function Raye2SkippablePromoGate({
     autoplay: "1",
     controls: "1",
     playsinline: "1",
-    rel: "0"
+    rel: "0",
+    mute: "1"
   }).toString();
 
   return (
