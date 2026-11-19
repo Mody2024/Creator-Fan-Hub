@@ -76,6 +76,7 @@ export default function YouTubeChannelSources({ isArabic = false }: { isArabic?:
 
   async function updateChannel(id: string, patch: Partial<Pick<Channel, "enabled" | "placements">>) {
     if (!supabase) return;
+    if (patch.placements && patch.placements.length === 0) { setError(isArabic ? "يجب اختيار موضع واحد على الأقل." : "Keep at least one placement selected."); return; }
     setBusy(true); setError(""); setNotice("");
     const { error: updateError } = await supabase.from("raye2_youtube_promo_channels").update(patch).eq("id", id);
     setBusy(false);
