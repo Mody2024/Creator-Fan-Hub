@@ -81,7 +81,7 @@ export default function CommunityShortsClient(){
    setReactionCounts(counts);setMyReactions(mine);
   }else{setReactionCounts({});setMyReactions({});}
   setLoading(false);
- },[supabase,userId]);
+ },[supabase,userId,t.feedError,t.reactionError]);
 
  useEffect(()=>{
   if(!supabase)return;
