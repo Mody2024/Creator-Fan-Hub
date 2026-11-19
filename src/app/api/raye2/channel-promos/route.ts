@@ -87,7 +87,7 @@ async function hydrateUploads(entries: PlaylistItem[], apiKey: string) {
     const tags = video.snippet?.tags ?? [];
     const hasShortMarker = [...tags, title, description].some(value => /#shorts\b/i.test(value));
     const thumbnail = video.snippet?.thumbnails?.maxres ?? video.snippet?.thumbnails?.high ?? video.snippet?.thumbnails?.medium;
-    const isPortraitThumbnail = Boolean(thumbnail?.width && thumbnail?.height && thumbnail.height / thumbnail.width >= 1.15);
+    const isPortraitThumbnail = Boolean(thumbnail?.width && thumbnail?.height && thumbnail.height / thumbnail.width >= 0.85);
     // The API has no definitive Shorts flag; combine duration with available metadata signals.
     const isShort = duration !== null && duration <= SHORTS_MAX_SECONDS && (hasShortMarker || isPortraitThumbnail);
     return [{
@@ -177,7 +177,7 @@ export async function GET() {
         communityVideos: promosByPlacement.community.length
       },
       classification: {
-        shorts: "Up to 180 seconds plus a #Shorts marker or portrait thumbnail signal; best-effort because the Data API has no definitive Shorts flag",
+        shorts: "Up to 180 seconds plus a #Shorts marker or square/portrait thumbnail signal; best-effort because the Data API has no definitive Shorts flag",
         uncertainShorts: "Excluded from Mini's until positively classified",
         regularVideos: "Longer than 180 seconds",
         source: "Public channel uploads playlist"
