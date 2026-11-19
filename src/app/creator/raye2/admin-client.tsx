@@ -385,7 +385,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
       {tab === "byos" && <ByosConnections isArabic={isAr} />}
       {tab === "live" && <><div className={styles.sectionHead}><h2>{t.live}</h2><p>{t.liveNote}</p><button className={styles.action} disabled={busy} onClick={() => void loadLive()}>{t.liveLoad}</button></div>{!liveOverview ? <p>{t.noRows}</p> : <div className={styles.metrics}><span>{t.liveLive}: {liveOverview.live ?? 0}</span><span>{t.liveReplay}: {liveOverview.replay ?? 0}</span><span>{t.liveModerated}: {liveOverview.moderated ?? 0}</span><span>{t.liveDegraded}: {liveOverview.degraded ?? 0}</span><span>{t.liveReplayHours}: {liveOverview.replay_retention_hours ?? "—"}</span><span>{t.liveMaxDuration}: {liveOverview.max_duration_seconds ?? "—"}</span><span>{t.liveMaxConcurrent}: {liveOverview.max_concurrent_streams ?? "—"}</span></div>}</>}
       {tab === "sponsors" && <PlatformSponsorManagement />}
-      {tab === "channels" && <YouTubeChannelSources />}
+      {tab === "channels" && <YouTubeChannelSources isArabic={isAr} />}
       {tab === "revenue" && <PlatformRevenueOverview />}
       {tab === "integrity" && <CampaignIntegrity isArabic={isAr} />}
       {tab === "moderation" && <><div className={styles.sectionHead}><h2>{t.modQueue}</h2><p>{t.modContent} · {t.modSafety}</p><div style={{display:"flex",gap:8,alignItems:"center"}}><select value={modStatus} onChange={e=>{const v=e.target.value as typeof modStatus;setModStatus(v);void loadModQueue(v)}} aria-label={t.modQueue}>{["open","reviewing","resolved","dismissed"].map(s=><option key={s} value={s}>{s}</option>)}</select><button className={styles.action} disabled={busy} onClick={()=>void loadModQueue()}>{t.modLoad}</button></div></div>
