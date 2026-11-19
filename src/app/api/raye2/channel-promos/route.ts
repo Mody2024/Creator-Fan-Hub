@@ -10,7 +10,7 @@ type ChannelRow = { id: string; channel_url: string; channel_handle: string; cha
 type PlaylistItem = { snippet?: { title?: string; description?: string; channelTitle?: string; resourceId?: { videoId?: string }; thumbnails?: { maxres?: { url?: string; width?: number; height?: number }; high?: { url?: string; width?: number; height?: number }; medium?: { url?: string; width?: number; height?: number } } } };
 type PlaylistResponse = { nextPageToken?: string; items?: PlaylistItem[] };
 type ChannelResponse = { items?: Array<{ id?: string; snippet?: { title?: string }; contentDetails?: { relatedPlaylists?: { uploads?: string } } }> };
-type VideoItem = { id?: string; snippet?: { title?: string; description?: string; tags?: string[]; channelTitle?: string; thumbnails?: { maxres?: { url?: string; width?: number; height?: number }; high?: { url?: string; width?: number; height?: number }; medium?: { url?: string; width?: number; height?: number } } }; contentDetails?: { duration?: string }; status?: { privacyStatus?: string } };
+type VideoItem = { id?: string; snippet?: { title?: string; description?: string; tags?: string[]; channelTitle?: string; thumbnails?: { maxres?: { url?: string; width?: number; height?: number }; high?: { url?: string; width?: number; height?: number }; medium?: { url?: string; width?: number; height?: number } } }; contentDetails?: { duration?: string }; liveStreamingDetails?: { actualStartTime?: string; actualEndTime?: string; scheduledStartTime?: string }; status?: { privacyStatus?: string } };
 type VideoResponse = { items?: VideoItem[] };
 
 async function youtubeJson<T>(url: URL): Promise<T> {
@@ -70,7 +70,7 @@ async function hydrateUploads(entries: PlaylistItem[], apiKey: string) {
   for (let offset = 0; offset < ids.length; offset += 50) {
     const url = new URL(`${YOUTUBE_API}/videos`);
     url.search = new URLSearchParams({
-      part: "snippet,contentDetails,status",
+      part: "snippet,contentDetails,status,liveStreamingDetails",
       id: ids.slice(offset, offset + 50).join(","),
       key: apiKey
     }).toString();
@@ -103,8 +103,9 @@ async function hydrateUploads(entries: PlaylistItem[], apiKey: string) {
         ?? entry.snippet?.thumbnails?.high?.url
         ?? `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
       durationSeconds: duration,
-      contentClass: isShort ? "short" : duration !== null && duration > SHORTS_MAX_SECONDS ? "long" : "uncertain",
+      contentClass: isShort ? "short" : video.liveStreamingDetails?.actualStartTime ? "stream" : duration !== null && duration > SHORTS_MAX_SECONDS ? "long" : "uncertain",
       channelTitle: video.snippet?.channelTitle ?? entry.snippet?.channelTitle ?? "",
+      streamRecorded: Boolean(video.liveStreamingDetails?.actualStartTime),
       label: "Featured channel",
       cta: "Watch on YouTube",
       active: true
@@ -173,7 +174,8 @@ export async function GET() {
         channels: syncResults.length,
         channelUploads: allPromos.length,
         miniShorts: promosByPlacement.minis.length,
-        longVideoSources: promosByPlacement.video.length,
+        longVideoSources: promosByPlacement.video.filter(video => video.contentClass === "long").length,
+        recordedStreams: promosByPlacement.video.filter(video => video.contentClass === "stream").length,
         communityVideos: promosByPlacement.community.length
       },
       classification: {
