@@ -6,6 +6,22 @@ import { selectRaye2ChannelPromo, type Raye2PromoPlacement, type Raye2ChannelPro
 
 const recentByPlacement = new Map<string, string[]>();
 
+function getRecentPromoIds(placement: string) {
+  const memory = recentByPlacement.get(placement);
+  if (memory?.length) return memory;
+  try {
+    const parsed = JSON.parse(sessionStorage.getItem(`raye2:promo-history:${placement}`) ?? "[]");
+    return Array.isArray(parsed) ? parsed.map(String).slice(-12) : [];
+  } catch { return []; }
+}
+
+function rememberPromo(placement: string, ids: string[]) {
+  const next = ids.slice(-12);
+  recentByPlacement.set(placement, next);
+  try { sessionStorage.setItem(`raye2:promo-history:${placement}`, JSON.stringify(next)); } catch {}
+}
+
+
 export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2PromoPlacement }) {
   const [promo, setPromo] = useState<ReturnType<typeof selectRaye2ChannelPromo>>(null);
 
@@ -24,9 +40,9 @@ export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2P
         // Fail closed when the channel catalogue is unavailable.
       }
       if (cancelled) return;
-      const recent = recentByPlacement.get(placement) ?? [];
+      const recent = getRecentPromoIds(placement);
       const selected = selectRaye2ChannelPromo({ promos, placement, recentPromoIds: recent });
-      if (selected) recentByPlacement.set(placement, [...recent, selected.id].slice(-12));
+      if (selected) rememberPromo(placement, [...recent, selected.id]);
       setPromo(selected);
     }
     void load();
