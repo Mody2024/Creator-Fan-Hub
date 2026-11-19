@@ -131,23 +131,32 @@ export async function GET() {
 
     const allPromos: Array<Record<string, unknown> & { placements: string[]; contentClass: string }> = [];
     const syncResults: Array<{ channel: string; title: string; total: number; complete: boolean }> = [];
+    const channelErrors: Array<{ channel: string; error: string }> = [];
     for (const channel of (channels ?? []) as ChannelRow[]) {
-      const { uploadsPlaylistId, title } = await resolveChannel(channel, apiKey);
-      const uploads = await readAllUploads(uploadsPlaylistId, apiKey);
-      const videos = await hydrateUploads(uploads.entries, apiKey);
-      const eligible = videos.map(video => ({
-        ...video,
-        placements: channel.placements,
-        channelId: channel.id,
-        channelTitle: title
-      }));
-      allPromos.push(...eligible);
-      syncResults.push({
-        channel: channel.channel_url,
-        title,
-        total: eligible.length,
-        complete: uploads.complete
-      });
+      try {
+        const { uploadsPlaylistId, title } = await resolveChannel(channel, apiKey);
+        const uploads = await readAllUploads(uploadsPlaylistId, apiKey);
+        const videos = await hydrateUploads(uploads.entries, apiKey);
+        const eligible = videos.map(video => ({
+          ...video,
+          placements: channel.placements,
+          channelId: channel.id,
+          channelTitle: title
+        }));
+        allPromos.push(...eligible);
+        syncResults.push({
+          channel: channel.channel_url,
+          title,
+          total: eligible.length,
+          complete: uploads.complete
+        });
+      } catch (channelError) {
+        console.error("[raye2-channel-promos] skipped channel", channel.channel_url, channelError);
+        channelErrors.push({
+          channel: channel.channel_url,
+          error: channelError instanceof Error ? channelError.message : "Channel discovery failed"
+        });
+      }
     }
 
     const promosByPlacement = {
@@ -158,6 +167,7 @@ export async function GET() {
     };
     return NextResponse.json({
       channels: syncResults,
+      channelErrors,
       promosByPlacement,
       counts: {
         channels: syncResults.length,
