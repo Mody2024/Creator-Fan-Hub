@@ -39,9 +39,23 @@ set active = false
 where user_id = 'REPLACE-WITH-OWNER-AUTH-USER-UUID'::uuid;
 ```
 
-## 3. Verify access boundaries
+## 3. Enable Google sign-in (one-time provider setup)
 
-1. Open `/creator/login` on the Vercel preview and sign in as the owner.
+The Creator login now starts a Supabase Google OAuth flow and returns through `/auth/callback`. The callback exchanges the one-time PKCE code, checks that the identity is Google-backed, and requires Supabase to report a confirmed email. The Creator page then performs its existing server-side allowlist check. Google authentication alone never grants Admin or Studio privileges.
+
+1. In Google Cloud Console, create or select a project and configure an **OAuth client ID** with application type **Web application**.
+2. In Supabase **Authentication → Providers → Google**, enable Google and enter the OAuth client ID and client secret from Google. Save them only in the Supabase dashboard; never commit or paste the secret into chat.
+3. In the Google OAuth client's **Authorized redirect URIs**, add the Supabase callback shown in the Supabase Google provider setup screen. It has this form: `https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`. This is Google's callback into Supabase, not the Raye2 app callback.
+4. In Supabase **Authentication → URL Configuration → Redirect URLs**, add the exact Raye2 app callback for the development preview and the final production domain after production is approved. The app callback path is `/auth/callback`. For a changing Vercel preview hostname, use a narrowly scoped Vercel preview wildcard supported by Supabase rather than repeatedly adding random deployment URLs.
+5. Keep the Supabase Site URL set to the approved canonical site URL. Do not switch it to a temporary deployment.
+6. Save the provider settings and test on the development preview first. Choose the Google account, complete Google's own verification/consent screens, and confirm the browser returns to `/creator`.
+7. Confirm the owner UID is still active in `public.creator_admins`. A different Google account should authenticate but be denied access unless its exact Auth UID is separately authorized by the owner.
+
+If the Google button reports provider configuration is missing, recheck that Google is enabled in Supabase and that the Supabase redirect allow-list exactly matches the app callback. If Google rejects the redirect, recheck the Supabase callback URI in Google Cloud Console.
+
+## 4. Verify access boundaries
+
+1. Open `/creator/login` on the Vercel preview and sign in as the owner using Google or email/password.
 2. Confirm the dashboard opens and can load its draft and management sections.
 3. Sign out.
 4. Sign in using a separate authenticated account that is not in `creator_admins`. A non-allowlisted account must be redirected to the login page with an access-restricted message. It must not load creator data or perform creator mutations.
@@ -50,7 +64,7 @@ where user_id = 'REPLACE-WITH-OWNER-AUTH-USER-UUID'::uuid;
 
 Never temporarily grant broad table access to make a test pass. Test using the existing RLS policies and guarded RPCs.
 
-## 4. Configure Auth URLs and account recovery
+## 5. Configure Auth URLs and account recovery
 
 - Set the Supabase Auth Site URL to the production domain when production is approved.
 - Add the exact preview and production callback/redirect URLs required by the Supabase Auth configuration.
@@ -58,9 +72,10 @@ Never temporarily grant broad table access to make a test pass. Test using the e
 - Use Supabase's trusted dashboard process for password resets or account recovery; this app does not provide public registration or a self-service password-reset flow.
 - Enable multi-factor authentication for the owner where supported by the project's Auth settings.
 
-## 5. Final acceptance checklist
+## 6. Final acceptance checklist
 
-- [ ] Owner can sign in, refresh the dashboard, and sign out.
+- [ ] Owner can sign in with Google and email/password, refresh the dashboard, and sign out.
+- [ ] Google callback rejects missing codes, non-Google identities and unconfirmed email accounts.
 - [ ] A non-allowlisted authenticated account is denied.
 - [ ] Draft save detects stale revisions.
 - [ ] Publish creates a versioned public snapshot.
