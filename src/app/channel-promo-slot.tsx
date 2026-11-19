@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import "./channel-promo-slot.css";
-import { selectRaye2ChannelPromo, type Raye2PromoPlacement } from "@/lib/raye2/channel-promo-rotation";
+import { selectRaye2ChannelPromo, type Raye2PromoPlacement, type Raye2ChannelPromoInput } from "@/lib/raye2/channel-promo-rotation";
 
 const recentByPlacement = new Map<string, string[]>();
 
@@ -12,7 +12,7 @@ export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2P
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      let promos: unknown[] = [];
+      let promos: Raye2ChannelPromoInput[] = [];
       try {
         const response = await fetch("/api/raye2/channel-promos", { cache: "no-store" });
         if (response.ok) {
