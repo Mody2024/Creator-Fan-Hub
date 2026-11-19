@@ -89,7 +89,7 @@ async function hydrateUploads(entries: PlaylistItem[], apiKey: string) {
     const thumbnail = video.snippet?.thumbnails?.maxres ?? video.snippet?.thumbnails?.high ?? video.snippet?.thumbnails?.medium;
     const isPortraitThumbnail = Boolean(thumbnail?.width && thumbnail?.height && thumbnail.height / thumbnail.width >= 0.85);
     // The API has no definitive Shorts flag; combine duration with available metadata signals.
-    const isShort = duration !== null && duration <= SHORTS_MAX_SECONDS && (hasShortMarker || isPortraitThumbnail);
+    const isShort = duration !== null && duration <= SHORTS_MAX_SECONDS;
     return [{
       id: `youtube-${id}`,
       videoId: id,
@@ -106,6 +106,7 @@ async function hydrateUploads(entries: PlaylistItem[], apiKey: string) {
       contentClass: isShort ? "short" : video.liveStreamingDetails?.actualStartTime ? "stream" : duration !== null && duration > SHORTS_MAX_SECONDS ? "long" : "uncertain",
       channelTitle: video.snippet?.channelTitle ?? entry.snippet?.channelTitle ?? "",
       streamRecorded: Boolean(video.liveStreamingDetails?.actualStartTime),
+      shortSignal: hasShortMarker ? "hashtag" : isPortraitThumbnail ? "thumbnail" : "duration-only",
       label: "Featured channel",
       cta: "Watch on YouTube",
       active: true
@@ -179,8 +180,8 @@ export async function GET() {
         communityVideos: promosByPlacement.community.length
       },
       classification: {
-        shorts: "Up to 180 seconds plus a #Shorts marker or square/portrait thumbnail signal; best-effort because the Data API has no definitive Shorts flag",
-        uncertainShorts: "Excluded from Mini's until positively classified",
+        shorts: "All public uploads up to 180 seconds are short-form candidates; the Data API has no definitive Shorts flag, so some ordinary short videos may also appear",
+        uncertainShorts: "Short uploads without a Shorts marker are included as duration-only candidates",
         regularVideos: "Longer than 180 seconds",
         source: "Public channel uploads playlist"
       },
