@@ -46,7 +46,7 @@ export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2P
         <div className="raye2-channel-promo-mini">
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(promo.videoId)}?playsinline=1&controls=1&rel=0`}
-            title={`Maronizer Short: ${promo.title}`}
+            title={`Channel Short: ${promo.title}`}
             loading="lazy"
             allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerPolicy="strict-origin-when-cross-origin"
