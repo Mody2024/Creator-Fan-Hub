@@ -15,10 +15,10 @@ type Channel = {
 };
 
 const PLACEMENTS = [
-  { id: "video", label: isArabic ? "معاينات الفيديو" : "Video previews" },
-  { id: "live", label: isArabic ? "معاينات البث" : "Live previews" },
-  { id: "minis", label: isArabic ? "خلاصة الميني" : "Mini feed" },
-  { id: "community", label: isArabic ? "منشورات المجتمع" : "Community posts" }
+  { id: "video", label: "Video previews" },
+  { id: "live", label: "Live previews" },
+  { id: "minis", label: "Mini feed" },
+  { id: "community", label: "Community posts" }
 ];
 
 function parseChannelUrl(raw: string) {
@@ -35,6 +35,7 @@ function parseChannelUrl(raw: string) {
 
 export default function YouTubeChannelSources({ isArabic = false }: { isArabic?: boolean }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
+  const placementLabel = (id: string, english: string) => isArabic ? ({ video: "معاينات الفيديو", live: "معاينات البث", minis: "خلاصة الميني", community: "منشورات المجتمع" }[id] ?? english) : english;
   const [channels, setChannels] = useState<Channel[]>([]);
   const [url, setUrl] = useState("");
   const [placements, setPlacements] = useState<string[]>(["video", "live", "minis", "community"]);
@@ -51,7 +52,7 @@ export default function YouTubeChannelSources({ isArabic = false }: { isArabic?:
     if (loadError) { setError(isArabic ? "تعذر تحميل القنوات. طبّق ترحيل قاعدة بيانات Raye2 أولًا." : "Could not load channel sources. Apply the latest Raye2 database migration first."); return; }
     setChannels((data ?? []) as Channel[]);
     setError("");
-  }, [supabase]);
+  }, [supabase, isArabic]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -98,7 +99,7 @@ export default function YouTubeChannelSources({ isArabic = false }: { isArabic?:
     </div>
     <article className={styles.card} style={{ display: "grid", gap: 12 }}>
       <div><h3>{isArabic ? "إضافة قناة" : "Add a channel"}</h3><p>{isArabic ? "أدخل رابط الصفحة الرئيسية للقناة. لا تحتاج إلى قائمة تشغيل Shorts." : "Paste a channel homepage URL. No Shorts playlist is required."}</p></div>
-      <label>Channel URL<input value={url} onChange={event => setUrl(event.target.value)} placeholder="https://youtube.com/@channelname" autoComplete="url"/></label>
+      <label>{isArabic ? "رابط القناة" : "Channel URL"}<input value={url} onChange={event => setUrl(event.target.value)} placeholder="https://youtube.com/@channelname" autoComplete="url"/></label>
       <div><strong>{isArabic ? "استخدم هذه القناة في" : "Use this channel in"}</strong><div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 10 }}>
         {PLACEMENTS.map(item => <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <input type="checkbox" checked={placements.includes(item.id)} onChange={event => setPlacements(current => event.target.checked ? [...current, item.id] : current.filter(value => value !== item.id))}/>
@@ -114,7 +115,7 @@ export default function YouTubeChannelSources({ isArabic = false }: { isArabic?:
       <div className={styles.cardHead}><div><h3>{channel.channel_title || `@${channel.channel_handle.replace(/^channel:/, "")}`}</h3><a href={channel.channel_url} target="_blank" rel="noopener noreferrer">{channel.channel_url}</a><p>{isArabic ? "اكتشاف تلقائي · تحديث كل 6 ساعات عند طلب المحتوى" : "Automatic discovery · refreshes every 6 hours when content is requested"}</p></div>
         <label style={{ display: "flex", alignItems: "center", gap: 8 }}><input type="checkbox" checked={channel.enabled} disabled={busy} onChange={event => void updateChannel(channel.id, { enabled: event.target.checked })}/>{isArabic ? "مفعّلة" : "Enabled"}</label>
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>{PLACEMENTS.map(item => <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 6 }}><input type="checkbox" checked={channel.placements.includes(item.id)} disabled={busy} onChange={event => void updateChannel(channel.id, { placements: event.target.checked ? [...channel.placements, item.id] : channel.placements.filter(value => value !== item.id) })}/>{item.label}</label>)}</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>{PLACEMENTS.map(item => <label key={item.id} style={{ display: "flex", alignItems: "center", gap: 6 }}><input type="checkbox" checked={channel.placements.includes(item.id)} disabled={busy} onChange={event => void updateChannel(channel.id, { placements: event.target.checked ? [...channel.placements, item.id] : channel.placements.filter(value => value !== item.id) })}/>{placementLabel(item.id, item.label)}</label>)}</div>
       <div><button type="button" className={styles.action} disabled={busy} onClick={() => void removeChannel(channel.id)}>{isArabic ? "إزالة القناة" : "Remove channel"}</button></div>
     </article>)}
     <p style={{ fontSize: 12, opacity: .7 }}>{isArabic ? "يقرأ Raye2 بيانات الفيديوهات العامة ويعرض مشغل يوتيوب الأصلي. لا ينزّل فيديوهات القنوات ولا يعيد رفعها." : "Raye2 reads public YouTube metadata and embeds original YouTube videos. It does not download or re-upload channel videos."}</p>
