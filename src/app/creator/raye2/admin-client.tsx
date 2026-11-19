@@ -9,6 +9,7 @@ import PlatformRevenueOverview from "./platform-revenue-overview";
 import CampaignIntegrity from "./campaign-integrity";
 import ByosConnections from "./byos-connections";
 import StorageProviders from "./storage-providers";
+import YouTubeChannelSources from "./youtube-channel-sources";
 import LanguageSwitch from "@/app/language-switch";
 
 export type RuleRow = { rule_key: string; category: string; rule_value: unknown; status: "proposed" | "active" | "disabled"; description: string; updated_at: string };
@@ -30,7 +31,7 @@ export type CapRow = { capability: string; required_role: string; allowed: boole
 export type FabricRow = { section: string; key: string; label: string; value_numeric: number | null; value_text: string | null; enabled: boolean; detail: string };
 
 type Locale = "en" | "ar";
-type TabId = "rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation";
+type TabId = "rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation" | "channels";
 const bytes = (value: number) => value < 1024 ? value + " B" : value < 1024 ** 2 ? (value / 1024).toFixed(1) + " KB" : value < 1024 ** 3 ? (value / 1024 ** 2).toFixed(1) + " MB" : (value / 1024 ** 3).toFixed(2) + " GB";
 
 export default function Raye2AdminClient({ locale, logoUrl, initialRules, initialRetention, initialJobs, initialStorage, initialAudit, initialHealth, initialAdmins, initialCaps, initialFabric }: {
@@ -341,7 +342,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
     { title: isAr ? "الحوكمة" : "Governance", items: [{ id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "audit", label: t.audit }] },
     { title: isAr ? "التخزين" : "Storage", items: [{ id: "fabric", label: t.fabric }, { id: "providers", label: isAr ? "المزودون" : "Providers" }, { id: "storage", label: t.storage }, { id: "byos", label: isAr ? "تخزين المستخدمين" : "BYOS" }] },
     { title: isAr ? "المجتمع والإشراف" : "Community & moderation", items: [{ id: "moderation", label: t.modQueue }, { id: "integrity", label: isAr ? "نزاهة الحملات" : "Campaign integrity" }] },
-    { title: isAr ? "الأعمال والبث" : "Business & live", items: [{ id: "sponsors", label: t.sponsors }, { id: "revenue", label: t.revenue }, { id: "live", label: t.live }] },
+    { title: isAr ? "الأعمال والبث" : "Business & live", items: [{ id: "sponsors", label: t.sponsors }, { id: "channels", label: isAr ? "قنوات يوتيوب الترويجية" : "YouTube promo channels" }, { id: "revenue", label: t.revenue }, { id: "live", label: t.live }] },
     { title: isAr ? "الوصول والعمليات" : "Access & operations", items: [{ id: "roles", label: t.roles }, { id: "quotas", label: t.quotas }, { id: "jobs", label: t.jobs }] }
   ];
   const activeLabel = navGroups.flatMap(group => group.items).find(item => item.id === tab)?.label ?? "";
@@ -384,6 +385,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
       {tab === "byos" && <ByosConnections isArabic={isAr} />}
       {tab === "live" && <><div className={styles.sectionHead}><h2>{t.live}</h2><p>{t.liveNote}</p><button className={styles.action} disabled={busy} onClick={() => void loadLive()}>{t.liveLoad}</button></div>{!liveOverview ? <p>{t.noRows}</p> : <div className={styles.metrics}><span>{t.liveLive}: {liveOverview.live ?? 0}</span><span>{t.liveReplay}: {liveOverview.replay ?? 0}</span><span>{t.liveModerated}: {liveOverview.moderated ?? 0}</span><span>{t.liveDegraded}: {liveOverview.degraded ?? 0}</span><span>{t.liveReplayHours}: {liveOverview.replay_retention_hours ?? "—"}</span><span>{t.liveMaxDuration}: {liveOverview.max_duration_seconds ?? "—"}</span><span>{t.liveMaxConcurrent}: {liveOverview.max_concurrent_streams ?? "—"}</span></div>}</>}
       {tab === "sponsors" && <PlatformSponsorManagement />}
+      {tab === "channels" && <YouTubeChannelSources />}
       {tab === "revenue" && <PlatformRevenueOverview />}
       {tab === "integrity" && <CampaignIntegrity isArabic={isAr} />}
       {tab === "moderation" && <><div className={styles.sectionHead}><h2>{t.modQueue}</h2><p>{t.modContent} · {t.modSafety}</p><div style={{display:"flex",gap:8,alignItems:"center"}}><select value={modStatus} onChange={e=>{const v=e.target.value as typeof modStatus;setModStatus(v);void loadModQueue(v)}} aria-label={t.modQueue}>{["open","reviewing","resolved","dismissed"].map(s=><option key={s} value={s}>{s}</option>)}</select><button className={styles.action} disabled={busy} onClick={()=>void loadModQueue()}>{t.modLoad}</button></div></div>
