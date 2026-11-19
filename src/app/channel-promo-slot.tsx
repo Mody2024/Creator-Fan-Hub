@@ -6,23 +6,13 @@ import { selectRaye2ChannelPromo, type Raye2PromoPlacement } from "@/lib/raye2/c
 
 const recentByPlacement = new Map<string, string[]>();
 
-function configuredPromos() {
-  try {
-    const raw = process.env.NEXT_PUBLIC_RAYE2_CHANNEL_PROMOS;
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
 export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2PromoPlacement }) {
   const [promo, setPromo] = useState<ReturnType<typeof selectRaye2ChannelPromo>>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      let promos = configuredPromos();
+      let promos: unknown[] = [];
       try {
         const response = await fetch("/api/raye2/channel-promos", { cache: "no-store" });
         if (response.ok) {
@@ -31,7 +21,7 @@ export default function Raye2ChannelPromoSlot({ placement }: { placement: Raye2P
           if (Array.isArray(byPlacement)) promos = byPlacement;
         }
       } catch {
-        // Use the optional manually configured list if channel sync is unavailable.
+        // Fail closed when the channel catalogue is unavailable.
       }
       if (cancelled) return;
       const recent = recentByPlacement.get(placement) ?? [];
