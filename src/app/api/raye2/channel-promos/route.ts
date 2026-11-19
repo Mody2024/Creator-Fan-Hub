@@ -4,14 +4,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const revalidate = 21600;
 
 const YOUTUBE_API = "https://www.googleapis.com/youtube/v3";
-const MAX_PLAYLIST_PAGES = 200;
 const SHORTS_MAX_SECONDS = 180;
 
 type ChannelRow = { id: string; channel_url: string; channel_handle: string; channel_title: string | null; enabled: boolean; placements: string[] };
 type PlaylistItem = { snippet?: { title?: string; description?: string; channelTitle?: string; resourceId?: { videoId?: string }; thumbnails?: { maxres?: { url?: string; width?: number; height?: number }; high?: { url?: string; width?: number; height?: number }; medium?: { url?: string; width?: number; height?: number } } } };
 type PlaylistResponse = { nextPageToken?: string; items?: PlaylistItem[] };
 type ChannelResponse = { items?: Array<{ id?: string; snippet?: { title?: string }; contentDetails?: { relatedPlaylists?: { uploads?: string } } }> };
-type VideoItem = { id?: string; snippet?: { title?: string; description?: string; tags?: string[]; channelTitle?: string; thumbnails?: { maxres?: { url?: string }; high?: { url?: string }; medium?: { url?: string } } }; contentDetails?: { duration?: string }; status?: { privacyStatus?: string } };
+type VideoItem = { id?: string; snippet?: { title?: string; description?: string; tags?: string[]; channelTitle?: string; thumbnails?: { maxres?: { url?: string; width?: number; height?: number }; high?: { url?: string; width?: number; height?: number }; medium?: { url?: string; width?: number; height?: number } } }; contentDetails?: { duration?: string }; status?: { privacyStatus?: string } };
 type VideoResponse = { items?: VideoItem[] };
 
 async function youtubeJson<T>(url: URL): Promise<T> {
@@ -52,7 +51,6 @@ async function resolveChannel(channel: ChannelRow, apiKey: string) {
 async function readAllUploads(playlistId: string, apiKey: string) {
   const entries: PlaylistItem[] = [];
   let pageToken = "";
-  let pageCount = 0;
   do {
     const url = new URL(`${YOUTUBE_API}/playlistItems`);
     url.search = new URLSearchParams({
@@ -62,8 +60,7 @@ async function readAllUploads(playlistId: string, apiKey: string) {
     const page = await youtubeJson<PlaylistResponse>(url);
     entries.push(...(page.items ?? []));
     pageToken = page.nextPageToken ?? "";
-    pageCount += 1;
-  } while (pageToken && pageCount < MAX_PLAYLIST_PAGES);
+  } while (pageToken);
   return { entries, complete: !pageToken };
 }
 
@@ -170,7 +167,7 @@ export async function GET() {
         communityVideos: promosByPlacement.community.length
       },
       classification: {
-        shorts: "Up to 180 seconds plus an explicit #Shorts metadata marker",
+        shorts: "Up to 180 seconds plus a #Shorts marker or portrait thumbnail signal; best-effort because the Data API has no definitive Shorts flag",
         uncertainShorts: "Excluded from Mini's until positively classified",
         regularVideos: "Longer than 180 seconds",
         source: "Public channel uploads playlist"
