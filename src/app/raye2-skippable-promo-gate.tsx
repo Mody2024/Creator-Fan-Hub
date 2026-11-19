@@ -84,7 +84,7 @@ export default function Raye2SkippablePromoGate({
         />
       </div>
       <div className="raye2-skippable-promo-foot">
-        <span>Short preview from the Maronizer channel</span>
+        <span>Short preview from {promo.channelTitle || "featured channel"}</span>
         <a href={promo.url} target="_blank" rel="noopener noreferrer">Open full video on YouTube ↗</a>
       </div>
     </section>
