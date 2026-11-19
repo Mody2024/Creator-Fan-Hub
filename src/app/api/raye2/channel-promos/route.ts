@@ -37,7 +37,7 @@ function parseChapters(description = "") {
 
 async function resolveChannel(channel: ChannelRow, apiKey: string) {
   const url = new URL(`${YOUTUBE_API}/channels`);
-  const lookup = channel.channel_handle.startsWith("channel:")
+  const lookup: Record<string, string> = channel.channel_handle.startsWith("channel:")
     ? { id: channel.channel_handle.slice("channel:".length) }
     : { forHandle: channel.channel_handle.replace(/^@/, "") };
   url.search = new URLSearchParams({ part: "snippet,contentDetails", ...lookup, key: apiKey }).toString();
