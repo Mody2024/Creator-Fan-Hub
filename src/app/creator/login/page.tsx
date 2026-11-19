@@ -18,6 +18,10 @@ export default function CreatorLoginPage() {
       setMessage("This account is signed in but is not authorized for the Creator Panel. Ask the owner to enable your account.");
     } else if (params.get("setup") === "required") {
       setMessage("Creator sign-in is not configured. The site owner must finish the Supabase connection first.");
+    } else if (params.get("auth") === "google_not_verified") {
+      setMessage("Google did not return a verified email for this account. Verify the Google account and try again.");
+    } else if (params.get("auth") === "google_failed") {
+      setMessage("Google sign-in could not be completed. Check the provider setup and try again.");
     }
   }, []);
 
@@ -45,12 +49,45 @@ export default function CreatorLoginPage() {
     }
   }
 
+  async function signInWithGoogle() {
+    setMessage("");
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setMessage("Creator sign-in is not configured yet. A dedicated Supabase project and environment settings are required.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const redirectTo = new URL("/auth/callback?next=%2Fcreator", window.location.origin).toString();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          queryParams: { prompt: "select_account" }
+        }
+      });
+      if (error) {
+        setMessage("Google sign-in is not ready. The owner must enable Google in Supabase Auth and configure its OAuth credentials.");
+        setBusy(false);
+      }
+    } catch {
+      setMessage("Google sign-in could not be started. Check your connection and try again.");
+      setBusy(false);
+    }
+  }
+
   return <main className="admin-shell raye2-creator-login">
     <Link className="admin-back" href="/raye2/home">← Back to Raye2</Link>
-    <section className="admin-card"><Link className="wordmark raye2-login-wordmark" href="/raye2/home" aria-label="Raye2 / رايق"><span className="raye2-login-glyph">R</span><span className="raye2-login-word-copy"><strong>Raye2</strong><small lang="ar" dir="rtl">رايق</small></span></Link>
+    <section className="admin-card"><Link className="wordmark raye2-login-wordmark" href="/raye2/home" aria-label="Raye2"><span className="raye2-login-glyph">R</span></Link>
       <span className="eyebrow">PRIVATE WORKSPACE / 01</span>
       <h1>Creator <em>access.</em></h1>
       <p>Sign in to manage the community experience. Access is restricted to the configured creator account.</p>
+      <button className="button" type="button" onClick={signInWithGoogle} disabled={busy} style={{width:"100%",justifyContent:"center",marginBottom:18,border:"1px solid var(--line)",background:"transparent",color:"var(--ink)"}}>
+        {busy ? "Connecting…" : "Continue with Google"}
+      </button>
+      <div aria-hidden="true" style={{display:"flex",alignItems:"center",gap:12,color:"var(--muted)",fontSize:11,margin:"0 0 16px"}}>
+        <span style={{height:1,background:"var(--line)",flex:1}} /> OR USE EMAIL <span style={{height:1,background:"var(--line)",flex:1}} />
+      </div>
       <form onSubmit={submit} className="admin-form">
         <label htmlFor="email">Email address</label>
         <input id="email" type="email" autoComplete="username" required maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} />
