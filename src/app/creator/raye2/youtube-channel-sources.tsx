@@ -11,9 +11,6 @@ type Channel = {
   channel_title: string | null;
   enabled: boolean;
   placements: string[];
-  last_synced_at: string | null;
-  last_sync_status: string;
-  last_sync_error: string | null;
   created_at: string;
 };
 
@@ -49,7 +46,7 @@ export default function YouTubeChannelSources() {
     if (!supabase) return;
     const { data, error: loadError } = await supabase
       .from("raye2_youtube_promo_channels")
-      .select("id,channel_url,channel_handle,channel_title,enabled,placements,last_synced_at,last_sync_status,last_sync_error,created_at")
+      .select("id,channel_url,channel_handle,channel_title,enabled,placements,created_at")
       .order("created_at", { ascending: false });
     if (loadError) { setError("Could not load channel sources. Apply the latest Raye2 database migration first."); return; }
     setChannels((data ?? []) as Channel[]);
