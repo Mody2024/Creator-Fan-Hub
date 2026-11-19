@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import {getSupabaseBrowserClient} from "@/lib/supabase/browser";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
-import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";
 import Raye2SkippablePromoGate from "@/app/raye2-skippable-promo-gate";
 import Raye2ReactionArt from "./raye2-reaction-art";
 
