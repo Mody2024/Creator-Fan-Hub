@@ -1,6 +1,6 @@
 export type Raye2PromoPlacement = "video" | "live" | "minis" | "community";
 export type Raye2ChannelPromoInput = {
- id:string;title:string;url:string;videoId?:string;durationSeconds?:number;chapters?:{title:string;startSeconds:number}[];description?:string;thumbnailUrl?:string|null;
+ id:string;title:string;url:string;videoId?:string;durationSeconds?:number;chapters?:{title:string;startSeconds:number}[];description?:string;channelTitle?:string;thumbnailUrl?:string|null;
  cta?:string;placements?:Raye2PromoPlacement[];active?:boolean;
 };
 export type Raye2ChannelPromo = {
