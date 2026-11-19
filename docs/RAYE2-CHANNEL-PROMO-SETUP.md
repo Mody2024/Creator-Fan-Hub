@@ -12,7 +12,7 @@ The public uploads playlist is resolved automatically from each channel. Raye2 r
 
 ## Automatic content classification
 
-- **Mini feed:** videos up to 180 seconds that have a Shorts marker in title/description/tags or a portrait thumbnail signal. Ambiguous short uploads are excluded rather than risk placing a regular video in Mini's.
+- **Mini feed:** videos up to 180 seconds that have a Shorts marker in title/description/tags or a square/portrait thumbnail signal. Ambiguous short uploads are excluded rather than risk placing a regular video in Mini's.
 - **Video and live preview sources:** long uploads over 180 seconds.
 - **Community:** all public uploads from enabled channels.
 - **Video/live preview:** 15-second timed excerpts inside YouTube's official embedded player. Chapter markers are preferred; otherwise a bounded random timestamp is chosen. The skip control appears after five seconds.
