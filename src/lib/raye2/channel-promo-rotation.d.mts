@@ -4,7 +4,7 @@ export type Raye2ChannelPromoInput = {
  cta?:string;placements?:Raye2PromoPlacement[];active?:boolean;
 };
 export type Raye2ChannelPromo = {
- id:string;title:string;url:string;videoId:string;durationSeconds:number|null;chapters:{title:string;startSeconds:number}[];promoStartSeconds?:number;promoEndSeconds?:number;promoDurationSeconds?:number;description:string;thumbnailUrl:string|null;
+ id:string;title:string;url:string;videoId:string;durationSeconds:number|null;chapters:{title:string;startSeconds:number}[];promoStartSeconds?:number;promoEndSeconds?:number;promoDurationSeconds?:number;description:string;channelTitle:string;thumbnailUrl:string|null;
  label:"Featured channel";cta:string;placements:Raye2PromoPlacement[];active:boolean;
 };
 export function normalizeRaye2ChannelPromo(input?:Raye2ChannelPromoInput|null):Raye2ChannelPromo|null;
