@@ -3,6 +3,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export type PublicSiteConfig = {
   siteName: string;
   logoUrl: string | null;
+  backgroundUrl: string | null;
+  customFontUrl: string | null;
   heroMediaUrl: string | null;
   heroMediaType: "image" | "video" | null;
   mascotUrl: string | null;
@@ -32,6 +34,8 @@ export type PublicSiteConfig = {
 const fallback: PublicSiteConfig = {
   siteName: "Raye2",
   logoUrl: null,
+  backgroundUrl: null,
+  customFontUrl: null,
   heroMediaUrl: null,
   heroMediaType: null,
   mascotUrl: null,
@@ -104,6 +108,10 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const mascotItem = typeof identity.mascotMediaId === "string" ? mediaById.get(identity.mascotMediaId) : undefined;
   const narrationItem = typeof identity.narrationMediaId === "string" ? mediaById.get(identity.narrationMediaId) : undefined;
   const heroItem = typeof hero.mediaId === "string" ? mediaById.get(hero.mediaId) : undefined;
+  const publicBrandAssetUrl = (path: unknown) => {
+    if (typeof path !== "string" || !/^brand\/(logo|background|font)\/[a-f0-9-]{36}\.(png|jpe?g|webp|woff2?|ttf|otf)$/i.test(path)) return null;
+    return supabase.storage.from("raye2-brand-assets").getPublicUrl(path).data.publicUrl;
+  };
   const publicMediaUrl = (item: { storage_path: string | null; media_type: string } | undefined, allowedTypes: readonly string[]) => {
     if (!item || !allowedTypes.includes(item.media_type) || !item.storage_path || !item.storage_path.startsWith("creator-media-public/")) return null;
     const pathParts = item.storage_path.split("/");
@@ -113,7 +121,9 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   };
   return {
     siteName: "Raye2",
-    logoUrl: publicMediaUrl(logoItem, ["image"]),
+    logoUrl: publicBrandAssetUrl(appearance.logoPath) ?? publicMediaUrl(logoItem, ["image"]),
+    backgroundUrl: publicBrandAssetUrl(appearance.backgroundPath),
+    customFontUrl: publicBrandAssetUrl(appearance.fontPath),
     heroMediaUrl: publicMediaUrl(heroItem, ["image", "video"]),
     heroMediaType: heroItem?.media_type === "video" ? "video" : heroItem?.media_type === "image" ? "image" : null,
     mascotUrl: publicMediaUrl(mascotItem, ["image"]),
@@ -128,7 +138,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
     theme: activeEvent?.theme === "paper" || activeEvent?.theme === "violet" ? activeEvent.theme : appearance.theme === "paper" || appearance.theme === "violet" ? appearance.theme : "obsidian",
     colorMode: activeEvent?.colorMode === "light" || activeEvent?.colorMode === "system" ? activeEvent.colorMode : appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
-    displayFont: activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
+    displayFont: appearance.displayFont === "Custom chalk" && publicBrandAssetUrl(appearance.fontPath) ? "Custom chalk" : activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
     chalkTexture: activeEvent?.chalkTexture === "soft" || activeEvent?.chalkTexture === "clean" ? activeEvent.chalkTexture : appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
     activeEvent,
     accent: activeEvent?.accent ?? (typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent),
