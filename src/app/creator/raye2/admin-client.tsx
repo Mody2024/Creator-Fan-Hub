@@ -52,6 +52,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const [eventAccent, setEventAccent] = useState("#7dd3fc");
   const [eventFont, setEventFont] = useState("Fredericka the Great");
   const [eventTheme, setEventTheme] = useState("obsidian");
+  const [previewEventId, setPreviewEventId] = useState<string | null>(null);
   const scheduledEvents: ScheduledAppearanceEvent[] = Array.isArray(siteDraft?.appearance?.eventThemes) ? siteDraft.appearance.eventThemes : [];
   const [navSearch, setNavSearch] = useState("");
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
@@ -474,10 +475,30 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
             <button className={styles.action} disabled={siteBusy || !siteDraft} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر الجدول" : "Publish schedule"}</button>
           </div>
           <div style={{marginTop:14,display:"grid",gap:8}}>
-            {scheduledEvents.map((event, index) => <div key={event.id ?? index} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:10,border:"1px solid var(--line)",borderRadius:10}}>
-              <div><strong>{event.name || "Untitled event"}</strong><small style={{display:"block",opacity:.7}}>{event.enabled ? "Scheduled / enabled" : "Disabled"} · {event.startsAt ? new Date(event.startsAt).toLocaleString() : "—"} → {event.endsAt ? new Date(event.endsAt).toLocaleString() : "—"}</small></div>
-              <button className={styles.action} disabled={siteBusy} onClick={() => setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: events.filter((_, i) => i !== index) } }; })}>{isAr ? "حذف" : "Remove"}</button>
-            </div>) }
+            {scheduledEvents.map((event, index) => {
+              const now = Date.now();
+              const starts = new Date(event.startsAt).getTime();
+              const ends = new Date(event.endsAt).getTime();
+              const status = !event.enabled ? "Disabled" : now < starts ? "Upcoming" : now < ends ? "Active" : "Expired";
+              const selected = previewEventId === event.id;
+              return <div key={event.id ?? index} style={{display:"grid",gap:10,padding:12,border:"1px solid var(--line)",borderRadius:12,background:selected?"rgba(77,141,246,.07)":"transparent"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
+                  <div style={{minWidth:0,flex:"1 1 220px"}}><strong>{event.name || "Untitled event"}</strong><small style={{display:"block",opacity:.72,marginTop:5}}>{status} · {event.startsAt ? new Date(event.startsAt).toLocaleString() : "—"} → {event.endsAt ? new Date(event.endsAt).toLocaleString() : "—"}</small></div>
+                  <span style={{width:14,height:14,borderRadius:99,background:event.accent,border:"1px solid rgba(255,255,255,.3)"}} aria-label={`Accent ${event.accent}`}/>
+                </div>
+                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+                  <button type="button" className={styles.action} disabled={siteBusy} onClick={() => setPreviewEventId(selected ? null : event.id)}>{selected ? (isAr ? "إغلاق المعاينة" : "Close preview") : (isAr ? "معاينة" : "Preview")}</button>
+                  <button type="button" className={styles.action} disabled={siteBusy} onClick={() => setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: events.map((item, i) => i === index ? { ...item, enabled: !item.enabled } : item) } }; })}>{event.enabled ? (isAr ? "تعطيل" : "Disable") : (isAr ? "تفعيل" : "Enable")}</button>
+                  <button type="button" className={styles.action} disabled={siteBusy} onClick={() => { setPreviewEventId(current => current === event.id ? null : current); setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: events.filter((_, i) => i !== index) } }; }); }}>{isAr ? "حذف" : "Remove"}</button>
+                </div>
+                {selected && <div style={{padding:16,borderRadius:10,border:"1px solid rgba(77,141,246,.28)",background:event.theme==="paper"?"#f4f1e8":"#101216",color:event.theme==="paper"?"#171717":"#f4f4f6",backgroundImage:"radial-gradient(ellipse at 85% 0%, "+event.accent+"22, transparent 55%)"}}>
+                  <small style={{letterSpacing:".12em",opacity:.7}}>PRIVATE EVENT PREVIEW · {event.theme.toUpperCase()}</small>
+                  <h3 style={{fontFamily:event.displayFont+", cursive",fontSize:"clamp(24px,4vw,38px)",margin:"12px 0 6px",color:event.theme==="paper"?"#171717":event.accent}}>{event.name}</h3>
+                  <p style={{fontSize:12,opacity:.8,margin:0}}>A preview of the event heading, palette and accent. This does not publish or activate the event.</p>
+                  <div style={{display:"flex",gap:8,marginTop:14,flexWrap:"wrap"}}><span style={{padding:"8px 12px",borderRadius:8,background:event.accent,color:"#07101f",fontSize:11,fontWeight:800}}>Primary action</span><span style={{padding:"8px 12px",borderRadius:8,border:"1px solid currentColor",fontSize:11}}>Secondary action</span></div>
+                </div>}
+              </div>;
+            })}
             {(scheduledEvents.length===0) && <p>{isAr ? "لا توجد أحداث مجدولة." : "No scheduled event themes yet."}</p>}
           </div>
         </article>
