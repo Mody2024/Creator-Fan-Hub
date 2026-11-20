@@ -12,6 +12,8 @@ import StorageProviders from "./storage-providers";
 import YouTubeChannelSources from "./youtube-channel-sources";
 import LanguageSwitch from "@/app/language-switch";
 
+type ScheduledAppearanceEvent = { id: string; name: string; enabled: boolean; startsAt: string; endsAt: string; accent: string; displayFont: string; chalkTexture: string; theme: string; colorMode: string };
+type SiteConfigDraft = { [key: string]: unknown; appearance?: { [key: string]: unknown; eventThemes?: ScheduledAppearanceEvent[] } };
 export type RuleRow = { rule_key: string; category: string; rule_value: unknown; status: "proposed" | "active" | "disabled"; description: string; updated_at: string };
 export type RetentionRow = { category: string; retention_days: number | null; warning_days: number; expiry_action: "archive" | "delete"; enabled: boolean; preserve_shared_memories: boolean; updated_at: string };
 export type CleanupRow = { id: string; status: string; scope: string[]; preserve_chat_history: boolean; preserve_shared_memories: boolean; estimated_items: number | null; estimated_bytes: number | null; reason: string; created_at: string };
@@ -39,7 +41,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
 }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [tab, setTab] = useState<TabId>("health");
-  const [siteDraft, setSiteDraft] = useState<any>(null);
+  const [siteDraft, setSiteDraft] = useState<SiteConfigDraft | null>(null);
   const [siteRevision, setSiteRevision] = useState<number | null>(null);
   const [siteBusy, setSiteBusy] = useState(false);
   const [restoreVersion, setRestoreVersion] = useState("1");
@@ -49,6 +51,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const [eventAccent, setEventAccent] = useState("#7dd3fc");
   const [eventFont, setEventFont] = useState("Fredericka the Great");
   const [eventTheme, setEventTheme] = useState("obsidian");
+  const scheduledEvents: ScheduledAppearanceEvent[] = Array.isArray(siteDraft?.appearance?.eventThemes) ? siteDraft.appearance.eventThemes : [];
   const [navSearch, setNavSearch] = useState("");
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
   const [modStatus, setModStatus] = useState<"open"|"reviewing"|"resolved"|"dismissed">("open");
@@ -105,7 +108,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
     setSiteBusy(false);
   }
   function patchAppearance(patch: Record<string, unknown>) {
-    setSiteDraft((current: any) => current ? { ...current, appearance: { ...(current.appearance ?? {}), ...patch } } : current);
+    setSiteDraft(current => current ? { ...current, appearance: { ...(current.appearance ?? {}), ...patch } } : current);
   }
   async function saveSiteDraft(publish: boolean) {
     if (!supabase || !siteDraft || siteRevision === null || siteBusy) return;
@@ -420,18 +423,18 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
           <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
             <button className={styles.action} disabled={!siteDraft || !eventName.trim() || !eventStartsAt || !eventEndsAt || new Date(eventEndsAt)<=new Date(eventStartsAt) || siteBusy} onClick={() => {
               const event = { id: crypto.randomUUID(), name: eventName.trim(), enabled: true, startsAt: new Date(eventStartsAt).toISOString(), endsAt: new Date(eventEndsAt).toISOString(), accent: eventAccent, displayFont: eventFont, chalkTexture: "hand-drawn", theme: eventTheme, colorMode: "dark" };
-              setSiteDraft((current: any) => current ? { ...current, appearance: { ...(current.appearance ?? {}), eventThemes: [...(Array.isArray(current.appearance?.eventThemes) ? current.appearance.eventThemes : []), event] } } : current);
+              setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: [...events, event] } }; });
               setEventName(""); setEventStartsAt(""); setEventEndsAt("");
             }}>{isAr ? "إضافة إلى المسودة" : "Add event to draft"}</button>
             <button className={styles.action} disabled={siteBusy || !siteDraft} onClick={() => void saveSiteDraft(false)}>{isAr ? "حفظ الجدول" : "Save schedule"}</button>
             <button className={styles.action} disabled={siteBusy || !siteDraft} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر الجدول" : "Publish schedule"}</button>
           </div>
           <div style={{marginTop:14,display:"grid",gap:8}}>
-            {(Array.isArray(siteDraft?.appearance?.eventThemes) ? siteDraft.appearance.eventThemes : []).map((event: any, index: number) => <div key={event.id ?? index} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:10,border:"1px solid var(--line)",borderRadius:10}}>
+            {scheduledEvents.map((event, index) => <div key={event.id ?? index} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,padding:10,border:"1px solid var(--line)",borderRadius:10}}>
               <div><strong>{event.name || "Untitled event"}</strong><small style={{display:"block",opacity:.7}}>{event.enabled ? "Scheduled / enabled" : "Disabled"} · {event.startsAt ? new Date(event.startsAt).toLocaleString() : "—"} → {event.endsAt ? new Date(event.endsAt).toLocaleString() : "—"}</small></div>
-              <button className={styles.action} disabled={siteBusy} onClick={() => setSiteDraft((current: any) => current ? { ...current, appearance: { ...(current.appearance ?? {}), eventThemes: current.appearance.eventThemes.filter((_: any, i: number) => i !== index) } } : current)}>{isAr ? "حذف" : "Remove"}</button>
+              <button className={styles.action} disabled={siteBusy} onClick={() => setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: events.filter((_, i) => i !== index) } }; })}>{isAr ? "حذف" : "Remove"}</button>
             </div>) }
-            {(!Array.isArray(siteDraft?.appearance?.eventThemes) || siteDraft.appearance.eventThemes.length===0) && <p>{isAr ? "لا توجد أحداث مجدولة." : "No scheduled event themes yet."}</p>}
+            {(scheduledEvents.length===0) && <p>{isAr ? "لا توجد أحداث مجدولة." : "No scheduled event themes yet."}</p>}
           </div>
         </article>
         <article className={styles.card}><h3>{isAr ? "استعادة إصدار" : "Restore published version"}</h3><p>{isAr ? "تتم الاستعادة إلى المسودة فقط." : "Restores into the draft only; it does not publish automatically."}</p><label>{isAr ? "رقم الإصدار" : "Version number"}<input type="number" min="1" value={restoreVersion} onChange={e=>setRestoreVersion(e.target.value)}/></label><button className={styles.action} disabled={siteBusy} onClick={() => void restoreSiteDraft()}>{isAr ? "استعادة إلى المسودة" : "Restore to draft"}</button></article>
