@@ -442,6 +442,15 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             {(["logoPath","backgroundPath","fontPath"] as const).map(key => siteDraft.appearance?.[key] ? <span key={key} className={styles.metrics}>{key}: {String(siteDraft.appearance?.[key]).split("/").pop()}</span> : null)}
           </div>
+          <label>{isAr ? "موجات الخلفية" : "Background waves"}<select value={siteDraft.appearance?.waveStyle ?? "soft"} onChange={e=>patchAppearance({waveStyle:e.target.value})}><option value="off">Off</option><option value="soft">Soft chalk waves</option><option value="bold">Bold waves</option></select></label>
+          <div className={styles.card} style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))",gap:12}}>
+            {(["logoPath","backgroundPath"] as const).map(key => {
+              const path = siteDraft.appearance?.[key];
+              const url = typeof path === "string" ? supabase?.storage.from("raye2-brand-assets").getPublicUrl(path).data.publicUrl : null;
+              return <div key={key}><small>{key === "logoPath" ? "Logo preview" : "Background preview"}</small>{url ? <img src={url} alt={key === "logoPath" ? "Uploaded logo preview" : "Uploaded background preview"} style={{display:"block",width:"100%",maxHeight:110,objectFit:"contain",borderRadius:8,marginTop:6}}/> : <p>{isAr ? "لم يتم الرفع بعد" : "No asset uploaded yet"}</p>}</div>;
+            })}
+            <div><small>Font preview</small><p style={{fontFamily:siteDraft.appearance?.fontPath ? "Raye2CustomChalk, cursive" : "Fredericka the Great, cursive",fontSize:23,marginTop:10}}>Chalkboard preview</p></div>
+          </div>
           <label>{isAr ? "ملمس الطباشير" : "Chalk texture"}<select value={siteDraft.appearance?.chalkTexture ?? "hand-drawn"} onChange={e => patchAppearance({chalkTexture:e.target.value})}><option value="hand-drawn">Hand-drawn chalk</option><option value="soft">Soft chalk</option><option value="clean">Clean sketch</option></select></label>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(false)}>{isAr ? "حفظ المسودة" : "Save draft"}</button><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر المظهر" : "Publish appearance"}</button></div>
         </article>}
