@@ -1172,3 +1172,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .raye2-home-shell[data-display-font="Custom chalk"] { --raye2-heading-font: "Raye2CustomChalk", "Fredericka the Great", "Cabin Sketch", cursive; }
 .raye2-home-shell[data-wave-style="soft"]::after { content:""; display:block; height:42px; opacity:.24; pointer-events:none; background:radial-gradient(90% 85% at 50% 0%,transparent 62%,var(--raye2-accent) 64%,transparent 67%); }
 @media (max-width: 760px) { .raye2-home-shell { background-attachment:scroll; } }
+
+.raye2-home-shell[data-wave-style="bold"]::after { content:""; display:block; height:64px; pointer-events:none; opacity:.38; background:radial-gradient(115% 100% at 50% 0%,transparent 57%,var(--raye2-accent) 59%,transparent 63%),radial-gradient(115% 100% at 50% 7%,transparent 65%,var(--raye2-accent) 67%,transparent 71%); }
+.raye2-home-shell[data-wave-style="off"]::after { display:none; }
