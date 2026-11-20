@@ -1125,3 +1125,39 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
     line-height: 1.16;
   }
 }
+
+
+/* Published Raye2 appearance: the server only exposes the last published config. */
+.raye2-home-shell { --raye2-accent: #4d8df6; --raye2-heading-font: "Cabin Sketch", "Chalkduster", "Chalkboard SE", "Segoe Print", cursive; }
+.raye2-home-shell :is(h1,h2,h3,.raye2-card-title) {
+  font-family: var(--raye2-heading-font);
+  font-weight: 700;
+  letter-spacing: -.018em;
+}
+.raye2-home-shell[data-display-font="Fredericka the Great"] { --raye2-heading-font: "Fredericka the Great", "Cabin Sketch", cursive; }
+.raye2-home-shell[data-display-font="Chalkduster"] { --raye2-heading-font: "Chalkduster", "Cabin Sketch", cursive; }
+.raye2-home-shell[data-display-font="Chalkboard SE"] { --raye2-heading-font: "Chalkboard SE", "Cabin Sketch", cursive; }
+.raye2-home-shell[data-display-font="Segoe Print"] { --raye2-heading-font: "Segoe Print", "Cabin Sketch", cursive; }
+.raye2-home-shell[data-chalk-texture="hand-drawn"] :is(h1,h2,h3,.raye2-card-title) {
+  text-shadow: .3px 0 currentColor, -.25px .35px currentColor, 0 0 1px currentColor;
+  -webkit-text-stroke: .12px currentColor;
+}
+.raye2-home-shell[data-chalk-texture="soft"] :is(h1,h2,h3,.raye2-card-title) { text-shadow: 0 0 1.2px currentColor, 0 0 2px currentColor; }
+.raye2-home-shell[data-chalk-texture="clean"] :is(h1,h2,h3,.raye2-card-title) { text-shadow: none; -webkit-text-stroke: 0; }
+.raye2-home-shell .raye2-section-label,
+.raye2-home-shell .raye2-live-dot { color: var(--raye2-accent); }
+.raye2-home-shell .raye2-pill,
+.raye2-home-shell .raye2-icon-button,
+.raye2-home-shell .button-primary { border-color: color-mix(in srgb, var(--raye2-accent) 52%, transparent); }
+.raye2-home-shell .button-primary { background: var(--raye2-accent); }
+.raye2-home-shell[data-color-mode="light"] { --r-bg:#f5f6f8; --r-panel:#ffffff; --r-raised:#e9edf2; --r-line:rgba(20,28,40,.13); --r-text:#161b24; --r-muted:#5f6877; color:var(--r-text); background:var(--r-bg); }
+.raye2-home-shell[data-color-mode="light"] .raye2-app-header,
+.raye2-home-shell[data-color-mode="light"] .raye2-card,
+.raye2-home-shell[data-color-mode="light"] .desktop-nav { background:#fff; color:var(--r-text); }
+.raye2-home-shell[data-color-mode="light"] .raye2-search { background:#f1f3f6; color:#161b24; }
+@media (max-width: 640px) {
+  .raye2-home-shell :is(h1,h2,h3,.raye2-card-title) { letter-spacing: -.008em; line-height: 1.17; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .raye2-home-shell *, .raye2-home-shell *::before, .raye2-home-shell *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
