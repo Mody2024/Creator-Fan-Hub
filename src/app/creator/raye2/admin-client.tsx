@@ -44,6 +44,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const [siteDraft, setSiteDraft] = useState<SiteConfigDraft | null>(null);
   const [siteRevision, setSiteRevision] = useState<number | null>(null);
   const [siteBusy, setSiteBusy] = useState(false);
+  const [assetBusy, setAssetBusy] = useState(false);
   const [restoreVersion, setRestoreVersion] = useState("1");
   const [eventName, setEventName] = useState("");
   const [eventStartsAt, setEventStartsAt] = useState("");
@@ -107,6 +108,31 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
     else { setSiteDraft(data[0].draft); setSiteRevision(Number(data[0].draft_revision)); }
     setSiteBusy(false);
   }
+  async function uploadAppearanceAsset(file: File | undefined, kind: "logo" | "background" | "font") {
+    if (!file || !supabase || assetBusy) return;
+    const isFont = kind === "font";
+    const allowed = isFont
+      ? ["font/woff2", "font/woff", "font/ttf", "font/otf", "application/font-woff", "application/x-font-ttf", "application/octet-stream"]
+      : ["image/png", "image/jpeg", "image/webp"];
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+    const validExt = isFont ? ["woff2", "woff", "ttf", "otf"].includes(ext) : ["png", "jpg", "jpeg", "webp"].includes(ext);
+    if (!validExt || (!allowed.includes(file.type) && file.type !== "") || file.size > (isFont ? 4 : 8) * 1024 * 1024) {
+      setNotice(isAr ? "نوع الملف أو حجمه غير مدعوم." : "Unsupported file type or size. Use WOFF2/WOFF/TTF/OTF up to 4 MB, or PNG/JPG/WebP up to 8 MB.");
+      return;
+    }
+    setAssetBusy(true);
+    const path = `brand/${kind}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("raye2-brand-assets").upload(path, file, { contentType: file.type || (ext === "woff2" ? "font/woff2" : ext === "woff" ? "font/woff" : ext === "ttf" ? "font/ttf" : ext === "otf" ? "font/otf" : "application/octet-stream"), cacheControl: "31536000", upsert: false });
+    if (error) setNotice(error.message);
+    else {
+      const key = kind === "logo" ? "logoPath" : kind === "background" ? "backgroundPath" : "fontPath";
+      patchAppearance({ [key]: path });
+      if (kind === "font") patchAppearance({ customFontFamily: "Raye2CustomChalk", displayFont: "Custom chalk" });
+      setNotice(isAr ? "تم رفع الملف إلى مسودة المظهر. احفظ المسودة أو انشرها." : "Asset uploaded and added to the appearance draft. Save or publish the draft.");
+    }
+    setAssetBusy(false);
+  }
+
   function patchAppearance(patch: Record<string, unknown>) {
     setSiteDraft(current => current ? { ...current, appearance: { ...(current.appearance ?? {}), ...patch } } : current);
   }
@@ -406,7 +432,16 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
         {!siteDraft ? <article className={styles.card}><p>{isAr ? "لا توجد مسودة محملة." : "No draft loaded yet."}</p></article> : <article className={styles.card}>
           <div className={styles.cardHead}><div><span>RAYE2 DESIGN</span><h3>{isAr ? "ألوان وخطوط المنصة" : "Platform colors & typography"}</h3><p>{isAr ? "التغييرات تبقى مسودة حتى النشر." : "Changes remain a draft until published."}</p></div><span>v{siteRevision}</span></div>
           <label>{isAr ? "السمة" : "Theme"}<select value={siteDraft.appearance?.theme ?? "obsidian"} onChange={e => patchAppearance({theme:e.target.value})}><option value="obsidian">Obsidian</option><option value="paper">Paper</option><option value="violet">Violet</option><option value="custom">Custom</option></select></label>
-          <div className={styles.fields}><label>{isAr ? "لون التمييز" : "Accent color"}<input type="color" value={siteDraft.appearance?.accent ?? "#7dd3fc"} onChange={e => patchAppearance({accent:e.target.value})}/></label><label>{isAr ? "نمط الألوان" : "Color mode"}<select value={siteDraft.appearance?.colorMode ?? "dark"} onChange={e => patchAppearance({colorMode:e.target.value})}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label><label>{isAr ? "الحركة" : "Motion"}<select value={siteDraft.appearance?.motion ?? "reduced"} onChange={e => patchAppearance({motion:e.target.value})}><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></label><label>{isAr ? "خط العناوين" : "Display font"}<select value={siteDraft.appearance?.displayFont ?? "Cabin Sketch"} onChange={e => patchAppearance({displayFont:e.target.value})}><option>Cabin Sketch</option><option>Fredericka the Great</option><option>Chalkduster</option><option>Chalkboard SE</option><option>Segoe Print</option></select></label></div>
+          <div className={styles.fields}><label>{isAr ? "لون التمييز" : "Accent color"}<input type="color" value={siteDraft.appearance?.accent ?? "#7dd3fc"} onChange={e => patchAppearance({accent:e.target.value})}/></label><label>{isAr ? "نمط الألوان" : "Color mode"}<select value={siteDraft.appearance?.colorMode ?? "dark"} onChange={e => patchAppearance({colorMode:e.target.value})}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label><label>{isAr ? "الحركة" : "Motion"}<select value={siteDraft.appearance?.motion ?? "reduced"} onChange={e => patchAppearance({motion:e.target.value})}><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></label><label>{isAr ? "خط العناوين" : "Display font"}<select value={siteDraft.appearance?.displayFont ?? "Cabin Sketch"} onChange={e => patchAppearance({displayFont:e.target.value})}><option>Cabin Sketch</option><option>Fredericka the Great</option><option>Chalkduster</option><option>Chalkboard SE</option><option>Segoe Print</option><option>Custom chalk</option></select></label></div>
+          <div className={styles.fields}>
+            <label>{isAr ? "شعار المنصة (PNG/JPG/WebP)" : "Platform logo (PNG/JPG/WebP)"}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={assetBusy} onChange={e=>void uploadAppearanceAsset(e.target.files?.[0],"logo")}/></label>
+            <label>{isAr ? "خلفية المنصة (PNG/JPG/WebP)" : "Site background (PNG/JPG/WebP)"}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={assetBusy} onChange={e=>void uploadAppearanceAsset(e.target.files?.[0],"background")}/></label>
+            <label>{isAr ? "خط طباشيري مخصص (WOFF2/WOFF/TTF/OTF)" : "Custom chalk font (WOFF2/WOFF/TTF/OTF)"}<input type="file" accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf" disabled={assetBusy} onChange={e=>void uploadAppearanceAsset(e.target.files?.[0],"font")}/></label>
+          </div>
+          <p>{assetBusy ? (isAr ? "جارٍ رفع الملف..." : "Uploading asset…") : (isAr ? "يتم الرفع إلى مساحة أصول عامة؛ الكتابة متاحة للمسؤولين فقط." : "Assets are served from the public brand bucket; uploads are restricted to platform admins.")}</p>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {(["logoPath","backgroundPath","fontPath"] as const).map(key => siteDraft.appearance?.[key] ? <span key={key} className={styles.metrics}>{key}: {String(siteDraft.appearance?.[key]).split("/").pop()}</span> : null)}
+          </div>
           <label>{isAr ? "ملمس الطباشير" : "Chalk texture"}<select value={siteDraft.appearance?.chalkTexture ?? "hand-drawn"} onChange={e => patchAppearance({chalkTexture:e.target.value})}><option value="hand-drawn">Hand-drawn chalk</option><option value="soft">Soft chalk</option><option value="clean">Clean sketch</option></select></label>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(false)}>{isAr ? "حفظ المسودة" : "Save draft"}</button><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر المظهر" : "Publish appearance"}</button></div>
         </article>}
