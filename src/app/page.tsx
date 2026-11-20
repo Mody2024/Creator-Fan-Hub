@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
@@ -82,7 +83,7 @@ export default async function HomePage() {
   const primaryKeys = videoSectionVisible ? PLATFORM_NAV_PRIMARY : PLATFORM_NAV_PRIMARY.filter(key => key !== "videos" && key !== "shorts");
   const primaryNav = platformNavItems(primaryKeys, navLabels);
   const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
-  return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className="raye2-app-shell raye2-home-shell" data-motion={config.motion}>
+  return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className={`raye2-app-shell raye2-home-shell theme-${config.theme}`} data-motion={config.motion} data-color-mode={config.colorMode} data-display-font={config.displayFont} data-chalk-texture={config.chalkTexture} style={{ "--raye2-accent": config.accent } as CSSProperties}>
     <header className="raye2-app-header">
       <Link className="raye2-brand" href="/" aria-label="Raye2 home">{config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null}</Link>
       <form className="raye2-search-form" action="/search"><input className="raye2-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
