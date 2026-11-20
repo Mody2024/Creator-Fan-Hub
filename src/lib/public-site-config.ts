@@ -18,7 +18,7 @@ export type PublicSiteConfig = {
   colorMode: "dark" | "light" | "system";
   displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print";
   chalkTexture: "hand-drawn" | "soft" | "clean";
-  activeEvent: { name: string; accent: string; displayFont: string; chalkTexture: string; theme: string; colorMode: string } | null;
+  activeEvent: { name: string; accent?: string; displayFont?: string; chalkTexture?: string; theme?: string; colorMode?: string } | null;
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
@@ -91,10 +91,10 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const activeEvent = activeEventRaw ? {
     name: typeof activeEventRaw.name === "string" ? activeEventRaw.name.slice(0, 80) : "Event",
     accent: typeof activeEventRaw.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(activeEventRaw.accent) ? activeEventRaw.accent : undefined,
-    displayFont: typeof activeEventRaw.displayFont === "string" ? activeEventRaw.displayFont : undefined,
-    chalkTexture: typeof activeEventRaw.chalkTexture === "string" ? activeEventRaw.chalkTexture : undefined,
-    theme: typeof activeEventRaw.theme === "string" ? activeEventRaw.theme : undefined,
-    colorMode: typeof activeEventRaw.colorMode === "string" ? activeEventRaw.colorMode : undefined
+    displayFont: ["Cabin Sketch","Fredericka the Great","Chalkduster","Chalkboard SE","Segoe Print"].includes(String(activeEventRaw.displayFont)) ? String(activeEventRaw.displayFont) : undefined,
+    chalkTexture: activeEventRaw.chalkTexture === "soft" || activeEventRaw.chalkTexture === "clean" || activeEventRaw.chalkTexture === "hand-drawn" ? activeEventRaw.chalkTexture : undefined,
+    theme: activeEventRaw.theme === "paper" || activeEventRaw.theme === "violet" || activeEventRaw.theme === "obsidian" ? activeEventRaw.theme : undefined,
+    colorMode: activeEventRaw.colorMode === "light" || activeEventRaw.colorMode === "system" || activeEventRaw.colorMode === "dark" ? activeEventRaw.colorMode : undefined
   } : null;
 
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
