@@ -31,7 +31,7 @@ export type CapRow = { capability: string; required_role: string; allowed: boole
 export type FabricRow = { section: string; key: string; label: string; value_numeric: number | null; value_text: string | null; enabled: boolean; detail: string };
 
 type Locale = "en" | "ar";
-type TabId = "rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation" | "channels";
+type TabId = "appearance" | "rules" | "retention" | "cleanup" | "storage" | "audit" | "sponsors" | "revenue" | "health" | "roles" | "quotas" | "jobs" | "telemetry" | "capacity" | "fabric" | "providers" | "byos" | "live" | "integrity" | "moderation" | "channels";
 const bytes = (value: number) => value < 1024 ? value + " B" : value < 1024 ** 2 ? (value / 1024).toFixed(1) + " KB" : value < 1024 ** 3 ? (value / 1024 ** 2).toFixed(1) + " MB" : (value / 1024 ** 3).toFixed(2) + " GB";
 
 export default function Raye2AdminClient({ locale, logoUrl, initialRules, initialRetention, initialJobs, initialStorage, initialAudit, initialHealth, initialAdmins, initialCaps, initialFabric }: {
@@ -39,6 +39,10 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
 }) {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [tab, setTab] = useState<TabId>("health");
+  const [siteDraft, setSiteDraft] = useState<any>(null);
+  const [siteRevision, setSiteRevision] = useState<number | null>(null);
+  const [siteBusy, setSiteBusy] = useState(false);
+  const [restoreVersion, setRestoreVersion] = useState("1");
   const [navSearch, setNavSearch] = useState("");
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
   const [modStatus, setModStatus] = useState<"open"|"reviewing"|"resolved"|"dismissed">("open");
@@ -85,6 +89,39 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
     const item = acc[row.storage_class] ?? { objects: 0, bytes: 0 };
     item.objects += Number(row.object_count) || 0; item.bytes += Number(row.bytes_used) || 0; acc[row.storage_class] = item; return acc;
   }, {} as Record<string, { objects: number; bytes: number }>), [initialStorage]);
+
+  async function loadSiteDraft() {
+    if (!supabase || siteBusy) return;
+    setSiteBusy(true);
+    const { data, error } = await supabase.rpc("raye2_admin_get_site_config_draft");
+    if (error || !data?.[0]) setNotice(isAr ? "تعذر تحميل إعدادات المظهر." : "Could not load appearance settings.");
+    else { setSiteDraft(data[0].draft); setSiteRevision(Number(data[0].draft_revision)); }
+    setSiteBusy(false);
+  }
+  function patchAppearance(patch: Record<string, unknown>) {
+    setSiteDraft((current: any) => current ? { ...current, appearance: { ...(current.appearance ?? {}), ...patch } } : current);
+  }
+  async function saveSiteDraft(publish: boolean) {
+    if (!supabase || !siteDraft || siteRevision === null || siteBusy) return;
+    setSiteBusy(true);
+    const saved = await supabase.rpc("raye2_admin_save_site_config_draft", { p_config: siteDraft, p_expected_revision: siteRevision });
+    if (saved.error || !saved.data?.[0]) { setNotice(isAr ? "تعذر حفظ المسودة. أعد تحميلها." : "Could not save draft. Reload and retry."); setSiteBusy(false); return; }
+    const revision = Number(saved.data[0].new_revision); setSiteRevision(revision);
+    if (publish) {
+      const result = await supabase.rpc("raye2_admin_publish_site_config", { p_expected_revision: revision });
+      setNotice(result.error ? (isAr ? "تم الحفظ لكن تعذر النشر." : "Saved, but publishing failed.") : (isAr ? "تم نشر المظهر." : "Appearance published."));
+    } else setNotice(isAr ? "تم حفظ المسودة." : "Draft saved.");
+    setSiteBusy(false);
+  }
+  async function restoreSiteDraft() {
+    const version = Number(restoreVersion);
+    if (!supabase || siteBusy || !Number.isSafeInteger(version) || version < 1) return;
+    setSiteBusy(true);
+    const { data, error } = await supabase.rpc("raye2_admin_restore_site_config_version", { p_version: version });
+    if (error || !data?.[0]) setNotice(isAr ? "تعذرت الاستعادة." : "Could not restore version.");
+    else { setSiteRevision(Number(data[0].new_revision)); setNotice(isAr ? "تمت الاستعادة إلى المسودة. انشرها عند الاستعداد." : "Restored to draft. Publish when ready."); await loadSiteDraft(); }
+    setSiteBusy(false);
+  }
 
   async function saveRule(rule: RuleRow) {
     if (!supabase || busy) return;
@@ -338,6 +375,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
     await loadModQueue();
   }
   const navGroups: Array<{ title: string; items: Array<{ id: TabId; label: string }> }> = [
+    { title: isAr ? "التصميم" : "Design", items: [{ id: "appearance", label: isAr ? "المظهر والهوية" : "Appearance & identity" }] },
     { title: isAr ? "نظرة عامة" : "Overview", items: [{ id: "health", label: t.health }, { id: "capacity", label: t.capacity }, { id: "telemetry", label: t.telemetry }] },
     { title: isAr ? "الحوكمة" : "Governance", items: [{ id: "rules", label: t.rules }, { id: "retention", label: t.retention }, { id: "cleanup", label: t.cleanup }, { id: "audit", label: t.audit }] },
     { title: isAr ? "التخزين" : "Storage", items: [{ id: "fabric", label: t.fabric }, { id: "providers", label: isAr ? "المزودون" : "Providers" }, { id: "storage", label: t.storage }, { id: "byos", label: isAr ? "تخزين المستخدمين" : "BYOS" }] },
@@ -355,6 +393,16 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
       <nav className={styles.sidenav} aria-label={isAr ? "أقسام إدارة Raye2" : "Raye2 administration sections"}><label className={styles.navSearch}><span aria-hidden="true">⌕</span><input type="search" value={navSearch} onChange={event => setNavSearch(event.target.value)} placeholder={isAr ? "ابحث عن إعداد أو قسم..." : "Find a setting or section..."} aria-label={isAr ? "ابحث في أقسام الإدارة" : "Search admin sections"}/>{navSearch && <button type="button" onClick={() => setNavSearch("")} aria-label={isAr ? "مسح البحث" : "Clear search"}>×</button>}</label>{visibleNavGroups.length ? visibleNavGroups.map(group => <details className={styles.navGroup} key={group.title} open={!!normalizedNavSearch || group.items.some(item => item.id === tab)}><summary className={styles.navGroupTitle}>{group.title}<span aria-hidden="true">⌄</span></summary><div className={styles.navGroupItems}>{group.items.map(item => <button key={item.id} type="button" className={tab === item.id ? styles.navItemActive : styles.navItem} aria-current={tab === item.id ? "page" : undefined} onClick={() => setTab(item.id)}>{item.label}</button>)}</div></details>) : <p className={styles.navEmpty}>{isAr ? "لا توجد أقسام مطابقة." : "No matching sections."}</p>}</nav>
       <section className={styles.main}>
       <div className={styles.sectionHead}><h2>{activeLabel}</h2></div>{tab === "health" && <div className={styles.quickActions}><button type="button" onClick={() => setTab("providers")}>{isAr ? "إعداد التخزين" : "Set up storage"} <span>↗</span></button><button type="button" onClick={() => setTab("moderation")}>{isAr ? "مراجعة البلاغات" : "Review reports"} <span>↗</span></button><button type="button" onClick={() => setTab("roles")}>{isAr ? "إدارة الأدوار" : "Manage roles"} <span>↗</span></button><button type="button" onClick={() => setTab("retention")}>{isAr ? "سياسات الاحتفاظ" : "Retention policies"} <span>↗</span></button></div>}
+      {tab === "appearance" && <><div className={styles.sectionHead}><h2>{isAr ? "المظهر والهوية" : "Appearance & identity"}</h2><p>{isAr ? "حمّل المسودة ثم عدّلها واحفظها أو انشرها." : "Load the current draft, edit it, then save or publish."}</p><button className={styles.action} disabled={siteBusy} onClick={() => void loadSiteDraft()}>{isAr ? "تحميل المسودة" : "Load draft"}</button></div>
+        {!siteDraft ? <article className={styles.card}><p>{isAr ? "لا توجد مسودة محملة." : "No draft loaded yet."}</p></article> : <article className={styles.card}>
+          <div className={styles.cardHead}><div><span>RAYE2 DESIGN</span><h3>{isAr ? "ألوان وخطوط المنصة" : "Platform colors & typography"}</h3><p>{isAr ? "التغييرات تبقى مسودة حتى النشر." : "Changes remain a draft until published."}</p></div><span>v{siteRevision}</span></div>
+          <label>{isAr ? "السمة" : "Theme"}<select value={siteDraft.appearance?.theme ?? "obsidian"} onChange={e => patchAppearance({theme:e.target.value})}><option value="obsidian">Obsidian</option><option value="paper">Paper</option><option value="violet">Violet</option><option value="custom">Custom</option></select></label>
+          <div className={styles.fields}><label>{isAr ? "لون التمييز" : "Accent color"}<input type="color" value={siteDraft.appearance?.accent ?? "#7dd3fc"} onChange={e => patchAppearance({accent:e.target.value})}/></label><label>{isAr ? "نمط الألوان" : "Color mode"}<select value={siteDraft.appearance?.colorMode ?? "dark"} onChange={e => patchAppearance({colorMode:e.target.value})}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label><label>{isAr ? "الحركة" : "Motion"}<select value={siteDraft.appearance?.motion ?? "reduced"} onChange={e => patchAppearance({motion:e.target.value})}><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></label><label>{isAr ? "خط العناوين" : "Display font"}<select value={siteDraft.appearance?.displayFont ?? "Cabin Sketch"} onChange={e => patchAppearance({displayFont:e.target.value})}><option>Cabin Sketch</option><option>Chalkduster</option><option>Chalkboard SE</option><option>Segoe Print</option></select></label></div>
+          <label>{isAr ? "ملمس الطباشير" : "Chalk texture"}<select value={siteDraft.appearance?.chalkTexture ?? "hand-drawn"} onChange={e => patchAppearance({chalkTexture:e.target.value})}><option value="hand-drawn">Hand-drawn chalk</option><option value="soft">Soft chalk</option><option value="clean">Clean sketch</option></select></label>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(false)}>{isAr ? "حفظ المسودة" : "Save draft"}</button><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر المظهر" : "Publish appearance"}</button></div>
+        </article>}
+        <article className={styles.card}><h3>{isAr ? "استعادة إصدار" : "Restore published version"}</h3><p>{isAr ? "تتم الاستعادة إلى المسودة فقط." : "Restores into the draft only; it does not publish automatically."}</p><label>{isAr ? "رقم الإصدار" : "Version number"}<input type="number" min="1" value={restoreVersion} onChange={e=>setRestoreVersion(e.target.value)}/></label><button className={styles.action} disabled={siteBusy} onClick={() => void restoreSiteDraft()}>{isAr ? "استعادة إلى المسودة" : "Restore to draft"}</button></article>
+      </>}
       {tab === "health" && <><div className={styles.sectionHead}><h2>{t.health}</h2><p>{t.healthNote}</p></div>{initialHealth.length===0 ? <p>{t.noHealth}</p> : <div className={styles.storageGrid}>{initialHealth.map(row => <article className={styles.card} key={row.metric}><span>{row.metric}</span><strong className={row.state==="ok"?styles.ok:row.state==="warning"?styles.warning:styles.critical}>{row.metric.startsWith("storage_") ? bytes(row.value) : row.value.toLocaleString()}</strong><small>{row.state==="ok"?t.stateOk:row.state==="warning"?t.stateWarning:t.stateCritical}</small></article>)}</div>}</>}
       {tab === "rules" && <><div className={styles.sectionHead}><h2>{t.rules}</h2><p>{t.status}: {t.proposed} · {t.active} · {t.disabled}</p></div>
         {rules.map(rule => <article className={styles.card} key={rule.rule_key}><div className={styles.cardHead}><div><span>{rule.category}</span><h3>{rule.rule_key}</h3><p>{rule.description}</p></div><select value={rule.status} onChange={event => setRules(current => current.map(item => item.rule_key === rule.rule_key ? { ...item, status: event.target.value as RuleRow["status"] } : item))}><option value="proposed">{t.proposed}</option><option value="active">{t.active}</option><option value="disabled">{t.disabled}</option></select></div><label>{t.value}<textarea rows={2} value={jsonDrafts[rule.rule_key] ?? JSON.stringify(rule.rule_value)} onChange={event => setJsonDrafts(current => ({ ...current, [rule.rule_key]: event.target.value }))}/></label><button className={styles.action} disabled={busy} onClick={() => void saveRule(rule)}>{t.save}</button></article>)}
