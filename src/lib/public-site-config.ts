@@ -21,7 +21,7 @@ export type PublicSiteConfig = {
   displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print" | "Custom chalk";
   chalkTexture: "hand-drawn" | "soft" | "clean";
   waveStyle: "off" | "soft" | "bold";
-  activeEvent: { name: string; accent?: string; displayFont?: string; chalkTexture?: string; theme?: string; colorMode?: string } | null;
+  activeEvent: { name: string; accent?: string; displayFont?: string; chalkTexture?: string; theme?: string; colorMode?: string; waveStyle?: string } | null;
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
@@ -100,7 +100,8 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     displayFont: ["Cabin Sketch","Fredericka the Great","Chalkduster","Chalkboard SE","Segoe Print"].includes(String(activeEventRaw.displayFont)) ? String(activeEventRaw.displayFont) : undefined,
     chalkTexture: activeEventRaw.chalkTexture === "soft" || activeEventRaw.chalkTexture === "clean" || activeEventRaw.chalkTexture === "hand-drawn" ? activeEventRaw.chalkTexture : undefined,
     theme: activeEventRaw.theme === "paper" || activeEventRaw.theme === "violet" || activeEventRaw.theme === "obsidian" ? activeEventRaw.theme : undefined,
-    colorMode: activeEventRaw.colorMode === "light" || activeEventRaw.colorMode === "system" || activeEventRaw.colorMode === "dark" ? activeEventRaw.colorMode : undefined
+    colorMode: activeEventRaw.colorMode === "light" || activeEventRaw.colorMode === "system" || activeEventRaw.colorMode === "dark" ? activeEventRaw.colorMode : undefined,
+    waveStyle: activeEventRaw.waveStyle === "off" || activeEventRaw.waveStyle === "soft" || activeEventRaw.waveStyle === "bold" ? activeEventRaw.waveStyle : undefined
   } : null;
 
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
@@ -140,9 +141,9 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
     theme: activeEvent?.theme === "paper" || activeEvent?.theme === "violet" ? activeEvent.theme : appearance.theme === "paper" || appearance.theme === "violet" ? appearance.theme : "obsidian",
     colorMode: activeEvent?.colorMode === "light" || activeEvent?.colorMode === "system" ? activeEvent.colorMode : appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
-    displayFont: appearance.displayFont === "Custom chalk" && publicBrandAssetUrl(appearance.fontPath) ? "Custom chalk" : activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
+    displayFont: activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Custom chalk" && publicBrandAssetUrl(appearance.fontPath) ? "Custom chalk" : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
     chalkTexture: activeEvent?.chalkTexture === "soft" || activeEvent?.chalkTexture === "clean" ? activeEvent.chalkTexture : appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
-    waveStyle: appearance.waveStyle === "off" || appearance.waveStyle === "bold" ? appearance.waveStyle : "soft",
+    waveStyle: activeEvent?.waveStyle === "off" || activeEvent?.waveStyle === "bold" ? activeEvent.waveStyle : appearance.waveStyle === "off" || appearance.waveStyle === "bold" ? appearance.waveStyle : "soft",
     activeEvent,
     accent: activeEvent?.accent ?? (typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent),
     motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
