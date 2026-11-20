@@ -18,8 +18,9 @@ export type PublicSiteConfig = {
   heroBody: string;
   theme: "obsidian" | "paper" | "violet";
   colorMode: "dark" | "light" | "system";
-  displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print";
+  displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print" | "Custom chalk";
   chalkTexture: "hand-drawn" | "soft" | "clean";
+  waveStyle: "off" | "soft" | "bold";
   activeEvent: { name: string; accent?: string; displayFont?: string; chalkTexture?: string; theme?: string; colorMode?: string } | null;
   accent: string;
   motion: "full" | "reduced" | "off";
@@ -51,6 +52,7 @@ const fallback: PublicSiteConfig = {
   colorMode: "dark",
   displayFont: "Cabin Sketch",
   chalkTexture: "hand-drawn",
+  waveStyle: "soft",
   activeEvent: null,
   accent: "#4d8df6",
   motion: "full",
