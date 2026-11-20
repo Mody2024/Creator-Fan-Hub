@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Fredericka+the+Great&display=swap");
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root{--bg:#0b0b0d;--panel:#141416;--raised:#1c1c1f;--ink:#f4f4f6;--muted:#a1a1aa;--line:rgba(244,244,246,.12);--accent:#4d8df6;--accent-strong:#2f6fe0;--accent-soft:rgba(77,141,246,.1);--success:#5cc98f;--warning:#e0b878;--error:#e87d85;--focus:rgba(77,141,246,.4);--state-hover:rgba(77,141,246,.12);--state-selected:rgba(77,141,246,.16);--state-disabled:rgba(244,244,246,.04);--font:Inter,Manrope,Arial,sans-serif;--mono:"DM Mono",monospace}
@@ -1150,7 +1150,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .raye2-home-shell .raye2-icon-button,
 .raye2-home-shell .button-primary { border-color: color-mix(in srgb, var(--raye2-accent) 52%, transparent); }
 .raye2-home-shell .button-primary { background: var(--raye2-accent); }
-.raye2-home-shell[data-color-mode="light"] { --r-bg:#f5f6f8; --r-panel:#ffffff; --r-raised:#e9edf2; --r-line:rgba(20,28,40,.13); --r-text:#161b24; --r-muted:#5f6877; color:var(--r-text); background:var(--r-bg); }
+.raye2-home-shell[data-color-mode="light"], .raye2-home-shell.theme-paper { --r-bg:#f5f6f8; --r-panel:#ffffff; --r-raised:#e9edf2; --r-line:rgba(20,28,40,.13); --r-text:#161b24; --r-muted:#5f6877; color:var(--r-text); background:var(--r-bg); }
 .raye2-home-shell[data-color-mode="light"] .raye2-app-header,
 .raye2-home-shell[data-color-mode="light"] .raye2-card,
 .raye2-home-shell[data-color-mode="light"] .desktop-nav { background:#fff; color:var(--r-text); }
@@ -1161,3 +1161,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media (prefers-reduced-motion: reduce) {
   .raye2-home-shell *, .raye2-home-shell *::before, .raye2-home-shell *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+.raye2-home-shell.theme-paper { --r-bg:#f4f2ed; --r-panel:#fffefa; --r-raised:#e9e5dc; --r-line:rgba(35,38,42,.13); --r-text:#24272c; --r-muted:#69717b; background:var(--r-bg); color:var(--r-text); }
+.raye2-home-shell.theme-violet { --r-bg:#100d1b; --r-panel:#191426; --r-raised:#251d35; --r-line:rgba(225,210,255,.12); --r-text:#f4efff; --r-muted:#b2a8c6; }
+.raye2-home-shell[data-color-mode="system"] { color-scheme: dark; }
+.raye2-home-shell[data-color-mode="system"] .raye2-card { color:var(--r-text); }
+.raye2-home-shell[data-active-event="true"]::before { content:""; display:block; height:2px; background:var(--raye2-accent); opacity:.8; }
