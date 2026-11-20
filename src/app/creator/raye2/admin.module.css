@@ -152,3 +152,61 @@
   .page .cardHead h3 { line-height: 1.25; }
   .page .headerActions { flex-wrap: wrap; justify-content: flex-end; }
 }
+
+
+/* Final responsive pass: keep the real Admin workspace usable on narrow phones. */
+.page :is(button, a, input, select, textarea, summary):focus-visible {
+  outline: 2px solid rgba(125, 211, 252, .9);
+  outline-offset: 3px;
+}
+.page button, .page a { -webkit-tap-highlight-color: transparent; }
+.page .main { min-width: 0; }
+.page .card, .page .sectionHead, .page .storageGrid > * { min-width: 0; }
+.page .metrics { flex-wrap: wrap; align-items: center; }
+.page .quickActions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.page .quickActions > * { min-width: 0; }
+.page .cardHead > * { min-width: 0; }
+.page .cardHead select { max-width: min(100%, 190px); }
+.page .card :is(input, select, textarea) { max-width: 100%; }
+.page .card pre { max-width: 100%; overflow-x: auto; }
+@media (max-width: 720px) {
+  .page .shell { width: 100%; padding-inline: 12px; }
+  .page .sidenav {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  .page .navSearch { flex: 0 0 min(100%, 260px); }
+  .page .navGroup { flex: 0 0 auto; }
+  .page .navGroupItems { flex-wrap: nowrap; }
+  .page .navItem, .page .navItemActive { white-space: nowrap; min-height: 40px; }
+  .page .main > .sectionHead:first-child { top: 110px; }
+  .page .sectionHead { gap: 9px; }
+  .page .sectionHead > * { max-width: 100%; }
+  .page .fields, .page .scopeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page .storageGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+}
+@media (max-width: 480px) {
+  .page .header { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px; }
+  .page .header > div:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+  .page .headerActions { grid-column: 1 / -1; justify-content: flex-end; }
+  .page .intro h1 { font-size: clamp(29px, 9vw, 38px); }
+  .page .fields, .page .scopeGrid, .page .storageGrid, .page .metrics, .page .quickActions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .page .cardHead { flex-direction: column; align-items: stretch; }
+  .page .cardHead select { width: 100%; max-width: none; }
+  .page .action { min-height: 42px; }
+  .page .main > .sectionHead:first-child { top: 120px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page *, .page *::before, .page *::after { animation: none !important; transition: none !important; }
+}
