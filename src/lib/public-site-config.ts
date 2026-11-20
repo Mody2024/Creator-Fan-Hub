@@ -14,7 +14,10 @@ export type PublicSiteConfig = {
   tagline: string;
   heroTitle: string;
   heroBody: string;
-  theme: "obsidian";
+  theme: "obsidian" | "paper" | "violet";
+  colorMode: "dark" | "light" | "system";
+  displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print";
+  chalkTexture: "hand-drawn" | "soft" | "clean";
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
@@ -40,6 +43,9 @@ const fallback: PublicSiteConfig = {
   heroTitle: "The next big thing starts with you.",
   heroBody: "Discover the community, put your ideas forward, and help decide what gets made next. Your voice moves the story forward.",
   theme: "obsidian",
+  colorMode: "dark",
+  displayFont: "Cabin Sketch",
+  chalkTexture: "hand-drawn",
   accent: "#4d8df6",
   motion: "full",
   maintenance: { enabled: false, message: "We'll be back soon." },
@@ -101,7 +107,10 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     tagline: typeof identity.tagline === "string" ? identity.tagline.slice(0, 240) : fallback.tagline,
     heroTitle: typeof hero.title === "string" ? hero.title.slice(0, 180) : fallback.heroTitle,
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
-    theme: "obsidian",
+    theme: appearance.theme === "paper" || appearance.theme === "violet" ? appearance.theme : "obsidian",
+    colorMode: appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
+    displayFont: appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
+    chalkTexture: appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
     accent: typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent,
     motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
     maintenance: {
