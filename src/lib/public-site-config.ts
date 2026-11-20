@@ -142,6 +142,7 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     colorMode: activeEvent?.colorMode === "light" || activeEvent?.colorMode === "system" ? activeEvent.colorMode : appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
     displayFont: appearance.displayFont === "Custom chalk" && publicBrandAssetUrl(appearance.fontPath) ? "Custom chalk" : activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
     chalkTexture: activeEvent?.chalkTexture === "soft" || activeEvent?.chalkTexture === "clean" ? activeEvent.chalkTexture : appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
+    waveStyle: appearance.waveStyle === "off" || appearance.waveStyle === "bold" ? appearance.waveStyle : "soft",
     activeEvent,
     accent: activeEvent?.accent ?? (typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent),
     motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
