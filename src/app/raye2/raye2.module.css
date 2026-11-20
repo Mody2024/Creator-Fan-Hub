@@ -267,3 +267,64 @@
 .page .pollFoot{display:flex;align-items:center;justify-content:space-between;color:var(--r-muted);font-size:9px}
 .page .pollFoot button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-accent);padding:5px 9px;font-size:9px;cursor:pointer}
 .watchSyncStatus{font-size:9px;color:var(--r-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+
+/* Mobile usability pass: keep the conversation workspace within the visible viewport. */
+@media(max-width:680px){
+  .page{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .page .intro{padding-inline:14px;padding-bottom:16px}
+  .page .intro>div:first-child{min-width:0}
+  .page .intro p{max-width:38ch;line-height:1.55}
+  .page .workspace{
+    height:clamp(420px,calc(100dvh - 232px - env(safe-area-inset-bottom)),760px);
+    min-height:0;
+    padding-inline:10px;
+    gap:0;
+  }
+  .page .sidebar,.page .conversation{
+    min-height:0;
+    height:100%;
+    overscroll-behavior:contain;
+  }
+  .page .threadList,.page .discoverPanel,.page .messageArea{
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  .page .sideTop{padding:16px 14px 12px}
+  .page .searchBox{margin-inline:12px}
+  .page .tabs{overflow-x:auto;scrollbar-width:none}
+  .page .tabs::-webkit-scrollbar{display:none}
+  .page .tabs button{flex:0 0 auto;min-width:64px;min-height:38px;padding-inline:9px}
+  .page .chatHeader{gap:8px;padding-inline:10px}
+  .page .chatHeader .avatar{width:36px;height:36px;flex-basis:36px}
+  .page .chatHeading{min-width:0;flex:1}
+  .page .chatHeading h2,.page .chatHeading span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .page .backButton{min-height:40px;padding:0 5px}
+  .page .messageRow{max-width:96%}
+  .page .composerWrap{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .page .composer textarea{font-size:16px}
+  .page .composer button,.page .primaryButton,.page .miniButton,
+  .page .dangerButton,.page .voiceStart,.page .watchToggle{min-height:36px}
+  .page .modalBackdrop{padding:10px;align-items:end}
+  .page .modal{max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow:auto;border-radius:20px 20px 14px 14px}
+}
+@media(max-width:420px){
+  .page .header{padding-inline:9px}
+  .page .brand{font-size:19px}
+  .page .headerActions{gap:4px}
+  .page .utilityToggle{min-width:34px}
+  .page .intro h1{font-size:clamp(27px,8vw,34px);overflow-wrap:anywhere}
+  .page .introMark{width:54px;height:54px;font-size:28px}
+  .page .workspace{height:clamp(390px,calc(100dvh - 218px - env(safe-area-inset-bottom)),700px);padding-inline:7px}
+  .page .messageArea{padding-inline:9px}
+  .page .messageRow{gap:6px}
+  .page .messageAvatar{width:26px;height:26px;flex-basis:26px}
+  .page .bubble{padding:10px 12px;font-size:12px}
+  .page .composer{gap:7px;padding-inline:9px}
+  .page .composer button{padding-inline:11px}
+}
+@media(max-height:650px) and (max-width:680px){
+  .page .intro{padding-top:14px;padding-bottom:10px}
+  .page .introMark{display:none}
+  .page .workspace{height:calc(100dvh - 170px - env(safe-area-inset-bottom));min-height:340px}
+}
