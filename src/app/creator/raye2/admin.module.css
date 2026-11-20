@@ -137,3 +137,18 @@
 .navSearch button{border:0;background:transparent;color:#aeb8c8;font-size:19px;cursor:pointer}
 .navEmpty{padding:10px 12px;color:#9297a2;font-size:11px;line-height:1.6}
 @media(max-width:720px){.sidenav{flex-wrap:wrap;align-items:stretch}.navSearch{flex:1 0 100%;margin:0 0 4px}.navGroup{max-width:100%}.navGroupItems{display:flex;flex-wrap:wrap}.navItem,.navItemActive{white-space:normal}}
+
+
+/* Hand-drawn chalk headings in the Admin workspace; form labels and data stay crisp. */
+.page :is(.intro h1,.sectionHead h2,.cardHead h3) {
+  font-family: "Cabin Sketch", "Chalkduster", "Chalkboard SE", "Segoe Print", cursive;
+  font-weight: 700;
+  letter-spacing: -.025em;
+  text-shadow: .35px 0 rgba(255,255,255,.68), -.25px .35px rgba(255,255,255,.38), 0 0 1.2px rgba(255,255,255,.42);
+}
+@media (max-width: 600px) {
+  .page .intro h1 { font-size: clamp(30px, 9vw, 42px); line-height: 1.14; }
+  .page .sectionHead h2 { font-size: clamp(21px, 6vw, 27px); line-height: 1.2; }
+  .page .cardHead h3 { line-height: 1.25; }
+  .page .headerActions { flex-wrap: wrap; justify-content: flex-end; }
+}
