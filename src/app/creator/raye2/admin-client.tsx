@@ -56,7 +56,6 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const scheduledEvents: ScheduledAppearanceEvent[] = Array.isArray(siteDraft?.appearance?.eventThemes) ? siteDraft.appearance.eventThemes : [];
   const [navSearch, setNavSearch] = useState("");
   const [roleSearch, setRoleSearch] = useState("");
-  const filteredAdmins = useMemo(() => { const query = roleSearch.trim().toLowerCase(); if (!query) return admins; return admins.filter(item => [item.handle, item.display_name, item.user_id, item.role, item.active ? "active" : "suspended"].some(value => String(value ?? "").toLowerCase().includes(query))); }, [admins, roleSearch]);
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
   const [modStatus, setModStatus] = useState<"open"|"reviewing"|"resolved"|"dismissed">("open");
   const [modNote, setModNote] = useState("");
@@ -64,6 +63,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const [retention, setRetention] = useState(initialRetention);
   const [jobs, setJobs] = useState(initialJobs);
   const [admins, setAdmins] = useState(initialAdmins);
+  const filteredAdmins = useMemo(() => { const query = roleSearch.trim().toLowerCase(); if (!query) return admins; return admins.filter(item => [item.handle, item.display_name, item.user_id, item.role, item.active ? "active" : "suspended"].some(value => String(value ?? "").toLowerCase().includes(query))); }, [admins, roleSearch]);
   const [caps] = useState(initialCaps);
   const canRunCleanup = caps.some(item => item.capability === "run_cleanup" && item.allowed);
   const [sweep, setSweep] = useState<SweepRow[]>([]);
