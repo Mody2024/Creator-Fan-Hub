@@ -18,6 +18,7 @@ export type PublicSiteConfig = {
   colorMode: "dark" | "light" | "system";
   displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print";
   chalkTexture: "hand-drawn" | "soft" | "clean";
+  activeEvent: { name: string; accent: string; displayFont: string; chalkTexture: string; theme: string; colorMode: string } | null;
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
@@ -46,6 +47,7 @@ const fallback: PublicSiteConfig = {
   colorMode: "dark",
   displayFont: "Cabin Sketch",
   chalkTexture: "hand-drawn",
+  activeEvent: null,
   accent: "#4d8df6",
   motion: "full",
   maintenance: { enabled: false, message: "We'll be back soon." },
@@ -77,6 +79,23 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
   const flags = (raw.featureFlags && typeof raw.featureFlags === "object" ? raw.featureFlags : {}) as Record<string, unknown>;
   const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
   const allowedSections = ["hero","ideas","poll","events","community","socials","videos"];
+  const now = Date.now();
+  const eventThemes = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : [];
+  const activeEventRaw = eventThemes.find((event: unknown) => {
+    if (!event || typeof event !== "object") return false;
+    const item = event as Record<string, unknown>;
+    const start = typeof item.startsAt === "string" ? Date.parse(item.startsAt) : NaN;
+    const end = typeof item.endsAt === "string" ? Date.parse(item.endsAt) : NaN;
+    return item.enabled === true && Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end;
+  }) as Record<string, unknown> | undefined;
+  const activeEvent = activeEventRaw ? {
+    name: typeof activeEventRaw.name === "string" ? activeEventRaw.name.slice(0, 80) : "Event",
+    accent: typeof activeEventRaw.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(activeEventRaw.accent) ? activeEventRaw.accent : undefined,
+    displayFont: typeof activeEventRaw.displayFont === "string" ? activeEventRaw.displayFont : undefined,
+    chalkTexture: typeof activeEventRaw.chalkTexture === "string" ? activeEventRaw.chalkTexture : undefined,
+    theme: typeof activeEventRaw.theme === "string" ? activeEventRaw.theme : undefined,
+    colorMode: typeof activeEventRaw.colorMode === "string" ? activeEventRaw.colorMode : undefined
+  } : null;
 
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
   const mediaResult = mediaIds.length ? await supabase.from("media_items").select("id,media_type,storage_path").in("id", mediaIds).eq("is_published", true) : { data: [], error: null };
@@ -107,11 +126,12 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     tagline: typeof identity.tagline === "string" ? identity.tagline.slice(0, 240) : fallback.tagline,
     heroTitle: typeof hero.title === "string" ? hero.title.slice(0, 180) : fallback.heroTitle,
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
-    theme: appearance.theme === "paper" || appearance.theme === "violet" ? appearance.theme : "obsidian",
-    colorMode: appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
-    displayFont: appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
-    chalkTexture: appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
-    accent: typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent,
+    theme: activeEvent?.theme === "paper" || activeEvent?.theme === "violet" ? activeEvent.theme : appearance.theme === "paper" || appearance.theme === "violet" ? appearance.theme : "obsidian",
+    colorMode: activeEvent?.colorMode === "light" || activeEvent?.colorMode === "system" ? activeEvent.colorMode : appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
+    displayFont: activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
+    chalkTexture: activeEvent?.chalkTexture === "soft" || activeEvent?.chalkTexture === "clean" ? activeEvent.chalkTexture : appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
+    activeEvent,
+    accent: activeEvent?.accent ?? (typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent),
     motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
     maintenance: {
       enabled: maintenance.enabled === true,
