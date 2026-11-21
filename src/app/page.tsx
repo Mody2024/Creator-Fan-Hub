@@ -13,7 +13,6 @@ import NarrationControl from "@/app/narration-control";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
-import { PLATFORM_NAV_ACCOUNT, PLATFORM_NAV_PRIMARY, platformNavItems } from "@/lib/platform-nav";
 
 export const dynamic = "force-dynamic";
 
@@ -76,18 +75,11 @@ export default async function HomePage() {
     const {data:eventRows}=await supabase.rpc("raye2_get_public_events",{p_limit:12});
     events=(Array.isArray(eventRows)?eventRows:[]).map((row:EventCard)=>({id:row.id,title:row.title,description:row.description,starts_at:row.starts_at,ends_at:row.ends_at,status:row.status,event_type:row.event_type,going_count:Number(row.going_count??0),host_count:Number(row.host_count??0),my_rsvp:!!row.my_rsvp,my_rsvp_status:row.my_rsvp_status??null}));
   }
-  const navLabels = {
-    home: t.home, videos: t.watch, shorts: t.shorts, community: t.community,
-    explore: t.explore, saved: t.saved, notifications: t.notifications, studio: t.studio
-  } as const;
   const videoSectionVisible = config.visibleSections.includes("videos");
-  const primaryKeys = videoSectionVisible ? PLATFORM_NAV_PRIMARY : PLATFORM_NAV_PRIMARY.filter(key => key !== "videos" && key !== "shorts");
-  const primaryNav = platformNavItems(primaryKeys, navLabels);
-  const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className={`raye2-app-shell raye2-home-shell theme-${config.theme}`} data-motion={config.motion} data-color-mode={config.colorMode} data-display-font={config.displayFont} data-chalk-texture={config.chalkTexture} data-active-event={config.activeEvent ? "true" : "false"} data-wave-style={config.waveStyle} style={{ "--raye2-accent": config.accent, "--raye2-background-image": config.backgroundUrl ? `url("${config.backgroundUrl}")` : "none" } as CSSProperties}>{config.customFontUrl ? <style>{`@font-face{font-family:"Raye2CustomChalk";src:url("${config.customFontUrl}") format("${config.customFontUrl.endsWith(".woff2") ? "woff2" : config.customFontUrl.endsWith(".woff") ? "woff" : "truetype"}");font-display:swap;font-weight:100 900}`}</style> : null}
     <ShellTopBar locale={isArabic ? "ar" : "en"} mark={config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null} />
     <div className="raye2-platform-grid">
-      <ShellRail label={isArabic ? "التنقل الرئيسي" : "Main navigation"} items={primaryNav} accountLabel={isArabic ? "مساحتك في Raye2" : "Your Raye2"} accountItems={accountNav} />
+      <ShellRail locale={isArabic ? "ar" : "en"} showVideos={videoSectionVisible} />
       <section className="raye2-feed-column">
         <section className="raye2-home-welcome raye2-card raye2-card-pad" id="hero">
           <span className="raye2-section-label">{config.tagline}</span>

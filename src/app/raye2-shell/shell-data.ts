@@ -7,7 +7,7 @@ export type ShellLocale = "en" | "ar";
 export const SHELL_T = {
   en: {
     nav: "Quick navigation", mainNav: "Main navigation", yourRaye2: "Your Raye2",
-    home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You",
+    home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You", more: "More", signOut: "Sign out", unread: "unread",
     createTitle: "Create", youTitle: "Your space", close: "Close", search: "Search Raye2", join: "Join", brand: "Raye2 home",
     upload: "Upload video", uploadHint: "Open the video studio", mini: "Mini", miniHint: "Short vertical clip", moment: "Moment", momentHint: "Disappears after a day",
     post: "Community post", postHint: "Share with the community", live: "Go live", liveHint: "Start a live stream",
@@ -15,7 +15,7 @@ export const SHELL_T = {
   },
   ar: {
     nav: "التنقل السريع", mainNav: "التنقل الرئيسي", yourRaye2: "مساحتك في Raye2",
-    home: "الرئيسية", watch: "مشاهدة", create: "إنشاء", community: "المجتمع", you: "أنت",
+    home: "الرئيسية", watch: "مشاهدة", create: "إنشاء", community: "المجتمع", you: "أنت", more: "المزيد", signOut: "تسجيل الخروج", unread: "غير مقروء",
     createTitle: "إنشاء", youTitle: "مساحتك", close: "إغلاق", search: "ابحث في Raye2", join: "انضم", brand: "الصفحة الرئيسية لـ Raye2",
     upload: "رفع فيديو", uploadHint: "افتح استوديو الفيديو", mini: "مقطع قصير", miniHint: "مقطع عمودي قصير", moment: "لحظة", momentHint: "تختفي بعد يوم",
     post: "منشور مجتمعي", postHint: "شارك مع المجتمع", live: "بث مباشر", liveHint: "ابدأ بثًا مباشرًا",
@@ -52,3 +52,23 @@ export const NAV_ICON: Record<PlatformNavKey, ShellIconName> = {
   home: "home", videos: "watch", shorts: "shorts", community: "community", explore: "search", series: "watch",
   messages: "chat", notifications: "bell", saved: "bookmark", profile: "user", studio: "studio"
 };
+
+// Labels for the shared platform-nav destinations (same destinations everywhere, localized once).
+export const NAV_LABELS = {
+  en: { home: "Home", videos: "Watch", shorts: "Mini’s", community: "Community", explore: "Explore", saved: "Saved", notifications: "Notifications", studio: "Studio" },
+  ar: { home: "الرئيسية", videos: "مشاهدة", shorts: "مقاطع قصيرة", community: "المجتمع", explore: "استكشف", saved: "المحفوظات", notifications: "الإشعارات", studio: "الاستوديو" }
+} as const;
+
+// Everything else lives under one collapsed "More" group so the rail stays short and nothing repeats.
+export function moreItemsFor(locale: ShellLocale): MenuItem[] {
+  const ar = locale === "ar";
+  return [
+    { href: "/minis", icon: "mini", label: ar ? "مينيز" : "Minis" },
+    { href: "/moments", icon: "moment", label: ar ? "لحظات" : "Moments" },
+    { href: "/clips", icon: "clips", label: ar ? "مقاطع" : "Clips" },
+    { href: "/live", icon: "live", label: ar ? "مباشر" : "Live" },
+    { href: "/series", icon: "series", label: ar ? "السلاسل" : "Series" },
+    { href: "/creators", icon: "user", label: ar ? "صُنّاع المحتوى" : "Creators" },
+    { href: "/groups", icon: "hash", label: ar ? "المساحات" : "Spaces" }
+  ];
+}

@@ -57,7 +57,7 @@ test("public video cards use only safe same-origin generated thumbnails",()=>{
 
 test("Raye2 watch library uses the new brand shell and responsive discovery cards",()=>{
  const page=readFileSync(new URL("../src/app/watch/page.tsx",import.meta.url),"utf8");
- assert.ok(page.includes("raye2-watch-header"));
+ assert.ok(page.includes("<ShellTopBar") && page.includes("<ShellRail"));
  assert.ok(page.includes("raye2-watch-hero"));
  assert.ok(page.includes("raye2-watch-grid"));
  assert.ok(page.includes("Raye2"));

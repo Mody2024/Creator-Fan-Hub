@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useBrandLogo } from "./brand-context";
 import { SHELL_T, type ShellLocale } from "./shell-data";
 
 /**
@@ -8,9 +11,10 @@ import { SHELL_T, type ShellLocale } from "./shell-data";
  */
 export default function ShellBrand({ locale, mark }: { locale: ShellLocale; mark?: ReactNode }) {
   const ar = locale === "ar";
+  const uploaded = useBrandLogo();
   return (
     <Link className="raye2-shell-brand" href="/" aria-label={SHELL_T[locale].brand}>
-      {mark ?? <img className="raye2-brand-mark" src="/brand/raye2-mark.png" alt="" width={38} height={38} />}
+      {mark ?? (uploaded ? <img className="site-logo-image" src={uploaded} alt="" /> : <img className="raye2-brand-mark" src="/brand/raye2-mark.png" alt="" width={38} height={38} />)}
       <img
         className="raye2-brand-word"
         src={ar ? "/brand/raye2-wordmark-ar.png" : "/brand/raye2-wordmark-en.png"}

@@ -1,5 +1,7 @@
 "use client";
 
+import ShellTopBar from "@/app/raye2-shell/shell-top";
+import ShellRail from "@/app/raye2-shell/shell-rail";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -7,7 +9,6 @@ import Raye2ReactionArt from "@/app/watch/[slug]/raye2-reaction-art";
 import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import "./raye2-community.css";
-import { PLATFORM_NAV_ACCOUNT, PLATFORM_NAV_PRIMARY, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
 
 type Author = { handle: string; display_name: string; avatar_url: string | null };
 export type CommunityPoll = { id: string; question: string; options: Array<{ option: string; votes: number }>; total: number; closesAt: string | null; myVote: string | null };
@@ -32,7 +33,6 @@ type CommentReply = {comment_id:string;author_id:string;author_handle:string|nul
 
 export default function CommunityClient({ initialPosts, topics = [], selectedFeed, selectedSort = "latest", unreadNotificationCount, suggestedMembers, canModerate = false }: { initialPosts: CommunityPost[]; topics?: CommunityTopic[]; selectedFeed: "following" | "latest"; selectedSort?: "latest" | "hot"; unreadNotificationCount: number; suggestedMembers: SuggestedMember[]; canModerate?: boolean }) {
   const router = useRouter();
-  const pathname = usePathname();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [member, setMember] = useState<Member | null>(null);
   const [followedSuggestions, setFollowedSuggestions] = useState<string[]>([]);
@@ -726,23 +726,10 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
     }
   }
 
-  const navLabels = { home: t.home, videos: "Videos", shorts: "Shorts", community: t.community, explore: "Explore", saved: t.saved, notifications: t.notifications, studio: "Studio" } as const;
-  const primaryNav = platformNavItems(PLATFORM_NAV_PRIMARY, navLabels);
-  const accountNav = platformNavItems(PLATFORM_NAV_ACCOUNT, navLabels);
-  return <main className="raye2-app-shell raye2-community-page" data-raye2-surface="community" dir={isArabic?"rtl":"ltr"} lang={locale}>
-    <header className="raye2-app-header">
-      <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-community-mark">R</span></Link>
-      <form className="raye2-search-form" action="/search"><input className="raye2-search" type="search" name="q" placeholder={t.search} aria-label="Search Raye2" maxLength={80}/></form>
-      <div className="raye2-header-actions">{member ? <><Link className="raye2-muted" href={"/u/"+member.handle}>@{member.handle}</Link><Link className="raye2-icon-button" href="/notifications" aria-label={unreadNotificationCount>0?`${t.notifications}, ${unreadNotificationCount} unread`:t.notifications} title={t.notifications} style={{position:"relative"}}>♧{unreadNotificationCount>0&&<span aria-hidden="true" style={{position:"absolute",top:-5,right:-5,minWidth:17,height:17,padding:"0 4px",borderRadius:99,background:"var(--raye2-ds-accent)",color:"white",fontSize:10,fontWeight:800,lineHeight:"17px",textAlign:"center"}}>{unreadNotificationCount>99?"99+":unreadNotificationCount}</span>}</Link><button className="raye2-icon-button" onClick={signOut} aria-label="Sign out">↗</button></> : <Link className="raye2-pill" href="#join">{t.join}</Link>}</div>
-    </header>
+        return <main className="raye2-app-shell raye2-community-page" data-raye2-surface="community" dir={isArabic?"rtl":"ltr"} lang={locale}>
+    <ShellTopBar locale={locale} member={member?{handle:member.handle}:null} unread={unreadNotificationCount} onSignOut={member?signOut:undefined} />
     <div className="raye2-platform-grid">
-      <aside className="raye2-sidebar" aria-label={t.community}>
-        {primaryNav.map(item => <Link className="raye2-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
-        <a className="raye2-sidebar-link" href="#official"><span aria-hidden="true">✦</span> {t.official}</a>
-        <a className="raye2-sidebar-link" href="#latest"><span aria-hidden="true">◷</span> {t.latest}</a>
-        <span className="raye2-section-label">{t.yourSpace}</span>
-        {accountNav.map(item => <Link className="raye2-sidebar-link" href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span> {item.label}</Link>)}
-      </aside>
+      <ShellRail locale={locale} showVideos />
       <section className="raye2-feed-column">
         <div className="raye2-card raye2-card-pad">
           <div className="raye2-card-heading"><div><span className="raye2-section-label">{t.communityTitle}</span><h1 className="raye2-card-title" style={{fontSize:28,marginTop:6}}>{t.headline}</h1></div><span className="raye2-pill raye2-pill-official">EARLY ACCESS</span></div>
@@ -838,6 +825,5 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
         <div style={{display:"flex",gap:8,marginTop:12}}><button className="raye2-action" disabled={busy} onClick={()=>void submitReport()}>{t.reportSend}</button><button className="raye2-action" onClick={()=>setReportTarget(null)}>{t.reportCancel}</button></div>
       </section>
     </div>}
-    <nav className="raye2-mobile-nav" aria-label="Mobile navigation">{primaryNav.map(item => <Link href={item.href} key={item.key} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span><span>{item.label}</span></Link>)}</nav>
-  </main>;
+      </main>;
 }

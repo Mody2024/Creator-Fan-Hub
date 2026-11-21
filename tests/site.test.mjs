@@ -503,7 +503,9 @@ test("community moderation uses a private role helper across every moderation qu
 test("video navigation is hidden when the creator disables the video section", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /const videoSectionVisible = config\.visibleSections\.includes\("videos"\)/);
-  assert.match(page, /PLATFORM_NAV_PRIMARY\.filter\(key => key !== "videos" && key !== "shorts"\)/);
+  assert.match(page, /showVideos=\{videoSectionVisible\}/);
+  const railSource = await readFile(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
+  assert.match(railSource, /PLATFORM_NAV_PRIMARY\.filter\(key => key !== "videos" && key !== "shorts"\)/);
   assert.match(page, /visibleSections\.includes\("videos"\) && <PublicVideos \/>/);
 });
 
@@ -548,10 +550,10 @@ test("video navigation is consistently gated without duplicate Watch and Videos 
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.visibleSections.includes("videos")'));
   assert.equal(page.includes('<a href="#videos">Videos</a>'), false);
-  assert.ok(page.includes("const primaryKeys = videoSectionVisible"));
+  assert.ok(page.includes("showVideos={videoSectionVisible}"));
   // The shared shell replaces the per-page navs: the left rail renders the gated primary items and the
   // phone bottom bar is mounted once in the root layout.
-  assert.ok(page.includes("<ShellRail") && page.includes("items={primaryNav}"));
+  assert.ok(page.includes("<ShellRail") && page.includes("showVideos={videoSectionVisible}"));
   assert.ok(page.includes("<ShellTopBar"));
   assert.equal(page.includes('className="mobile-nav"'), false);
   const layout = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8");

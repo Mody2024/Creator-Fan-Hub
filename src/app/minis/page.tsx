@@ -1,4 +1,5 @@
-import Link from "next/link";
+import ShellTopBar from "@/app/raye2-shell/shell-top";
+import ShellRail from "@/app/raye2-shell/shell-rail";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import MinisClient from "./minis-client";
@@ -18,17 +19,18 @@ export default async function MinisPage() {
     : { watch: "Watch", community: "Community", eyebrow: "RAYE2 / MINI'S", title: "Quick <em>Mini's.</em>", intro: "Short clips from creators and the community — live for 30 days, then they expire." };
   return (
     <main className="raye2-minis-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-      <header className="raye2-watch-top">
-        <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
-        <nav><Link href="/watch">{labels.watch}</Link><Link href="/community">{labels.community}</Link></nav>
-        
-      </header>
+      <ShellTopBar locale={locale} />
+      <div className="raye2-frame">
+      <ShellRail locale={locale} showVideos />
+      <div className="raye2-frame-main">
       <div className="raye2-minis-heading">
         <span className="raye2-section-label">{labels.eyebrow}</span>
         <h1>{isArabic ? <>مقاطع <em>مينيز.</em></> : <>Quick <em>Mini&apos;s.</em></>}</h1>
         <p className="raye2-muted">{labels.intro}</p>
       </div>
       <MinisClient />
+      </div>
+      </div>
     </main>
   );
 }
