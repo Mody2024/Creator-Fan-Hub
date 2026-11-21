@@ -1,0 +1,150 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { isPlatformNavActive } from "@/lib/platform-nav";
+import LanguageSwitch from "@/app/language-switch";
+import BottomSheet from "./bottom-sheet";
+import ShellIcon, { type ShellIconName } from "./shell-icons";
+
+type Locale = "en" | "ar";
+type Sheet = "create" | "you" | null;
+
+// Routes that own the whole screen (immersive viewers, chat threads, creator/admin workspaces with
+// their own navigation). The bottom bar steps aside there instead of fighting their layout.
+const HIDDEN_PREFIXES = ["/creator", "/raye2/admin", "/raye2/studio", "/raye2/invite", "/raye2/watch-invite", "/auth", "/shorts"];
+const HIDDEN_EXACT = ["/raye2"];
+
+const T = {
+  en: {
+    nav: "Quick navigation", home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You",
+    createTitle: "Create", youTitle: "Your space", close: "Close",
+    upload: "Upload video", uploadHint: "Open the video studio", mini: "Mini", miniHint: "Short vertical clip", moment: "Moment", momentHint: "Disappears after a day",
+    post: "Community post", postHint: "Share with the community", live: "Go live", liveHint: "Start a live stream",
+    account: "Account settings", saved: "Saved", notifications: "Notifications", messages: "Messages", studio: "Creator Studio"
+  },
+  ar: {
+    nav: "التنقل السريع", home: "الرئيسية", watch: "مشاهدة", create: "إنشاء", community: "المجتمع", you: "أنت",
+    createTitle: "إنشاء", youTitle: "مساحتك", close: "إغلاق",
+    upload: "رفع فيديو", uploadHint: "افتح استوديو الفيديو", mini: "مقطع قصير", miniHint: "مقطع عمودي قصير", moment: "لحظة", momentHint: "تختفي بعد يوم",
+    post: "منشور مجتمعي", postHint: "شارك مع المجتمع", live: "بث مباشر", liveHint: "ابدأ بثًا مباشرًا",
+    account: "إعدادات الحساب", saved: "المحفوظات", notifications: "الإشعارات", messages: "الرسائل", studio: "استوديو المبدع"
+  }
+} as const;
+
+type Tab = { key: string; href: string; icon: ShellIconName; label: string; active: boolean };
+
+export default function BottomNav({ locale }: { locale: Locale }) {
+  const pathname = usePathname() || "/";
+  const t = T[locale];
+  const [sheet, setSheet] = useState<Sheet>(null);
+  const [scrolledAway, setScrolledAway] = useState(false);
+
+  const hidden = HIDDEN_EXACT.includes(pathname) || HIDDEN_PREFIXES.some(prefix => pathname === prefix || pathname.startsWith(prefix + "/"));
+
+  useEffect(() => { setSheet(null); }, [pathname]);
+
+  // Lets page CSS reserve room for the bar and lets legacy per-page mobile navs step aside.
+  useEffect(() => {
+    if (hidden) { delete document.body.dataset.raye2Bottomnav; return; }
+    document.body.dataset.raye2Bottomnav = "on";
+    return () => { delete document.body.dataset.raye2Bottomnav; };
+  }, [hidden]);
+
+  // Hide on scroll down, return on scroll up (feeds get the full screen; the bar is one flick away).
+  useEffect(() => {
+    if (hidden) return;
+    let last = window.scrollY;
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const y = window.scrollY;
+        const delta = y - last;
+        if (Math.abs(delta) > 8) { setScrolledAway(delta > 0 && y > 140); last = y; }
+        ticking = false;
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [hidden]);
+
+  if (hidden) return null;
+
+  const youActive = ["/account", "/saved", "/notifications", "/u/"].some(prefix => pathname === prefix || pathname.startsWith(prefix.endsWith("/") ? prefix : prefix + "/"));
+  const tabs: Tab[] = [
+    { key: "home", href: "/", icon: "home", label: t.home, active: isPlatformNavActive(pathname, "/") },
+    { key: "watch", href: "/watch", icon: "watch", label: t.watch, active: isPlatformNavActive(pathname, "/watch") }
+  ];
+  const tabsAfter: Tab[] = [
+    { key: "community", href: "/community", icon: "community", label: t.community, active: isPlatformNavActive(pathname, "/community") }
+  ];
+
+  const createItems: { href: string; icon: ShellIconName; label: string; hint: string }[] = [
+    { href: "/raye2/studio", icon: "upload", label: t.upload, hint: t.uploadHint },
+    { href: "/minis", icon: "mini", label: t.mini, hint: t.miniHint },
+    { href: "/moments", icon: "moment", label: t.moment, hint: t.momentHint },
+    { href: "/community", icon: "post", label: t.post, hint: t.postHint },
+    { href: "/live", icon: "live", label: t.live, hint: t.liveHint }
+  ];
+  const youItems: { href: string; icon: ShellIconName; label: string }[] = [
+    { href: "/account", icon: "settings", label: t.account },
+    { href: "/saved", icon: "bookmark", label: t.saved },
+    { href: "/notifications", icon: "bell", label: t.notifications },
+    { href: "/raye2", icon: "chat", label: t.messages },
+    { href: "/creator", icon: "studio", label: t.studio }
+  ];
+
+  const renderTab = (tab: Tab) => (
+    <Link key={tab.key} href={tab.href} className="raye2-bottom-tab" aria-current={tab.active ? "page" : undefined}>
+      <span className="raye2-bottom-tab-icon"><ShellIcon name={tab.icon} /></span>
+      <span className="raye2-bottom-tab-label">{tab.label}</span>
+    </Link>
+  );
+
+  return (
+    <>
+      <nav className="raye2-bottom-nav" aria-label={t.nav} data-hidden={scrolledAway && !sheet ? "true" : "false"}>
+        {tabs.map(renderTab)}
+        <button type="button" className="raye2-bottom-create" aria-haspopup="dialog" aria-expanded={sheet === "create"} onClick={() => setSheet("create")}>
+          <span className="raye2-bottom-create-disc"><ShellIcon name="plus" size={26} strokeWidth={2.2} /></span>
+          <span className="raye2-bottom-tab-label">{t.create}</span>
+        </button>
+        {tabsAfter.map(renderTab)}
+        <button type="button" className="raye2-bottom-tab" aria-haspopup="dialog" aria-expanded={sheet === "you"} aria-current={youActive ? "page" : undefined} onClick={() => setSheet("you")}>
+          <span className="raye2-bottom-tab-icon"><ShellIcon name="user" /></span>
+          <span className="raye2-bottom-tab-label">{t.you}</span>
+        </button>
+      </nav>
+
+      <BottomSheet open={sheet === "create"} onClose={() => setSheet(null)} title={t.createTitle} closeLabel={t.close}>
+        <ul className="raye2-sheet-list">
+          {createItems.map(item => (
+            <li key={item.href + item.label}>
+              <Link href={item.href} className="raye2-sheet-row">
+                <span className="raye2-sheet-row-icon"><ShellIcon name={item.icon} size={22} /></span>
+                <span className="raye2-sheet-row-text"><strong>{item.label}</strong><small>{item.hint}</small></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </BottomSheet>
+
+      <BottomSheet open={sheet === "you"} onClose={() => setSheet(null)} title={t.youTitle} closeLabel={t.close}>
+        <ul className="raye2-sheet-list">
+          {youItems.map(item => (
+            <li key={item.href}>
+              <Link href={item.href} className="raye2-sheet-row">
+                <span className="raye2-sheet-row-icon"><ShellIcon name={item.icon} size={22} /></span>
+                <span className="raye2-sheet-row-text"><strong>{item.label}</strong></span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="raye2-sheet-foot"><ShellIcon name="language" size={20} /><LanguageSwitch initialLocale={locale} variant="header" /></div>
+      </BottomSheet>
+    </>
+  );
+}

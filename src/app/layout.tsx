@@ -3,9 +3,11 @@ import "./globals.css";
 import "./raye2-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import "./raye2-polish.css";
+import "./raye2-shell/raye2-shell.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";
+import BottomNav from "./raye2-shell/bottom-nav";
 import { cookies } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -49,6 +51,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <RouteTransition />
         <TelemetryReporter />
         {children}
+        <BottomNav locale={locale} />
         <footer className="creator-credit"><span>MADE BY ALMUDDATHTHIR</span>{showIdeaCredit ? <span className="creator-idea-credit"> · WEBSITE IDEA BY <a href={safeIdeaCreditYoutubeUrl} target="_blank" rel="noopener noreferrer"><img src={ideaCreditLogoUrl} alt="" loading="lazy" />{ideaCreditName}</a></span> : null}</footer>
       </body>
     </html>
