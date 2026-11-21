@@ -549,13 +549,13 @@ test("video navigation is consistently gated without duplicate Watch and Videos 
   assert.ok(page.includes('config.visibleSections.includes("videos")'));
   assert.equal(page.includes('<a href="#videos">Videos</a>'), false);
   assert.ok(page.includes("const primaryKeys = videoSectionVisible"));
-  const mobileStart = page.indexOf('<nav className="mobile-nav"');
-  const mobileEnd = page.indexOf("</nav>", mobileStart);
-  const mobileNav = page.slice(mobileStart, mobileEnd);
-  assert.ok(mobileNav.includes("primaryNav.map"));
-  const desktopStart = page.indexOf('<aside className="desktop-nav"');
-  const desktopEnd = page.indexOf("</aside>", desktopStart);
-  assert.ok(page.slice(desktopStart, desktopEnd).includes("primaryNav.map"));
+  // The shared shell replaces the per-page navs: the left rail renders the gated primary items and the
+  // phone bottom bar is mounted once in the root layout.
+  assert.ok(page.includes("<ShellRail") && page.includes("items={primaryNav}"));
+  assert.ok(page.includes("<ShellTopBar"));
+  assert.equal(page.includes('className="mobile-nav"'), false);
+  const layout = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.ok(layout.includes("<BottomNav"));
 });
 test("publishing a site draft requires compatible published media assets", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");

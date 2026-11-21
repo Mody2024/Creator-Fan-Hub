@@ -7,31 +7,14 @@ import { isPlatformNavActive } from "@/lib/platform-nav";
 import LanguageSwitch from "@/app/language-switch";
 import BottomSheet from "./bottom-sheet";
 import ShellIcon, { type ShellIconName } from "./shell-icons";
+import { SHELL_T as T, createItemsFor, youItemsFor, type ShellLocale as Locale } from "./shell-data";
 
-type Locale = "en" | "ar";
 type Sheet = "create" | "you" | null;
 
 // Routes that own the whole screen (immersive viewers, chat threads, creator/admin workspaces with
 // their own navigation). The bottom bar steps aside there instead of fighting their layout.
 const HIDDEN_PREFIXES = ["/creator", "/raye2/admin", "/raye2/studio", "/raye2/invite", "/raye2/watch-invite", "/auth", "/shorts"];
 const HIDDEN_EXACT = ["/raye2"];
-
-const T = {
-  en: {
-    nav: "Quick navigation", home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You",
-    createTitle: "Create", youTitle: "Your space", close: "Close",
-    upload: "Upload video", uploadHint: "Open the video studio", mini: "Mini", miniHint: "Short vertical clip", moment: "Moment", momentHint: "Disappears after a day",
-    post: "Community post", postHint: "Share with the community", live: "Go live", liveHint: "Start a live stream",
-    account: "Account settings", saved: "Saved", notifications: "Notifications", messages: "Messages", studio: "Creator Studio"
-  },
-  ar: {
-    nav: "التنقل السريع", home: "الرئيسية", watch: "مشاهدة", create: "إنشاء", community: "المجتمع", you: "أنت",
-    createTitle: "إنشاء", youTitle: "مساحتك", close: "إغلاق",
-    upload: "رفع فيديو", uploadHint: "افتح استوديو الفيديو", mini: "مقطع قصير", miniHint: "مقطع عمودي قصير", moment: "لحظة", momentHint: "تختفي بعد يوم",
-    post: "منشور مجتمعي", postHint: "شارك مع المجتمع", live: "بث مباشر", liveHint: "ابدأ بثًا مباشرًا",
-    account: "إعدادات الحساب", saved: "المحفوظات", notifications: "الإشعارات", messages: "الرسائل", studio: "استوديو المبدع"
-  }
-} as const;
 
 type Tab = { key: string; href: string; icon: ShellIconName; label: string; active: boolean };
 
@@ -82,20 +65,8 @@ export default function BottomNav({ locale }: { locale: Locale }) {
     { key: "community", href: "/community", icon: "community", label: t.community, active: isPlatformNavActive(pathname, "/community") }
   ];
 
-  const createItems: { href: string; icon: ShellIconName; label: string; hint: string }[] = [
-    { href: "/raye2/studio", icon: "upload", label: t.upload, hint: t.uploadHint },
-    { href: "/minis", icon: "mini", label: t.mini, hint: t.miniHint },
-    { href: "/moments", icon: "moment", label: t.moment, hint: t.momentHint },
-    { href: "/community", icon: "post", label: t.post, hint: t.postHint },
-    { href: "/live", icon: "live", label: t.live, hint: t.liveHint }
-  ];
-  const youItems: { href: string; icon: ShellIconName; label: string }[] = [
-    { href: "/account", icon: "settings", label: t.account },
-    { href: "/saved", icon: "bookmark", label: t.saved },
-    { href: "/notifications", icon: "bell", label: t.notifications },
-    { href: "/raye2", icon: "chat", label: t.messages },
-    { href: "/creator", icon: "studio", label: t.studio }
-  ];
+  const createItems = createItemsFor(locale);
+  const youItems = youItemsFor(locale);
 
   const renderTab = (tab: Tab) => (
     <Link key={tab.key} href={tab.href} className="raye2-bottom-tab" aria-current={tab.active ? "page" : undefined}>
@@ -125,7 +96,7 @@ export default function BottomNav({ locale }: { locale: Locale }) {
             <li key={item.href + item.label}>
               <Link href={item.href} className="raye2-sheet-row">
                 <span className="raye2-sheet-row-icon"><ShellIcon name={item.icon} size={22} /></span>
-                <span className="raye2-sheet-row-text"><strong>{item.label}</strong><small>{item.hint}</small></span>
+                <span className="raye2-sheet-row-text"><strong>{item.label}</strong>{item.hint ? <small>{item.hint}</small> : null}</span>
               </Link>
             </li>
           ))}
