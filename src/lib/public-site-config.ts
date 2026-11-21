@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type PublicSiteConfig = {
@@ -64,7 +65,7 @@ const fallback: PublicSiteConfig = {
   narrationAutoPlay: true
 };
 
-export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
+async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return fallback;
 
@@ -165,3 +166,6 @@ export async function getPublicSiteConfig(): Promise<PublicSiteConfig> {
     }
   };
 }
+
+// One lookup per request, shared by metadata, the root layout and the page.
+export const getPublicSiteConfig = cache(loadPublicSiteConfig);

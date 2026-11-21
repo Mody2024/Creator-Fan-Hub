@@ -3,11 +3,12 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = p => readFile(new URL(p, import.meta.url), "utf8");
-const [model, home, community, chat] = await Promise.all([
+const [model, home, community, chat, rail] = await Promise.all([
   read("../src/lib/platform-nav.ts"),
   read("../src/app/page.tsx"),
   read("../src/app/community/community-client.tsx"),
-  read("../src/app/raye2/raye2-client.tsx")
+  read("../src/app/raye2/raye2-client.tsx"),
+  read("../src/app/raye2-shell/shell-rail.tsx")
 ]);
 
 test("there is one shared platform navigation model", () => {
@@ -20,14 +21,17 @@ test("there is one shared platform navigation model", () => {
 });
 
 test("every surface renders navigation from the shared model, not bespoke arrays", () => {
-  assert.match(home, /platformNavItems\(primaryKeys/);
-  assert.match(community, /platformNavItems\(PLATFORM_NAV_PRIMARY/);
+  assert.match(home, /<ShellRail/);
+  assert.match(community, /<ShellRail/);
+  assert.match(rail, /platformNavItems\(keys, NAV_LABELS/);
+  assert.match(rail, /PLATFORM_NAV_PRIMARY/);
   assert.match(chat, /platformNavItems\(PLATFORM_NAV_RAYE2/);
   assert.doesNotMatch(chat, /const platformNav = \[/);
 });
 
 test("navigation uses the shared active rule rather than ad-hoc comparisons", () => {
-  for (const source of [home, community, chat]) {
+  assert.match(rail, /isPlatformNavActive\(pathname, item\.href\)/);
+  for (const source of [chat]) {
     assert.match(source, /isPlatformNavActive\(pathname, item\.href\)/);
   }
 });

@@ -43,6 +43,7 @@ export default async function PublicVideos() {
     .order("published_at", { ascending: false })
     .limit(24);
 
+  if (error) console.error("[raye2] video_catalog query failed:", error.code, error.message);
   if (error || !data?.length) return null;
 
   const refs: Array<{bucketId:string;objectKey:string}> = [];

@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
-import LanguageSwitch from "@/app/language-switch";
 import styles from "./studio.module.css";
 import CreatorCapabilities from "@/app/creator/creator-capabilities";
 import CreatorLiveStudio from "@/app/creator/creator-live-studio";
@@ -88,7 +87,7 @@ export default async function Raye2CreatorStudioPage() {
         {canStream && <Link href="#creator-live-studio">{isArabic ? "البث المباشر" : "Live"}</Link>}
         {canAnalyze && <Link href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}
       </nav>
-      <div className={styles.headerActions}><LanguageSwitch initialLocale={locale} variant="header"/><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
+      <div className={styles.headerActions}><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
     </header>
     <section className={styles.hero} data-slot="hero">
       <div><span className={styles.eyebrow}>CREATOR TOOLS</span><h1>{t.title}<em>{t.accent}</em></h1><p>{t.intro}</p></div>
