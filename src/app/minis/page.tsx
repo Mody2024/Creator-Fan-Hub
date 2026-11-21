@@ -2,7 +2,6 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import MinisClient from "./minis-client";
-import LanguageSwitch from "@/app/language-switch";
 import "./minis-raye2.css";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +21,7 @@ export default async function MinisPage() {
       <header className="raye2-watch-top">
         <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
         <nav><Link href="/watch">{labels.watch}</Link><Link href="/community">{labels.community}</Link></nav>
-        <LanguageSwitch initialLocale={locale} variant="header"/>
+        
       </header>
       <div className="raye2-minis-heading">
         <span className="raye2-section-label">{labels.eyebrow}</span>

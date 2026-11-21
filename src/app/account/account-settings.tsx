@@ -13,6 +13,8 @@ type SessionRow = { session_id: string; created_at: string; updated_at: string |
 type StorageObject = { object_id: string; provider_id: string; bucket_id: string; object_key: string; asset_class: string; visibility: string; object_state: string; size_bytes: number; mime_type: string | null; created_at: string };
 type ByosRow = { connection_id: string; provider_id: string; label: string; endpoint: string; region: string; bucket_id: string; path_style: boolean; secret_ref: string; connection_state: string; verified_at: string | null; last_error: string | null; updated_at: string };
 
+import LanguageSwitch from "@/app/language-switch";
+
 export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
   const isAr = locale === "ar";
   const [lifecycle, setLifecycle] = useState<Lifecycle | null>(null);
@@ -166,6 +168,10 @@ export default function AccountSettings({ locale }: { locale: "ar" | "en" }) {
     <section className="module-block" id="account-settings">
       <div className="module-heading"><div><h2>{t.title}</h2><p>{t.note}</p></div></div>
       {notice ? <p>{notice}</p> : null}
+
+      <article className="module-card">
+        <div className="module-card-top"><span>{isAr ? "اللغة" : "Language"}</span><LanguageSwitch initialLocale={locale} variant="header" /></div>
+      </article>
 
       <article className="module-card">
         <div className="module-card-top"><span>{t.state}</span><span className="module-state">{lifecycle?.state ?? "—"}</span></div>

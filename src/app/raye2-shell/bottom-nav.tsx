@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { isPlatformNavActive } from "@/lib/platform-nav";
-import LanguageSwitch from "@/app/language-switch";
 import BottomSheet from "./bottom-sheet";
 import ShellIcon, { type ShellIconName } from "./shell-icons";
 import { SHELL_T as T, createItemsFor, youItemsFor, type ShellLocale as Locale } from "./shell-data";
@@ -114,7 +113,6 @@ export default function BottomNav({ locale }: { locale: Locale }) {
             </li>
           ))}
         </ul>
-        <div className="raye2-sheet-foot"><ShellIcon name="language" size={20} /><LanguageSwitch initialLocale={locale} variant="header" /></div>
       </BottomSheet>
     </>
   );

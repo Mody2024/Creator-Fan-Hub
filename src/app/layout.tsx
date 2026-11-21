@@ -8,6 +8,7 @@ import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";
 import BottomNav from "./raye2-shell/bottom-nav";
+import LocaleBootstrap from "./raye2-shell/locale-bootstrap";
 import { cookies } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -51,6 +52,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <RouteTransition />
         <TelemetryReporter />
         {children}
+        <LocaleBootstrap />
         <BottomNav locale={locale} />
         <footer className="creator-credit"><span>MADE BY ALMUDDATHTHIR</span>{showIdeaCredit ? <span className="creator-idea-credit"> · WEBSITE IDEA BY <a href={safeIdeaCreditYoutubeUrl} target="_blank" rel="noopener noreferrer"><img src={ideaCreditLogoUrl} alt="" loading="lazy" />{ideaCreditName}</a></span> : null}</footer>
       </body>

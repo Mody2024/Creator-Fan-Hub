@@ -159,7 +159,6 @@
 .raye2-sheet-row-text { display: grid; gap: 2px; min-width: 0; }
 .raye2-sheet-row-text strong { font-family: var(--raye2-font-chalk); font-size: 16px; font-weight: 600; letter-spacing: 0; }
 .raye2-sheet-row-text small { color: #a1a1aa; font-size: 12.5px; line-height: 1.3; }
-.raye2-sheet-foot { display: flex; align-items: center; gap: 10px; margin: 10px 10px 0; padding: 14px 4px 0; border-top: 1px solid var(--raye2-shell-line); color: #a1a1aa; }
 
 @keyframes raye2-sheet-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes raye2-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -185,6 +184,8 @@
   -webkit-backdrop-filter: saturate(160%) blur(18px);
   backdrop-filter: saturate(160%) blur(18px);
 }
+.raye2-brand-mark { width: 38px; height: 38px; object-fit: contain; display: block; }
+.raye2-brand-word { height: 30px; width: auto; display: block; }
 .raye2-shell-brand { display: inline-flex; align-items: center; gap: 10px; min-width: 44px; min-height: 44px; color: #f4f4f6; text-decoration: none; justify-self: start; }
 
 .raye2-shell-search {
@@ -266,9 +267,9 @@
   .raye2-home-shell .raye2-platform-grid { grid-template-columns: minmax(0, 1fr); }
   .raye2-rail { display: none; }
   .raye2-shell-top { grid-template-columns: minmax(0, 1fr) auto; height: 58px; }
-  .raye2-shell-search, .raye2-shell-join, .raye2-shell-lang { display: none; }
+  .raye2-shell-search, .raye2-shell-join { display: none; }
   .raye2-shell-search-link { display: grid; }
-  .raye2-shell-create span { display: none; }
-  .raye2-shell-create { padding-inline: 11px; }
+  /* The bottom bar owns Create on phones: never show two add buttons. */
+  .raye2-menu { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .raye2-menu-panel { animation: none !important; } }
