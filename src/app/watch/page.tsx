@@ -1,7 +1,4 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
-import ShellTopBar from "@/app/raye2-shell/shell-top";
-import ShellRail from "@/app/raye2-shell/shell-rail";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import {resolvePublicObjectUrls} from "@/lib/storage/resolve.server";
 import PublicVideoPlayer from "@/app/videos/public-video-player";
@@ -13,9 +10,6 @@ export const dynamic="force-dynamic";
 export default async function WatchLibraryPage(){
  const supabase=await createSupabaseServerClient();
  if(!supabase)return <main className="raye2-app-shell"><p>Raye2 Watch is temporarily unavailable.</p></main>;
- const {data:claims}=await supabase.auth.getClaims();const subject=claims?.claims?.sub;
- const {data:me}=typeof subject==="string"?await supabase.from("member_profiles").select("handle").eq("user_id",subject).maybeSingle():{data:null};
- const locale=(await cookies()).get("raye2_locale")?.value==="ar"?"ar":"en";
  const {data}=await supabase.rpc("raye2_get_watch_library_page",{p_limit:24});
  const rows=(data??[]) as WatchRow[];
  const pooledRefs:Array<{bucketId:string;objectKey:string}>=rows.flatMap(row=>{
@@ -28,9 +22,7 @@ export default async function WatchLibraryPage(){
  const pooledUrl=(storagePath:string)=>pooled.get("creator-media-public\u0000"+storagePath.slice("creator-media-public/".length))??null;
  const videos=rows.flatMap(row=>{const card=buildWatchCard(supabase,row,pooledUrl);return card?[card]:[];});
  return <main className="raye2-watch-library" dir="ltr">
-  <ShellTopBar locale={locale} member={me?.handle?{handle:me.handle}:null} />
-  <div className="raye2-watch-layout">
-   <ShellRail locale={locale} showVideos />
+   <div className="raye2-watch-layout">
    <section className="raye2-watch-content">
     <div className="raye2-watch-hero"><span className="raye2-watch-label">RAYE2 / WATCH</span><h1>Stories worth<br/><em>your time.</em></h1><p>Discover videos published by creators across Raye2. Watch, react, save and join the conversation.</p><div className="raye2-watch-hero-meta"><span><i/> CREATOR PUBLISHED</span><span>{videos.length} {videos.length===1?"VIDEO":"VIDEOS"}</span></div></div>
     <ContinueWatching/>

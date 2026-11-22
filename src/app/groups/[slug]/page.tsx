@@ -35,7 +35,6 @@ export default async function GroupDetailPage({params}:{params:Promise<{slug:str
  if(!group)notFound();
  const roleLabel=(role:string)=>role==="owner"?t.roleOwner:role==="admin"?t.roleAdmin:role==="moderator"?t.roleModerator:t.roleMember;
  return <main className="raye2-groups-page raye2-group-detail" dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className="raye2-groups-top"><Link className="raye2-groups-brand" href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}>Raye2</Link><nav><Link href="/groups">{t.back}</Link><Link href="/raye2/home">{t.home}</Link></nav></header>
   <div className="raye2-groups-wrap">
    <section className="raye2-groups-hero">
     <div className="raye2-group-detail-head">{group.image_url?<Image className="raye2-group-detail-avatar" src={group.image_url} alt="" width={72} height={72} unoptimized/>:<span className="raye2-group-detail-avatar" aria-hidden="true">#</span>}<div><span className="raye2-groups-label">{t.label}</span><h1>{group.name}</h1><p className="raye2-groups-muted">{group.visibility==="public"?t.publicLabel:t.privateLabel} · {t.owner}: {group.owner_display_name??group.owner_handle??"—"}</p></div></div>

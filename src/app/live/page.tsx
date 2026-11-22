@@ -39,7 +39,6 @@ export default async function LivePage() {
           <h1 style={{ margin: "4px 0" }}>{t.title}</h1>
           <p style={{ opacity: 0.7, margin: 0 }}>{t.note}</p>
         </div>
-        <Link href="/raye2/home">↗ {isArabic ? "الرئيسية" : "Home"}</Link>
       </header>
       {rows.length === 0 ? <p style={{ marginTop: 32, opacity: 0.7 }}>{t.none}</p> : (
         <ul style={{ listStyle: "none", padding: 0, marginTop: 28, display: "grid", gap: 14, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>

@@ -3,7 +3,7 @@
 import ShellTopBar from "@/app/raye2-shell/shell-top";
 import ShellRail from "@/app/raye2-shell/shell-rail";
 import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Raye2ReactionArt from "@/app/watch/[slug]/raye2-reaction-art";
 import Raye2ChannelPromoSlot from "@/app/channel-promo-slot";

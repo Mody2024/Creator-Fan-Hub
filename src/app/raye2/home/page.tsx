@@ -94,8 +94,6 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
   }
   const profileHref=myHandle?"/u/"+myHandle:"/community#join";
   const siteConfig=await getPublicSiteConfig();
-  const headerEyebrow=siteConfig.navigation.contextEyebrow.trim()||(isArabic?"مساحتك":"YOUR SPACE");
-  const headerTitle=siteConfig.navigation.contextTitle.trim()||(isArabic?"اكتشف وتواصل":"Discover & connect");
   return <main className={`${styles.shell} raye2-shell-page`} dir={isArabic?"rtl":"ltr"} lang={locale}>
     <ShellTopBar locale={locale} member={myHandle?{handle:myHandle}:null} />
     <div className={`${styles.layout} raye2-frame-layout`}>

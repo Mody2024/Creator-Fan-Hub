@@ -255,16 +255,16 @@
 }
 
 /* Home layout: rail column widths follow the shell breakpoints (wide / tablet / phone). */
-.raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout, .raye2-watch-library .raye2-watch-layout { grid-template-columns: 240px minmax(0, 1fr) 300px; }
+.raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout { grid-template-columns: 240px minmax(0, 1fr) 300px; }
 @media (max-width: 1279px) {
-  .raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout, .raye2-watch-library .raye2-watch-layout { grid-template-columns: 72px minmax(0, 1fr) 300px; }
+  .raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout { grid-template-columns: 72px minmax(0, 1fr) 300px; }
   .raye2-rail-link { justify-content: center; padding-inline: 0; }
   .raye2-rail-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .raye2-rail-section { font-size: 0; margin-inline: 12px; padding-top: 10px; }
 }
-@media (max-width: 1050px) { .raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout, .raye2-watch-library .raye2-watch-layout { grid-template-columns: 72px minmax(0, 1fr); } }
+@media (max-width: 1050px) { .raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout { grid-template-columns: 72px minmax(0, 1fr); } }
 @media (max-width: 767px) {
-  .raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout, .raye2-watch-library .raye2-watch-layout { grid-template-columns: minmax(0, 1fr); padding-bottom: 8px; }
+  .raye2-home-shell .raye2-platform-grid, .raye2-community-page .raye2-platform-grid, .raye2-shell-page .raye2-frame-layout { grid-template-columns: minmax(0, 1fr); padding-bottom: 8px; }
   .raye2-frame { grid-template-columns: minmax(0, 1fr); padding-inline: 14px; }
   .raye2-rail { display: none; }
   .raye2-shell-top { grid-template-columns: minmax(0, 1fr) auto; height: 58px; }
@@ -299,3 +299,9 @@
 }
 .raye2-shell-member:hover { background: #242427; }
 @media (max-width: 767px) { .raye2-shell-member { display: none; } }
+
+/* Watch library: the section layout now supplies the rail, so the page grid is content + aside. */
+.raye2-watch-library .raye2-watch-layout { grid-template-columns: minmax(0, 1fr) 260px; }
+@media (max-width: 1120px) { .raye2-watch-library .raye2-watch-layout { grid-template-columns: minmax(0, 1fr); } }
+/* Pages inside the frame no longer need their own full-viewport top spacing. */
+.raye2-frame-main > main { min-height: 0; }

@@ -4,6 +4,7 @@ import "./raye2-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import "./raye2-polish.css";
 import "./raye2-shell/raye2-shell.css";
+import "./raye2-shell/raye2-chalk.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";

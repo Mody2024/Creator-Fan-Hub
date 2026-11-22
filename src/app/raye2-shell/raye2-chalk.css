@@ -1,0 +1,38 @@
+/* Raye2 chalk layer — loaded last so every page (public, member, creator, admin) shares one look:
+   hand-lettered headings and labels on a clean reading font, softer chalk-edged surfaces, one focus ring.
+   Body copy, tables, forms, numbers and chat text stay on the clean UI font for legibility. */
+
+/* ---------- Typography: chalk for headings, labels, buttons, tabs, chips ---------- */
+h1, h2, h3, h4,
+.raye2-card-title, .raye2-section-label, .raye2-watch-label, .raye2-eyebrow, .eyebrow,
+.raye2-pill, .raye2-button, .raye2-btn, button, [role="tab"], summary,
+.raye2-watch-section-head h2, .raye2-minis-heading h1, .dashboard-topbar strong {
+  font-family: var(--raye2-font-chalk);
+}
+h1, h2, h3, h4 { line-height: 1.25; letter-spacing: 0; text-shadow: 0 0 1px currentColor, 0 0 14px rgba(244, 244, 246, 0.07); }
+h1 { font-weight: 700; }
+h2, h3 { font-weight: 650; }
+h1 em, h2 em { font-style: normal; color: #9dc0ff; }
+button, [role="tab"] { letter-spacing: 0; }
+input, textarea, select { font-family: inherit; }
+
+/* ---------- Surfaces: soft chalk-edged cards ---------- */
+.raye2-card, .module-card, .raye2-watch-card, .raye2-detail-card, .raye2-group-card, .raye2-creator-card {
+  border-color: rgba(244, 244, 246, 0.12);
+  border-radius: 20px;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s var(--raye2-shell-ease);
+}
+.raye2-watch-card:hover, .raye2-group-card:hover, .raye2-creator-card:hover { border-color: rgba(77, 141, 246, 0.5); transform: translateY(-2px); }
+
+/* ---------- One focus ring everywhere ---------- */
+:focus-visible { outline: 2px solid #4d8df6; outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- Quiet, thin scrollbars on the dark board ---------- */
+* { scrollbar-width: thin; scrollbar-color: rgba(244, 244, 246, 0.22) transparent; }
+::selection { background: rgba(77, 141, 246, 0.38); color: #f4f4f6; }
+
+/* ---------- Arabic: chalk font has a native Arabic face, keep headings from being cramped ---------- */
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4 { line-height: 1.45; }
+
+@media (prefers-reduced-motion: reduce) { .raye2-card, .module-card, .raye2-watch-card, .raye2-group-card, .raye2-creator-card { transition: none !important; transform: none !important; } }

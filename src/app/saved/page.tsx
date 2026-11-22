@@ -1,6 +1,5 @@
 import {redirect} from "next/navigation";
 import {cookies} from "next/headers";
-import Link from "next/link";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import SavedPostsClient,{type SavedItem} from "./saved-client";
 
@@ -25,5 +24,5 @@ export default async function SavedPostsPage(){
  const postItems:SavedItem[]=(postSaves??[]).flatMap(save=>{const post=(posts??[]).find(x=>x.id===save.post_id);if(!post)return[];const author=byId.get(post.author_id);return[{id:post.id,kind:"post" as const,body:post.body,createdAt:save.created_at,type:post.post_type,author:author?.display_name??(isArabic?"عضو في Raye2":"Raye2 member"),handle:author?.handle??"member"}]});
  const videoItems:SavedItem[]=(videoSaves??[]).flatMap(save=>{const video=(videos??[]).find(x=>x.media_id===save.media_id);if(!video)return[];const media=Array.isArray(video.media_items)?video.media_items[0]:video.media_items;if(!media?.title)return[];return[{id:video.media_id,kind:"video" as const,slug:video.slug,title:media.title,body:media.alt_text??"",createdAt:save.created_at,type:"video",author:"Raye2",handle:"official"}]});
  const items=[...postItems,...videoItems].sort((a,b)=>new Date(b.createdAt).getTime()-new Date(a.createdAt).getTime());
- return <main className="raye2-profile-page" dir={isArabic?"rtl":"ltr"} lang={locale}><header className="raye2-watch-top"><Link className="raye2-brand" href="/">Raye2<span className="raye2-brand-mark">.</span></Link><nav><Link href="/community">{isArabic?"المجتمع":"Community"}</Link><Link href="/#videos">{isArabic?"شاهد":"Watch"}</Link></nav></header><div className="raye2-saved-wrap"><span className="raye2-section-label">{isArabic?"مكتبتك في Raye2":"YOUR Raye2 LIBRARY"}</span><h1>{isArabic?<>مكتبتك <em>المحفوظة.</em></>:<>Your <em>saved library.</em></>}</h1><p className="raye2-muted">{isArabic?"كل الفيديوهات والمنشورات التي حفظتها، في مكان واحد.":"Videos and community posts you have saved, all in one place."}</p><SavedPostsClient initialItems={items} locale={locale}/></div></main>
+ return <main className="raye2-profile-page" dir={isArabic?"rtl":"ltr"} lang={locale}><div className="raye2-saved-wrap"><span className="raye2-section-label">{isArabic?"مكتبتك في Raye2":"YOUR Raye2 LIBRARY"}</span><h1>{isArabic?<>مكتبتك <em>المحفوظة.</em></>:<>Your <em>saved library.</em></>}</h1><p className="raye2-muted">{isArabic?"كل الفيديوهات والمنشورات التي حفظتها، في مكان واحد.":"Videos and community posts you have saved, all in one place."}</p><SavedPostsClient initialItems={items} locale={locale}/></div></main>
 }

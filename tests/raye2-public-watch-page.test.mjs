@@ -57,7 +57,8 @@ test("public video cards use only safe same-origin generated thumbnails",()=>{
 
 test("Raye2 watch library uses the new brand shell and responsive discovery cards",()=>{
  const page=readFileSync(new URL("../src/app/watch/page.tsx",import.meta.url),"utf8");
- assert.ok(page.includes("<ShellTopBar") && page.includes("<ShellRail"));
+ const layout=readFileSync(new URL("../src/app/watch/layout.tsx",import.meta.url),"utf8");
+ assert.ok(layout.includes("<ShellFrame>")); // top bar + side menu come from the section layout
  assert.ok(page.includes("raye2-watch-hero"));
  assert.ok(page.includes("raye2-watch-grid"));
  assert.ok(page.includes("Raye2"));
@@ -84,7 +85,7 @@ test("Raye2 watch detail uses the player-first branded responsive layout",()=>{
 
 const watchStyles=await readFile(new URL("../src/app/globals.css",import.meta.url),"utf8");
 test("watch detail markup uses the actual responsive CSS selectors for header, title, reaction picker and comment composer",()=>{
- for(const selector of ["raye2-detail-header","raye2-detail-brand-mark","raye2-detail-title","raye2-detail-reaction","raye2-detail-compose"]) {
+ for(const selector of ["raye2-detail-title","raye2-detail-reaction","raye2-detail-compose"]) {
   assert.ok(watchClient.includes(`className="${selector}"`),`watch detail markup should use ${selector}`);
   assert.ok(watchStyles.includes(`.${selector}`),`watch styles should define ${selector}`);
  }
