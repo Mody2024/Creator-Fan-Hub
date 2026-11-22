@@ -25,13 +25,10 @@ test("every surface renders navigation from the shared model, not bespoke arrays
   assert.match(community, /<ShellRail/);
   assert.match(rail, /platformNavItems\(keys, NAV_LABELS/);
   assert.match(rail, /PLATFORM_NAV_PRIMARY/);
-  assert.match(chat, /platformNavItems\(PLATFORM_NAV_RAYE2/);
+  assert.match(chat, /<ShellTopBar/);
   assert.doesNotMatch(chat, /const platformNav = \[/);
 });
 
 test("navigation uses the shared active rule rather than ad-hoc comparisons", () => {
   assert.match(rail, /isPlatformNavActive\(pathname, item\.href\)/);
-  for (const source of [chat]) {
-    assert.match(source, /isPlatformNavActive\(pathname, item\.href\)/);
-  }
 });

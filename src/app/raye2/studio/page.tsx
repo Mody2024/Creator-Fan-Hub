@@ -18,6 +18,7 @@ import CreatorRewardsCenter from "@/app/creator/rewards-center";
 import PublishingHistory from "@/app/creator/publishing-history";
 import "@/app/creator/raye2-creator-workspace.css";
 import "@/app/raye2/studio/video-publishing-studio.css";
+import WorkspaceShell from "@/app/raye2-shell/workspace-shell";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Creator Studio" };
@@ -78,17 +79,9 @@ export default async function Raye2CreatorStudioPage() {
     noAccess: "Some library data could not be loaded. You can retry from the content tools.", coming: "COMING SOON / EXPERIMENTAL", note: "Counts reflect only the data your account is allowed to access."
   };
 
-  return <main className={styles.shell} data-raye2-surface="creator-studio" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-    <header className={styles.header} data-slot="header">
-      <div><span className={styles.eyebrow}>{t.eyebrow}</span><span className={styles.role}>{t.role}: {role.toUpperCase()}</span></div>
-      <nav data-slot="nav" aria-label={isArabic ? "تنقل مساحة المبدع" : "Creator workspace navigation"}>
-        <Link href="/raye2/home">{isArabic ? "الرئيسية" : "Home"}</Link>
-        <Link href="/raye2/studio" aria-current="page">{isArabic ? "الاستوديو" : "Studio"}</Link>
-        {canStream && <Link href="#creator-live-studio">{isArabic ? "البث المباشر" : "Live"}</Link>}
-        {canAnalyze && <Link href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}
-      </nav>
-      <div className={styles.headerActions}><Link className={styles.homeLink} href="/raye2/home">← {t.home}</Link></div>
-    </header>
+  return <main className={styles.shell} data-raye2-surface="creator-studio" data-raye2-ws="on" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
+    <WorkspaceShell role={role} />
+<nav className="raye2-ws-crumbs" aria-label={isArabic ? "اختصارات الاستوديو" : "Studio shortcuts"}><Link className="raye2-ws-pill" href="/raye2/home">← {t.home}</Link>{canAnalyze && <Link className="raye2-ws-pill" href="/creator/analytics">{isArabic ? "التحليلات" : "Analytics"}</Link>}{canStream && <Link className="raye2-ws-pill" href="#creator-live-studio">{isArabic ? "البث المباشر" : "Live"}</Link>}</nav>
     <section className={styles.hero} data-slot="hero">
       <div><span className={styles.eyebrow}>CREATOR TOOLS</span><h1>{t.title}<em>{t.accent}</em></h1><p>{t.intro}</p></div>
       <div className={styles.heroMark} aria-hidden="true">{siteConfig.logoUrl ? <img src={siteConfig.logoUrl} alt="" /> : null}</div>

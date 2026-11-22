@@ -4,7 +4,7 @@ import type { SVGProps } from "react";
 // chalk-drawn rather than corporate-geometric. Inline SVG: no dependency, identical on every device.
 export type ShellIconName =
   | "home" | "watch" | "plus" | "community" | "user" | "shorts" | "search" | "bell" | "bookmark"
-  | "studio" | "upload" | "more" | "clips" | "series" | "hash" | "logout" | "mini" | "moment" | "live" | "post" | "settings" | "language" | "close" | "chat";
+  | "studio" | "upload" | "chart" | "gift" | "shield" | "history" | "more" | "clips" | "series" | "hash" | "logout" | "mini" | "moment" | "live" | "post" | "settings" | "language" | "close" | "chat";
 
 const PATHS: Record<ShellIconName, string> = {
   home: "M3.5 11.2 12 4l8.5 7.2M5.8 9.6V19a1 1 0 0 0 1 1h3.4v-5.2h3.6V20h3.4a1 1 0 0 0 1-1V9.6",
@@ -25,6 +25,10 @@ const PATHS: Record<ShellIconName, string> = {
   settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM19 12a7 7 0 0 0-.1-1.2l1.8-1.4-1.8-3.1-2.1.8a7 7 0 0 0-2-1.2L14.5 3h-3.6l-.3 2.9a7 7 0 0 0-2 1.2l-2.1-.8-1.8 3.1 1.8 1.4a7 7 0 0 0 0 2.4l-1.8 1.4 1.8 3.1 2.1-.8a7 7 0 0 0 2 1.2l.3 2.9h3.6l.3-2.9a7 7 0 0 0 2-1.2l2.1.8 1.8-3.1-1.8-1.4c.1-.4.1-.8.1-1.2Z",
   language: "M3.5 12a8.5 8.5 0 1 0 17 0 8.5 8.5 0 0 0-17 0ZM3.8 9.5h16.4M3.8 14.5h16.4M12 3.5c2.4 2.4 3.4 5.2 3.4 8.5s-1 6.1-3.4 8.5c-2.4-2.4-3.4-5.2-3.4-8.5s1-6.1 3.4-8.5Z",
   close: "M6 6l12 12M18 6 6 18",
+  chart: "M5 20V11M12 20V4M19 20v-6",
+  gift: "M4 10h16v3H4zM6 13v7h12v-7M12 10v10M12 10c-1.5-3.5-5-3-4.5-.8.3 1.2 2.6 1 4.5.8ZM12 10c1.5-3.5 5-3 4.5-.8-.3 1.2-2.6 1-4.5.8Z",
+  shield: "M12 3.5 5 6v5.5c0 4.2 2.8 7.4 7 9 4.2-1.6 7-4.8 7-9V6zM9 12l2.2 2.2L15.2 10",
+  history: "M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5M12 8v4.5l3 1.8",
   more: "M5.5 12h.01M12 12h.01M18.5 12h.01",
   clips: "M6.2 8.4a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8ZM6.2 20.4a2.4 2.4 0 1 0 0-4.8 2.4 2.4 0 0 0 0 4.8ZM8 7l12 9.5M8 17l5-3.9M13.6 10.2 20 5.6",
   series: "M5 7.5h14M7.5 4h9M4.5 11h15a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1V12a1 1 0 0 1 1-1Z",

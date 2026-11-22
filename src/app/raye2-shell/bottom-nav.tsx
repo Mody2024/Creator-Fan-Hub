@@ -10,10 +10,10 @@ import { SHELL_T as T, createItemsFor, youItemsFor, type ShellLocale as Locale }
 
 type Sheet = "create" | "you" | null;
 
-// Routes that own the whole screen (immersive viewers, chat threads, creator/admin workspaces with
-// their own navigation). The bottom bar steps aside there instead of fighting their layout.
+// Routes that own the whole screen (immersive viewers, creator/admin workspaces with their own navigation).
+// The chat hides the bar itself while a conversation is open (body[data-raye2-thread="open"]). The bottom bar steps aside there instead of fighting their layout.
 const HIDDEN_PREFIXES = ["/creator", "/raye2/admin", "/raye2/studio", "/raye2/invite", "/raye2/watch-invite", "/auth", "/shorts"];
-const HIDDEN_EXACT = ["/raye2"];
+const HIDDEN_EXACT: string[] = [];
 
 type Tab = { key: string; href: string; icon: ShellIconName; label: string; active: boolean };
 

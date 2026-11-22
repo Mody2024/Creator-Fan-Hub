@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { PLATFORM_NAV_RAYE2, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./raye2.module.css";
 import Raye2VoiceControls from "./raye2-voice-controls";
 import Raye2GroupVoiceControls from "./raye2-group-voice-controls";
 import Raye2WatchTogetherControls from "./raye2-watch-together-controls";
 import Raye2MessagePoll from "./raye2-message-poll";
+import ShellTopBar from "@/app/raye2-shell/shell-top";
+import AuthBrand from "@/app/raye2-shell/auth-brand";
 
 type Profile = { user_id: string; handle: string | null; display_name: string | null; avatar_url?: string | null };
 type Group = { id: string; name: string; slug: string; description: string; visibility: "public" | "private"; status: string; conversation_id: string | null; owner_id: string; slow_mode_seconds?: number; rules?: string; image_url?: string | null; topics?: string[]; memberRole?: "owner" | "admin" | "moderator" | "member" };
@@ -43,7 +44,6 @@ const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part
 
 export default function Raye2Client() {
   const router = useRouter();
-  const pathname = usePathname();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [locale, setLocale] = useState<Locale>("en");
   const [userId, setUserId] = useState<string | null>(null);
@@ -123,6 +123,7 @@ export default function Raye2Client() {
   const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
   const [myReactions, setMyReactions] = useState<Record<string, string[]>>({});
   const [mobilePane, setMobilePane] = useState<"list" | "chat">("list");
+  useEffect(() => { document.body.dataset.raye2Thread = mobilePane === "chat" ? "open" : "list"; return () => { delete document.body.dataset.raye2Thread; }; }, [mobilePane]);
 
   const isAr = locale === "ar";
   const t = isAr ? {
@@ -1024,42 +1025,15 @@ export default function Raye2Client() {
     else setMessages(current => current.filter(item => item.id !== message.id));
   }
 
-  const platformNav = platformNavItems(PLATFORM_NAV_RAYE2, isAr ? {
-    home: "الرئيسية", videos: "المشاهدة", shorts: "ميني", explore: "استكشف", series: "السلاسل",
-    studio: "استوديو المبدعين", messages: "الرسائل", notifications: "الإشعارات", saved: "المحفوظات", profile: "الملف الشخصي"
-  } : {
-    home: "Home", videos: "Watch", shorts: "Mini's", explore: "Explore", series: "Series",
-    studio: "Creator Studio", messages: "Messages", notifications: "Alerts", saved: "Saved", profile: "Profile"
-  });
-  const switchLocale = () => {
-    const next: Locale = locale === "en" ? "ar" : "en";
-    setLocale(next);
-    document.cookie = `raye2_locale=${next}; path=/; max-age=31536000; samesite=lax`;
-  };
   const reactionOptions = ["❤️", "👍", "😂", "✨", "🔥"];
-  if (!supabase) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link></main>;
-  if (!userId) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link><Link className={styles.backLink} href="/">{t.home}</Link></main>;
+  if (!supabase) return <main className={styles.authGate}><AuthBrand /><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link></main>;
+  if (!userId) return <main className={styles.authGate}><AuthBrand /><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link><Link className={styles.backLink} href="/">{t.home}</Link></main>;
 
   return (
     <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
       <div className={styles.voiceGlobalWrap}>{supabase && userId && <Raye2VoiceControls supabase={supabase} userId={userId} conversationId={selected?.kind === "direct" ? selected.conversationId : null} peerUserId={selected?.kind === "direct" ? selected.otherUserId : null} peerName={selected?.title ?? ""} locale={locale} />}</div>
-      <header className={styles.header}>
-        <Link href="/" className={styles.brand} aria-label="Raye2 home">RAYE<span>2</span></Link>
-        <nav className={styles.platformNav} aria-label={isAr ? "التنقل الرئيسي" : "Main navigation"}>
-          {platformNav.map(item => <Link key={item.href} href={item.href} className={isPlatformNavActive(pathname, item.href) ? styles.platformNavActive : ""} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}>
-            <span className={styles.platformNavIcon} aria-hidden="true">{item.icon}</span><span>{item.label}</span>
-          </Link>)}
-        </nav>
-        <div className={styles.headerActions}>
-          <span className={styles.headerMember}>{profile?.display_name ?? profile?.handle ?? "Member"}</span>
-          <button className={styles.utilityToggle} type="button" onClick={switchLocale} aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}>{isAr ? "EN" : "عربي"}</button>
-          <button onClick={() => void supabase.auth.signOut().then(() => router.push("/"))}>{t.signOut}</button>
-        </div>
-      </header>
-      <nav className={styles.mobilePlatformNav} aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
-        {platformNav.slice(0, 6).map(item => <Link key={item.href} href={item.href} className={isPlatformNavActive(pathname, item.href) ? styles.platformNavActive : ""} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span>{item.label}</Link>)}
-      </nav>
-      <section className={styles.intro}><div><span className={styles.kicker}>RAYE2 / COMMUNITY LAYER</span><h1>{t.title}</h1><p>{t.intro}</p></div><div className={styles.introMark}><span>R</span><i>✳</i></div></section>
+      <ShellTopBar locale={isAr ? "ar" : "en"} member={profile?.handle ? { handle: profile.handle } : null} onSignOut={() => void supabase.auth.signOut().then(() => router.push("/"))} />
+            <section className={styles.intro}><div><span className={styles.kicker}>RAYE2 / COMMUNITY LAYER</span><h1>{t.title}</h1><p>{t.intro}</p></div><div className={styles.introMark}><img src="/brand/raye2-mark.png" alt="" width={64} height={64} /></div></section>
       <section className={styles.workspace}>
         <aside className={`${styles.sidebar} ${mobilePane === "chat" ? styles.hideMobile : ""}`}>
           <div className={styles.sideTop}><div><span className={styles.kicker}>{t.rooms}</span><h2>{t.chats}</h2></div><button className={styles.iconButton} onClick={() => { setTab("chats"); setPersonQuery(""); setPeople([]); document.getElementById("raye2-people-search")?.focus(); }} aria-label={t.newMessage}>＋</button></div>

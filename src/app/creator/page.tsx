@@ -19,16 +19,16 @@ import AchievementInsights from "./achievement-insights";
 import CreatorRewardsCenter from "./rewards-center";
 import CreatorRewardsAdmin from "./rewards-admin";
 import CreatorNotifications from "./creator-notifications";
-import { getPublicSiteConfig } from "@/lib/public-site-config";
 import "./raye2-creator-workspace.css";
 import "../raye2/studio/video-publishing-studio.css";
+import WorkspaceShell from "@/app/raye2-shell/workspace-shell";
 
 export const dynamic = "force-dynamic";
 
 
 
 export default async function CreatorDashboardPage() {
-  const [supabase, publicConfig, cookieStore] = await Promise.all([createSupabaseServerClient(), getPublicSiteConfig(), cookies()]);
+  const [supabase, cookieStore] = await Promise.all([createSupabaseServerClient(), cookies()]);
   const isArabic = cookieStore.get("raye2_locale")?.value === "ar";
   const t = isArabic ? {
     auth:"مساحة عمل موثّقة",signOut:"تسجيل الخروج ↗",studioHome:"استوديو Raye2 ↗",eyebrow:"استوديو Raye2 / نظرة عامة",title:"اجعلها ",emphasis:"مساحتك.",intro:"أدر تجربة Raye2 من مساحة واحدة. احفظ التغييرات كمسودات خاصة ثم انشرها بعد المراجعة.",draft:"● تطوير / مسودة",publicConfig:"إعدادات الموقع",connected:"Supabase متصل",source:"النسخة المنشورة هي المصدر العام المعتمد",access:"صلاحيات المبدعين",verified:"تم التحقق من الخادم",allowlist:"التعديل متاح للحسابات المصرح بها فقط",publishing:"النشر",versions:"نسخ محفوظة",concurrent:"يتم التحقق من تعارض التعديلات",workspace:"مساحة عملك",jump:"انتقل إلى قسم العمل.",jumpBody:"افتح أي قسم مباشرة. تظل التغييرات خاصة حتى النشر.",active:"أقسام نشطة",rewards:"المكافآت والتقدم",rewardsDesc:"تابع نقاط التقدير والإنجازات ومستوى حسابك كمبدع.",rewardsAdmin:"إدارة مكافآت المبدعين",rewardsAdminDesc:"اضبط قواعد التقدير وامنح المكافآت الموثقة وراجع سجل الإلغاء.",sponsorReview:"مراجعة حملات الرعاية",sponsorReviewDesc:"راجع طلبات المبدعين وسجل قرارات الموافقة والرفض.",identity:"هوية الموقع وتخطيطه",identityDesc:"العلامة التجارية، المظهر، التعليق الصوتي، الأقسام والنشر.",polls:"إدارة التصويت",pollDesc:"أنشئ استطلاعات وأدر مواعيد التصويت والنتائج.",ideas:"مراجعة الأفكار",ideasDesc:"راجع المشاركات ووافق عليها أو ميّزها أو ارفضها أو أرشفها.",events:"الفعاليات وروابط التواصل",eventsDesc:"أدر مواعيد الفعاليات وقنوات صانع المحتوى.",media:"مكتبة الوسائط",mediaDesc:"ارفع ملفاتك وحررها وانشرها وأدرها.",analytics:"تحليلات الأداء",analyticsDesc:"راجع المشاهدات والتفاعلات ونقاشات الفيديو المعتمدة.",team:"الفريق والصلاحيات",teamDesc:"ادعُ المتعاونين وحدد أدوار مساحة العمل.",raye2Admin:"إدارة Raye2",raye2AdminDesc:"تحكم في قواعد المجتمع والاحتفاظ والتنظيف والتخزين.",moderation:"إدارة المجتمع",moderationDesc:"راجع منشورات الأعضاء والتعليقات والبلاغات.",studio:"استوديو الفيديو",studioDesc:"أنشئ صفحات المشاهدة ونظم قوائم التشغيل والنشر.",sponsorships:"رعايات المبدعين",sponsorshipsDesc:"أدر حملات الرعاية المعلنة لفيديوهاتك المنشورة.",history:"سجل النشر",historyDesc:"راجع النسخ المنشورة واستعد نسخة إلى مسودة خاصة.",disclaimer:"تعمل التصويتات والأفكار والفعاليات والوسائط وسجل النشر عبر عمليات Supabase محمية. استعادة نسخة سابقة تغيّر المسودة الخاصة فقط؛ راجعها قبل النشر."
@@ -46,10 +46,10 @@ export default async function CreatorDashboardPage() {
   if (admin.role === "analyst") redirect("/creator/analytics");
   if (!["owner","admin","creator","streamer","editor"].includes(admin.role)) redirect("/creator/login?access=restricted");
 
-  return <main className="dashboard-shell raye2-creator-shell" data-raye2-role={admin.role} dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"}>
-    <header className="dashboard-topbar"><Link className="wordmark raye2-workspace-mark" href="/raye2/home" aria-label={isArabic ? "الصفحة الرئيسية" : "Home"}>{publicConfig.logoUrl ? <img src={publicConfig.logoUrl} alt="" /> : null}</Link><span className="admin-session"><i /> {t.auth}</span><span className="raye2-role-chip">{admin.role.toUpperCase()}</span><nav className="raye2-creator-actions" aria-label="Creator navigation"><Link className="logout-button" href="/raye2/home">{isArabic?"عرض المنصة ↗":"View platform ↗"}</Link><Link className="logout-button" href="/raye2/studio">{t.studioHome}</Link><form action="/creator/logout" method="post"><button className="logout-button" type="submit">{t.signOut}</button></form></nav></header>
+  return <main className="dashboard-shell raye2-creator-shell" data-raye2-ws="on" data-raye2-role={admin.role} dir={isArabic?"rtl":"ltr"} lang={isArabic?"ar":"en"}>
+    <WorkspaceShell role={admin.role} />
     <div className="dashboard-content">
-      <div className="dashboard-welcome"><div><span className="eyebrow">{t.eyebrow}</span><h1>{t.title}<em>{t.emphasis}</em></h1><p>{t.intro}</p></div><span className="draft-badge">{t.draft}</span></div>
+      <div className="dashboard-welcome"><div><span className="eyebrow">{t.eyebrow}</span><h1>{t.title}<em>{t.emphasis}</em></h1><p>{t.intro}</p></div><span className="draft-badge">{t.draft}</span><Link className="raye2-ws-pill" href="/raye2/studio">{t.studioHome}</Link></div>
       <section className="dashboard-stats"><article><span>{t.publicConfig}</span><strong>{t.connected}</strong><small>{t.source}</small></article><article><span>{t.access}</span><strong>{t.verified}</strong><small>{t.allowlist}</small></article><article><span>{t.publishing}</span><strong>{t.versions}</strong><small>{t.concurrent}</small></article></section>
       <div className="module-heading"><div><span className="eyebrow">{t.workspace}</span><h2>{t.jump}</h2><p>{t.jumpBody}</p></div><span className="module-count">{isArabic ? "أقسام مساحة العمل" : "WORKSPACE MODULES"}</span></div>
       <nav className="module-grid creator-quick-nav" aria-label="Creator workspace sections">

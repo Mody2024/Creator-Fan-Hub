@@ -836,7 +836,7 @@ check("the owner-flagged MADE BY ALMUDDATHTHIR credit is retained pending an exp
 const platformNavModel = await read("../src/lib/platform-nav.ts");
 const communityClientSrc = await read("../src/app/community/community-client.tsx");
 const raye2ClientSrc = await read("../src/app/raye2/raye2-client.tsx");
-check("all surfaces render navigation from one shared platform-nav model", /export const PLATFORM_NAV_PRIMARY/.test(platformNavModel) && /<ShellRail/.test(page) && /<ShellRail/.test(communityClientSrc) && /platformNavItems\(PLATFORM_NAV_RAYE2/.test(raye2ClientSrc) && !/const platformNav = \[/.test(raye2ClientSrc));
+check("all surfaces render navigation from one shared platform-nav model", /export const PLATFORM_NAV_PRIMARY/.test(platformNavModel) && /<ShellRail/.test(page) && /<ShellRail/.test(communityClientSrc) && /<ShellTopBar/.test(raye2ClientSrc) && !/const platformNav = \[/.test(raye2ClientSrc));
 check("temporary Shared Memories expire on their own clock and preserved ones never do", memMigration.includes("function public.raye2_expire_shared_memories()") && memMigration.includes("function public.raye2_guard_memory_expiry()") && memMigration.includes("a temporary Shared Memory requires an expiry"));
 check("memory expiry and preservation are guarded and folded into maintenance", memMigration.includes("function public.raye2_set_memory_expiry(") && memMigration.includes("function public.raye2_preserve_memory(") && memMigration.includes("shared_memories_expired") && raye2MemoryClient.includes("raye2_set_memory_expiry") && raye2MemoryClient.includes("raye2_preserve_memory"));
 
