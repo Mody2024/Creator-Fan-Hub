@@ -103,7 +103,8 @@
 }
 .raye2-bottom-create:active .raye2-bottom-create-disc { transform: scale(0.92) rotate(90deg); }
 
-@media (max-width: 360px) {
+.raye2-bottom-tab-label { text-overflow: clip; letter-spacing: -0.01em; }
+@media (max-width: 420px) {
   .raye2-bottom-nav { inset-inline: 8px; padding-inline: 2px; }
   .raye2-bottom-tab-icon { width: 46px; }
   .raye2-bottom-tab-label { font-size: 10px; }
@@ -162,6 +163,12 @@
 
 @keyframes raye2-sheet-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes raye2-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.raye2-sheet-layer[data-closing="true"] { pointer-events: none; }
+.raye2-sheet-layer[data-closing="true"] .raye2-sheet { animation: raye2-sheet-drop 0.22s var(--raye2-shell-ease) both; }
+.raye2-sheet-layer[data-closing="true"] .raye2-sheet-backdrop { animation: raye2-sheet-fade-out 0.22s ease both; }
+@keyframes raye2-sheet-drop { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@keyframes raye2-sheet-fade-out { from { opacity: 1; } to { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   .raye2-bottom-nav, .raye2-bottom-tab-icon, .raye2-bottom-create-disc, .raye2-sheet, .raye2-sheet-backdrop { animation: none !important; transition: none !important; }
@@ -235,6 +242,8 @@
 }
 .raye2-menu-item:hover, .raye2-menu-item:focus-visible { background: #1c1c1f; outline: none; }
 .raye2-menu-item-icon { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 12px; background: #1c1c1f; color: #9dc0ff; }
+.raye2-menu-panel[data-closing="true"] { animation: raye2-menu-out 0.14s ease both; pointer-events: none; }
+@keyframes raye2-menu-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px) scale(0.97); } }
 @keyframes raye2-menu-pop { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
 
 /* ---------- Left rail ---------- */
@@ -402,4 +411,24 @@
 @media (max-width: 767px) {
   body[data-raye2-thread="open"] .raye2-bottom-nav { display: none; }
   body[data-raye2-bottomnav="on"][data-raye2-thread="open"] { padding-bottom: 0; }
+}
+
+/* ---------- Page-to-page smoothness ---------- */
+.raye2-progress {
+  position: fixed; inset-inline: 0; top: 0; z-index: 120; height: 3px; pointer-events: none; opacity: 0;
+  background: linear-gradient(90deg, #4d8df6, #9dc0ff); transform: scaleX(0); transform-origin: left center;
+}
+[dir="rtl"] .raye2-progress { transform-origin: right center; }
+.raye2-progress[data-phase="run"] { opacity: 1; transform: scaleX(0.82); transition: transform 6s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.1s; }
+.raye2-progress[data-phase="done"] { opacity: 0; transform: scaleX(1); transition: transform 0.18s ease-out, opacity 0.3s 0.12s; }
+/* The current page dims the instant a link is tapped, so the app always feels responsive. */
+main:not(.raye2-app-loading) { transition: opacity 0.18s ease; }
+html[data-raye2-nav="run"] main:not(.raye2-app-loading) { opacity: 0.6; }
+/* Workspace chrome lives inside <main>, so it only fades (a transform would move its fixed bars). */
+@keyframes raye2-fade-only { from { opacity: 0.6; } to { opacity: 1; } }
+html.raye2-route-enter main[data-raye2-ws] { animation-name: raye2-fade-only; }
+@media (prefers-reduced-motion: reduce) {
+  .raye2-progress { display: none; }
+  html[data-raye2-nav="run"] main:not(.raye2-app-loading) { opacity: 1; }
+  main:not(.raye2-app-loading) { transition: none; }
 }

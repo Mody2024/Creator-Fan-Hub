@@ -8,6 +8,7 @@ import "./raye2-shell/raye2-chalk.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";
+import NavProgress from "./raye2-shell/nav-progress";
 import BottomNav from "./raye2-shell/bottom-nav";
 import LocaleBootstrap from "./raye2-shell/locale-bootstrap";
 import { BrandProvider } from "./raye2-shell/brand-context";
@@ -52,6 +53,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
         <RouteTransition />
+        <NavProgress />
         <TelemetryReporter />
         <BrandProvider logoUrl={siteConfig.logoUrl || null}>
         {children}

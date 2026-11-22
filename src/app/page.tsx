@@ -13,6 +13,7 @@ import NarrationControl from "@/app/narration-control";
 import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
+import { localizedCopy } from "@/lib/localized-copy";
 
 export const dynamic = "force-dynamic";
 
@@ -82,9 +83,9 @@ export default async function HomePage() {
       <ShellRail locale={isArabic ? "ar" : "en"} showVideos={videoSectionVisible} />
       <section className="raye2-feed-column">
         <section className="raye2-home-welcome raye2-card raye2-card-pad" id="hero">
-          <span className="raye2-section-label">{config.tagline}</span>
-          <h1>{config.heroTitle || t.hero}<br/><em>{t.heroLine}</em></h1>
-          <p className="raye2-muted">{config.heroBody || t.heroBody}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
+          <span className="raye2-section-label">{localizedCopy(config.tagline, "", isArabic ? "ar" : "en")}</span>
+          <h1>{localizedCopy(config.heroTitle, t.hero, isArabic ? "ar" : "en")}<br/><em>{t.heroLine}</em></h1>
+          <p className="raye2-muted">{localizedCopy(config.heroBody, t.heroBody, isArabic ? "ar" : "en")}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
           <div className="raye2-home-quicklinks"><Link className="button button-primary" href="/watch">{t.exploreVideos}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
         </section>
         {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents initialEvents={events} locale={isArabic?"ar":"en"} />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}

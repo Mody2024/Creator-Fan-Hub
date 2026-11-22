@@ -16,6 +16,18 @@ export default function BottomSheet({ open, onClose, title, closeLabel, children
   const returnFocus = useRef<HTMLElement | null>(null);
   const dragStart = useRef<number | null>(null);
   const [dragY, setDragY] = useState(0);
+  const [mounted, setMounted] = useState(open);
+  const [closing, setClosing] = useState(false);
+  const wasMounted = useRef(open);
+
+  // Keep the sheet in the DOM for the exit animation, then unmount it.
+  useEffect(() => {
+    if (open) { wasMounted.current = true; setMounted(true); setClosing(false); return; }
+    if (!wasMounted.current) return;
+    setClosing(true);
+    const timer = window.setTimeout(() => { wasMounted.current = false; setMounted(false); setClosing(false); }, 220);
+    return () => window.clearTimeout(timer);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -43,10 +55,10 @@ export default function BottomSheet({ open, onClose, title, closeLabel, children
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return (
-    <div className="raye2-sheet-layer" data-dragging={dragStart.current !== null ? "true" : "false"}>
+    <div className="raye2-sheet-layer" data-closing={closing ? "true" : "false"} data-dragging={dragStart.current !== null ? "true" : "false"}>
       <button type="button" className="raye2-sheet-backdrop" aria-label={closeLabel} tabIndex={-1} onClick={onClose} />
       <div
         ref={sheetRef}
