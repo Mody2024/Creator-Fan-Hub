@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readFileSync as __rfs } from "node:fs";
+const __railData = __rfs(new URL("../src/app/raye2-shell/shell-data.ts", import.meta.url), "utf8");
+const __railSrc = __rfs(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [migration, client, page, home] = await Promise.all([
@@ -41,5 +44,5 @@ test("the Mini feed is public and the UI uploads via the shared resumable upload
   assert.match(client, /raye2_publish_mini/);
   assert.match(client, /raye2-minis/);
   assert.match(page, /MinisClient/);
-  assert.match(home, /href="\/minis"/);
+  assert.match(__railData, /href: "\/minis"/);
 });

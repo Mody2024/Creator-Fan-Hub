@@ -27,7 +27,6 @@ export default async function GroupsPage({searchParams}:{searchParams:Promise<{q
   }
  }
  return <main className="raye2-groups-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className="raye2-groups-top"><Link className="raye2-groups-brand" href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}>Raye2</Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/watch">{t.watch}</Link><Link href="/community">{t.community}</Link><Link href="/series">{t.series}</Link><Link href="/creators">{t.creators}</Link></nav></header>
   <div className="raye2-groups-wrap">
    <section className="raye2-groups-hero"><span className="raye2-groups-label">{t.label}</span><h1>{t.headline} <em>{t.accent}</em></h1><p className="raye2-groups-muted">{t.intro}</p>
     <form className="raye2-groups-search" action="/groups" method="get" role="search"><label className="raye2-groups-label" htmlFor="groups-search">{t.searchLabel}</label><div><input id="groups-search" name="q" type="search" defaultValue={search} placeholder={t.searchPlaceholder} maxLength={80}/><button type="submit">{t.search}</button></div></form>

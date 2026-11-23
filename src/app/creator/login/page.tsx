@@ -1,5 +1,6 @@
 "use client";
 
+import AuthBrand from "@/app/raye2-shell/auth-brand";
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -76,9 +77,9 @@ export default function CreatorLoginPage() {
     }
   }
 
-  return <main className="admin-shell raye2-creator-login">
+  return <main className="admin-shell raye2-creator-login raye2-auth-screen">
     <Link className="admin-back" href="/raye2/home">← Back to Raye2</Link>
-    <section className="admin-card"><Link className="wordmark raye2-login-wordmark" href="/raye2/home" aria-label="Raye2"><span className="raye2-login-glyph">R</span></Link>
+    <section className="admin-card"><AuthBrand href="/raye2/home" />
       <span className="eyebrow">PRIVATE WORKSPACE / 01</span>
       <h1>Creator <em>access.</em></h1>
       <p>Sign in to manage the community experience. Access is restricted to the configured creator account.</p>

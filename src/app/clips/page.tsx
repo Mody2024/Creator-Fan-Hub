@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ClipsClient from "./clips-client";
@@ -15,10 +14,6 @@ export default async function ClipsPage() {
   if (supabase) await supabase.rpc("raye2_run_maintenance");
   return (
     <main className="raye2-clips-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-      <header className="raye2-watch-top">
-        <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
-        <nav><Link href="/watch">{isArabic ? "شاهد" : "Watch"}</Link><Link href="/minis">{isArabic ? "مينيز" : "Mini's"}</Link></nav>
-      </header>
       <div className="raye2-clips-heading">
         <span className="raye2-section-label">RAYE2 / {isArabic ? "مقاطع المجتمع" : "COMMUNITY CLIPS"}</span>
         <h1>{isArabic ? <>مقاطع <em>المجتمع.</em></> : <>Community <em>clips.</em></>}</h1>

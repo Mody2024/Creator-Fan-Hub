@@ -41,13 +41,6 @@ export default async function ClipPermalinkPage({ params }: { params: Promise<{ 
 
   return (
     <main className="raye2-clips-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-      <header className="raye2-watch-top">
-        <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
-        <nav>
-          <Link href="/clips">{isArabic ? "كل المقاطع" : "All clips"}</Link>
-          <Link href="/watch">{isArabic ? "شاهد" : "Watch"}</Link>
-        </nav>
-      </header>
       <article className="raye2-clip-detail">
         <video className="raye2-clip-detail-video" src={src} controls preload="metadata" playsInline />
         <h1>{clip.title}</h1>
