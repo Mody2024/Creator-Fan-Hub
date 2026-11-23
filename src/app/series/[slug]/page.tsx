@@ -31,7 +31,6 @@ export default async function SeriesDetailPage({params}:{params:Promise<{slug:st
  }
  const playlist=episodes[0];
  return <main className="raye2-series-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className="raye2-watch-top"><Link className="raye2-brand" href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}>Raye2</Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/series">{t.series}</Link><Link href="/community">{t.community}</Link></nav></header>
   <div className="raye2-series-wrap"><Link className="raye2-section-label" href="/series">{t.back}</Link>
    <h1>{playlist?.playlist_title??slug}</h1><p className="raye2-muted">{playlist?.playlist_description}</p>
    <div className="raye2-series-video-list">{episodes.length?episodes.map(episode=>{const duration=formatDuration(episode.duration_seconds);return <Link className="raye2-search-result" href={"/watch/"+episode.video_slug} key={episode.video_slug}>

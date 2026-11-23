@@ -1,5 +1,6 @@
 "use client";
 
+import AuthBrand from "@/app/raye2-shell/auth-brand";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -49,7 +50,7 @@ export default function Raye2InvitePage() {
   }, [router]);
 
   return <main className={styles.authGate}>
-    <Link href="/" className={styles.brand}>RAYE<span>2</span></Link>
+    <AuthBrand />
     <h1>Private group invitation</h1>
     <p role="status">{message}</p>
     {ready && <Link className={styles.primaryButton} href={continueUrl}>Sign in / create account</Link>}

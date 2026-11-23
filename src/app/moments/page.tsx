@@ -30,10 +30,6 @@ export default async function MomentsPage() {
   const clip = (m: MomentRow) => (m.moment_start_seconds != null && m.moment_end_seconds != null ? `${m.moment_start_seconds}s – ${m.moment_end_seconds}s` : "");
   return (
     <main className="raye2-moments-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
-      <header className="raye2-watch-top">
-        <Link className="raye2-brand" href="/raye2/home" aria-label="Raye2 home"><span className="raye2-mini-brand-glyph">R</span></Link>
-        <nav><Link href="/watch">{labels.watch}</Link><Link href="/community">{labels.community}</Link></nav>
-      </header>
       <div className="raye2-moments-heading">
         <span className="raye2-section-label">{labels.eyebrow}</span>
         <h1>{isArabic ? <>لحظات <em>مميزة.</em></> : <>Featured <em>Moments.</em></>}</h1>

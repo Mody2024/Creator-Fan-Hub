@@ -9,15 +9,23 @@ import { buildWatchCard, type WatchCard, type WatchRow } from "./watch-library-m
 
 const PAGE = 24;
 
+const MORE_T = {
+  en: { error: "Could not load more videos. Try again.", loading: "Loading", more: "Load more videos", end: "You have reached the end." },
+  ar: { error: "تعذّر تحميل المزيد من الفيديوهات. حاول مرة أخرى.", loading: "جارٍ التحميل", more: "تحميل المزيد من الفيديوهات", end: "وصلت إلى النهاية." }
+} as const;
+
 export default function WatchLibraryMore({
+  locale = "en",
   initial,
   before,
   beforeId
 }: {
+  locale?: "en" | "ar";
   initial: WatchCard[];
   before: string;
   beforeId: string;
 }) {
+  const t = MORE_T[locale];
   const [cards, setCards] = useState<WatchCard[]>([]);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -33,7 +41,7 @@ export default function WatchLibraryMore({
     const { data, error: err } = await supabase.rpc("raye2_get_watch_library_page", {
       p_limit: PAGE, p_before: cursorTime, p_before_id: cursorId
     });
-    if (err) { setError("Could not load more videos. Try again."); setBusy(false); return; }
+    if (err) { setError(t.error); setBusy(false); return; }
     const rows = (data ?? []) as WatchRow[];
     if (rows.length < PAGE) setDone(true);
     const pooledRefs = rows.flatMap((row) => {
@@ -75,9 +83,9 @@ export default function WatchLibraryMore({
       {error ? <p role="alert" style={{ color: "var(--error, #e87d85)" }}>{error}</p> : null}
       {!done ? (
         <button type="button" className="button button-secondary" disabled={busy} onClick={() => void loadMore()} style={{ margin: "18px auto", display: "block" }}>
-          {busy ? "Loading…" : error ? "Retry" : "Load more videos"}
+          {busy ? "Loading…" : error ? "Retry" : t.more}
         </button>
-      ) : cards.length ? <p style={{ textAlign: "center", opacity: 0.6, fontSize: 13 }}>You have reached the end.</p> : null}
+      ) : cards.length ? <p style={{ textAlign: "center", opacity: 0.6, fontSize: 13 }}>{t.end}</p> : null}
     </>
   );
 }

@@ -24,7 +24,6 @@ export default async function CreatorsPage({searchParams}:{searchParams:Promise<
  }
  const query=(next:SortKey)=>`/creators?sort=${next}`;
  return <main className="raye2-creators-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className="raye2-creators-top"><Link className="raye2-creators-brand" href="/raye2/home" aria-label={isArabic?"الصفحة الرئيسية":"Raye2 home"}>Raye2</Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/watch">{t.watch}</Link><Link href="/community">{t.community}</Link><Link href="/series">{t.series}</Link><Link href="/search">{t.discover}</Link></nav></header>
   <div className="raye2-creators-wrap">
    <section className="raye2-creators-hero"><span className="raye2-creators-label">{t.label}</span><h1>{t.headline} <em>{t.accent}</em></h1><p className="raye2-creators-muted">{t.intro}</p></section>
    <div className="raye2-creators-sortbar"><span className="raye2-creators-label">{t.sortBy}</span><div className="raye2-creators-tabs">

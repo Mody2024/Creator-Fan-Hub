@@ -2,6 +2,7 @@ import {redirect} from "next/navigation";
 import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
 import SponsorReviewAdmin from "./sponsor-review-admin";
+import WorkspaceShell from "@/app/raye2-shell/workspace-shell";
 
 export const dynamic="force-dynamic";
 export default async function SponsorReviewPage(){
@@ -13,7 +14,7 @@ export default async function SponsorReviewPage(){
  if(claimsError||typeof userId!=="string")redirect("/creator/login");
  const {data:admin,error}=await supabase.from("creator_admins").select("role").eq("user_id",userId).eq("active",true).maybeSingle();
  if(error||!admin||!["owner","admin"].includes(admin.role))redirect("/creator/login?access=restricted");
- return <main className="dashboard-shell raye2-creator-shell" dir={locale==="ar"?"rtl":"ltr"} lang={locale}>
+ return <main className="dashboard-shell raye2-creator-shell" data-raye2-ws="on" dir={locale==="ar"?"rtl":"ltr"} lang={locale}><WorkspaceShell role={admin.role} />
   <div className="dashboard-content"><a className="logout-button" href="/creator">{locale==="ar"?"← مساحة المبدعين":"← Creator workspace"}</a><SponsorReviewAdmin locale={locale}/></div>
  </main>;
 }
