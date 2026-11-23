@@ -12,7 +12,7 @@ type Sheet = "create" | "you" | null;
 
 // Routes that own the whole screen (immersive viewers, creator/admin workspaces with their own navigation).
 // The chat hides the bar itself while a conversation is open (body[data-raye2-thread="open"]). The bottom bar steps aside there instead of fighting their layout.
-const HIDDEN_PREFIXES = ["/creator", "/raye2/admin", "/raye2/studio", "/raye2/invite", "/raye2/watch-invite", "/auth", "/shorts"];
+const HIDDEN_PREFIXES = ["/creator", "/raye2/admin", "/raye2/studio", "/raye2/invite", "/raye2/watch-invite", "/auth"];
 const HIDDEN_EXACT: string[] = [];
 
 type Tab = { key: string; href: string; icon: ShellIconName; label: string; active: boolean };
@@ -58,10 +58,10 @@ export default function BottomNav({ locale }: { locale: Locale }) {
   const youActive = ["/account", "/saved", "/notifications", "/u/"].some(prefix => pathname === prefix || pathname.startsWith(prefix.endsWith("/") ? prefix : prefix + "/"));
   const tabs: Tab[] = [
     { key: "home", href: "/", icon: "home", label: t.home, active: isPlatformNavActive(pathname, "/") },
-    { key: "watch", href: "/watch", icon: "watch", label: t.watch, active: isPlatformNavActive(pathname, "/watch") }
+    { key: "messages", href: "/raye2", icon: "chat", label: t.messages2, active: pathname === "/raye2" }
   ];
   const tabsAfter: Tab[] = [
-    { key: "community", href: "/community", icon: "community", label: t.community, active: isPlatformNavActive(pathname, "/community") }
+    { key: "groups", href: "/groups", icon: "hash", label: t.groups, active: pathname === "/groups" || pathname.startsWith("/groups/") }
   ];
 
   const createItems = createItemsFor(locale);

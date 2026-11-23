@@ -14,6 +14,7 @@ import ApprovedIdeas from "@/app/ideas/approved-ideas";
 import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
 import { localizedCopy } from "@/lib/localized-copy";
+import { LAUNCH_MEDIA_VISIBLE } from "@/lib/launch-features";
 
 export const dynamic = "force-dynamic";
 
@@ -86,26 +87,26 @@ export default async function HomePage() {
           <span className="raye2-section-label">{localizedCopy(config.tagline, "", isArabic ? "ar" : "en")}</span>
           <h1>{localizedCopy(config.heroTitle, t.hero, isArabic ? "ar" : "en")}<br/><em>{t.heroLine}</em></h1>
           <p className="raye2-muted">{localizedCopy(config.heroBody, t.heroBody, isArabic ? "ar" : "en")}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
-          <div className="raye2-home-quicklinks"><Link className="button button-primary" href="/watch">{t.exploreVideos}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
+          <div className="raye2-home-quicklinks"><Link className="button button-primary" href="/groups">{isArabic ? "استكشف المجموعات" : "Explore groups"}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
         </section>
         {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents initialEvents={events} locale={isArabic?"ar":"en"} />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
-        <div className="raye2-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/#videos">{t.videos}</Link><Link href="/community">{t.community}</Link><Link href="/shorts">{t.minis}</Link></div>
+        <div className="raye2-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/groups">{isArabic ? "المجموعات" : "Groups"}</Link><Link href="/community">{t.community}</Link>{LAUNCH_MEDIA_VISIBLE && <Link href="/shorts">{t.minis}</Link>}</div>
         {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="raye2-card raye2-card-pad raye2-home-polls" id="poll" aria-labelledby="raye2-home-polls-title">
           <div className="raye2-card-heading"><div><span className="raye2-section-label">{t.vote}</span><h2 className="raye2-card-title" id="raye2-home-polls-title" style={{marginTop:6}}>{isArabic ? "صوّت وشارك في اختيار القادم." : "Your voice shapes what comes next."}</h2></div><span className="raye2-pill">{t.haveSay}</span></div>
           <PublishedPolls locale={isArabic?"ar":"en"} />
         </section>}
-        {config.visibleSections.includes("videos") && <PublicVideos />}
+{LAUNCH_MEDIA_VISIBLE && <>        {config.visibleSections.includes("videos") && <PublicVideos />}
         <div className="raye2-card-heading"><h2 className="raye2-card-title">{t.latest}</h2><Link className="raye2-muted" href="/watch">{t.seeAll}</Link></div>
         {videos.length?<div className="raye2-home-video-grid">{videos.slice(0,8).map(video=><article className="raye2-home-video-card" key={video.id}>
           <Link className="raye2-home-video-player" href={"/watch/"+video.slug}><PublicVideoPlayer locale={isArabic?"ar":"en"} src={video.src} title={video.title} description={video.description} youtubeEmbedUrl={video.youtubeEmbedUrl}/></Link>
           <div className="raye2-home-video-meta"><span className="raye2-section-label">{video.category.toUpperCase()} · OFFICIAL</span><h3><Link href={"/watch/"+video.slug}>{video.title}</Link></h3><p>{video.description}</p><small>{new Date(video.publishedAt).toLocaleDateString(isArabic?"ar-EG":"en-US")}</small></div>
-        </article>)}</div>:<div className="raye2-card raye2-empty-state"><strong>{isArabic?"مساحة المشاهدة تستعد لاستقبال الفيديوهات.":"Your watch feed is getting ready."}</strong><p className="raye2-muted">{isArabic?"ستظهر هنا فيديوهات المبدعين الرسمية الجديدة.":"New official creator videos will appear here."}</p></div>}
+        </article>)}</div>:<div className="raye2-card raye2-empty-state"><strong>{isArabic?"مساحة المشاهدة تستعد لاستقبال الفيديوهات.":"Your watch feed is getting ready."}</strong><p className="raye2-muted">{isArabic?"ستظهر هنا فيديوهات المبدعين الرسمية الجديدة.":"New official creator videos will appear here."}</p></div>}</>}
         <div className="raye2-card-heading"><h2 className="raye2-card-title">{t.fromCommunity}</h2><Link className="raye2-muted" href="/community">{t.openCommunity}</Link></div>
         {posts.length?posts.map(post=><article className="raye2-card raye2-home-post" key={post.id}><div className="raye2-post-header"><div className="raye2-avatar">{post.avatarUrl?<img src={post.avatarUrl} alt=""/>:post.displayName.slice(0,1).toUpperCase()}</div><div><strong>{post.displayName}</strong><div className="raye2-muted">@{post.handle} · {new Date(post.createdAt).toLocaleDateString()}</div></div></div><p className="raye2-post-body">{post.body}</p><Link className="raye2-action" href="/community">{t.joinConversation}</Link></article>):<div className="raye2-card raye2-empty-state"><p className="raye2-muted">{isArabic?"ستظهر هنا نقاشات المجتمع ومشاركاته الجديدة.":"Community conversations will appear here as people share."}</p><Link href="/community">{isArabic?"زيارة المجتمع ↗":"Visit community ↗"}</Link></div>}
 
       </section>
       <aside className="raye2-discovery-column">
-        <section className="raye2-card raye2-card-pad"><span className="raye2-section-label">{t.discover}</span><h2 className="raye2-card-title">{t.everyFormat}</h2><p className="raye2-muted">{isArabic ? "فيديوهات المبدعين، ومقاطع المجتمع، واللحظات المشتركة والنقاشات." : "Long-form creator uploads, short community videos, shared moments and conversations."}</p><div className="raye2-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ {t.minis}</Link><Link href="/community">◉ {t.community}</Link><Link href="/search">{t.findCreators}</Link></div></section>
+{LAUNCH_MEDIA_VISIBLE && <section className="raye2-card raye2-card-pad"><span className="raye2-section-label">{t.discover}</span><h2 className="raye2-card-title">{t.everyFormat}</h2><p className="raye2-muted">{isArabic ? "فيديوهات المبدعين، ومقاطع المجتمع، واللحظات المشتركة والنقاشات." : "Long-form creator uploads, short community videos, shared moments and conversations."}</p><div className="raye2-home-discovery-links"><Link href="/watch">{t.watchVideos}</Link><Link href="/shorts">✦ {t.minis}</Link><Link href="/community">◉ {t.community}</Link><Link href="/search">{t.findCreators}</Link></div></section>}
         <section className="raye2-card raye2-card-pad"><span className="raye2-section-label">{t.creatorAccess}</span><h2 className="raye2-card-title">{t.haveChannel}</h2><p className="raye2-muted">{isArabic ? "يمكن للمبدعين المعتمدين نشر فيديوهاتهم وإدارة قنواتهم من استوديو Raye2." : "Approved creators can publish official videos and manage their channel from Raye2 Studio."}</p><Link className="button button-secondary" href="/creator/login">{t.openStudio}</Link></section>
       </aside>
     </div>

@@ -7,7 +7,7 @@ export type ShellLocale = "en" | "ar";
 export const SHELL_T = {
   en: {
     nav: "Quick navigation", mainNav: "Main navigation", yourRaye2: "Your Raye2",
-    home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You", more: "More", signOut: "Sign out", unread: "unread",
+    home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You", more: "More", messages2: "Messages", groups: "Groups", events: "Events", settings: "Settings", soon: "Coming soon", soonShort: "Soon", personal: "You", newGroup: "New group", newGroupHint: "Name it, invite people, set roles", newPoll: "New poll", newPollHint: "Images, deadline, live results", scheduleEvent: "Schedule an event", scheduleEventHint: "Calendar, reminder, voice session", newRoom: "New room", newRoomHint: "Text, voice, stage or forum", signOut: "Sign out", unread: "unread",
     createTitle: "Create", youTitle: "Your space", close: "Close", search: "Search Raye2", join: "Join", brand: "Raye2 home",
     upload: "Upload video", uploadHint: "Open the video studio", mini: "Mini", miniHint: "Short vertical clip", moment: "Moment", momentHint: "Disappears after a day",
     post: "Community post", postHint: "Share with the community", live: "Go live", liveHint: "Start a live stream",
@@ -15,7 +15,7 @@ export const SHELL_T = {
   },
   ar: {
     nav: "التنقل السريع", mainNav: "التنقل الرئيسي", yourRaye2: "مساحتك في Raye2",
-    home: "الرئيسية", watch: "مشاهدة", create: "إنشاء", community: "المجتمع", you: "أنت", more: "المزيد", signOut: "تسجيل الخروج", unread: "غير مقروء",
+    home: "الرئيسية", watch: "مشاهدة", create: "إنشاء", community: "المجتمع", you: "أنت", more: "المزيد", messages2: "الرسائل", groups: "المجموعات", events: "الفعاليات", settings: "الإعدادات", soon: "قريبًا", soonShort: "قريبًا", personal: "أنت", newGroup: "مجموعة جديدة", newGroupHint: "سمّها وادعُ الأعضاء وحدّد الأدوار", newPoll: "استطلاع جديد", newPollHint: "صور وموعد نهائي ونتائج مباشرة", scheduleEvent: "جدولة فعالية", scheduleEventHint: "تقويم وتذكير وجلسة صوتية", newRoom: "غرفة جديدة", newRoomHint: "نصية أو صوتية أو منصة أو منتدى", signOut: "تسجيل الخروج", unread: "غير مقروء",
     createTitle: "إنشاء", youTitle: "مساحتك", close: "إغلاق", search: "ابحث في Raye2", join: "انضم", brand: "الصفحة الرئيسية لـ Raye2",
     upload: "رفع فيديو", uploadHint: "افتح استوديو الفيديو", mini: "مقطع قصير", miniHint: "مقطع عمودي قصير", moment: "لحظة", momentHint: "تختفي بعد يوم",
     post: "منشور مجتمعي", postHint: "شارك مع المجتمع", live: "بث مباشر", liveHint: "ابدأ بثًا مباشرًا",
@@ -25,25 +25,25 @@ export const SHELL_T = {
 
 export type MenuItem = { href: string; icon: ShellIconName; label: string; hint?: string };
 
+// Launch 1.0: Create is about communication. Targets that are not built yet point at the design reference.
+const REF = "/design/launch-1.0/index.html";
 export function createItemsFor(locale: ShellLocale): MenuItem[] {
   const t = SHELL_T[locale];
   return [
-    { href: "/raye2/studio", icon: "upload", label: t.upload, hint: t.uploadHint },
-    { href: "/minis", icon: "mini", label: t.mini, hint: t.miniHint },
-    { href: "/moments", icon: "moment", label: t.moment, hint: t.momentHint },
-    { href: "/community", icon: "post", label: t.post, hint: t.postHint },
-    { href: "/live", icon: "live", label: t.live, hint: t.liveHint }
+    { href: REF + "#group-create", icon: "community", label: t.newGroup, hint: t.newGroupHint },
+    { href: REF + "#rooms", icon: "hash", label: t.newRoom, hint: t.newRoomHint },
+    { href: REF + "#poll", icon: "series", label: t.newPoll, hint: t.newPollHint },
+    { href: "/events", icon: "moment", label: t.scheduleEvent, hint: t.scheduleEventHint }
   ];
 }
 
 export function youItemsFor(locale: ShellLocale): MenuItem[] {
   const t = SHELL_T[locale];
   return [
-    { href: "/account", icon: "settings", label: t.account },
+    { href: "/account", icon: "settings", label: t.settings },
     { href: "/saved", icon: "bookmark", label: t.saved },
     { href: "/notifications", icon: "bell", label: t.notifications },
-    { href: "/raye2", icon: "chat", label: t.messages },
-    { href: "/creator", icon: "studio", label: t.studio }
+    { href: "/raye2", icon: "chat", label: t.messages }
   ];
 }
 

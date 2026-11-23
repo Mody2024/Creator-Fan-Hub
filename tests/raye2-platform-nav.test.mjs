@@ -20,15 +20,16 @@ test("there is one shared platform navigation model", () => {
   assert.match(model, /href: "\/community"/);
 });
 
+// Launch 1.0 (Communication Edition): the rail is one shared launch map (MAIN / PERSONAL / SOON), not per-page arrays.
 test("every surface renders navigation from the shared model, not bespoke arrays", () => {
   assert.match(home, /<ShellRail/);
   assert.match(community, /<ShellRail/);
-  assert.match(rail, /platformNavItems\(keys, NAV_LABELS/);
-  assert.match(rail, /PLATFORM_NAV_PRIMARY/);
+  assert.match(rail, /const MAIN: Entry\[\]/);
+  assert.match(rail, /const SOON: Entry\[\]/);
   assert.match(chat, /<ShellTopBar/);
   assert.doesNotMatch(chat, /const platformNav = \[/);
 });
 
 test("navigation uses the shared active rule rather than ad-hoc comparisons", () => {
-  assert.match(rail, /isPlatformNavActive\(pathname, item\.href\)/);
+  assert.match(rail, /\(entry\.match \?\? starts\(entry\.href\)\)\(pathname\)/);
 });

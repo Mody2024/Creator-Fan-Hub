@@ -500,13 +500,13 @@ test("community moderation uses a private role helper across every moderation qu
 });
 
 
-test("video navigation is hidden when the creator disables the video section", async () => {
+test("launch 1.0: media navigation is tucked under Coming soon and hidden from the member home", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /const videoSectionVisible = config\.visibleSections\.includes\("videos"\)/);
-  assert.match(page, /showVideos=\{videoSectionVisible\}/);
+  assert.match(page, /LAUNCH_MEDIA_VISIBLE/);
   const railSource = await readFile(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
-  assert.match(railSource, /PLATFORM_NAV_PRIMARY\.filter\(key => key !== "videos" && key !== "shorts"\)/);
-  assert.match(page, /visibleSections\.includes\("videos"\) && <PublicVideos \/>/);
+  assert.match(railSource, /const SOON: Entry\[\]/);
+  assert.match(page, /<PublicVideos \/>/); // preserved, but gated by LAUNCH_MEDIA_VISIBLE
 });
 
 

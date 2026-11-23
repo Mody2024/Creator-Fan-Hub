@@ -432,3 +432,31 @@ html.raye2-route-enter main[data-raye2-ws] { animation-name: raye2-fade-only; }
   html[data-raye2-nav="run"] main:not(.raye2-app-loading) { opacity: 1; }
   main:not(.raye2-app-loading) { transition: none; }
 }
+
+/* ---------- Launch 1.0: "Soon" rail rows and the Coming Soon screen ---------- */
+.raye2-rail-soon { opacity: 0.72; }
+.raye2-soon-pill {
+  margin-inline-start: auto; padding: 2px 8px; border: 1px solid var(--raye2-shell-line); border-radius: 999px; color: #a1a1aa;
+  font-family: var(--raye2-font-chalk); font-size: 10.5px; font-style: normal; font-weight: 600; letter-spacing: 0.04em;
+}
+@media (max-width: 1279px) { .raye2-soon-pill { display: none; } }
+.raye2-soon-page { display: grid; place-items: center; min-height: min(70dvh, 640px); padding: 12px 0 24px; }
+.raye2-soon-card {
+  width: min(100%, 620px); display: grid; justify-items: center; gap: 14px; padding: clamp(24px, 5vw, 44px); text-align: center;
+  border: 1px solid var(--raye2-shell-line); border-radius: 32px; background: #141416; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+}
+.raye2-soon-icon { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 28px; background: #1c1c1f; color: #9dc0ff; }
+.raye2-soon-badge {
+  padding: 4px 14px; border: 1px solid rgba(77, 141, 246, 0.4); border-radius: 999px; background: rgba(77, 141, 246, 0.12); color: #9dc0ff;
+  font-family: var(--raye2-font-chalk); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.raye2-soon-card h1 { margin: 0; font-size: clamp(30px, 6vw, 44px); }
+.raye2-soon-text { margin: 0; max-width: 46ch; color: #a1a1aa; font-size: 16px; line-height: 1.6; }
+.raye2-soon-lead { margin: 4px 0 0; max-width: 46ch; color: #f4f4f6; font-size: 15px; line-height: 1.6; }
+.raye2-soon-roadmap { list-style: none; margin: 8px 0; padding: 0; width: 100%; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.raye2-soon-roadmap li { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; border: 1px solid var(--raye2-shell-line); border-radius: 16px; font-family: var(--raye2-font-chalk); font-size: 13px; font-weight: 600; }
+.raye2-soon-roadmap li span { color: #9dc0ff; font-size: 16px; }
+.raye2-soon-roadmap li small { color: #a1a1aa; font-size: 10.5px; font-weight: 400; }
+.raye2-soon-roadmap li[data-state="next"] { border-style: dashed; color: #a1a1aa; }
+.raye2-soon-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+@media (max-width: 520px) { .raye2-soon-roadmap { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
