@@ -41,3 +41,9 @@ Feature status table in code: `src/lib/launch-features.ts`.
 - Dashboards use sample numbers; real storage metrics need backend support.
 - The design reference is static HTML in the chalk style, not a clickable prototype of the real components.
 - Nothing here was checked against your live database or production environment.
+
+## Launch 1.0 design pass 2 (chat, type, Arabic)
+- Chat redesigned with Discord and WhatsApp as references: group rail (desktop), list with filter chips, one-pane phone flow, bubbles with day dividers and grouped messages, actions revealed on hover/tap, floating composer. The intro banner was removed so the chat fills the screen.
+- Type scale raised across all stylesheets (8-12px labels are now 12-14.5px); negative letter-spacing removed; chalk font everywhere.
+- Arabic: no letter-spacing or uppercase on Arabic text, taller line-height, five leaked English strings localized, owner-configured copy only shown in the matching language.
+- Member home: calmer hero and a Messages / Groups / Polls / Events quick-action row.

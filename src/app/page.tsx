@@ -15,6 +15,7 @@ import PublicEvents from "@/app/events/public-events";
 import PublicSocialLinks from "@/app/socials/public-social-links";
 import { localizedCopy } from "@/lib/localized-copy";
 import { LAUNCH_MEDIA_VISIBLE } from "@/lib/launch-features";
+import ShellIcon from "@/app/raye2-shell/shell-icons";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +90,14 @@ export default async function HomePage() {
           <p className="raye2-muted">{localizedCopy(config.heroBody, t.heroBody, isArabic ? "ar" : "en")}</p>{config.heroMediaUrl && (config.heroMediaType === "video" ? <video className="hero-media" src={config.heroMediaUrl} autoPlay muted={config.heroMuted} loop={config.heroLoop} playsInline /> : <img className="hero-media" src={config.heroMediaUrl} alt="" />)}{config.narrationUrl && config.featureFlags.voice && <NarrationControl src={config.narrationUrl} transcript={config.narrationText} autoPlay={config.narrationAutoPlay}/>}
           <div className="raye2-home-quicklinks"><Link className="button button-primary" href="/groups">{isArabic ? "استكشف المجموعات" : "Explore groups"}</Link><Link className="button button-secondary" href="/community">{t.joinCommunity}</Link></div>
         </section>
-        {config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents initialEvents={events} locale={isArabic?"ar":"en"} />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
+        
+<nav className="raye2-launch-actions" aria-label={isArabic ? "ابدأ من هنا" : "Start here"}>{[
+{ href: "/raye2", icon: "chat" as const, en: ["Messages", "Chat one-to-one or with friends"], ar: ["الرسائل", "تحدّث مع أصدقائك"] },
+{ href: "/groups", icon: "hash" as const, en: ["Groups", "Rooms, voice and members"], ar: ["المجموعات", "غرف وصوت وأعضاء"] },
+{ href: "/#poll", icon: "series" as const, en: ["Polls", "Vote and see live results"], ar: ["الاستطلاعات", "صوّت وتابع النتائج"] },
+{ href: "/events", icon: "moment" as const, en: ["Events", "What is happening next"], ar: ["الفعاليات", "ما القادم"] }
+].map(item => <Link key={item.href} href={item.href} className="raye2-launch-tile"><span className="raye2-launch-tile-icon"><ShellIcon name={item.icon} size={24} /></span><strong>{isArabic ? item.ar[0] : item.en[0]}</strong><small>{isArabic ? item.ar[1] : item.en[1]}</small></Link>)}</nav>
+{config.visibleSections.includes("ideas") && config.featureFlags.ideas && <ApprovedIdeas />}{config.visibleSections.includes("events") && config.featureFlags.events && <PublicEvents initialEvents={events} locale={isArabic?"ar":"en"} />}{config.visibleSections.includes("socials") && <PublicSocialLinks />}
         <div className="raye2-feed-tabs"><Link className="active" href="/">{t.forYou}</Link><Link href="/groups">{isArabic ? "المجموعات" : "Groups"}</Link><Link href="/community">{t.community}</Link>{LAUNCH_MEDIA_VISIBLE && <Link href="/shorts">{t.minis}</Link>}</div>
         {config.visibleSections.includes("poll") && config.featureFlags.polls && <section className="raye2-card raye2-card-pad raye2-home-polls" id="poll" aria-labelledby="raye2-home-polls-title">
           <div className="raye2-card-heading"><div><span className="raye2-section-label">{t.vote}</span><h2 className="raye2-card-title" id="raye2-home-polls-title" style={{marginTop:6}}>{isArabic ? "صوّت وشارك في اختيار القادم." : "Your voice shapes what comes next."}</h2></div><span className="raye2-pill">{t.haveSay}</span></div>

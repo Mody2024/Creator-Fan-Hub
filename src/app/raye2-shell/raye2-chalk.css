@@ -49,3 +49,11 @@ button, [role="tab"], a.button, .button, [class*="pill"], [class*="Pill"] { lett
 [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4 { line-height: 1.45; }
 
 @media (prefers-reduced-motion: reduce) { .raye2-card, .module-card, .raye2-watch-card, .raye2-group-card, .raye2-creator-card { transition: none !important; transform: none !important; } }
+
+/* ---------- Arabic typography: never track or uppercase Arabic (it breaks letter joining); give it room to breathe ---------- */
+[dir="rtl"] *, [lang="ar"] * { letter-spacing: 0 !important; text-transform: none !important; word-spacing: 0; }
+[dir="rtl"] body, [dir="rtl"] p, [dir="rtl"] li, [dir="rtl"] small { line-height: 1.8; }
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4 { line-height: 1.5 !important; }
+[dir="rtl"] button, [dir="rtl"] a { line-height: 1.5; }
+/* Base reading size: a little larger and calmer than before. */
+body { font-size: 16px; line-height: 1.6; }

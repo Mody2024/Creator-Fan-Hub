@@ -460,3 +460,21 @@ html.raye2-route-enter main[data-raye2-ws] { animation-name: raye2-fade-only; }
 .raye2-soon-roadmap li[data-state="next"] { border-style: dashed; color: #a1a1aa; }
 .raye2-soon-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
 @media (max-width: 520px) { .raye2-soon-roadmap { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ---------- Launch home: calmer hero + quick actions ---------- */
+.raye2-home-welcome h1 { font-size: clamp(28px, 7vw, 48px) !important; }
+.raye2-home-welcome { padding: clamp(20px, 4vw, 36px) !important; }
+.raye2-launch-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 14px 0; }
+.raye2-launch-tile {
+  display: grid; gap: 4px; align-content: start; padding: 16px; border: 1px solid var(--raye2-shell-line); border-radius: 22px; background: #141416;
+  color: #f4f4f6; text-decoration: none; transition: border-color 0.18s ease, transform 0.18s var(--raye2-shell-ease), background 0.18s ease;
+}
+.raye2-launch-tile:hover { border-color: rgba(77, 141, 246, 0.5); background: #1c1c1f; transform: translateY(-2px); }
+.raye2-launch-tile strong { font-family: var(--raye2-font-chalk); font-size: 17px; }
+.raye2-launch-tile small { color: #a1a1aa; font-size: 13.5px; line-height: 1.45; }
+.raye2-launch-tile-icon { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 6px; border-radius: 14px; background: #1c1c1f; color: #9dc0ff; }
+@media (max-width: 520px) { .raye2-launch-actions { grid-template-columns: 1fr 1fr; } }
+@media (prefers-reduced-motion: reduce) { .raye2-launch-tile { transition: none; } .raye2-launch-tile:hover { transform: none; } }
+
+/* Chat on phones: an open conversation owns the whole screen (its own header replaces the shared top bar). */
+@media (max-width: 767px) { body[data-raye2-thread="open"] .raye2-shell-top { display: none; } }
