@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import BottomSheet from "./bottom-sheet";
 import ShellBrand from "./shell-brand";
+import LanguageSwitch from "@/app/language-switch";
 import ShellIcon, { type ShellIconName } from "./shell-icons";
 import type { ShellLocale } from "./shell-data";
 
@@ -88,6 +89,7 @@ export default function WorkspaceChrome({ locale, role }: { locale: ShellLocale;
         <span className="raye2-ws-chip raye2-ws-chip--studio">{t.workspace}</span>
         <span className="raye2-ws-chip">{role.toUpperCase()}</span>
         <span className="raye2-ws-spacer" />
+        <LanguageSwitch initialLocale={locale} variant="header" />
         <Link className="raye2-ws-pill" href="/">{t.viewSite}</Link>
         <form action="/creator/logout" method="post"><button className="raye2-ws-pill raye2-ws-pill--quiet" type="submit">{t.signOut}</button></form>
       </header>
