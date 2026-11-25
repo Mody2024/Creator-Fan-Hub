@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, groupControls] = await Promise.all([
+const [migration, groupControls, voiceCss] = await Promise.all([
   read("../supabase/migrations/20261110950000_raye2_voice_depth.sql"),
-  read("../src/app/raye2/raye2-group-voice-controls.tsx")
+  read("../src/app/raye2/raye2-group-voice-controls.tsx"),
+  read("../src/app/raye2/raye2.module.css")
 ]);
 
 test("participants can raise a hand and mute is tracked server-side", () => {
@@ -49,6 +50,6 @@ test("remote shared screens are rendered and detached when sharing ends", () => 
   assert.match(groupControls, /Track\.Source\.ScreenShare && track\.kind === Track\.Kind\.Video/);
   assert.match(groupControls, /screenShareContainerRef\.current\.appendChild\(element\)/);
   assert.match(groupControls, /groupVoiceScreenVideo/);
-  assert.match(css, /\.groupVoiceScreens:empty\{display:none\}/);
-  assert.match(css, /\.groupVoiceScreenVideo\{/);
+  assert.match(voiceCss, /\.groupVoiceScreens:empty\{display:none\}/);
+  assert.match(voiceCss, /\.groupVoiceScreenVideo\{/);
 });
