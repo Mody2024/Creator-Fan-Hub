@@ -133,6 +133,7 @@ export default function Raye2Client() {
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [activeThreadRoot, setActiveThreadRoot] = useState<Message | null>(null);
   const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
   const [myReactions, setMyReactions] = useState<Record<string, string[]>>({});
   const [mobilePane, setMobilePane] = useState<"list" | "chat">("list");
@@ -282,11 +283,13 @@ export default function Raye2Client() {
   }, [supabase, loadData, t.failed]);
 
   const selected = threads.find(thread => thread.id === selectedId) ?? null;
+  useEffect(() => { setActiveThreadRoot(null); }, [selectedId]);
   const selectedGroup = selected?.groupId ? groups.find(group => group.id === selected.groupId) ?? null : null;
   const canManageSelectedGroup = Boolean(selectedGroup && ["owner", "admin", "moderator"].includes(selectedGroup.memberRole ?? "member"));
   const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
   const currentMessages = messages.filter(message => selected && message.conversation_id === selected.conversationId);
   const visibleMessages = activeTopicId ? currentMessages.filter(message => message.topic_id === activeTopicId) : currentMessages;
+  const activeThreadReplies = activeThreadRoot ? currentMessages.filter(message => message.parent_message_id === activeThreadRoot.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [];
 
   useEffect(() => {
     if (!supabase || !selected?.conversationId) { setPinnedMessages([]); return; }
@@ -1154,6 +1157,14 @@ export default function Raye2Client() {
               <div className={styles.topicCreate}><input value={newTopicName} onChange={event => setNewTopicName(event.target.value)} maxLength={60} placeholder={t.topicName} aria-label={t.topicName}/><button type="button" disabled={busy || !newTopicName.trim()} onClick={() => void createGroupTopic()}>{t.createTopic}</button></div>
               {groupTopics.length === 0 ? <p className={styles.emptySmall}>{t.noTopics}</p> : <ul className={styles.topicList}>{groupTopics.map(topic => <li key={topic.id}><span>{topic.name} · {topic.message_count}</span>{pendingDeleteTopicId === topic.id ? <span className={styles.topicDeleteConfirm}><span>{isAr ? "حذف القناة؟" : "Delete channel?"}</span><button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void deleteGroupTopic(topic.id)}>{isAr ? "تأكيد" : "Confirm"}</button><button type="button" disabled={busy} onClick={() => setPendingDeleteTopicId(null)}>{isAr ? "إلغاء" : "Cancel"}</button></span> : <button type="button" disabled={busy} onClick={() => setPendingDeleteTopicId(topic.id)}>{t.deleteTopic}</button>}</li>)}</ul>}
             </section>}
+            {activeThreadRoot && selected && <section className={styles.threadPanel} aria-label={isAr ? "سلسلة الردود" : "Message thread"}>
+              <header className={styles.threadPanelHeader}><div><b>{isAr ? "سلسلة المحادثة" : "Thread"}</b><small>{activeThreadReplies.length} {isAr ? "ردود" : "replies"}</small></div><button type="button" onClick={() => setActiveThreadRoot(null)} aria-label={isAr ? "إغلاق السلسلة" : "Close thread"}>×</button></header>
+              <article className={styles.threadRoot}><b>{profiles[activeThreadRoot.sender_id]?.display_name ?? profiles[activeThreadRoot.sender_id]?.handle ?? (isAr ? "عضو" : "Member")}</b><p>{activeThreadRoot.body}</p><time>{stamp(activeThreadRoot.created_at, locale)}</time></article>
+              <div className={styles.threadReplies}>
+                {activeThreadReplies.length === 0 ? <p className={styles.emptySmall}>{isAr ? "لا توجد ردود بعد. ابدأ المحادثة." : "No replies yet. Start the conversation."}</p> : activeThreadReplies.map(reply => <article className={styles.threadReply} key={reply.id}><div><b>{profiles[reply.sender_id]?.display_name ?? profiles[reply.sender_id]?.handle ?? (isAr ? "عضو" : "Member")}</b><time>{stamp(reply.created_at, locale)}</time></div><p>{reply.body}</p></article>)}
+              </div>
+              <button type="button" className={styles.threadReplyAction} disabled={!selected.canSend} onClick={() => { setReplyTo(activeThreadRoot); setActiveThreadRoot(null); }}>{isAr ? "الرد في السلسلة" : "Reply in thread"} ↗</button>
+            </section>}
             <div className={styles.messageArea}>
               {visibleMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
               {visibleMessages.map((message, index) => {
@@ -1175,7 +1186,7 @@ export default function Raye2Client() {
                     </div>
                     {message.topic_id && <span className={styles.topicChip}>{t.postInTopic} {groupTopics.find(topic => topic.id === message.topic_id)?.name ?? ""}</span>}
                     <div className={styles.messageMeta}><time>{stamp(message.created_at, locale)}</time>{message.edited_at && <span>{t.edited}</span>}
-                      <button onClick={() => setReplyTo(message)}>{t.reply}</button>{(selected?.kind === "direct" || canManageSelectedGroup) && <button onClick={() => void togglePinnedMessage(message)}>{pinnedMessages.some(item => item.id === message.id) ? t.unpinMessage : t.pinMessage}</button>}{!mine && <button onClick={() => setReportTarget({ type: "message", id: message.id, conversationId: message.conversation_id })}>{t.report}</button>}<button onClick={() => void toggleBookmark(message)}>{savedIds.includes(message.id) ? "⌑" : "＋"}</button>{selected?.kind === "group" && <button title={t.saveMemory} onClick={() => void saveSharedMemory(message)}>✦</button>}
+                      <button onClick={() => setReplyTo(message)}>{t.reply}</button>{message.parent_message_id === null && messages.some(item => item.parent_message_id === message.id) && <button type="button" onClick={() => setActiveThreadRoot(message)}>{isAr ? "السلسلة" : "Thread"} · {messages.filter(item => item.parent_message_id === message.id).length}</button>}{(selected?.kind === "direct" || canManageSelectedGroup) && <button onClick={() => void togglePinnedMessage(message)}>{pinnedMessages.some(item => item.id === message.id) ? t.unpinMessage : t.pinMessage}</button>}{!mine && <button onClick={() => setReportTarget({ type: "message", id: message.id, conversationId: message.conversation_id })}>{t.report}</button>}<button onClick={() => void toggleBookmark(message)}>{savedIds.includes(message.id) ? "⌑" : "＋"}</button>{selected?.kind === "group" && <button title={t.saveMemory} onClick={() => void saveSharedMemory(message)}>✦</button>}
                       {mine && selected?.kind === "direct" && <span className={styles.receiptState}>{otherReadAt && new Date(otherReadAt) >= new Date(message.created_at) ? t.seen : otherDeliveredAt && new Date(otherDeliveredAt) >= new Date(message.created_at) ? t.delivered : t.sent}</span>}{mine && <><button onClick={() => void editMessage(message)}>{t.edit}</button><button onClick={() => void deleteMessage(message)}>×</button></>}
                     </div>
                     <div className={styles.reactionStrip}>{reactionOptions.map((emoji, index) => { const key = ["love", "like", "laugh", "spark", "fire"][index]; const count = reactionCounts[message.id]?.[key] ?? 0; return <button key={key} className={myReactions[message.id]?.includes(key) ? styles.reacted : ""} onClick={() => void toggleReaction(message, key)}>{emoji}{count > 0 && <small>{count}</small>}</button>; })}</div>
