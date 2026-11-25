@@ -78,7 +78,6 @@ export default async function SearchPage({searchParams}:{searchParams:Promise<Se
  const showTags=selectedType==="all"||selectedType==="tags";
  const showGroups=selectedType==="all"||selectedType==="groups";
  return <main className={styles.page} dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className={styles.top}><Link className={styles.brand} href="/raye2/home">RAYE<span>2</span></Link><nav className={styles.topLinks}><Link href="/raye2/home">{t.home}</Link><Link href="/watch">{t.watch}</Link><Link href="/community">{t.community}</Link></nav></header>
   <div className={styles.layout}>
        <aside className={styles.rail}><span className={styles.railLabel}>RAYE2 / DISCOVER</span><Link className={styles.railLink} href="/raye2/home">⌂ {t.home}</Link><Link className={styles.railLink} href="/watch">▶ {t.watch}</Link><Link className={styles.railLink} href="/shorts">▤ {t.mini}</Link><Link className={styles.railLink} href="/search">⌕ {t.discover}</Link><Link className={styles.railLink} href="/series">▥ {t.series}</Link><Link className={styles.railLink} href="/creators">✦ {isArabic?"صُنّاع المحتوى":"Creators"}</Link><Link className={styles.railLink} href="/community">◉ {t.community}</Link></aside>
    <section className={styles.main}>

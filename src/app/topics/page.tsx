@@ -20,7 +20,6 @@ export default async function TopicsIndexPage({searchParams}:{searchParams:Promi
   topics=(data??[]) as Topic[];
  }
  return <main className="raye2-topic-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className="raye2-topic-header"><Link className="raye2-topic-brand" href="/raye2/home">Raye2<span>.</span></Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/watch">{t.watch}</Link><Link href="/search">{t.search}</Link><Link href="/community">{t.community}</Link></nav></header>
   <section className="raye2-topic-hero"><span className="raye2-topic-label">{t.eyebrow}</span><h1>{t.heading} <em>{t.accent}</em></h1><p>{t.intro}</p><div className="raye2-topic-tabs"><Link className={minCount===1?"active":""} href="/topics">{t.all}</Link><Link className={minCount===2?"active":""} href="/topics?min=2">{t.popular}</Link></div></section>
   {topics.length?<div className="raye2-topic-index-grid">{topics.map(topic=><article className="raye2-topic-index-card" key={topic.tag}>
    <Link href={"/topics/"+encodeURIComponent(topic.tag)}>

@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import AccountSettings from "./account-settings";
@@ -16,7 +15,6 @@ export default async function AccountPage() {
     <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} style={{ maxWidth: 820, margin: "0 auto", padding: "32px 20px" }}>
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <span style={{ fontSize: 11, letterSpacing: 2, opacity: 0.6 }}>RAYE2 / ACCOUNT</span>
-        <Link href="/raye2/home">↗ {isArabic ? "الرئيسية" : "Home"}</Link>
       </header>
       <AccountSettings locale={isArabic ? "ar" : "en"} />
     </main>

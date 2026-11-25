@@ -3,30 +3,30 @@
 .raye2-series-page *{box-sizing:border-box}.raye2-series-page a{color:inherit;text-decoration:none}
 .raye2-series-page .raye2-watch-top{width:min(1320px,100%);height:76px;margin:auto;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--s-line)}
 .raye2-series-page .raye2-brand{font-size:0}.raye2-series-page .raye2-brand:after{content:"R";display:grid;place-items:center;width:40px;height:40px;border:1px solid rgba(77,141,246,.35);border-radius:12px;background:linear-gradient(145deg,#242427,#1c1c1f);color:#f4f4f6;font-size:20px;font-weight:950}
-.raye2-series-page .raye2-watch-top nav{display:flex;gap:8px}.raye2-series-page .raye2-watch-top nav a{padding:10px 12px;border:1px solid transparent;border-radius:9px;color:var(--s-muted);font-size:11px;font-weight:750}.raye2-series-page .raye2-watch-top nav a:hover{border-color:var(--s-line);background:var(--s-panel);color:var(--s-text)}
+.raye2-series-page .raye2-watch-top nav{display:flex;gap:8px}.raye2-series-page .raye2-watch-top nav a{padding:10px 12px;border:1px solid transparent;border-radius:9px;color:var(--s-muted);font-size:13.5px;font-weight:750}.raye2-series-page .raye2-watch-top nav a:hover{border-color:var(--s-line);background:var(--s-panel);color:var(--s-text)}
 .raye2-series-page .raye2-series-wrap{width:min(1320px,100%);margin:auto;padding:clamp(42px,6vw,76px) 0}
-.raye2-series-page .raye2-section-label{color:var(--s-muted);font:750 9px/1.5 var(--font-mono,ui-monospace,monospace);letter-spacing:.14em}
-.raye2-series-page h1{margin:15px 0;font-size:clamp(42px,6vw,72px);line-height:1;letter-spacing:-.075em}
+.raye2-series-page .raye2-section-label{color:var(--s-muted);font:750 9px/1.5 var(--font-mono,ui-monospace,monospace);letter-spacing:.04em}
+.raye2-series-page h1{margin:15px 0;font-size:clamp(42px,6vw,72px);line-height:1;letter-spacing:0}
 .raye2-series-page h1 em{color:var(--s-blue);font-style:normal}
-.raye2-series-page .raye2-muted{max-width:650px;color:var(--s-muted);font-size:13px;line-height:1.85}
+.raye2-series-page .raye2-muted{max-width:650px;color:var(--s-muted);font-size:14.5px;line-height:1.85}
 .raye2-series-page .raye2-series-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin-top:34px}
 .raye2-series-page .raye2-series-card{position:relative;overflow:hidden;min-height:230px;display:flex;flex-direction:column;align-items:flex-start;padding:23px;border:1px solid var(--s-line);border-radius:16px;background:linear-gradient(145deg,rgba(28,28,31,.96),var(--s-panel));transition:transform .18s,border-color .18s}
 .raye2-series-page .raye2-series-card:hover{transform:translateY(-3px);border-color:rgba(77,141,246,.4)}
 .raye2-series-page .raye2-series-cover{position:absolute;inset:0;z-index:0;opacity:.32}
 .raye2-series-page .raye2-series-cover img{object-fit:cover}
 .raye2-series-page .raye2-series-card>*{position:relative;z-index:1}
-.raye2-series-page .raye2-series-owner{color:var(--s-muted);font-size:10px;font-weight:750}
+.raye2-series-page .raye2-series-owner{color:var(--s-muted);font-size:12.5px;font-weight:750}
 .raye2-series-page .raye2-series-icon{width:42px;height:42px;display:grid;place-items:center;margin-bottom:24px;border:1px solid rgba(77,141,246,.22);border-radius:12px;background:rgba(77,141,246,.08);color:var(--s-blue);font-size:20px}
-.raye2-series-page .raye2-series-card h2{margin:10px 0;font-size:20px;letter-spacing:-.04em}
-.raye2-series-page .raye2-series-card p{color:var(--s-muted);font-size:11px;line-height:1.8}
-.raye2-series-page .raye2-series-card small{margin-top:auto;padding-top:16px;color:var(--s-blue);font-size:10px;font-weight:750}
+.raye2-series-page .raye2-series-card h2{margin:10px 0;font-size:20px;letter-spacing:0}
+.raye2-series-page .raye2-series-card p{color:var(--s-muted);font-size:13.5px;line-height:1.8}
+.raye2-series-page .raye2-series-card small{margin-top:auto;padding-top:16px;color:var(--s-blue);font-size:12.5px;font-weight:750}
 .raye2-series-page .raye2-series-video-list{display:grid;gap:10px;margin-top:30px}
 .raye2-series-page .raye2-search-result{display:flex;align-items:center;gap:15px;padding:17px;border:1px solid var(--s-line);border-radius:13px;background:var(--s-panel)}
 .raye2-series-page .raye2-search-result:hover{border-color:rgba(77,141,246,.4);background:var(--s-raised)}
 .raye2-series-page .raye2-search-result-icon{width:42px;height:42px;display:grid;place-items:center;flex:0 0 auto;border-radius:11px;background:var(--s-raised);color:var(--s-blue)}
-.raye2-series-page .raye2-search-result>div{min-width:0;flex:1}.raye2-series-page .raye2-search-result strong{display:block;font-size:12px}.raye2-series-page .raye2-search-result small{display:block;margin-top:5px;color:var(--s-muted);font-size:10px;line-height:1.6}
-.raye2-series-page .raye2-search-result>b{color:var(--s-blue);font-size:10px;white-space:nowrap}
-.raye2-series-page .raye2-empty-state{padding:28px;border:1px dashed var(--s-line);border-radius:14px;background:var(--s-panel);color:var(--s-muted);font-size:12px;line-height:1.8}
+.raye2-series-page .raye2-search-result>div{min-width:0;flex:1}.raye2-series-page .raye2-search-result strong{display:block;font-size:14px}.raye2-series-page .raye2-search-result small{display:block;margin-top:5px;color:var(--s-muted);font-size:12.5px;line-height:1.6}
+.raye2-series-page .raye2-search-result>b{color:var(--s-blue);font-size:12.5px;white-space:nowrap}
+.raye2-series-page .raye2-empty-state{padding:28px;border:1px dashed var(--s-line);border-radius:14px;background:var(--s-panel);color:var(--s-muted);font-size:14px;line-height:1.8}
 .raye2-series-page a:focus-visible{outline:2px solid var(--s-blue);outline-offset:3px}
 @media(max-width:900px){.raye2-series-page .raye2-series-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.raye2-series-page{padding-inline:14px}.raye2-series-page .raye2-watch-top{height:65px}.raye2-series-page .raye2-series-wrap{padding:42px 0}.raye2-series-page .raye2-series-grid{grid-template-columns:1fr}.raye2-series-page .raye2-series-card{min-height:190px}.raye2-series-page .raye2-search-result{gap:10px;padding:12px}.raye2-series-page .raye2-search-result>b{display:none}}

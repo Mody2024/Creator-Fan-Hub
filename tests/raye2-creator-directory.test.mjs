@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readFileSync as __rfs } from "node:fs";
+const __railData = __rfs(new URL("../src/app/raye2-shell/shell-data.ts", import.meta.url), "utf8");
+const __railSrc = __rfs(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [migration, creatorsPage, homePage, searchPage] = await Promise.all([
@@ -56,6 +59,6 @@ test("the creators page localizes, sorts and links profiles to /u/<handle>", () 
 });
 
 test("the directory is reachable from the home and discover rails", () => {
-  assert.match(homePage, /href="\/creators"/);
+  assert.match(__railData, /href: "\/creators"/); // the shared rail's More group
   assert.match(searchPage, /href="\/creators"/);
 });

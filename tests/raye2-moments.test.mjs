@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { readFileSync as __rfs } from "node:fs";
+const __railData = __rfs(new URL("../src/app/raye2-shell/shell-data.ts", import.meta.url), "utf8");
+const __railSrc = __rfs(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
 const [migration, page, client, home] = await Promise.all([
@@ -37,5 +40,5 @@ test("the Moments page and compose widget are wired up", () => {
   assert.match(page, /MomentsClient/);
   assert.match(client, /raye2_publish_moment/);
   assert.match(client, /get_creator_media/);
-  assert.match(home, /href="\/moments"/);
+  assert.match(__railData, /href: "\/moments"/);
 });

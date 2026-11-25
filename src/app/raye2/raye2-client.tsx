@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { PLATFORM_NAV_RAYE2, isPlatformNavActive, platformNavItems } from "@/lib/platform-nav";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./raye2.module.css";
 import Raye2VoiceControls from "./raye2-voice-controls";
 import Raye2GroupVoiceControls from "./raye2-group-voice-controls";
 import Raye2WatchTogetherControls from "./raye2-watch-together-controls";
 import Raye2MessagePoll from "./raye2-message-poll";
+import ShellTopBar from "@/app/raye2-shell/shell-top";
+import AuthBrand from "@/app/raye2-shell/auth-brand";
 
 type Profile = { user_id: string; handle: string | null; display_name: string | null; avatar_url?: string | null };
 type Group = { id: string; name: string; slug: string; description: string; visibility: "public" | "private"; status: string; conversation_id: string | null; owner_id: string; slow_mode_seconds?: number; rules?: string; image_url?: string | null; topics?: string[]; memberRole?: "owner" | "admin" | "moderator" | "member" };
@@ -41,9 +42,18 @@ const relative = (value: string, locale: Locale) => {
 };
 const initials = (name: string) => name.trim().split(/\s+/).slice(0, 2).map(part => part[0]?.toUpperCase() ?? "").join("") || "R";
 
+// WhatsApp-style day divider label: Today / Yesterday / weekday + date.
+function dayLabel(iso: string, locale: "en" | "ar") {
+  const date = new Date(iso);
+  const startOf = (value: Date) => new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
+  const diff = Math.round((startOf(new Date()) - startOf(date)) / 86400000);
+  if (diff === 0) return locale === "ar" ? "اليوم" : "Today";
+  if (diff === 1) return locale === "ar" ? "أمس" : "Yesterday";
+  return date.toLocaleDateString(locale === "ar" ? "ar" : "en", { weekday: "long", month: "short", day: "numeric" });
+}
+
 export default function Raye2Client() {
   const router = useRouter();
-  const pathname = usePathname();
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [locale, setLocale] = useState<Locale>("en");
   const [userId, setUserId] = useState<string | null>(null);
@@ -123,6 +133,7 @@ export default function Raye2Client() {
   const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
   const [myReactions, setMyReactions] = useState<Record<string, string[]>>({});
   const [mobilePane, setMobilePane] = useState<"list" | "chat">("list");
+  useEffect(() => { document.body.dataset.raye2Thread = mobilePane === "chat" ? "open" : "list"; return () => { delete document.body.dataset.raye2Thread; }; }, [mobilePane]);
 
   const isAr = locale === "ar";
   const t = isAr ? {
@@ -848,7 +859,7 @@ export default function Raye2Client() {
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc("raye2_export_shared_memories", { p_group_id: groupId });
-      if (error || !data) throw error ?? new Error("Export unavailable");
+      if (error || !data) throw error ?? new Error(isAr ? "التصدير غير متاح" : "Export unavailable");
       const groupName = groups.find(group => group.id === groupId)?.name ?? "raye2-group";
       const safeName = groupName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "raye2-group";
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json;charset=utf-8" });
@@ -874,7 +885,7 @@ export default function Raye2Client() {
     try {
       const { data, error } = await supabase.from("raye2_shared_memories").update(patch).eq("id", memory.id)
         .select("id,group_id,created_by,source_message_id,memory_type,title,caption,content,retention_mode,expires_at,pinned,created_at").maybeSingle();
-      if (error || !data) throw error ?? new Error("Memory permission denied");
+      if (error || !data) throw error ?? new Error(isAr ? "لا تملك صلاحية على الذكريات" : "Memory permission denied");
       setMemories(current => current.map(item => item.id === memory.id ? data as SharedMemory : item));
       setStatus(t.memoryUpdated);
     } catch { setStatus(t.searchError); }
@@ -1024,43 +1035,22 @@ export default function Raye2Client() {
     else setMessages(current => current.filter(item => item.id !== message.id));
   }
 
-  const platformNav = platformNavItems(PLATFORM_NAV_RAYE2, isAr ? {
-    home: "الرئيسية", videos: "المشاهدة", shorts: "ميني", explore: "استكشف", series: "السلاسل",
-    studio: "استوديو المبدعين", messages: "الرسائل", notifications: "الإشعارات", saved: "المحفوظات", profile: "الملف الشخصي"
-  } : {
-    home: "Home", videos: "Watch", shorts: "Mini's", explore: "Explore", series: "Series",
-    studio: "Creator Studio", messages: "Messages", notifications: "Alerts", saved: "Saved", profile: "Profile"
-  });
-  const switchLocale = () => {
-    const next: Locale = locale === "en" ? "ar" : "en";
-    setLocale(next);
-    document.cookie = `raye2_locale=${next}; path=/; max-age=31536000; samesite=lax`;
-  };
   const reactionOptions = ["❤️", "👍", "😂", "✨", "🔥"];
-  if (!supabase) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link></main>;
-  if (!userId) return <main className={styles.authGate}><Link href="/" className={styles.brand}>RAYE<span>2</span></Link><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link><Link className={styles.backLink} href="/">{t.home}</Link></main>;
+  if (!supabase) return <main className={styles.authGate}><AuthBrand /><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link></main>;
+  if (!userId) return <main className={styles.authGate}><AuthBrand /><h1>{t.signIn}</h1><p>{t.signInText}</p><Link className={styles.primaryButton} href="/community#join">{t.signIn}</Link><Link className={styles.backLink} href="/">{t.home}</Link></main>;
 
   return (
     <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
       <div className={styles.voiceGlobalWrap}>{supabase && userId && <Raye2VoiceControls supabase={supabase} userId={userId} conversationId={selected?.kind === "direct" ? selected.conversationId : null} peerUserId={selected?.kind === "direct" ? selected.otherUserId : null} peerName={selected?.title ?? ""} locale={locale} />}</div>
-      <header className={styles.header}>
-        <Link href="/" className={styles.brand} aria-label="Raye2 home">RAYE<span>2</span></Link>
-        <nav className={styles.platformNav} aria-label={isAr ? "التنقل الرئيسي" : "Main navigation"}>
-          {platformNav.map(item => <Link key={item.href} href={item.href} className={isPlatformNavActive(pathname, item.href) ? styles.platformNavActive : ""} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}>
-            <span className={styles.platformNavIcon} aria-hidden="true">{item.icon}</span><span>{item.label}</span>
-          </Link>)}
+      <ShellTopBar locale={isAr ? "ar" : "en"} member={profile?.handle ? { handle: profile.handle } : null} onSignOut={() => void supabase.auth.signOut().then(() => router.push("/"))} />
+                  <section className={styles.workspace}>
+<nav className={styles.rail} aria-label={t.groups}>
+          <button className={`${styles.railItem} ${tab !== "groups" && tab !== "discover" ? styles.railActive : ""}`} title={t.chats} aria-label={t.chats} onClick={() => { setTab("chats"); setMobilePane("list"); }}><img src="/brand/raye2-mark.png" alt="" width={30} height={30} /></button>
+          <i className={styles.railDivider} />
+          {groups.filter(group => group.conversation_id).map(group => { const unread = threads.find(thread => thread.conversationId === group.conversation_id)?.unread ?? 0; return <button key={group.id} className={`${styles.railItem} ${selected?.groupId === group.id ? styles.railActive : ""}`} title={group.name} aria-label={group.name} onClick={() => { setSelectedId(group.conversation_id as string); setTab("groups"); setMobilePane("chat"); }}>{initials(group.name)}{unread > 0 ? <i className={styles.railBadge}>{unread > 9 ? "9+" : unread}</i> : null}</button>; })}
+          <button className={`${styles.railItem} ${styles.railAdd}`} title={t.newGroup} aria-label={t.newGroup} onClick={() => setShowCreateGroup(true)}>+</button>
+          <button className={`${styles.railItem} ${styles.railAdd} ${tab === "discover" ? styles.railActive : ""}`} title={t.discover} aria-label={t.discover} onClick={() => { setTab("discover"); setMobilePane("list"); }}>&#9678;</button>
         </nav>
-        <div className={styles.headerActions}>
-          <span className={styles.headerMember}>{profile?.display_name ?? profile?.handle ?? "Member"}</span>
-          <button className={styles.utilityToggle} type="button" onClick={switchLocale} aria-label={isAr ? "Switch to English" : "التبديل إلى العربية"}>{isAr ? "EN" : "عربي"}</button>
-          <button onClick={() => void supabase.auth.signOut().then(() => router.push("/"))}>{t.signOut}</button>
-        </div>
-      </header>
-      <nav className={styles.mobilePlatformNav} aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
-        {platformNav.slice(0, 6).map(item => <Link key={item.href} href={item.href} className={isPlatformNavActive(pathname, item.href) ? styles.platformNavActive : ""} aria-current={isPlatformNavActive(pathname, item.href) ? "page" : undefined}><span aria-hidden="true">{item.icon}</span>{item.label}</Link>)}
-      </nav>
-      <section className={styles.intro}><div><span className={styles.kicker}>RAYE2 / COMMUNITY LAYER</span><h1>{t.title}</h1><p>{t.intro}</p></div><div className={styles.introMark}><span>R</span><i>✳</i></div></section>
-      <section className={styles.workspace}>
         <aside className={`${styles.sidebar} ${mobilePane === "chat" ? styles.hideMobile : ""}`}>
           <div className={styles.sideTop}><div><span className={styles.kicker}>{t.rooms}</span><h2>{t.chats}</h2></div><button className={styles.iconButton} onClick={() => { setTab("chats"); setPersonQuery(""); setPeople([]); document.getElementById("raye2-people-search")?.focus(); }} aria-label={t.newMessage}>＋</button></div>
           <label className={styles.searchBox}><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder={t.search}/></label>
@@ -1099,7 +1089,7 @@ export default function Raye2Client() {
             {!people.length && !discoverGroups.length && <p className={styles.emptySmall}>{t.noResults}</p>}
           </div> : tab === "memories" ? <div className={styles.threadList}><p className={styles.modalHint}>{t.exportNote}</p>{groups.map(group => <article className={styles.groupRow} key={"memory-export-" + group.id}><div className={styles.personInfo}><b>{group.name}</b><small>{group.visibility === "private" ? t.privateLabel : t.publicLabel}</small></div><button className={styles.miniButton} disabled={busy} onClick={() => void exportSharedMemories(group.id)}>{t.exportMemories}</button></article>)}
             {memories.map(memory => <article className={styles.memoryCard} key={memory.id}>
-              <div className={styles.memoryTop}><span>{memory.pinned ? "✦ PINNED" : "SHARED MEMORY"}</span><small>{relative(memory.created_at, locale)}</small></div>
+              <div className={styles.memoryTop}><span>{memory.pinned ? (isAr ? "مثبّتة" : "PINNED") : (isAr ? "ذكرى مشتركة" : "SHARED MEMORY")}</span><small>{relative(memory.created_at, locale)}</small></div>
               <b>{memory.title || (isAr ? "ذكرى مشتركة" : "Shared memory")}</b>
               <p>{String(memory.content.body ?? memory.caption ?? "")}</p>
               <small>{memory.retention_mode === "preserved" ? (isAr ? "محفوظة" : "Preserved") : memory.expires_at ? (isAr ? "تنتهي " : "Expires ") + relative(memory.expires_at, locale) : (isAr ? "مرتبطة بعمر المجموعة" : "Group lifetime")}</small>
@@ -1136,11 +1126,14 @@ export default function Raye2Client() {
             </section>}
             <div className={styles.messageArea}>
               {visibleMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
-              {visibleMessages.map(message => {
+              {visibleMessages.map((message, index) => {
+                const previous = index > 0 ? visibleMessages[index - 1] : null;
+                const newDay = !previous || new Date(previous.created_at).toDateString() !== new Date(message.created_at).toDateString();
+                const grouped = !newDay && previous?.sender_id === message.sender_id && new Date(message.created_at).getTime() - new Date(previous.created_at).getTime() < 5 * 60000;
                 const mine = message.sender_id === userId;
                 const author = profiles[message.sender_id];
                 const parent = message.parent_message_id ? messages.find(item => item.id === message.parent_message_id) : null;
-                return <article key={message.id} className={`${styles.messageRow} ${mine ? styles.ownMessage : ""}`}>
+                return <Fragment key={message.id}>{newDay && <div className={styles.dayDivider}><span>{dayLabel(message.created_at, locale)}</span></div>}<article tabIndex={0} className={`${styles.messageRow} ${mine ? styles.ownMessage : ""} ${grouped ? styles.grouped : ""}`}>
                   {!mine && <div className={styles.messageAvatar}>{initials(author?.display_name ?? author?.handle ?? "R")}</div>}
                   <div className={styles.messageBody}>
                     {!mine && <span className={styles.author}>{author?.display_name ?? author?.handle ?? "Member"}</span>}
@@ -1157,7 +1150,7 @@ export default function Raye2Client() {
                     </div>
                     <div className={styles.reactionStrip}>{reactionOptions.map((emoji, index) => { const key = ["love", "like", "laugh", "spark", "fire"][index]; const count = reactionCounts[message.id]?.[key] ?? 0; return <button key={key} className={myReactions[message.id]?.includes(key) ? styles.reacted : ""} onClick={() => void toggleReaction(message, key)}>{emoji}{count > 0 && <small>{count}</small>}</button>; })}</div>
                   </div>
-                </article>;
+                </article></Fragment>;
               })}
             </div>
             <div className={styles.composerWrap}>
@@ -1172,7 +1165,7 @@ export default function Raye2Client() {
               </section>}
               <form className={styles.composer} onSubmit={event => { event.preventDefault(); void sendMessage(); }}><textarea value={compose} onChange={event => { setCompose(event.target.value); if (event.target.value.trim() && !typingActive.current) { typingActive.current = true; broadcastTyping(true); } else if (!event.target.value.trim() && typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onBlur={() => { if (typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={selected.canSend ? t.message : (isAr ? "هذه المجموعة للقراءة فقط حاليًا" : "This group is currently read-only")} disabled={!selected.canSend} maxLength={5000} rows={1}/><button type="submit" disabled={!compose.trim() || busy || !selected.canSend}>{t.send} ↗</button></form><div className={styles.composerFoot}><span>RAYE2 • PRIVATE BY DESIGN</span><label className={styles.disappearingControl}>{t.disappearing}<select aria-label={t.disappearing} value={selected.disappearingSeconds ?? 0} disabled={busy || (selected.kind === "group" && !canManageSelectedGroup)} onChange={event => { const next = Number(event.target.value); void setDisappearing(next === 0 ? null : next); }}><option value={0}>{t.disappearingNone}</option><option value={86400}>{t.disappearingDay}</option><option value={604800}>{t.disappearingWeek}</option><option value={2592000}>{t.disappearingMonth}</option></select></label><span>{compose.length}/5000</span></div>
             </div>
-          </> : <div className={styles.blankState}><div className={styles.blankOrbit}>R</div><span className={styles.kicker}>{t.eyebrow}</span><h2>{t.emptyTitle}</h2><p>{t.emptyText}</p><button className={styles.primaryButton} onClick={() => { setTab("discover"); setMobilePane("list"); }}>{t.discover} ↗</button></div>}
+          </> : <div className={styles.blankState}><div className={styles.blankOrbit}><img src="/brand/raye2-mark.png" alt="" width={72} height={72} /></div><span className={styles.kicker}>{t.eyebrow}</span><h2>{t.emptyTitle}</h2><p>{t.emptyText}</p><button className={styles.primaryButton} onClick={() => { setTab("discover"); setMobilePane("list"); }}>{t.discover} ↗</button></div>}
         </section>
       </section>
       {status && <div className={styles.status} role="status">{status}<button onClick={() => setStatus("")}>×</button></div>}
@@ -1196,7 +1189,7 @@ export default function Raye2Client() {
           </div>
           {selectedGroup.memberRole === "owner" && <div className={styles.manageSection}><div className={styles.manageSectionTitle}><b>{t.lifecycle}</b><span>{selectedGroup.status === "archived" ? t.statusArchived : selectedGroup.status === "read_only" ? t.statusReadOnly : "—"}</span></div><div className={styles.manageRow}>{selectedGroup.status === "archived" ? <button className={styles.miniButton} disabled={busy} onClick={() => void setGroupStatus("active")}>{t.reactivateGroup}</button> : <><button className={styles.miniButton} disabled={busy} onClick={() => void setGroupStatus("read_only")}>{t.statusReadOnly}</button><button className={styles.dangerButton} disabled={busy} onClick={() => void setGroupStatus("archived")}>{t.archiveGroup}</button></>}</div></div>}
           <div className={styles.manageSection}><div className={styles.manageSectionTitle}><b>{t.slowMode}</b><span>{selectedGroup.slow_mode_seconds ? selectedGroup.slow_mode_seconds + "s" : t.slowModeOff}</span></div><label>{t.slowMode}<select value={selectedGroup.slow_mode_seconds ?? 0} disabled={busy} onChange={event => void setSlowMode(Number(event.target.value))}><option value={0}>{t.slowModeOff}</option><option value={5}>5</option><option value={10}>10</option><option value={30}>30</option><option value={60}>60</option><option value={300}>300</option></select></label><p className={styles.emptySmall}>{t.slowModeNote}</p></div>
-          <div className={styles.manageSection}><div className={styles.manageSectionTitle}><b>{t.groupProfile}</b><span>PROFILE</span></div>
+          <div className={styles.manageSection}><div className={styles.manageSectionTitle}><b>{t.groupProfile}</b><span>{isAr ? "الملف" : "PROFILE"}</span></div>
             <label>{t.groupDescription}<textarea value={profileDescription} onChange={event => setProfileDescription(event.target.value)} maxLength={1000} rows={2}/></label>
             <label>{t.groupRules}<textarea value={profileRules} onChange={event => setProfileRules(event.target.value)} maxLength={3000} rows={3}/></label>
             <label>{t.groupImageUrl}<input value={profileImageUrl} onChange={event => setProfileImageUrl(event.target.value)} maxLength={600} placeholder="https://…"/></label>

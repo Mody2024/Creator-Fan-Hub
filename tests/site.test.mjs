@@ -500,11 +500,13 @@ test("community moderation uses a private role helper across every moderation qu
 });
 
 
-test("video navigation is hidden when the creator disables the video section", async () => {
+test("launch 1.0: media navigation is tucked under Coming soon and hidden from the member home", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   assert.match(page, /const videoSectionVisible = config\.visibleSections\.includes\("videos"\)/);
-  assert.match(page, /PLATFORM_NAV_PRIMARY\.filter\(key => key !== "videos" && key !== "shorts"\)/);
-  assert.match(page, /visibleSections\.includes\("videos"\) && <PublicVideos \/>/);
+  assert.match(page, /LAUNCH_MEDIA_VISIBLE/);
+  const railSource = await readFile(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
+  assert.match(railSource, /const SOON: Entry\[\]/);
+  assert.match(page, /<PublicVideos \/>/); // preserved, but gated by LAUNCH_MEDIA_VISIBLE
 });
 
 
@@ -548,14 +550,14 @@ test("video navigation is consistently gated without duplicate Watch and Videos 
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.visibleSections.includes("videos")'));
   assert.equal(page.includes('<a href="#videos">Videos</a>'), false);
-  assert.ok(page.includes("const primaryKeys = videoSectionVisible"));
-  const mobileStart = page.indexOf('<nav className="mobile-nav"');
-  const mobileEnd = page.indexOf("</nav>", mobileStart);
-  const mobileNav = page.slice(mobileStart, mobileEnd);
-  assert.ok(mobileNav.includes("primaryNav.map"));
-  const desktopStart = page.indexOf('<aside className="desktop-nav"');
-  const desktopEnd = page.indexOf("</aside>", desktopStart);
-  assert.ok(page.slice(desktopStart, desktopEnd).includes("primaryNav.map"));
+  assert.ok(page.includes("showVideos={videoSectionVisible}"));
+  // The shared shell replaces the per-page navs: the left rail renders the gated primary items and the
+  // phone bottom bar is mounted once in the root layout.
+  assert.ok(page.includes("<ShellRail") && page.includes("showVideos={videoSectionVisible}"));
+  assert.ok(page.includes("<ShellTopBar"));
+  assert.equal(page.includes('className="mobile-nav"'), false);
+  const layout = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.ok(layout.includes("<BottomNav"));
 });
 test("publishing a site draft requires compatible published media assets", async () => {
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");

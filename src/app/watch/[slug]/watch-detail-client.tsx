@@ -246,7 +246,6 @@ export default function WatchDetailClient(props:Props){
  }
 
  return <main className="raye2-detail-page" dir={isArabic?"rtl":"ltr"} lang={locale}>
-  <header className="raye2-detail-header"><Link className="raye2-detail-brand" href="/raye2/home">Raye2<span className="raye2-detail-brand-mark">.</span></Link><nav><Link href="/raye2/home">{t.home}</Link><Link href="/community">{t.community}</Link><Link href="/notifications">{t.notifications}</Link><Link href="/series">{t.series}</Link><Link href="/shorts">{t.shorts}</Link><Link href="/#videos">{t.videos}</Link></nav></header>
   <div className="raye2-detail-layout">
    <article className="raye2-detail-main">
     <Raye2SkippablePromoGate placement="video"><div className="raye2-detail-player"><PublicVideoPlayer startAt={props.startAt} hlsSrc={props.hlsSrc} src={props.src} poster={props.poster} title={props.title} description={props.description} youtubeEmbedUrl={props.youtubeEmbedUrl} captions={props.captions} locale={locale} onProgress={saveProgress}/></div></Raye2SkippablePromoGate>
