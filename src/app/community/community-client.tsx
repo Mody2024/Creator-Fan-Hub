@@ -121,7 +121,12 @@ export default function CommunityClient({ initialPosts, topics = [], selectedFee
 
   useEffect(() => {
     const accessToken = new URLSearchParams(window.location.search).get("raye2_access_invite");
-    if (accessToken && /^[0-9a-f]{64}$/i.test(accessToken)) setAccessInvite(accessToken.toLowerCase());
+    if (accessToken && /^[0-9a-f]{64}$/i.test(accessToken)) {
+      setAccessInvite(accessToken.toLowerCase());
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete("raye2_access_invite");
+      window.history.replaceState({}, "", cleanUrl.pathname + cleanUrl.search + cleanUrl.hash);
+    }
   }, []);
 
   useEffect(() => {
