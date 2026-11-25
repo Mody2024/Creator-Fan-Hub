@@ -11,6 +11,7 @@ import ByosConnections from "./byos-connections";
 import StorageProviders from "./storage-providers";
 import YouTubeChannelSources from "./youtube-channel-sources";
 import ShellBrand from "@/app/raye2-shell/shell-brand";
+import LanguageSwitch from "@/app/language-switch";
 
 type ScheduledAppearanceEvent = { id: string; name: string; enabled: boolean; startsAt: string; endsAt: string; accent: string; displayFont: string; chalkTexture: string; theme: string; colorMode: string };
 type SiteConfigDraft = { [key: string]: unknown; appearance?: { [key: string]: unknown; eventThemes?: ScheduledAppearanceEvent[] } };
@@ -430,7 +431,7 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const normalizedNavSearch = navSearch.trim().toLocaleLowerCase();
   const visibleNavGroups = normalizedNavSearch ? navGroups.map(group => ({ ...group, items: group.items.filter(item => `${group.title} ${item.label}`.toLocaleLowerCase().includes(normalizedNavSearch)) })).filter(group => group.items.length > 0) : navGroups;
   return <main className={styles.page} dir={isAr ? "rtl" : "ltr"} lang={locale}>
-    <header className="raye2-ws-top"><ShellBrand locale={locale === "ar" ? "ar" : "en"} /><span className="raye2-ws-chip raye2-ws-chip--studio">{t.eyebrow}</span><span className="raye2-ws-spacer" /><Link className="raye2-ws-pill" href="/raye2/home">{isAr ? "المنصة" : "Platform"}</Link><Link className="raye2-ws-pill" href="/creator">{isAr ? "الاستوديو" : "Studio"}</Link></header>
+    <header className="raye2-ws-top"><ShellBrand locale={locale === "ar" ? "ar" : "en"} /><span className="raye2-ws-chip raye2-ws-chip--studio">{t.eyebrow}</span><span className="raye2-ws-spacer" /><LanguageSwitch initialLocale={locale} variant="header" /><Link className="raye2-ws-pill" href="/raye2/home">{isAr ? "المنصة" : "Platform"}</Link><Link className="raye2-ws-pill" href="/creator">{isAr ? "الاستوديو" : "Studio"}</Link></header>
     <section className={styles.intro}><span>{t.eyebrow}</span><h1>{t.title}</h1><p>{t.intro}</p></section>
     <div className={styles.shell}>
       <nav className={styles.sidenav} aria-label={isAr ? "أقسام إدارة Raye2" : "Raye2 administration sections"}><label className={styles.navSearch}><span aria-hidden="true">⌕</span><input type="search" value={navSearch} onChange={event => setNavSearch(event.target.value)} placeholder={isAr ? "ابحث عن إعداد أو قسم..." : "Find a setting or section..."} aria-label={isAr ? "ابحث في أقسام الإدارة" : "Search admin sections"}/>{navSearch && <button type="button" onClick={() => setNavSearch("")} aria-label={isAr ? "مسح البحث" : "Clear search"}>×</button>}</label>{visibleNavGroups.length ? visibleNavGroups.map(group => <details className={styles.navGroup} key={group.title} open={!!normalizedNavSearch || group.items.some(item => item.id === tab)}><summary className={styles.navGroupTitle}>{group.title}<span aria-hidden="true">⌄</span></summary><div className={styles.navGroupItems}>{group.items.map(item => <button key={item.id} type="button" className={tab === item.id ? styles.navItemActive : styles.navItem} aria-current={tab === item.id ? "page" : undefined} onClick={() => setTab(item.id)}>{item.label}</button>)}</div></details>) : <p className={styles.navEmpty}>{isAr ? "لا توجد أقسام مطابقة." : "No matching sections."}</p>}</nav>
