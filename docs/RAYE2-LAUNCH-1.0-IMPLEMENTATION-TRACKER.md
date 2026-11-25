@@ -39,3 +39,23 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Added an automated source-contract test for the three-step flow and its existing RPC boundary.
 - **Verification:** tests, type-check, lint, build, and browser/device QA are pending the next CI run. This batch is implemented but not yet tested.
 
+
+
+## Batch 3 — 2026-11-25: Launch design integration and access rules
+
+- Imported the 119 changed files from Claude's `design/launch-1.0` PR into `development` while preserving the source design branch and full-platform design branch.
+- Added the shared inline language control to the main shell, creator workspace chrome, and admin header; wired the editable language label through the public shell.
+- Connected the launch media gate to a shared server-side platform-admin check. Active `owner` and `admin` accounts retain media access; ordinary members see the Launch 1.0 Coming Soon state. The check fails closed.
+- Made the public home, Raye2 home, and search surfaces communication-first for members while retaining media discovery for platform admins.
+- Removed the member-facing Videos/Mini's/Moments search filters during Launch 1.0; group and creator discovery remain available.
+- Locked the live appearance to the single Raye2 dark palette, approved blue accents, and one logo preview theme. Deferred scheduled theme creation.
+- Updated validation contracts to reflect the shared shell, admin-only media visibility, and the fixed brand theme.
+
+## Verification status
+
+- The media-worker container image built successfully in CI.
+- The latest completed automated run exposed one remaining legacy light-theme selector; that selector has now been removed.
+- A fresh full CI run is required to confirm static validation, automated tests, type-check, lint, and Next.js production build.
+- Browser/device QA, authenticated admin/member checks, Arabic visual review, accessibility review, and final Vercel preview verification are still pending.
+- Production branch and deployment remain untouched; all work is on `development`.
+
