@@ -33,7 +33,7 @@ self.addEventListener("fetch", event => {
     url.pathname.startsWith("/api/") ||
     url.pathname.startsWith("/auth/") ||
     url.pathname.startsWith("/creator/") ||
-    url.pathname.startsWith("/raye2/") ||
+    (url.pathname === "/raye2" || url.pathname.startsWith("/raye2/")) ||
     url.pathname.startsWith("/groups/") ||
     url.pathname.startsWith("/_next/data/")
   ) return;
