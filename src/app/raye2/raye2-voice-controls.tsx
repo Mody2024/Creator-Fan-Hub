@@ -40,6 +40,9 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [remoteAudioReady, setRemoteAudioReady] = useState(false);
+  const [screenShareActive, setScreenShareActive] = useState(false);
+  const [remoteScreenActive, setRemoteScreenActive] = useState(false);
+  const [screenShareError, setScreenShareError] = useState("");
   const [activePeerName, setActivePeerName] = useState("");
   const [activePeerId, setActivePeerId] = useState<string | null>(null);
   const inputDeviceIdRef = useRef("");
@@ -53,6 +56,8 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
   const [recordingElapsed, setRecordingElapsed] = useState(0);
   const [recordingBusy, setRecordingBusy] = useState(false);
   const remoteAudio = useRef<HTMLAudioElement | null>(null);
+  const remoteVideo = useRef<HTMLVideoElement | null>(null);
+  const screenShareStreamRef = useRef<MediaStream | null>(null);
   const channelRef = useRef<ReturnType<SupabaseClient["channel"]> | null>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
@@ -83,9 +88,14 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     peerRef.current = null;
     localStreamRef.current?.getTracks().forEach(track => track.stop());
     localStreamRef.current = null;
+    screenShareStreamRef.current?.getTracks().forEach(track => track.stop());
+    screenShareStreamRef.current = null;
     remoteStreamRef.current?.getTracks().forEach(track => track.stop());
     remoteStreamRef.current = null;
     if (remoteAudio.current) remoteAudio.current.srcObject = null;
+    if (remoteVideo.current) remoteVideo.current.srcObject = null;
+    setScreenShareActive(false);
+    setRemoteScreenActive(false);
     pendingIceRef.current = [];
     offerStartedRef.current = false;
     setRemoteAudioReady(false);
@@ -136,10 +146,21 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     const peer = new RTCPeerConnection({ iceServers });
     peerRef.current = peer;
     stream.getAudioTracks().forEach(track => peer.addTrack(track, stream));
+    // Negotiate a video sender up front so screen sharing can start later without
+    // a second offer/answer cycle or a fragile renegotiation race.
+    peer.addTransceiver("video", { direction: "sendrecv" });
     peer.ontrack = event => {
       const [streamFromPeer] = event.streams;
       if (streamFromPeer) {
         remoteStreamRef.current = streamFromPeer;
+        if (event.track.kind === "video") {
+          setRemoteScreenActive(true);
+          event.track.onended = () => setRemoteScreenActive(false);
+          if (remoteVideo.current) {
+            remoteVideo.current.srcObject = streamFromPeer;
+            void remoteVideo.current.play().catch(() => setError(copy.failed));
+          }
+        }
         if (remoteAudio.current) {
           remoteAudio.current.srcObject = streamFromPeer;
           void remoteAudio.current.play().then(() => setRemoteAudioReady(true)).catch(() => setError(copy.failed));
@@ -319,6 +340,52 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     };
   }, [activePeerId, cleanupMedia, closeChannel, copy.failed, createPeer, role, sendSignal, session, supabase, userId]);
 
+  const toggleScreenShare = async () => {
+    const peer = peerRef.current;
+    if (!peer || callState !== "connected") return;
+    setScreenShareError("");
+    if (screenShareActive) {
+      const sender = peer.getTransceivers().find(item => item.receiver.track.kind === "video")?.sender;
+      try {
+        await sender?.replaceTrack(null);
+        screenShareStreamRef.current?.getTracks().forEach(track => track.stop());
+        screenShareStreamRef.current = null;
+        setScreenShareActive(false);
+      } catch {
+        setScreenShareError(isAr ? "تعذر إيقاف مشاركة الشاشة." : "Could not stop screen sharing.");
+      }
+      return;
+    }
+    if (typeof window === "undefined" || !window.isSecureContext || typeof navigator.mediaDevices?.getDisplayMedia !== "function") {
+      setScreenShareError(isAr
+        ? "مشاركة الشاشة غير مدعومة في هذا المتصفح أو على هذا الجهاز. جرّب متصفح سطح مكتب مدعومًا."
+        : "Screen sharing is unavailable in this browser or on this device. Try a supported desktop browser.");
+      return;
+    }
+    try {
+      // User-initiated, live-only display capture. No display audio is captured or stored.
+      const capture = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+      const track = capture.getVideoTracks()[0];
+      const sender = peer.getTransceivers().find(item => item.receiver.track.kind === "video")?.sender;
+      if (!track || !sender) throw new Error("Screen sharing is unavailable.");
+      screenShareStreamRef.current = capture;
+      track.onended = () => {
+        void sender.replaceTrack(null).catch(() => undefined);
+        screenShareStreamRef.current?.getTracks().forEach(item => item.stop());
+        screenShareStreamRef.current = null;
+        setScreenShareActive(false);
+      };
+      await sender.replaceTrack(track);
+      setScreenShareActive(true);
+    } catch (caught) {
+      screenShareStreamRef.current?.getTracks().forEach(track => track.stop());
+      screenShareStreamRef.current = null;
+      setScreenShareActive(false);
+      if (caught instanceof DOMException && caught.name === "NotAllowedError") return;
+      setScreenShareError(isAr ? "تعذرت مشاركة الشاشة. حاول مرة أخرى." : "Screen sharing could not start. Please try again.");
+    }
+  };
+
   const changeInputDevice = async (deviceId: string) => {
     setInputDeviceId(deviceId);
     inputDeviceIdRef.current = deviceId;
@@ -437,11 +504,15 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
   if (session) return (
     <div className={styles.voiceActive} role="status">
       <audio ref={remoteAudio} autoPlay playsInline />
+      <video ref={remoteVideo} className={remoteScreenActive ? styles.privateCallScreen : styles.privateCallScreenHidden} autoPlay playsInline muted aria-label={isAr ? "الشاشة المشتركة" : "Shared screen"} />
       <span className={styles.voicePulse}>◉</span>
       <div><b>{callState === "connected" ? (isAr ? "المكالمة متصلة" : "Call connected") : callState === "calling" ? (isAr ? "جارٍ الاتصال…" : "Calling…") : (isAr ? "جارٍ توصيل الصوت…" : "Connecting audio…")}</b><small>{activePeerName}{remoteAudioReady ? " · " + (isAr ? "الصوت يعمل" : "Audio ready") : ""} · {isAr ? "الجودة: " : "Quality: "}{quality === "good" ? (isAr ? "جيدة" : "Good") : quality === "fair" ? (isAr ? "متوسطة" : "Fair") : quality === "poor" ? (isAr ? "ضعيفة" : "Poor") : "—"}</small></div>
       {audioInputs.length > 1 && <select aria-label={isAr ? "الميكروفون" : "Microphone"} value={inputDeviceId} onChange={event => void changeInputDevice(event.target.value)}><option value="">{isAr ? "الميكروفون الافتراضي" : "Default mic"}</option>{audioInputs.map(device => <option key={device.deviceId} value={device.deviceId}>{device.label || (isAr ? "ميكروفون" : "Microphone")}</option>)}</select>}
       {audioOutputs.length > 1 && <select aria-label={isAr ? "مخرج الصوت" : "Audio output"} value={outputDeviceId} onChange={event => void changeOutputDevice(event.target.value)}><option value="">{isAr ? "مخرج الصوت الافتراضي" : "Default output"}</option>{audioOutputs.map(device => <option key={device.deviceId} value={device.deviceId}>{device.label || (isAr ? "مخرج صوت" : "Audio output")}</option>)}</select>}
       <button type="button" onClick={toggleMute} disabled={!localStreamRef.current}>{muted ? (isAr ? "إلغاء الكتم" : "Unmute") : (isAr ? "كتم" : "Mute")}</button>
+      {callState === "connected" && <button type="button" aria-pressed={screenShareActive} onClick={() => void toggleScreenShare()}>{screenShareActive ? (isAr ? "إيقاف مشاركة الشاشة" : "Stop sharing") : (isAr ? "مشاركة الشاشة" : "Share screen")}</button>}
+      {screenShareActive && <small className={styles.voiceConsent} role="status" aria-live="polite">{isAr ? "شاشتك تُعرض مباشرة للطرف الآخر فقط." : "Your screen is being shared live with the other participant only."}</small>}
+      {screenShareError && <small className={styles.voiceError} role="status" aria-live="polite">{screenShareError}</small>}
       {recordingState === "consent_granted" && <span className={styles.voiceRecording} role="status" aria-live="polite">{isAr ? "● تسجيل" : "● REC"} {recordingClock}</span>}
       {recordingState === "consent_pending" && myConsent === "pending" && <span className={styles.voiceConsent}><span>{isAr ? "طلب تسجيل هذه المكالمة" : "This call is requesting recording consent"}</span><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("accepted")}>{isAr ? "أوافق" : "Allow"}</button><button type="button" disabled={recordingBusy} onClick={() => void respondRecordingConsent("declined")}>{isAr ? "أرفض" : "Decline"}</button></span>}
       {recordingState === "off" && role === "host" && <button type="button" disabled={recordingBusy} onClick={() => void requestRecordingConsent()}>{isAr ? "طلب تسجيل" : "Request recording"}</button>}
