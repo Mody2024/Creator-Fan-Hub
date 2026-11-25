@@ -30,7 +30,7 @@ test("the admin dashboard renders health and role-management sections", () => {
   assert.match(client, /rpc\("set_creator_admin_role"/);
   assert.match(client, /rpc\("set_creator_admin_active"/);
   assert.match(client, /initialHealth\.map/);
-  assert.match(client, /admins\.map/);
+  assert.match(client, /filteredAdmins\.map/);
 });
 
 test("the admin page loads health and admin roster server-side", () => {
