@@ -29,3 +29,13 @@ This tracker is scoped to the communication-first launch. It is separate from th
 | Accessibility and localization | Partial | EN/AR route audit, keyboard/focus, labels, contrast, reduced motion |
 | Release readiness | Not complete | Preview env, real signed-in tests, security checks, owner acceptance; no production push without approval |
 
+
+
+## Batch 2 — 2026-11-25: Group creation wizard
+
+- Replaced the one-screen group creation modal with a three-step flow: group basics, public/private visibility, and a final review.
+- Added bilingual English/Arabic copy, an accessible progress indicator, clear public/private explanations, and a mobile-friendly layout using the existing Raye2 palette.
+- Kept the existing `raye2_create_group` RPC and its current fields unchanged. No database or authorization changes were made; advanced group identity, custom roles, and room creation remain separate implementation work.
+- Added an automated source-contract test for the three-step flow and its existing RPC boundary.
+- **Verification:** tests, type-check, lint, build, and browser/device QA are pending the next CI run. This batch is implemented but not yet tested.
+
