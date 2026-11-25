@@ -28,3 +28,13 @@ test("PWA install prompt is mounted globally and has responsive branded styling"
   assert.match(styles, /@media\(min-width:768px\)/);
   assert.match(styles, /:focus-visible/);
 });
+
+test("launch communication surfaces use the shared Raye2 chalk typography", async () => {
+  const groupStyles = await readFile(new URL("../src/app/groups/groups.css", import.meta.url), "utf8");
+  const chatStyles = await readFile(new URL("../src/app/raye2/raye2.module.css", import.meta.url), "utf8");
+  const adminStyles = await readFile(new URL("../src/app/creator/raye2/admin.module.css", import.meta.url), "utf8");
+  assert.match(groupStyles, /font-family:var\(--raye2-font-chalk/);
+  assert.match(groupStyles, /font:600 12px\/1\.5 var\(--raye2-font-chalk/);
+  assert.match(chatStyles, /font-family:var\(--raye2-font-chalk/);
+  assert.match(adminStyles, /font-family:var\(--raye2-font-chalk/);
+});
