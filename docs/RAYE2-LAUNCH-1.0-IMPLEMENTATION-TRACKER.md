@@ -90,3 +90,14 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Platform invitation inventory now loads automatically when an owner opens the Invitations tab; manual refresh remains available. Added regression coverage for the initial load.
 - **Verification:** the invite-admission migration itself passed the complete CI workflow on commit `a5bd7ac1ffb6efdd1f54470e8570006b1150724d`. The later voice and auto-load changes are committed to `development`; their latest workflow has not yet completed successfully, so they are implemented but not yet CI-verified. Vercel preview builds remain blocked by the account's build-rate limit.
 - **Live acceptance still required:** Supabase migration and Auth hook configuration are not applied; invite-only admission must not be advertised as enforced until the hook is configured and tested. Voice behavior still needs two-account browser/device acceptance.
+
+## Batch 6 — 2026-11-26: Private-call screen sharing
+
+- Added a negotiated video transceiver to private WebRTC calls so a participant can begin sharing after the call connects without a second offer/answer renegotiation.
+- Added explicit user-initiated display capture with video only; system/display audio is not captured.
+- Added a remote screen stage, visible local sharing state, browser/device support feedback, and stop handling when the user ends capture from the browser's native sharing controls.
+- Screen tracks are stopped and detached when sharing ends or the call is cleaned up. The screen stream is live-only and is not written to Raye2 storage.
+- Group-room screen sharing was already present in the current source; this batch closes the corresponding private-call gap. The 2026-11-26 audit's blanket statement that screen sharing was absent is stale and described its earlier audited snapshot.
+- Added source-contract regression coverage for private-call capture, sender lifecycle, cleanup, and the screen-share stage.
+- **Verification:** code and regression assertions are committed to development; full CI and browser/device acceptance have not yet passed for this batch. Test two real accounts on desktop browsers, verify remote video/audio together, user-stop behavior, permission denial, reconnect/end cleanup, and mobile fallback. Vercel's build-rate-limit check remains a separate deployment blocker.
+- **Safety boundary:** no Supabase schema, Auth configuration, main branch, or production deployment was changed.
