@@ -468,3 +468,8 @@
 
 .privateCallScreen{display:block;width:100%;max-height:min(48vh,420px);object-fit:contain;background:#050506;border:1px solid var(--r-line);border-radius:14px;margin:10px 0}
 .privateCallScreenHidden{display:none}
+
+.historyPager{display:flex;justify-content:center;padding:8px 12px}
+.historyPager button{border:1px solid var(--r-line);border-radius:999px;background:var(--r-surface);color:var(--r-text);padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+.historyPager button:disabled{opacity:.55;cursor:wait}
+.historyPager button:focus-visible{outline:2px solid var(--r-accent);outline-offset:3px}
