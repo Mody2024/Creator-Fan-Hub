@@ -13,8 +13,7 @@ import YouTubeChannelSources from "./youtube-channel-sources";
 import ShellBrand from "@/app/raye2-shell/shell-brand";
 import LanguageSwitch from "@/app/language-switch";
 
-type ScheduledAppearanceEvent = { id: string; name: string; enabled: boolean; startsAt: string; endsAt: string; accent: string; displayFont: string; chalkTexture: string; theme: string; colorMode: string };
-type SiteConfigDraft = { [key: string]: unknown; appearance?: { [key: string]: unknown; eventThemes?: ScheduledAppearanceEvent[] } };
+type SiteConfigDraft = { [key: string]: unknown; appearance?: { [key: string]: unknown } };
 export type RuleRow = { rule_key: string; category: string; rule_value: unknown; status: "proposed" | "active" | "disabled"; description: string; updated_at: string };
 export type RetentionRow = { category: string; retention_days: number | null; warning_days: number; expiry_action: "archive" | "delete"; enabled: boolean; preserve_shared_memories: boolean; updated_at: string };
 export type CleanupRow = { id: string; status: string; scope: string[]; preserve_chat_history: boolean; preserve_shared_memories: boolean; estimated_items: number | null; estimated_bytes: number | null; reason: string; created_at: string };
@@ -48,14 +47,6 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
   const [siteBusy, setSiteBusy] = useState(false);
   const [assetBusy, setAssetBusy] = useState(false);
   const [restoreVersion, setRestoreVersion] = useState("1");
-  const [eventName, setEventName] = useState("");
-  const [eventStartsAt, setEventStartsAt] = useState("");
-  const [eventEndsAt, setEventEndsAt] = useState("");
-  const [eventAccent, setEventAccent] = useState("#7dd3fc");
-  const [eventFont, setEventFont] = useState("Fredericka the Great");
-  const [eventTheme, setEventTheme] = useState("obsidian");
-  const [previewEventId, setPreviewEventId] = useState<string | null>(null);
-  const scheduledEvents: ScheduledAppearanceEvent[] = Array.isArray(siteDraft?.appearance?.eventThemes) ? siteDraft.appearance.eventThemes : [];
   const [navSearch, setNavSearch] = useState("");
   const [roleSearch, setRoleSearch] = useState("");
   const [modQueue, setModQueue] = useState<Array<{kind:string;report_id:string;target_type:string;target_id:string;reason:string;details:string;status:string;created_at:string;reporter_handle:string|null;target_preview:string|null}>>([]);
@@ -440,8 +431,8 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
       {tab === "appearance" && <><div className={styles.sectionHead}><h2>{isAr ? "المظهر والهوية" : "Appearance & identity"}</h2><p>{isAr ? "حمّل المسودة ثم عدّلها واحفظها أو انشرها." : "Load the current draft, edit it, then save or publish."}</p><button className={styles.action} disabled={siteBusy} onClick={() => void loadSiteDraft()}>{isAr ? "تحميل المسودة" : "Load draft"}</button></div>
         {!siteDraft ? <article className={styles.card}><p>{isAr ? "لا توجد مسودة محملة." : "No draft loaded yet."}</p></article> : <article className={styles.card}>
           <div className={styles.cardHead}><div><span>RAYE2 DESIGN</span><h3>{isAr ? "ألوان وخطوط المنصة" : "Platform colors & typography"}</h3><p>{isAr ? "التغييرات تبقى مسودة حتى النشر." : "Changes remain a draft until published."}</p></div><span>v{siteRevision}</span></div>
-          <label>{isAr ? "السمة" : "Theme"}<select value={String(siteDraft.appearance?.theme ?? "obsidian")} onChange={e => patchAppearance({theme:e.target.value})}><option value="obsidian">Obsidian</option><option value="paper">Paper</option><option value="violet">Violet</option><option value="custom">Custom</option></select></label>
-          <div className={styles.fields}><label>{isAr ? "لون التمييز" : "Accent color"}<input type="color" value={String(siteDraft.appearance?.accent ?? "#7dd3fc")} onChange={e => patchAppearance({accent:e.target.value})}/></label><label>{isAr ? "نمط الألوان" : "Color mode"}<select value={String(siteDraft.appearance?.colorMode ?? "dark")} onChange={e => patchAppearance({colorMode:e.target.value})}><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label><label>{isAr ? "الحركة" : "Motion"}<select value={String(siteDraft.appearance?.motion ?? "reduced")} onChange={e => patchAppearance({motion:e.target.value})}><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></label><label>{isAr ? "خط العناوين" : "Display font"}<select value={String(siteDraft.appearance?.displayFont ?? "Cabin Sketch")} onChange={e => patchAppearance({displayFont:e.target.value})}><option>Cabin Sketch</option><option>Fredericka the Great</option><option>Chalkduster</option><option>Chalkboard SE</option><option>Segoe Print</option><option>Custom chalk</option></select></label></div>
+          <label>{isAr ? "السمة" : "Theme"}<input value="Raye2 · Black / White / Grey / Blue" readOnly aria-label="Fixed single Raye2 theme" /></label>
+          <div className={styles.fields}><label>{isAr ? "لون التمييز" : "Accent color"}<input value="#4D8DF6 · Raye2 Blue" readOnly aria-label="Fixed Raye2 blue accent"/></label><label>{isAr ? "الحركة" : "Motion"}<select value={String(siteDraft.appearance?.motion ?? "reduced")} onChange={e => patchAppearance({motion:e.target.value})}><option value="full">Full</option><option value="reduced">Reduced</option><option value="off">Off</option></select></label><label>{isAr ? "خط العناوين" : "Display font"}<select value={String(siteDraft.appearance?.displayFont ?? "Cabin Sketch")} onChange={e => patchAppearance({displayFont:e.target.value})}><option>Cabin Sketch</option><option>Fredericka the Great</option><option>Chalkduster</option><option>Chalkboard SE</option><option>Segoe Print</option><option>Custom chalk</option></select></label></div>
           <div className={styles.fields}>
             <label>{isAr ? "شعار المنصة (PNG/JPG/WebP)" : "Platform logo (PNG/JPG/WebP)"}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={assetBusy} onChange={e=>void uploadAppearanceAsset(e.target.files?.[0],"logo")}/></label>
             <label>{isAr ? "خلفية المنصة (PNG/JPG/WebP)" : "Site background (PNG/JPG/WebP)"}<input type="file" accept="image/png,image/jpeg,image/webp" disabled={assetBusy} onChange={e=>void uploadAppearanceAsset(e.target.files?.[0],"background")}/></label>
@@ -463,53 +454,6 @@ export default function Raye2AdminClient({ locale, logoUrl, initialRules, initia
           <label>{isAr ? "ملمس الطباشير" : "Chalk texture"}<select value={String(siteDraft.appearance?.chalkTexture ?? "hand-drawn")} onChange={e => patchAppearance({chalkTexture:e.target.value})}><option value="hand-drawn">Hand-drawn chalk</option><option value="soft">Soft chalk</option><option value="clean">Clean sketch</option></select></label>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(false)}>{isAr ? "حفظ المسودة" : "Save draft"}</button><button className={styles.action} disabled={siteBusy} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر المظهر" : "Publish appearance"}</button></div>
         </article>}
-        <article className={styles.card}>
-          <div className={styles.cardHead}><div><span>EVENT THEME SCHEDULER</span><h3>{isAr ? "جدولة المظاهر المؤقتة" : "Scheduled event themes"}</h3><p>{isAr ? "حدد البداية والنهاية؛ يتم تفعيل المظهر تلقائياً ثم يعود المظهر الأساسي." : "Set a start and end time. The event theme activates automatically and the base theme resumes afterward."}</p></div></div>
-          <div className={styles.fields}>
-            <label>{isAr ? "اسم الحدث" : "Event name"}<input value={eventName} maxLength={80} onChange={e=>setEventName(e.target.value)} placeholder="Winter / Halloween / Launch"/></label>
-            <label>{isAr ? "لون الحدث" : "Event accent"}<input type="color" value={eventAccent} onChange={e=>setEventAccent(e.target.value)}/></label>
-            <label>{isAr ? "بداية الحدث" : "Starts at (your local time)"}<input type="datetime-local" value={eventStartsAt} onChange={e=>setEventStartsAt(e.target.value)}/></label>
-            <label>{isAr ? "نهاية الحدث" : "Ends at (your local time)"}<input type="datetime-local" value={eventEndsAt} onChange={e=>setEventEndsAt(e.target.value)}/></label>
-            <label>{isAr ? "خط العناوين" : "Event display font"}<select value={eventFont} onChange={e=>setEventFont(e.target.value)}><option>Fredericka the Great</option><option>Cabin Sketch</option><option>Chalkduster</option><option>Chalkboard SE</option><option>Segoe Print</option></select></label>
-            <label>{isAr ? "سمة الحدث" : "Event palette"}<select value={eventTheme} onChange={e=>setEventTheme(e.target.value)}><option value="obsidian">Obsidian</option><option value="paper">Paper</option><option value="violet">Violet</option></select></label>
-          </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:12}}>
-            <button className={styles.action} disabled={!siteDraft || !eventName.trim() || !eventStartsAt || !eventEndsAt || new Date(eventEndsAt)<=new Date(eventStartsAt) || siteBusy} onClick={() => {
-              const event = { id: crypto.randomUUID(), name: eventName.trim(), enabled: true, startsAt: new Date(eventStartsAt).toISOString(), endsAt: new Date(eventEndsAt).toISOString(), accent: eventAccent, displayFont: eventFont, chalkTexture: "hand-drawn", theme: eventTheme, colorMode: "dark" };
-              setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: [...events, event] } }; });
-              setEventName(""); setEventStartsAt(""); setEventEndsAt("");
-            }}>{isAr ? "إضافة إلى المسودة" : "Add event to draft"}</button>
-            <button className={styles.action} disabled={siteBusy || !siteDraft} onClick={() => void saveSiteDraft(false)}>{isAr ? "حفظ الجدول" : "Save schedule"}</button>
-            <button className={styles.action} disabled={siteBusy || !siteDraft} onClick={() => void saveSiteDraft(true)}>{isAr ? "نشر الجدول" : "Publish schedule"}</button>
-          </div>
-          <div style={{marginTop:14,display:"grid",gap:8}}>
-            {scheduledEvents.map((event, index) => {
-              const now = Date.now();
-              const starts = new Date(event.startsAt).getTime();
-              const ends = new Date(event.endsAt).getTime();
-              const status = !event.enabled ? "Disabled" : now < starts ? "Upcoming" : now < ends ? "Active" : "Expired";
-              const selected = previewEventId === event.id;
-              return <div key={event.id ?? index} style={{display:"grid",gap:10,padding:12,border:"1px solid var(--line)",borderRadius:12,background:selected?"rgba(77,141,246,.07)":"transparent"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,flexWrap:"wrap"}}>
-                  <div style={{minWidth:0,flex:"1 1 220px"}}><strong>{event.name || "Untitled event"}</strong><small style={{display:"block",opacity:.72,marginTop:5}}>{status} · {event.startsAt ? new Date(event.startsAt).toLocaleString() : "—"} → {event.endsAt ? new Date(event.endsAt).toLocaleString() : "—"}</small></div>
-                  <span style={{width:14,height:14,borderRadius:99,background:event.accent,border:"1px solid rgba(255,255,255,.3)"}} aria-label={`Accent ${event.accent}`}/>
-                </div>
-                <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-                  <button type="button" className={styles.action} disabled={siteBusy} onClick={() => setPreviewEventId(selected ? null : event.id)}>{selected ? (isAr ? "إغلاق المعاينة" : "Close preview") : (isAr ? "معاينة" : "Preview")}</button>
-                  <button type="button" className={styles.action} disabled={siteBusy} onClick={() => setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: events.map((item, i) => i === index ? { ...item, enabled: !item.enabled } : item) } }; })}>{event.enabled ? (isAr ? "تعطيل" : "Disable") : (isAr ? "تفعيل" : "Enable")}</button>
-                  <button type="button" className={styles.action} disabled={siteBusy} onClick={() => { setPreviewEventId(current => current === event.id ? null : current); setSiteDraft(current => { if (!current) return current; const appearance = current.appearance ?? {}; const events = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : []; return { ...current, appearance: { ...appearance, eventThemes: events.filter((_, i) => i !== index) } }; }); }}>{isAr ? "حذف" : "Remove"}</button>
-                </div>
-                {selected && <div style={{padding:16,borderRadius:10,border:"1px solid rgba(77,141,246,.28)",background:event.theme==="paper"?"#f4f1e8":"#101216",color:event.theme==="paper"?"#171717":"#f4f4f6",backgroundImage:"radial-gradient(ellipse at 85% 0%, "+event.accent+"22, transparent 55%)"}}>
-                  <small style={{letterSpacing:".12em",opacity:.7}}>PRIVATE EVENT PREVIEW · {event.theme.toUpperCase()}</small>
-                  <h3 style={{fontFamily:event.displayFont+", cursive",fontSize:"clamp(24px,4vw,38px)",margin:"12px 0 6px",color:event.theme==="paper"?"#171717":event.accent}}>{event.name}</h3>
-                  <p style={{fontSize:12,opacity:.8,margin:0}}>A preview of the event heading, palette and accent. This does not publish or activate the event.</p>
-                  <div style={{display:"flex",gap:8,marginTop:14,flexWrap:"wrap"}}><span style={{padding:"8px 12px",borderRadius:8,background:event.accent,color:"#07101f",fontSize:11,fontWeight:800}}>Primary action</span><span style={{padding:"8px 12px",borderRadius:8,border:"1px solid currentColor",fontSize:11}}>Secondary action</span></div>
-                </div>}
-              </div>;
-            })}
-            {(scheduledEvents.length===0) && <p>{isAr ? "لا توجد أحداث مجدولة." : "No scheduled event themes yet."}</p>}
-          </div>
-        </article>
         <article className={styles.card}><h3>{isAr ? "استعادة إصدار" : "Restore published version"}</h3><p>{isAr ? "تتم الاستعادة إلى المسودة فقط." : "Restores into the draft only; it does not publish automatically."}</p><label>{isAr ? "رقم الإصدار" : "Version number"}<input type="number" min="1" value={restoreVersion} onChange={e=>setRestoreVersion(e.target.value)}/></label><button className={styles.action} disabled={siteBusy} onClick={() => void restoreSiteDraft()}>{isAr ? "استعادة إلى المسودة" : "Restore to draft"}</button></article>
       </>}
       {tab === "health" && <><div className={styles.sectionHead}><h2>{t.health}</h2><p>{t.healthNote}</p></div>{initialHealth.length===0 ? <p>{t.noHealth}</p> : <div className={styles.storageGrid}>{initialHealth.map(row => <article className={styles.card} key={row.metric}><span>{row.metric}</span><strong className={row.state==="ok"?styles.ok:row.state==="warning"?styles.warning:styles.critical}>{row.metric.startsWith("storage_") ? bytes(row.value) : row.value.toLocaleString()}</strong><small>{row.state==="ok"?t.stateOk:row.state==="warning"?t.stateWarning:t.stateCritical}</small></article>)}</div>}</>}
