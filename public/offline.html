@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0d">
+  <title>Raye2 — Offline</title>
+  <style>
+    :root{color-scheme:dark;background:#0b0b0d;color:#f4f4f6;font-family:Manrope,Inter,system-ui,sans-serif}
+    *{box-sizing:border-box}
+    body{min-height:100vh;margin:0;display:grid;place-items:center;padding:28px}
+    main{width:min(100%,520px);padding:clamp(28px,7vw,52px);border:1px solid rgba(244,244,246,.12);border-radius:24px;background:#141416;text-align:center}
+    img{width:64px;height:64px;object-fit:contain;margin-bottom:18px}
+    h1{font-size:clamp(30px,7vw,44px);line-height:1.15;margin:0 0 14px}
+    p{color:#a1a1aa;line-height:1.8;margin:0 0 10px}
+    button{margin-top:20px;padding:13px 20px;border:0;border-radius:999px;background:#4d8df6;color:#0b0b0d;font:700 15px inherit;cursor:pointer}
+    button:focus-visible{outline:2px solid #9dc0ff;outline-offset:4px}
+  </style>
+</head>
+<body>
+  <main>
+    <img src="/icon.png" alt="">
+    <h1>You're offline</h1>
+    <p>Raye2 needs an internet connection to load your messages and private spaces.</p>
+    <h1 lang="ar" dir="rtl">أنت غير متصل بالإنترنت</h1>
+    <p lang="ar" dir="rtl">تحتاج Raye2 إلى اتصال بالإنترنت لعرض رسائلك ومساحاتك الخاصة.</p>
+    <button type="button" onclick="location.reload()">Try again · حاول مرة أخرى</button>
+  </main>
+</body>
+</html>
