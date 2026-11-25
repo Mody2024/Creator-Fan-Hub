@@ -82,7 +82,7 @@ export default function CreatorSettings() {
       const normalizedDraft: SiteDraft = {
         ...fallback, ...loaded.draft,
         identity: { ...fallback.identity, ...loaded.draft.identity, siteName: "Raye2" },
-        appearance: { ...fallback.appearance, ...loaded.draft.appearance, accent: loaded.draft.appearance?.accent === "#C8FF4D" ? "#4d8df6" : (loaded.draft.appearance?.accent || fallback.appearance.accent) },
+        appearance: { ...fallback.appearance, ...loaded.draft.appearance, accent: loaded.draft.appearance?.accent === "#4d8df6" ? "#4d8df6" : (loaded.draft.appearance?.accent || fallback.appearance.accent) },
         hero: { ...fallback.hero, ...loaded.draft.hero },
         maintenance: { ...fallback.maintenance, ...loaded.draft.maintenance },
         layout: { ...fallback.layout, ...loaded.draft.layout },
@@ -204,7 +204,7 @@ export default function CreatorSettings() {
         <label>{t.heroTitle}<input maxLength={180} value={draft.hero.title} onChange={e=>update("hero","title",e.target.value)} /></label>
         <label>{t.heroBody}<textarea maxLength={1000} rows={3} value={draft.hero.body} onChange={e=>update("hero","body",e.target.value)} /></label>
         <label>{t.theme}<input value="Raye2 — black / white / grey / blue" readOnly aria-label="Fixed single Raye2 theme" /><small>{t.fixed}</small></label>
-        <label>{t.accent}<input type="color" value={draft.appearance.accent || "#4d8df6"} onChange={e=>update("appearance","accent",e.target.value)} /></label>
+        <label>{t.accent}<input value="Raye2 Blue · #4D8DF6" readOnly aria-label="Fixed Raye2 blue accent" /><small>{t.fixed}</small></label>
         <label>{t.motion}<select value={draft.appearance.motion || "full"} onChange={e=>update("appearance","motion",e.target.value)}><option value="full">{t.full}</option><option value="reduced">{t.reduced}</option><option value="off">{t.minimal}</option></select><small>Respects visitors who prefer less movement and can disable decorative transitions.</small></label>
       </div>
       <div className="editor-grid">
