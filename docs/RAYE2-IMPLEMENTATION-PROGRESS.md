@@ -4169,3 +4169,17 @@ session and a slow client".
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization | ~97% |
+
+
+---
+
+## Batch — 2026-11-26 (Batch 28): Navigate from a reply to its original message
+
+- Reply previews in the conversation are now interactive. Selecting a preview smoothly scrolls the conversation to the original message and centers it in view.
+- Message articles now have stable DOM targets for in-conversation navigation.
+- If the original message is outside the currently loaded message history, the reply shows a clear bilingual fallback instead of rendering a dead or misleading reference.
+- Added keyboard-visible focus styling and kept the navigation control a real button.
+- Added `tests/raye2-reply-navigation.test.mjs` with source-contract coverage for navigation, bilingual fallback and focus styling.
+- Commits on `development`: `18492b66` (client), `96146931` (styles), `31ab20ed` (regression tests).
+- **Verification status:** changes are committed; automated tests and deployment checks are awaiting GitHub Actions. No local test execution or production deployment is claimed.
+- **Progress accounting:** no wave percentage changed for this focused interaction improvement. The existing progress table is retained pending a full, consistent audit; its percentages should not be interpreted as live test coverage.
