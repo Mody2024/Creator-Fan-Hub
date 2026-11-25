@@ -148,23 +148,24 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
     stream.getAudioTracks().forEach(track => peer.addTrack(track, stream));
     // Negotiate a video sender up front so screen sharing can start later without
     // a second offer/answer cycle or a fragile renegotiation race.
-    peer.addTransceiver("video", { direction: "sendrecv" });
+    peer.addTransceiver("video", { direction: "sendrecv", streams: [stream] });
     peer.ontrack = event => {
-      const [streamFromPeer] = event.streams;
-      if (streamFromPeer) {
-        remoteStreamRef.current = streamFromPeer;
-        if (event.track.kind === "video") {
-          setRemoteScreenActive(true);
-          event.track.onended = () => setRemoteScreenActive(false);
-          if (remoteVideo.current) {
-            remoteVideo.current.srcObject = streamFromPeer;
-            void remoteVideo.current.play().catch(() => setError(copy.failed));
-          }
+      // Keep a stream association on the negotiated transceiver; the fallback also
+      // handles browsers that expose a track without an associated MediaStream.
+      const streamFromPeer = event.streams[0] ?? new MediaStream([event.track]);
+      if (event.track.kind === "video") {
+        setRemoteScreenActive(true);
+        event.track.onended = () => setRemoteScreenActive(false);
+        if (remoteVideo.current) {
+          remoteVideo.current.srcObject = streamFromPeer;
+          void remoteVideo.current.play().catch(() => setError(copy.failed));
         }
-        if (remoteAudio.current) {
-          remoteAudio.current.srcObject = streamFromPeer;
-          void remoteAudio.current.play().then(() => setRemoteAudioReady(true)).catch(() => setError(copy.failed));
-        }
+        return;
+      }
+      remoteStreamRef.current = streamFromPeer;
+      if (remoteAudio.current) {
+        remoteAudio.current.srcObject = streamFromPeer;
+        void remoteAudio.current.play().then(() => setRemoteAudioReady(true)).catch(() => setError(copy.failed));
       }
     };
     peer.onicecandidate = event => {
