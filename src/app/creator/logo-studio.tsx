@@ -140,7 +140,7 @@ export default function LogoStudio({ onCreated }: Props) {
       const nextUrl = URL.createObjectURL(blob);
       setPreview(nextUrl);
       setStatus(removeBackground
-        ? "Transparent PNG prepared. Transparent margins were trimmed and the mark was centred. Review both theme previews before saving."
+        ? "Transparent PNG prepared. Transparent margins were trimmed and the mark was centred. Review the fixed Raye2 theme preview before saving."
         : "Logo resized and centred. Original background retained.");
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not prepare this logo.");
@@ -192,13 +192,13 @@ export default function LogoStudio({ onCreated }: Props) {
   }
 
   return <section className="raye2-logo-studio" aria-label="Raye2 logo studio">
-    <div className="raye2-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep the original safe. Clean a plain background, trim empty space and preview the logo against both site themes before publishing.</p></div><span className="raye2-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
+    <div className="raye2-logo-studio-heading"><div><span className="eyebrow">BRAND ASSET WORKSHOP</span><h3>Prepare your <em>logo.</em></h3><p>Keep the original safe. Clean a plain background, trim empty space and preview the logo against the fixed Raye2 theme before publishing.</p></div><span className="raye2-logo-studio-tag">PRIVATE BY DEFAULT</span></div>
     <label className="raye2-logo-file"><span>Choose logo image</span><input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void selectFile(e.target.files?.[0]??null)}/><small>PNG, JPG or WebP · up to 20 MB</small></label>
     {file && <div className="raye2-logo-controls">
       <label className="raye2-logo-toggle"><input type="checkbox" checked={removeBackground} onChange={e=>{setRemoveBackground(e.target.checked);setPrepared(null);}}/><span><strong>Remove a plain background</strong><small>Removes a similar colour connected to the image edges. Best for solid or evenly coloured backgrounds; detailed or gradient backgrounds may need a dedicated editor.</small></span></label>
       <label className="raye2-logo-toggle"><input type="checkbox" checked={trimTransparent} onChange={e=>{setTrimTransparent(e.target.checked);setPrepared(null);}}/><span><strong>Auto-trim and centre the logo</strong><small>Removes empty transparent margins and adds balanced breathing room for the website header.</small></span></label>
       {removeBackground && <label className="raye2-logo-tolerance">Background sensitivity <strong>{tolerance}</strong><input type="range" min="12" max="100" step="2" value={tolerance} onChange={e=>{setTolerance(Number(e.target.value));setPrepared(null);}}/><small>Increase if a halo remains. Lower it if parts of the logo disappear.</small></label>}
-      <div className="raye2-logo-preview-wrap"><span>PREVIEW / {prepared?"CLEANED & CENTRED":"ORIGINAL"}</span><div className="raye2-logo-theme-previews"><div className="raye2-logo-theme-preview raye2-logo-theme-dark"><span>DARK THEME</span><img src={preview} alt="Logo preview on dark theme"/></div><div className="raye2-logo-theme-preview raye2-logo-theme-light"><span>LIGHT THEME</span><img src={preview} alt="Logo preview on light theme"/></div></div></div>
+      <div className="raye2-logo-preview-wrap"><span>PREVIEW / {prepared?"CLEANED & CENTRED":"ORIGINAL"}</span><div className="raye2-logo-theme-previews"><div className="raye2-logo-theme-preview raye2-logo-theme-dark"><span>RAYE2 THEME</span><img src={preview} alt="Logo preview on the fixed Raye2 theme"/></div></div></div>
       <div className="raye2-logo-actions"><button type="button" className="button button-secondary" disabled={busy} onClick={()=>void prepare()}>{busy?"Preparing…":"Prepare preview"}</button><button type="button" className="button button-primary" disabled={busy||!prepared} onClick={()=>void save()}>{busy?"Saving…":"Save to media library ↗"}</button></div>
     </div>}
     <p className="editor-status" role="status" aria-live="polite">{status}</p>
