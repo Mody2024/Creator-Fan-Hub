@@ -47,7 +47,7 @@ test("search excludes accounts the viewer blocked in both directions", () => {
 });
 
 test("discover page renders a spaces section and tab that link to group pages", () => {
-  assert.match(searchPage, /groups=rows\.filter\(row=>row\.kind==="group"\)/);
+  assert.match(searchPage, /groups=launchRows\.filter\(row=>row\.kind==="group"\)/);
   assert.match(searchPage, /showGroups=selectedType==="all"\|\|selectedType==="groups"/);
   assert.match(searchPage, /href=\{href\("groups"\)\}/);
   assert.match(searchPage, /href=\{"\/groups\/"\+group\.slug\}/);
