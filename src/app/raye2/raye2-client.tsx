@@ -60,6 +60,8 @@ export default function Raye2Client() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyHasMore, setHistoryHasMore] = useState(true);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [groups, setGroups] = useState<Group[]>([]);
   const [memories, setMemories] = useState<SharedMemory[]>([]);
@@ -108,6 +110,8 @@ export default function Raye2Client() {
   const realtimeChannel = useRef<ReturnType<NonNullable<typeof supabase>["channel"]> | null>(null);
   const typingActive = useRef(false);
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const historyRequestRef = useRef(0);
+  const messageAreaRef = useRef<HTMLDivElement | null>(null);
   const [inviteHours, setInviteHours] = useState("72");
   const [inviteUses, setInviteUses] = useState("10");
   const [inviteUrl, setInviteUrl] = useState("");
@@ -283,7 +287,7 @@ export default function Raye2Client() {
   }, [supabase, loadData, t.failed]);
 
   const selected = threads.find(thread => thread.id === selectedId) ?? null;
-  useEffect(() => { setActiveThreadRoot(null); }, [selectedId]);
+  useEffect(() => { historyRequestRef.current += 1; setActiveThreadRoot(null); setHistoryHasMore(true); setHistoryLoading(false); }, [selectedId]);
   const selectedGroup = selected?.groupId ? groups.find(group => group.id === selected.groupId) ?? null : null;
   const canManageSelectedGroup = Boolean(selectedGroup && ["owner", "admin", "moderator"].includes(selectedGroup.memberRole ?? "member"));
   const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
@@ -923,6 +927,64 @@ export default function Raye2Client() {
     finally { setBusy(false); }
   }
 
+
+  async function loadOlderMessages() {
+    if (!supabase || !selected || historyLoading || !historyHasMore) return;
+    const conversationId = selected.conversationId;
+    const requestId = ++historyRequestRef.current;
+    const PAGE_SIZE = 100;
+    const loaded = messages.filter(message => message.conversation_id === conversationId);
+    const oldest = loaded.reduce<string | null>((value, message) => !value || message.created_at < value ? message.created_at : value, null);
+    const container = messageAreaRef.current;
+    const previousHeight = container?.scrollHeight ?? 0;
+    const previousTop = container?.scrollTop ?? 0;
+    setHistoryLoading(true);
+    try {
+      let request = supabase.from("raye2_messages")
+        .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
+      if (oldest) request = request.lt("created_at", oldest);
+      const { data, error } = await request;
+      if (requestId !== historyRequestRef.current) return;
+      if (error) throw error;
+      const page = ((data ?? []) as Message[]).reverse();
+      if (page.length === 0) { setHistoryHasMore(false); return; }
+      const existingIds = new Set(loaded.map(message => message.id));
+      const fresh = page.filter(message => !existingIds.has(message.id));
+      setMessages(current => [...current.filter(message => !fresh.some(item => item.id === message.id)), ...fresh]
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()));
+      setHistoryHasMore(page.length === PAGE_SIZE);
+      const senderIds = [...new Set(fresh.map(message => message.sender_id))].filter(id => id !== userId);
+      const messageIds = fresh.map(message => message.id);
+      const [{ data: peopleRows }, { data: reactions }, { data: mine }] = await Promise.all([
+        senderIds.length ? supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id", senderIds) : Promise.resolve({ data: [] }),
+        messageIds.length ? supabase.from("raye2_message_reactions").select("message_id,reaction_key").in("message_id", messageIds) : Promise.resolve({ data: [] }),
+        messageIds.length && userId ? supabase.from("raye2_message_reactions").select("message_id,reaction_key").eq("user_id", userId).in("message_id", messageIds) : Promise.resolve({ data: [] })
+      ]);
+      if (requestId !== historyRequestRef.current) return;
+      if (peopleRows?.length) setProfiles(current => ({ ...current, ...Object.fromEntries((peopleRows as Profile[]).map(person => [person.user_id, person])) }));
+      const counts: Record<string, Record<string, number>> = {};
+      for (const reaction of reactions ?? []) counts[reaction.message_id] = { ...(counts[reaction.message_id] ?? {}), [reaction.reaction_key]: (counts[reaction.message_id]?.[reaction.reaction_key] ?? 0) + 1 };
+      const mineMap: Record<string, string[]> = {};
+      for (const reaction of mine ?? []) mineMap[reaction.message_id] = [...(mineMap[reaction.message_id] ?? []), reaction.reaction_key];
+      if (messageIds.length) {
+        setReactionCounts(current => ({ ...current, ...counts }));
+        setMyReactions(current => ({ ...current, ...mineMap }));
+      }
+      requestAnimationFrame(() => {
+        if (requestId === historyRequestRef.current && container) {
+          container.scrollTop = previousTop + Math.max(0, container.scrollHeight - previousHeight);
+        }
+      });
+    } catch {
+      if (requestId === historyRequestRef.current) setStatus(t.searchError);
+    } finally {
+      if (requestId === historyRequestRef.current) setHistoryLoading(false);
+    }
+  }
+
   async function sendMessage() {
     if (!supabase || !userId || !selected || !compose.trim() || busy) return;
     if (typingActive.current) { broadcastTyping(false); typingActive.current = false; }
@@ -1165,7 +1227,8 @@ export default function Raye2Client() {
               </div>
               <button type="button" className={styles.threadReplyAction} disabled={!selected.canSend} onClick={() => { setReplyTo(activeThreadRoot); setActiveThreadRoot(null); }}>{isAr ? "الرد في السلسلة" : "Reply in thread"} ↗</button>
             </section>}
-            <div className={styles.messageArea}>
+            {historyHasMore && <div className={styles.historyPager}><button type="button" disabled={historyLoading} onClick={() => void loadOlderMessages()}>{historyLoading ? (isAr ? "جارٍ تحميل الرسائل…" : "Loading messages…") : (isAr ? "تحميل الرسائل الأقدم" : "Load earlier messages")}</button></div>}
+            <div className={styles.messageArea} ref={messageAreaRef}>
               {visibleMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
               {visibleMessages.map((message, index) => {
                 const previous = index > 0 ? visibleMessages[index - 1] : null;
