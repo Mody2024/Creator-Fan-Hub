@@ -409,6 +409,30 @@ export default function Raye2Client() {
           };
         }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_message_reactions" }, async (payload: { new: { message_id?: string }; old: { message_id?: string } }) => {
+        const messageId = payload.new?.message_id ?? payload.old?.message_id;
+        if (!messageId) return;
+        const [{ data: reactions }, { data: mine }] = await Promise.all([
+          supabase.from("raye2_message_reactions").select("reaction_key").eq("message_id", messageId),
+          supabase.from("raye2_message_reactions").select("reaction_key").eq("message_id", messageId).eq("user_id", userId)
+        ]);
+        const counts: Record<string, number> = {};
+        for (const reaction of reactions ?? []) counts[reaction.reaction_key] = (counts[reaction.reaction_key] ?? 0) + 1;
+        setReactionCounts(current => ({ ...current, [messageId]: counts }));
+        setMyReactions(current => ({ ...current, [messageId]: (mine ?? []).map(item => item.reaction_key) }));
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_notifications", filter: "user_id=eq." + userId }, async (payload: { eventType: string; new: { id?: string }; old: { id?: string } }) => {
+        const notificationId = payload.new?.id ?? payload.old?.id;
+        if (payload.eventType === "DELETE") {
+          if (notificationId) setNotifications(current => current.filter(item => item.id !== notificationId));
+          return;
+        }
+        if (!notificationId) return;
+        const { data } = await supabase.from("raye2_notifications")
+          .select("id,actor_id,conversation_id,message_id,notification_type,preview,read_at,created_at")
+          .eq("id", notificationId).maybeSingle();
+        if (data) setNotifications(current => [data as NotificationItem, ...current.filter(item => item.id !== notificationId)].slice(0, 80));
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_group_members" }, () => { void loadData(userId); })
       .subscribe(async (status: string) => {
         if (status === "SUBSCRIBED") await channel.track({ user_id: userId, online_at: new Date().toISOString() });
