@@ -38,10 +38,14 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   const [transmittingState, setTransmittingState] = useState(false);
   const [quality, setQuality] = useState<"unknown" | "good" | "fair" | "poor">("unknown");
   const [reconnecting, setReconnecting] = useState(false);
+  const [canShareScreen, setCanShareScreen] = useState(false);
+  const [screenShareActive, setScreenShareActive] = useState(false);
+  const [screenShareError, setScreenShareError] = useState("");
   const [error, setError] = useState("");
   const roomRef = useRef<LiveKitRoom | null>(null);
   const sessionRef = useRef<string | null>(null);
   const audioContainerRef = useRef<HTMLDivElement | null>(null);
+  const screenShareContainerRef = useRef<HTMLDivElement | null>(null);
 
   const copy = {
     join: isAr ? "دخول الغرفة الصوتية" : "Join voice room",
@@ -66,7 +70,13 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     qualityGood: isAr ? "جيدة" : "Good",
     qualityFair: isAr ? "متوسطة" : "Fair",
     qualityPoor: isAr ? "ضعيفة" : "Poor",
-    reconnecting: isAr ? "جارٍ إعادة الاتصال…" : "Reconnecting…"
+    reconnecting: isAr ? "جارٍ إعادة الاتصال…" : "Reconnecting…",
+    screenShare: isAr ? "مشاركة الشاشة" : "Share screen",
+    stopScreenShare: isAr ? "إيقاف مشاركة الشاشة" : "Stop sharing",
+    screenUnavailable: isAr ? "مشاركة الشاشة غير مدعومة في هذا المتصفح. جرّب متصفح سطح المكتب." : "Screen sharing is not supported by this browser. Try a desktop browser.",
+    screenFailed: isAr ? "تعذرت مشاركة الشاشة. تحقق من أذونات المتصفح وحاول مرة أخرى." : "Could not share your screen. Check browser permissions and try again.",
+    screenShareLabel: isAr ? "الشاشة المشتركة مباشرة" : "Live shared screens",
+    screenShareStream: isAr ? "محتوى شاشة مشارك في الغرفة" : "A participant’s shared screen"
   };
 
   const leaveRoom = async () => {
@@ -82,6 +92,9 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     setLocked(false);
     setMuted(false);
     setIsVoiceHost(false);
+    setCanShareScreen(false);
+    setScreenShareActive(false);
+    setScreenShareError("");
     setRecordingState("off");
     setMyConsent("not_requested");
     setRecordingElapsed(0);
@@ -117,6 +130,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         supabase.from("raye2_voice_sessions").select("is_locked").eq("id", data).maybeSingle()
       ]);
       setIsVoiceHost(["host","cohost"].includes(ownVoiceMembership?.role ?? ""));
+      setCanShareScreen(!!ownVoiceMembership && ownVoiceMembership.role !== "listener");
       setCanModerate(["host","cohost","moderator"].includes(ownVoiceMembership?.role ?? "") || ["owner","admin","moderator"].includes(groupMembership?.role ?? ""));
       setLocked(Boolean(sessionInfo?.is_locked));
 
@@ -134,6 +148,15 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       const room = new Room({ adaptiveStream: true, dynacast: true });
       roomRef.current = room;
       room.on(RoomEvent.TrackSubscribed, (track, _publication, _participant) => {
+        if (track.source === Track.Source.ScreenShare && track.kind === Track.Kind.Video && screenShareContainerRef.current) {
+          const element = track.attach();
+          element.classList.add(styles.groupVoiceScreenVideo);
+          element.setAttribute("aria-label", copy.screenShareStream);
+          element.setAttribute("playsinline", "");
+          if (element instanceof HTMLVideoElement) { element.autoplay = true; element.muted = true; }
+          screenShareContainerRef.current.appendChild(element);
+          return;
+        }
         if (track.kind === Track.Kind.Audio && audioContainerRef.current) {
           const element = track.attach();
           element.autoplay = true;
@@ -143,6 +166,9 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       });
       room.on(RoomEvent.TrackUnsubscribed, track => {
         track.detach().forEach(element => element.remove());
+      });
+      room.on(RoomEvent.LocalTrackUnpublished, publication => {
+        if (publication.source === Track.Source.ScreenShare) setScreenShareActive(false);
       });
       const refreshParticipants = () => {
         const remote = Array.from(room.remoteParticipants.values()).map(participant => ({ identity: participant.identity, name: participant.name || participant.identity.slice(0, 8), isSelf: false }));
@@ -165,6 +191,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       room.on(RoomEvent.Disconnected, () => {
         setConnected(false);
         setReconnecting(false);
+        setScreenShareActive(false);
         if (roomRef.current === room) roomRef.current = null;
       });
 
@@ -183,6 +210,33 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       sessionRef.current = null;
     } finally {
       setBusy(false);
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    const room = roomRef.current;
+    if (!room || !connected || !canShareScreen) return;
+    setScreenShareError("");
+    if (!screenShareActive) {
+      if (typeof navigator === "undefined" || typeof navigator.mediaDevices?.getDisplayMedia !== "function") {
+        setScreenShareError(copy.screenUnavailable);
+        return;
+      }
+      try {
+        // User-initiated, live-only capture. System audio is deliberately not captured.
+        await room.localParticipant.setScreenShareEnabled(true, { audio: false });
+        setScreenShareActive(true);
+      } catch {
+        setScreenShareActive(false);
+        setScreenShareError(copy.screenFailed);
+      }
+      return;
+    }
+    try {
+      await room.localParticipant.setScreenShareEnabled(false);
+      setScreenShareActive(false);
+    } catch {
+      setScreenShareError(copy.screenFailed);
     }
   };
 
@@ -393,6 +447,9 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         <>
           <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members} · {copy.quality}: {quality === "good" ? copy.qualityGood : quality === "fair" ? copy.qualityFair : quality === "poor" ? copy.qualityPoor : "—"}</span>
           {reconnecting && <span className={styles.voiceConsent} role="status" aria-live="polite">{copy.reconnecting}</span>}
+          {canShareScreen && <button type="button" aria-pressed={screenShareActive} onClick={() => void toggleScreenShare()}>{screenShareActive ? copy.stopScreenShare : copy.screenShare}</button>}
+          {screenShareError && <small className={styles.voiceError} role="status" aria-live="polite">{screenShareError}</small>}
+          <div className={styles.groupVoiceScreens} ref={screenShareContainerRef} aria-label={copy.screenShareLabel}/>
           <button type="button" onClick={() => void toggleMute()}>{muted ? copy.unmute : copy.mute}</button>
           <button type="button" aria-pressed={handRaised} onClick={() => void toggleHand()}>{handRaised ? copy.lowerHand : copy.raiseHand}</button>
           <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={pushToTalk} onChange={event => void saveAudioPreferences(event.target.checked, noiseSuppression)}/>{copy.pushToTalk}</label>
