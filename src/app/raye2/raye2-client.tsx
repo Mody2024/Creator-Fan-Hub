@@ -419,7 +419,7 @@ export default function Raye2Client() {
         const counts: Record<string, number> = {};
         for (const reaction of reactions ?? []) counts[reaction.reaction_key] = (counts[reaction.reaction_key] ?? 0) + 1;
         setReactionCounts(current => ({ ...current, [messageId]: counts }));
-        setMyReactions(current => ({ ...current, [messageId]: (mine ?? []).map(item => item.reaction_key) }));
+        setMyReactions(current => ({ ...current, [messageId]: ((mine ?? []) as { reaction_key: string }[]).map((item: { reaction_key: string }) => item.reaction_key) }));
       })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_notifications", filter: "user_id=eq." + userId }, async (payload: { eventType: string; new: { id?: string }; old: { id?: string } }) => {
         const notificationId = payload.new?.id ?? payload.old?.id;
