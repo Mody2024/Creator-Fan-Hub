@@ -94,6 +94,7 @@ export default function Raye2Client() {
   const [activeTopicId, setActiveTopicId] = useState<string | null>(null);
   const [showTopicManage, setShowTopicManage] = useState(false);
   const [newTopicName, setNewTopicName] = useState("");
+  const [pendingDeleteTopicId, setPendingDeleteTopicId] = useState<string | null>(null);
   const [activeRules, setActiveRules] = useState<ActiveRule[]>([]);
   const [messageRequests, setMessageRequests] = useState<MessageRequest[]>([]);
   const [requestProfiles, setRequestProfiles] = useState<Record<string, Profile>>({});
@@ -312,6 +313,7 @@ export default function Raye2Client() {
     setActiveTopicId(null);
     setShowTopicManage(false);
     setNewTopicName("");
+    setPendingDeleteTopicId(null);
     if (!supabase || !groupId) return;
     let active = true;
     void supabase.rpc("raye2_list_group_topics", { p_group_id: groupId }).then(({ data }: { data: GroupTopic[] | null }) => {
@@ -1009,6 +1011,7 @@ export default function Raye2Client() {
       const { error } = await supabase.rpc("raye2_delete_group_topic", { p_topic_id: topicId });
       if (error) throw error;
       if (activeTopicId === topicId) setActiveTopicId(null);
+      setPendingDeleteTopicId(null);
       setStatus(t.topicDeleted);
       const { data } = await supabase.rpc("raye2_list_group_topics", { p_group_id: selectedGroup.id });
       setGroupTopics((data ?? []) as GroupTopic[]);
@@ -1149,7 +1152,7 @@ export default function Raye2Client() {
             </div>}
             {selected.kind === "group" && selectedGroup && showTopicManage && canManageSelectedGroup && <section className={styles.topicPanel}>
               <div className={styles.topicCreate}><input value={newTopicName} onChange={event => setNewTopicName(event.target.value)} maxLength={60} placeholder={t.topicName} aria-label={t.topicName}/><button type="button" disabled={busy || !newTopicName.trim()} onClick={() => void createGroupTopic()}>{t.createTopic}</button></div>
-              {groupTopics.length === 0 ? <p className={styles.emptySmall}>{t.noTopics}</p> : <ul className={styles.topicList}>{groupTopics.map(topic => <li key={topic.id}><span>{topic.name} · {topic.message_count}</span><button type="button" disabled={busy} onClick={() => void deleteGroupTopic(topic.id)}>{t.deleteTopic}</button></li>)}</ul>}
+              {groupTopics.length === 0 ? <p className={styles.emptySmall}>{t.noTopics}</p> : <ul className={styles.topicList}>{groupTopics.map(topic => <li key={topic.id}><span>{topic.name} · {topic.message_count}</span>{pendingDeleteTopicId === topic.id ? <span className={styles.topicDeleteConfirm}><span>{isAr ? "حذف القناة؟" : "Delete channel?"}</span><button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void deleteGroupTopic(topic.id)}>{isAr ? "تأكيد" : "Confirm"}</button><button type="button" disabled={busy} onClick={() => setPendingDeleteTopicId(null)}>{isAr ? "إلغاء" : "Cancel"}</button></span> : <button type="button" disabled={busy} onClick={() => setPendingDeleteTopicId(topic.id)}>{t.deleteTopic}</button>}</li>)}</ul>}
             </section>}
             <div className={styles.messageArea}>
               {visibleMessages.length === 0 && <div className={styles.emptyConversation}><div>✳</div><h3>{t.noMessages}</h3></div>}
