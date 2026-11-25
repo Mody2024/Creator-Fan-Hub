@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 const client = readFileSync("src/app/raye2/raye2-client.tsx", "utf8");
 const migration = readFileSync("supabase/migrations/20261116230000_raye2_group_profile_and_moderation_log.sql", "utf8");
 
-assert.match(client, /const \[profileTopics, setProfileTopics\] = useState\(" "\)/);
+assert.match(client, /const \[profileTopics, setProfileTopics\] = useState\(""\)/);
 assert.match(client, /groupTopics:"Topics \(comma-separated\)"/);
 assert.match(client, /groupTopics:"المواضيع \(افصل بينها بفواصل\)"/);
 assert.match(client, /setProfileTopics\(\(selectedGroup\.topics \?\? \[\]\)\.join\(", "\)\)/);
