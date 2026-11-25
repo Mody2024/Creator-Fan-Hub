@@ -4114,3 +4114,30 @@ session and a slow client".
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization | ~97% |
+
+
+---
+
+## Batch — 2026-11-26 (Batch 23): Finish chalk typography on communication launch surfaces
+
+- Audited the launch communication surfaces against the Launch 1.0 design rules. The global chalk layer was being overridden by local CSS-module declarations on the Groups, Chat and Admin roots, leaving these important pages in the old Inter/system font.
+- Updated those three page roots to inherit the shared `--raye2-font-chalk` stack. Group labels now use a readable 12px chalk label instead of a 9px tracked monospace label; group descriptions and search controls were brought closer to the design system's reading sizes.
+- Added an automated regression assertion to the PWA/design test file so the launch surfaces keep the shared typography.
+- Commits on `development`: `cf1c4acc`, `ffaea190`, `c83e26d4`, `412a4663`.
+- **Verification status:** waiting for CI after the latest commit. This is a typography correction, not a claim that the full visual QA or all launch features are complete.
+
+### Canonical ten-wave table (unchanged)
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~96% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization | ~97% |
