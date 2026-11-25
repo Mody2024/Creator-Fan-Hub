@@ -677,12 +677,13 @@ for (const surface of predecessorSurfaces) {
   if (/\bNHEN\b|Nhen\?|Nhenbit|نهين/.test(source)) predecessorFree = false;
 }
 const rootLayout = await read("../src/app/layout.tsx");
-const loadingSource = await read("../src/app/loading.tsx");
+const hasRootLoading = existsSync(new URL("../src/app/loading.tsx", import.meta.url));
+const loadingSource = hasRootLoading ? await read("../src/app/loading.tsx") : "";
 const iconPng = existsSync(new URL("../src/app/icon.png", import.meta.url));
 const applePng = existsSync(new URL("../src/app/apple-icon.png", import.meta.url));
 const faviconIco = existsSync(new URL("../src/app/favicon.ico", import.meta.url));
 check("the brand mark integrates into favicon and app icons", iconPng && applePng && faviconIco && rootLayout.includes("/icon.png") && rootLayout.includes("/apple-icon.png") && rootLayout.includes("/favicon.ico"));
-check("a branded loading state stands in for streaming routes", loadingSource.includes("raye2-app-loading") && loadingSource.includes("aria-busy") && (await read("../src/app/raye2-design-system.css")).includes("raye2-app-loading-mark"));
+check("route transitions replace a blocking root loading screen", rootLayout.includes("RouteTransition") && !hasRootLoading && loadingSource === "");
 const designSystem = await read("../src/app/raye2-design-system.css");
 const notificationsCss = await read("../src/app/notifications/raye2-notifications.css");
 const seriesCss = await read("../src/app/series/raye2-series.css");
