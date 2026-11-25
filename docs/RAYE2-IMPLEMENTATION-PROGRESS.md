@@ -1,3 +1,10 @@
+## Public group entry-point batch — 2026-11-26
+
+- **Commits `4ced7c3`, `213e7bc`, `d068578`, `8ebe7a5`:** connected the public `/groups` directory to the existing authenticated Raye2 workspace where group creation is already implemented; added a bilingual create-space call to action and explanatory copy; added a bilingual entry point from public group detail pages into Raye2 for non-members who want to join; styled the links with the existing Raye2 blue/graphite system, keyboard focus and responsive behavior.
+- **Scope:** no new group-creation or join RPC was introduced. Membership remains handled by the existing authenticated Raye2 flows; the public page does not falsely claim that a click has already joined a group.
+- **Regression test added:** `tests/raye2-public-group-entrypoints.test.mjs` checks both locales, the correct workspace destinations, public/non-member gating and accessible styling.
+- **Verification:** source commits are on `development`. The test has been added but has not been executed locally; check the latest Vercel/CI result before treating it as passed.
+
 ## Media processing provider integration and CI repair — 2026-11-18
 
 - **Commits d4cc887, 1888c6c, 18988e7:** the self-hosted media worker now resolves newly pooled source objects from the storage registry by the exact persisted bucket/object path and owner, then downloads them through that provider's short-lived signed URL. Downloads fail closed when the provider is unavailable, enforce the existing 50 MiB processing ceiling while streaming, and verify the received byte count against the committed object size. Legacy Supabase Storage media continues through its original download path.
