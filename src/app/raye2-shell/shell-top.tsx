@@ -6,6 +6,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import ShellIcon from "./shell-icons";
 import ShellMenu from "./shell-menu";
 import ShellBrand from "./shell-brand";
+import LanguageSwitch from "@/app/language-switch";
 import { SHELL_T, createItemsFor, type ShellLocale } from "./shell-data";
 
 type Props = {
@@ -16,12 +17,13 @@ type Props = {
   member?: { handle: string } | null;
   /** Unread notifications badge on the bell. */
   unread?: number;
+  languageLabel?: string;
   /** When given, a sign-out button is shown for signed-in members. */
   onSignOut?: () => void;
 };
 
 /** Sticky glass top bar: brand, search pill, Create menu, notifications, and Join / member. */
-export default function ShellTopBar({ locale, mark, member: memberProp, unread = 0, onSignOut }: Props) {
+export default function ShellTopBar({ locale, mark, member: memberProp, unread = 0, languageLabel, onSignOut }: Props) {
   const t = SHELL_T[locale];
   const [detected, setDetected] = useState<{ handle: string } | null>(null);
   // Layouts for routes outside the session-refresh matcher cannot read the member on the server, so the
@@ -54,6 +56,7 @@ export default function ShellTopBar({ locale, mark, member: memberProp, unread =
       <div className="raye2-shell-actions">
         <Link className="raye2-shell-iconbtn raye2-shell-search-link" href="/search" aria-label={t.search}><ShellIcon name="search" size={22} /></Link>
         <ShellMenu label={t.create} icon="plus" items={createItemsFor(locale)} />
+        <LanguageSwitch initialLocale={locale} variant="header" label={languageLabel} />
         <Link className="raye2-shell-iconbtn raye2-shell-bell" href="/notifications" aria-label={bellLabel} title={t.notifications}>
           <ShellIcon name="bell" size={22} />
           {unread > 0 ? <span className="raye2-shell-badge" aria-hidden="true">{unread > 99 ? "99+" : unread}</span> : null}
