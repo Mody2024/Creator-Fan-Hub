@@ -87,7 +87,13 @@ The live Security Advisor returned:
 
 The previous security review is a source/grant review, not a penetration test. Before release, test with a real anonymous session, an authenticated non-member, a normal member, a group moderator, a platform admin and the owner. Confirm that internal cleanup, storage, moderation, quota and financial functions cannot be used outside their intended role.
 
-## 5. Frozen Launch 1.0 acceptance scope
+## 5. Preview database isolation
+
+The Supabase project currently has **no Supabase development branches**. The setup guide documents the Vercel Preview environment as configured with the same dedicated project URL/key used by this app. Therefore, do not assume a successful Vercel Preview deployment is backed by an isolated test database.
+
+**Required:** before destructive or multi-account acceptance testing, provide an isolated test backend or an explicitly approved test project. Until then, limit preview checks to non-destructive UI/build checks and do not run cleanup, account deletion, invite consumption, moderation, storage migration or other destructive scenarios against the shared project.
+
+## 6. Frozen Launch 1.0 acceptance scope
 
 Launch 1.0 is the communication-first release. Its release gates are:
 
@@ -103,7 +109,7 @@ Launch 1.0 is the communication-first release. Its release gates are:
 
 Shared documents, task boards, optional AI summaries/translation and other expansion ideas are not allowed to hold the core release hostage. Keep them as later updates unless the owner explicitly changes the frozen 1.0 scope.
 
-## 6. Progress accounting rules
+## 7. Progress accounting rules
 
 - Track **Implemented**, **Verified**, and **Remaining** separately.
 - “Implemented” means the feature exists in the actual app and has the required server-side authorization—not merely a design reference, route or migration.
@@ -113,7 +119,7 @@ Shared documents, task boards, optional AI summaries/translation and other expan
 - Do not increase the Launch 1.0 percentage for cosmetic changes or for adding tests alone.
 - Publish a new overall Launch 1.0 percentage only after the acceptance checklist has stable weights and each row has an evidence-backed status.
 
-## 7. Next implementation batches
+## 8. Next implementation batches
 
 1. **Admission + migration integrity:** implement invitation-bound signup; investigate and document migration-ledger reconciliation without touching production schema.
 2. **Communication completion:** finish room/channel model and management, message details/actions, attachments/voice messages, and independent thread loading.
