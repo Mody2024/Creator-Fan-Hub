@@ -29,9 +29,11 @@ These checks establish a green code/build baseline. They do not replace browser/
 
 ### A. Platform invite-only signup is not enforced in the client flow
 
-The community sign-up handler calls `supabase.auth.signUp({ email, password })` directly when signup mode is selected. The group-invite token is handled separately after a member is already authenticated and redirects through `/raye2/invite`. No platform invitation token is required by that signup handler.
+The community sign-up handler calls `supabase.auth.signUp({ email, password })` directly when signup mode is selected; it does not pass or validate a platform invitation token. The group-invite token is handled separately after a member is already authenticated and redirects through `/raye2/invite`. The owner setup guide says public Supabase sign-up is disabled, but the live Auth setting was not independently verified during this audit.
 
-**Required:** implement a server/database-validated platform invitation flow. Hiding the signup button or checking a URL token only in client code is not sufficient. Keep group invitations distinct from platform admission invitations. Verify that a direct signup attempt without a valid invitation is rejected.
+**Current admission model:** owner-provisioned Auth accounts with public signup intended to be disabled. This is not yet a member invitation-link workflow.
+
+**Required:** verify the actual Supabase Auth signup setting, remove or replace the misleading public signup UI, and implement an owner-controlled platform invitation flow if self-service invite redemption is part of Launch 1.0. Enforce admission server/database-side; client-only token checks are insufficient. Keep group invitations distinct from platform admission invitations.
 
 ### B. Screen sharing is not implemented
 
@@ -51,9 +53,9 @@ The live Supabase migration history records the same semantic migration names un
 - `20261119181242` — `raye2_youtube_promo_channels`
 - `20261119181458` — `raye2_youtube_channel_policy_refinement`
 
-The total counts match (253), but those two version IDs do not. The repository migration-check script applies repository files to an isolated PostgreSQL harness; it does not compare the repository version IDs with the live Supabase migration ledger.
+The total counts match (253), but those two version IDs do not. A read-only schema check confirms the live table exists and has the five final policies expected by the second repository migration. This is confirmed migration-ledger version drift; it is not evidence that the final table/policy state is currently missing. The repository migration-check script applies repository files to an isolated PostgreSQL harness; it does not compare repository version IDs with the live Supabase migration ledger.
 
-**Required:** reconcile the two historical version IDs before any future `supabase db push`, migration repair, or schema change. Do not blindly apply the two repository files to production and do not rewrite production migration history as a shortcut. First verify the historical SQL and current schema, then choose a safe, documented reconciliation.
+**Required:** document the reconciliation before any future `supabase db push`, migration repair, or schema change. Do not blindly apply the two repository files or rewrite migration history as a shortcut. First verify the historical SQL and current schema, then choose a safe, documented reconciliation.
 
 ## 3. Feature implementation map
 
@@ -89,9 +91,11 @@ The previous security review is a source/grant review, not a penetration test. B
 
 ## 5. Preview database isolation
 
-The Supabase project currently has **no Supabase development branches**. The setup guide documents the Vercel Preview environment as configured with the same dedicated project URL/key used by this app. Therefore, do not assume a successful Vercel Preview deployment is backed by an isolated test database.
+The setup guide identifies one dedicated Supabase project for Creator Fan Hub, with its URL and publishable key configured for Vercel Preview on the `development` Git branch and not configured for Vercel Production. The Supabase project currently has **no separate Supabase development branches**.
 
-**Required:** before destructive or multi-account acceptance testing, provide an isolated test backend or an explicitly approved test project. Until then, limit preview checks to non-destructive UI/build checks and do not run cleanup, account deletion, invite consumption, moderation, storage migration or other destructive scenarios against the shared project.
+This means Preview is intended to use the dedicated development database rather than a configured Production Supabase database. However, all Preview deployments share the same development database; there is no per-preview database branch. The current state of production database configuration must not be inferred beyond the setup guide.
+
+**Required:** use clearly marked synthetic test accounts/data and avoid destructive acceptance tests that could interfere with other development testing. Do not configure Production Supabase credentials or promote this project to Production without explicit owner approval. If parallel isolated testing becomes necessary, create a separate test project only after checking cost and obtaining approval.
 
 ## 6. Frozen Launch 1.0 acceptance scope
 
