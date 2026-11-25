@@ -23,3 +23,16 @@ test("thread panel handles empty replies, closes and resets on conversation swit
   assert.match(css, /\.threadReplies\{/);
   assert.match(css, /\.threadReplyAction:disabled/);
 });
+
+test("conversation history can be paged backward without losing the current scroll position", () => {
+  assert.match(client, /const \[historyLoading, setHistoryLoading\] = useState\(false\)/);
+  assert.match(client, /const \[historyHasMore, setHistoryHasMore\] = useState\(true\)/);
+  assert.match(client, /\.eq\("conversation_id", conversationId\)[\s\S]*\.order\("created_at", \{ ascending: false \}\)[\s\S]*\.limit\(PAGE_SIZE\)/);
+  assert.match(client, /request = request\.lt\("created_at", oldest\)/);
+  assert.match(client, /const PAGE_SIZE = 100/);
+  assert.match(client, /setHistoryHasMore\(page\.length === PAGE_SIZE\)/);
+  assert.match(client, /historyRequestRef\.current/);
+  assert.match(client, /container\.scrollTop = previousTop \+ Math\.max\(0, container\.scrollHeight - previousHeight\)/);
+  assert.match(client, /Load earlier messages/);
+  assert.match(client, /تحميل الرسائل الأقدم/);
+});
