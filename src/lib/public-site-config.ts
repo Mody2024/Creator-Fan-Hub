@@ -84,7 +84,6 @@ async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
   const flags = (raw.featureFlags && typeof raw.featureFlags === "object" ? raw.featureFlags : {}) as Record<string, unknown>;
   const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
   const allowedSections = ["hero","ideas","poll","events","community","socials","videos"];
-  const now = Date.now();
   // Scheduled theme creation is deferred; Launch 1.0 ships one fixed Raye2 theme.
 
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
