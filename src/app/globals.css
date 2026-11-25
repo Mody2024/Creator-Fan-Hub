@@ -1150,11 +1150,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .raye2-home-shell .raye2-icon-button,
 .raye2-home-shell .button-primary { border-color: color-mix(in srgb, var(--raye2-accent) 52%, transparent); }
 .raye2-home-shell .button-primary { background: var(--raye2-accent); }
-.raye2-home-shell[data-color-mode="light"], .raye2-home-shell.theme-paper { --r-bg:#f5f6f8; --r-panel:#ffffff; --r-raised:#e9edf2; --r-line:rgba(20,28,40,.13); --r-text:#161b24; --r-muted:#5f6877; color:var(--r-text); background:var(--r-bg); }
-.raye2-home-shell[data-color-mode="light"] .raye2-app-header,
-.raye2-home-shell[data-color-mode="light"] .raye2-card,
-.raye2-home-shell[data-color-mode="light"] .desktop-nav { background:#fff; color:var(--r-text); }
-.raye2-home-shell[data-color-mode="light"] .raye2-search { background:#f1f3f6; color:#161b24; }
 @media (max-width: 640px) {
   .raye2-home-shell :is(h1,h2,h3,.raye2-card-title) { letter-spacing:0; line-height: 1.17; }
 }
@@ -1162,10 +1157,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   .raye2-home-shell *, .raye2-home-shell *::before, .raye2-home-shell *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-.raye2-home-shell.theme-paper { --r-bg:#f4f2ed; --r-panel:#fffefa; --r-raised:#e9e5dc; --r-line:rgba(35,38,42,.13); --r-text:#24272c; --r-muted:#69717b; background:var(--r-bg); color:var(--r-text); }
-.raye2-home-shell.theme-violet { --r-bg:#100d1b; --r-panel:#191426; --r-raised:#251d35; --r-line:rgba(225,210,255,.12); --r-text:#f4efff; --r-muted:#b2a8c6; }
-.raye2-home-shell[data-color-mode="system"] { color-scheme: dark; }
-.raye2-home-shell[data-color-mode="system"] .raye2-card { color:var(--r-text); }
 .raye2-home-shell[data-active-event="true"]::before { content:""; display:block; height:2px; background:var(--raye2-accent); opacity:.8; }
 
 .raye2-home-shell { background-image: linear-gradient(180deg,rgba(8,10,15,.84),rgba(8,10,15,.94)), var(--raye2-background-image, none); background-size:cover; background-position:center; background-attachment:fixed; }
