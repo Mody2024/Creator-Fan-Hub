@@ -132,3 +132,12 @@ Shared documents, task boards, optional AI summaries/translation and other expan
 5. **Release hardening:** close security advisor findings or document justified exceptions; run real multi-account, EN/AR, mobile/desktop and storage-retention acceptance.
 
 No merge to `main` and no production deployment is authorized by this audit.
+
+## 9. Development-branch corrections after the audited snapshot
+
+The table above describes audited commit 7d7ca63ae4a499bdf61e14e95ea8b6e1aa9b2a6e. Subsequent development commits add functionality that was not present in that snapshot. Do not interpret the earlier feature map as a description of the current development head.
+
+- **Platform admission:** development now contains a platform invitation table/migration, owner-only invitation RPCs, an owner invitation dashboard, signup token capture, and a Before User Created Auth hook function. The migration has not been applied to the live Supabase project and the Auth hook has not been configured. Consequently, invite-only admission is still not proven/enforced in the live environment. See Batch 4 in the implementation tracker.
+- **Group-room screen sharing:** the current development group voice component already supports user-initiated LiveKit screen capture, remote screen rendering, stop handling, and browser capability fallback. The earlier statement that group voice had no screen sharing is stale for the current branch.
+- **Private-call screen sharing:** subsequent development commits add a pre-negotiated WebRTC video transceiver, live-only display capture, remote screen rendering, visible sharing status, stop/cleanup behavior, and source-contract tests. This is implemented in code but is not yet CI-verified or accepted in real two-account browser/device tests. Mobile browser support may be unavailable; the UI reports that limitation rather than promising it works.
+- **Verification boundary:** the later invitation and voice changes do not inherit the green CI result from the audited commit. Re-run full CI on the latest development head and complete real-session acceptance before treating these items as release-ready.
