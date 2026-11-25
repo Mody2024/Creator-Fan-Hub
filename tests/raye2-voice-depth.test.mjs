@@ -78,3 +78,15 @@ test("private calls support live-only screen sharing without renegotiation", () 
   assert.match(privateControls, /role="status" aria-live="polite"/);
   assert.match(voiceCss, /\.privateCallScreen\{/);
 });
+
+
+test("unexpected group voice disconnects release the server session and clear stale room state", () => {
+  assert.match(groupControls, /if \(sessionRef\.current === data\)[\s\S]*sessionRef\.current = null;[\s\S]*raye2_leave_voice_session/);
+  assert.match(groupControls, /setParticipantCount\(0\);[\s\S]*setParticipants\(\[\]\);[\s\S]*setActiveSpeakers\(\[\]\)/);
+  assert.match(groupControls, /setRecordingState\("off"\);[\s\S]*setMyConsent\("not_requested"\)/);
+  assert.match(groupControls, /disconnected: isAr \?/);
+});
+
+test("manual group voice leave attempts server cleanup even if the transport disconnect throws", () => {
+  assert.match(groupControls, /try \{ await room\.disconnect\(\); \}[\s\S]*catch \{ setError\(copy\.failed\); \}[\s\S]*raye2_leave_voice_session/);
+});
