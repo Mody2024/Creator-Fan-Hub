@@ -21,7 +21,7 @@ export type PublicSiteConfig = {
   displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print" | "Custom chalk";
   chalkTexture: "hand-drawn" | "soft" | "clean";
   waveStyle: "off" | "soft" | "bold";
-  activeEvent: null;
+  activeEvent: { name: string; accent?: string; displayFont?: string; chalkTexture?: string; theme?: "obsidian"; waveStyle?: string } | null;
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
