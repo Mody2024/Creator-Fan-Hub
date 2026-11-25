@@ -362,17 +362,19 @@ export default function Raye2Client() {
         const changed = payload.eventType === "DELETE" ? payload.old : payload.new;
         const messageId = typeof changed?.id === "string" ? changed.id : "";
         const conversationId = typeof changed?.conversation_id === "string" ? changed.conversation_id : "";
-        if (!messageId || !conversationId) return;
+        if (!messageId) return;
 
         if (payload.eventType === "DELETE") {
           setMessages(current => current.filter(message => message.id !== messageId));
           setPinnedMessages(current => current.filter(message => message.id !== messageId));
-          const { data: latest } = await supabase.from("raye2_messages")
-            .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
-            .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(1).maybeSingle();
-          setThreads(current => current.map(thread => thread.conversationId === conversationId
-            ? { ...thread, lastMessage: latest?.body ?? "", updatedAt: latest?.created_at ?? thread.updatedAt }
-            : thread));
+          if (conversationId) {
+            const { data: latest } = await supabase.from("raye2_messages")
+              .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
+              .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+            setThreads(current => current.map(thread => thread.conversationId === conversationId
+              ? { ...thread, lastMessage: latest?.body ?? "", updatedAt: latest?.created_at ?? thread.updatedAt }
+              : thread));
+          }
           return;
         }
 
@@ -383,6 +385,7 @@ export default function Raye2Client() {
           .eq("id", messageId).maybeSingle();
         if (error || !row) return;
         const message = row as Message;
+        const messageConversationId = message.conversation_id;
         setMessages(current => current.some(item => item.id === message.id)
           ? current.map(item => item.id === message.id ? message : item)
           : [...current, message].sort((a, b) => a.created_at.localeCompare(b.created_at)));
@@ -394,13 +397,13 @@ export default function Raye2Client() {
         }
 
         setThreads(current => current.map(thread => {
-          if (thread.conversationId !== conversationId) return thread;
+          if (thread.conversationId !== messageConversationId) return thread;
           const isNewForThisClient = payload.eventType === "INSERT";
+          const isLatest = message.created_at >= thread.updatedAt;
           return {
             ...thread,
-            lastMessage: message.body,
-            updatedAt: message.created_at,
-            unread: isNewForThisClient && message.sender_id !== userId && conversationId !== selected.conversationId
+            ...(isLatest ? { lastMessage: message.body, updatedAt: message.created_at } : {}),
+            unread: isNewForThisClient && message.sender_id !== userId && messageConversationId !== selected.conversationId
               ? thread.unread + 1
               : thread.unread
           };
