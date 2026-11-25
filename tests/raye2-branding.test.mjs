@@ -34,18 +34,21 @@ test("the uploaded logo is the only visible brand mark", async () => {
   assert.doesNotMatch(home, /portal-wordmark|رايق/);
 });
 
-test("the brand mark integrates into favicon, app icons and a branded loading state", async () => {
+test("the brand mark integrates into favicon, app icons and the installable app shell", async () => {
   const { existsSync } = await import("node:fs");
   const layout = await read("../src/app/layout.tsx");
-  const loading = await read("../src/app/loading.tsx");
   assert.ok(existsSync(new URL("../src/app/icon.png", import.meta.url)));
   assert.ok(existsSync(new URL("../src/app/apple-icon.png", import.meta.url)));
   assert.ok(existsSync(new URL("../src/app/favicon.ico", import.meta.url)));
   assert.match(layout, /\/icon\.png/);
   assert.match(layout, /\/apple-icon\.png/);
   assert.match(layout, /\/favicon\.ico/);
-  assert.match(loading, /raye2-app-loading/);
-  assert.match(loading, /aria-busy="true"/);
+  assert.match(layout, /manifest: "\/manifest\.webmanifest"/);
+  assert.match(layout, /<PwaRegister \/>/);
+  assert.match(layout, /<RouteTransition \/>/);
+  assert.ok(existsSync(new URL("../public/manifest.webmanifest", import.meta.url)));
+  assert.ok(existsSync(new URL("../public/sw.js", import.meta.url)));
+  assert.ok(existsSync(new URL("../public/offline.html", import.meta.url)));
 });
 
 test("page shells share one content-width token instead of per-route widths", async () => {
