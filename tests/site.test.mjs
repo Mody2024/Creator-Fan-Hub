@@ -414,14 +414,16 @@ test("deleting a prepared logo also cleans up its private original backup safely
 });
 
 
-test("uploaded logo preview shows both themes without a text wordmark in the hero portal", async () => {
+test("uploaded logo preview uses the fixed Raye2 theme without a text wordmark in the hero portal", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
+  const brand = await readFile(new URL("../src/app/raye2-shell/shell-brand.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null'));
-  assert.doesNotMatch(page, /portal-wordmark|رايق/);
-  assert.match(studio, /DARK THEME/);
-  assert.match(studio, /LIGHT THEME/);
+  assert.doesNotMatch(page, /portal-wordmark/);
+  assert.match(brand, /raye2-mark\\.png/);
+  assert.match(studio, /RAYE2 THEME/);
+  assert.doesNotMatch(studio, /LIGHT THEME/);
   assert.match(design, /raye2-logo-theme-previews/);
 });
 
@@ -533,6 +535,7 @@ test("the uploaded logo uses image assets in the single Raye2 theme without a li
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
+  const brand = await readFile(new URL("../src/app/raye2-shell/shell-brand.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null'));
   assert.doesNotMatch(page, /portal-wordmark/);
   assert.ok(brand.includes("/brand/raye2-mark.png"));
