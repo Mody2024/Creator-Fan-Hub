@@ -307,7 +307,12 @@ export default function Raye2Client() {
 
   useEffect(() => {
     const groupId = selectedGroup?.id;
-    if (!supabase || !groupId) { setGroupTopics([]); setActiveTopicId(null); return; }
+    // A topic ID belongs to one group only; never carry it into another group's conversation.
+    setGroupTopics([]);
+    setActiveTopicId(null);
+    setShowTopicManage(false);
+    setNewTopicName("");
+    if (!supabase || !groupId) return;
     let active = true;
     void supabase.rpc("raye2_list_group_topics", { p_group_id: groupId }).then(({ data }: { data: GroupTopic[] | null }) => {
       if (active) setGroupTopics((data ?? []) as GroupTopic[]);
