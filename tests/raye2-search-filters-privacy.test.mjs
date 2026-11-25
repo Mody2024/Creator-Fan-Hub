@@ -32,8 +32,9 @@ test("the dead Spaces tab is backed by real group rows, and Mini's are searchabl
   assert.match(migration, /g\.status in \('active','read_only'\)/);
   assert.match(migration, /'short'::text as kind/);
   assert.match(migration, /from public\.community_short_videos sv/);
-  assert.match(page, /kindMap:Record<string,string>=\{videos:"video",people:"person",posts:"post",tags:"tag",groups:"group",minis:"short",moments:"moment",events:"event"\}/);
+  assert.match(page, /kindMap:Record<string,string>=\{people:"person",posts:"post",tags:"tag",groups:"group",events:"event",\.\.\.\(mediaVisible\?\{videos:"video",minis:"short",moments:"moment"\}:\{\}\)\}/);
   assert.match(page, /showMinis/);
+  assert.match(page, /isRaye2PlatformAdmin/);
 });
 
 test("search covers active Moments and public events and hides expired Moments", () => {
