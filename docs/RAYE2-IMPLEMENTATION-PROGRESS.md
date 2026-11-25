@@ -4082,3 +4082,35 @@ session and a slow client".
 | 9 | Security, reliability, optimization and release readiness | ~99% |
 | — | Overall (equal-weight average of Waves 0–9) | **~96%** |
 | §18 | Smart Sponsorship / advertising / monetization | ~97% |
+
+
+---
+
+## Batch — 2026-11-26 (Batch 22): Bilingual PWA install experience
+
+**Goal:** make the existing installable web app discoverable without compromising private chat data or forcing an install prompt.
+
+- Added a shared, responsive Raye2 install card, mounted at the root so it is available across pages.
+- The card appears only when the browser emits `beforeinstallprompt`; it never prompts automatically. Installation is initiated only by the member's explicit button press.
+- Added English and Arabic copy, RTL handling, keyboard focus states, reduced-motion-safe styling, and dismissal.
+- The card disappears after successful installation (`appinstalled`).
+- Added three automated contract tests covering browser gating, user-initiated install, bilingual copy, accessibility hooks, responsive styling and global mounting.
+- Existing service-worker rules remain unchanged: no HTML, chat, API, account, group, creator or admin data is cached.
+- Commits on `development`: `0caae921`, `ebfafd07`, `fc806fb7`, `7e2242a1`.
+- **Verification status:** CI has not yet reported for this batch at the time of writing. Do not mark the batch green until the GitHub Actions run completes.
+
+### Canonical ten-wave table (unchanged; this batch is PWA installation polish)
+| Wave | Area | % |
+| --- | --- | --- |
+| 0 | Repository audit and implementation map | ~90% |
+| 1 | Brand system and full product redesign | ~90% |
+| 2 | Core platform architecture, accounts and permissions | ~90% |
+| 3 | Video, feed and discovery ecosystem | ~99% |
+| 4 | Creator Studio, exclusives and live streaming | ~98% |
+| 5 | Social graph, communities and engagement | ~100% |
+| 6 | Messaging and chat | ~98% |
+| 7 | Voice, Watch Together and shared experiences | ~96% |
+| 8 | Admin Rules Engine, operations and governance | ~100% |
+| 9 | Security, reliability, optimization and release readiness | ~99% |
+| — | Overall (equal-weight average of Waves 0–9) | **~96%** |
+| §18 | Smart Sponsorship / advertising / monetization | ~97% |
