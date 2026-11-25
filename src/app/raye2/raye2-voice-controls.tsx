@@ -154,7 +154,14 @@ export default function Raye2VoiceControls({ supabase, userId, conversationId, p
       // handles browsers that expose a track without an associated MediaStream.
       const streamFromPeer = event.streams[0] ?? new MediaStream([event.track]);
       if (event.track.kind === "video") {
-        setRemoteScreenActive(true);
+        // A negotiated but currently unused video transceiver can produce an
+        // initially muted track; only reveal the stage while frames are flowing.
+        setRemoteScreenActive(false);
+        event.track.onunmute = () => setRemoteScreenActive(true);
+        event.track.onmute = () => {
+          setRemoteScreenActive(false);
+          if (remoteVideo.current) remoteVideo.current.srcObject = null;
+        };
         event.track.onended = () => setRemoteScreenActive(false);
         if (remoteVideo.current) {
           remoteVideo.current.srcObject = streamFromPeer;
