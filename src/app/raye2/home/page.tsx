@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import { resolvePublicObjectUrls } from "@/lib/storage/resolve.server";
 import { LAUNCH_MEDIA_VISIBLE } from "@/lib/launch-features";
+import { isRaye2PlatformAdmin } from "@/lib/raye2-admin";
 import styles from "./home.module.css";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
   const locale=isArabic?"ar":"en";
   const selectedFeed=feed==="following"?"following":"latest";
   const supabase=await createSupabaseServerClient();
+  const mediaVisible=LAUNCH_MEDIA_VISIBLE || await isRaye2PlatformAdmin(supabase);
   let posts:FeedPost[]=[];
   let authors=new Map<string,{handle:string;display_name:string;avatar_url:string|null}>();
   let videos:VideoCard[]=[];
@@ -69,7 +71,7 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
       for(const item of bookmarks.data??[])savedIds.add(item.post_id);
       for(const item of follows.data??[])followedAuthorIds.add(item.followed_id);
     }
-    if (LAUNCH_MEDIA_VISIBLE) {
+    if (mediaVisible) {
       const [{data:videoRows},{data:liveRows},{data:recRows}]=await Promise.all([
         supabase.from("video_catalog").select("media_id,slug,description,category,published_at,thumbnail_media_id,media_items!video_catalog_media_id_fkey!inner(title,is_published,media_type),thumbnail:media_items!video_catalog_thumbnail_media_id_fkey(storage_path,is_published,media_type,alt_text)").not("published_at","is",null).eq("media_items.is_published",true).order("published_at",{ascending:false}).limit(4),
         supabase.rpc("raye2_get_live_now",{p_limit:4}),
@@ -100,14 +102,14 @@ export default async function Raye2HomePage({searchParams}:{searchParams:Promise
   return <main className={`${styles.shell} raye2-shell-page`} dir={isArabic?"rtl":"ltr"} lang={locale}>
     <ShellTopBar locale={locale} languageLabel={siteConfig.navigation.languageLabel} member={myHandle?{handle:myHandle}:null} />
     <div className={`${styles.layout} raye2-frame-layout`}>
-      <ShellRail locale={locale} showVideos={LAUNCH_MEDIA_VISIBLE} />
+      <ShellRail locale={locale} showVideos={mediaVisible} />
       <section className={styles.main}>
         <section className={styles.welcome}><div className={styles.welcomeTopline}><span className={styles.eyebrow}>{siteConfig.navigation.contextEyebrow || (isArabic?"مجتمع RAYE2 / الرئيسية":"RAYE2 COMMUNITY / HOME")}</span><span className={styles.liveDot}>{isArabic?"مساحتك":"YOUR SPACE"}</span></div><h1>{siteConfig.navigation.contextTitle || (isArabic?"عالمك.":"Your world.")}<br/><em>{isArabic?"مجتمعك.":"Your people."}</em></h1><p>{isArabic?"مساحة تجمع الرسائل والمجموعات ونقاشات المجتمع. اكتشف أشخاصًا جددًا وشارك في الحوار.":"A connected place for messages, groups and community conversations. Meet people, find your spaces, and join the conversation."}</p>
           <div className={styles.welcomeActions}><Link className={`${styles.button} ${styles.buttonPrimary}`} href="/groups">{isArabic?"استكشف المجموعات ↗":"Explore groups ↗"}</Link><Link className={styles.button} href="/community">{isArabic?"افتح المجتمعات":"Open communities"}</Link></div>
         </section>
-        {LAUNCH_MEDIA_VISIBLE && recommended.length?<><div className={styles.sectionHead}><h2>{isArabic?"مقترح لك":"Recommended for you"}</h2><span className={styles.count}>{isArabic?"مبني على اهتماماتك":"Tuned to your interests"}</span></div><div className={styles.videoGrid}>{recommended.map(item=><article className={styles.videoCard} key={item.slug}><Link href={`/watch/${item.slug}`}><div className={styles.videoFrame}><span aria-hidden="true">★</span><span className={styles.videoPlay} aria-hidden="true">▶</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{item.category.toUpperCase()}</span><h3>{item.title}</h3><p>{item.reason==="based_on_watch_history"?(isArabic?`لأنك تشاهد ${item.matched_category??item.category}`:`Because you watch ${item.matched_category??item.category}`):(isArabic?"الأكثر رواجًا الآن":"Trending now")}</p></div></Link></article>)}</div></>:null}
-        {LAUNCH_MEDIA_VISIBLE && liveNow.length?<><div className={styles.sectionHead}><h2>{isArabic?"مباشر الآن":"Live now"}</h2><Link className={styles.count} href="/live">{isArabic?"كل البث ↗":"View all live ↗"}</Link></div><div className={styles.videoGrid}>{liveNow.map(item=><article className={styles.videoCard} key={item.stream_id}><Link href={`/live/${item.stream_id}`}><div className={styles.videoFrame}><span aria-hidden="true">{item.status==="live"?"◉":"▷"}</span><span className={styles.videoPlay} aria-hidden="true">{item.status==="live"?"●":"▶"}</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{item.status==="live"?(isArabic?"مباشر":"LIVE"):(isArabic?"إعادة":"REPLAY")}</span><h3>{item.title}</h3><p>{item.display_name??item.handle??""}</p></div></Link></article>)}</div></>:null}
-        {LAUNCH_MEDIA_VISIBLE ? <><div className={styles.sectionHead}><h2>{isArabic?"نُشر حديثًا":"Recently published"}</h2><Link className={styles.count} href="/watch">View all videos ↗</Link></div>
+        {mediaVisible && recommended.length?<><div className={styles.sectionHead}><h2>{isArabic?"مقترح لك":"Recommended for you"}</h2><span className={styles.count}>{isArabic?"مبني على اهتماماتك":"Tuned to your interests"}</span></div><div className={styles.videoGrid}>{recommended.map(item=><article className={styles.videoCard} key={item.slug}><Link href={`/watch/${item.slug}`}><div className={styles.videoFrame}><span aria-hidden="true">★</span><span className={styles.videoPlay} aria-hidden="true">▶</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{item.category.toUpperCase()}</span><h3>{item.title}</h3><p>{item.reason==="based_on_watch_history"?(isArabic?`لأنك تشاهد ${item.matched_category??item.category}`:`Because you watch ${item.matched_category??item.category}`):(isArabic?"الأكثر رواجًا الآن":"Trending now")}</p></div></Link></article>)}</div></>:null}
+        {mediaVisible && liveNow.length?<><div className={styles.sectionHead}><h2>{isArabic?"مباشر الآن":"Live now"}</h2><Link className={styles.count} href="/live">{isArabic?"كل البث ↗":"View all live ↗"}</Link></div><div className={styles.videoGrid}>{liveNow.map(item=><article className={styles.videoCard} key={item.stream_id}><Link href={`/live/${item.stream_id}`}><div className={styles.videoFrame}><span aria-hidden="true">{item.status==="live"?"◉":"▷"}</span><span className={styles.videoPlay} aria-hidden="true">{item.status==="live"?"●":"▶"}</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{item.status==="live"?(isArabic?"مباشر":"LIVE"):(isArabic?"إعادة":"REPLAY")}</span><h3>{item.title}</h3><p>{item.display_name??item.handle??""}</p></div></Link></article>)}</div></>:null}
+        {mediaVisible ? <><div className={styles.sectionHead}><h2>{isArabic?"نُشر حديثًا":"Recently published"}</h2><Link className={styles.count} href="/watch">View all videos ↗</Link></div>
         {videos.length?<div className={styles.videoGrid}>{videos.map(video=><article className={styles.videoCard} key={video.id}><Link href={`/watch/${video.slug}`}><div className={styles.videoFrame}>{video.thumbnail_url?<Image className={styles.videoThumbnail} src={video.thumbnail_url} alt={video.thumbnail_alt} fill sizes="(max-width: 720px) 100vw, 360px" unoptimized/>:<span aria-hidden="true">▶</span>}<span className={styles.videoPlay} aria-hidden="true">▶</span></div><div className={styles.videoInfo}><span className={styles.eyebrow}>{video.category.toUpperCase()}</span><h3>{video.title}</h3><p>{video.description}</p></div></Link></article>)}</div>:<div className={styles.empty}>{isArabic?"ستظهر فيديوهات المبدعين هنا عند نشرها.":"New creator videos will appear here when published."}</div>}
         </> : null}
         <div className={styles.feedBar}><div><span className={styles.eyebrow}>{isArabic?"منشورات المجتمع":"COMMUNITY FEED"}</span><h2 style={{fontSize:19,margin:"6px 0 0"}}>{isArabic?"حوارات تستحق وقتك":"Conversations that matter"}</h2></div><div className={styles.feedTabs}><Link className={selectedFeed==="latest"?`${styles.feedTab} ${styles.feedTabActive}`:styles.feedTab} href="/raye2/home?feed=latest">{isArabic?"الأحدث":"Latest"}</Link><Link className={selectedFeed==="following"?`${styles.feedTab} ${styles.feedTabActive}`:styles.feedTab} href="/raye2/home?feed=following">{isArabic?"تتابعهم":"Following"}</Link></div></div>
