@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { cookies } from "next/headers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isRaye2PlatformAdmin } from "@/lib/raye2-admin";
 import ShellIcon, { type ShellIconName } from "./shell-icons";
