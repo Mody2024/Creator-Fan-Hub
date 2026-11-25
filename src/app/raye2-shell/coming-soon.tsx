@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { isRaye2PlatformAdmin } from "@/lib/raye2-admin";
 import ShellIcon, { type ShellIconName } from "./shell-icons";
 
 type Feature = "watch" | "minis" | "moments" | "clips" | "live" | "series";
@@ -54,18 +55,6 @@ export default async function ComingSoon({ feature }: { feature: Feature }) {
  */
 export async function ComingSoonGate({ feature, children }: { feature: Feature; children: ReactNode }) {
   const supabase = await createSupabaseServerClient();
-  if (supabase) {
-    const { data: claims, error: claimsError } = await supabase.auth.getClaims();
-    const userId = claims?.claims?.sub;
-    if (!claimsError && typeof userId === "string") {
-      const { data: admin, error: adminError } = await supabase
-        .from("creator_admins")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("active", true)
-        .maybeSingle();
-      if (!adminError && admin && ["owner", "admin"].includes(admin.role)) return <>{children}</>;
-    }
-  }
+  if (await isRaye2PlatformAdmin(supabase)) return <>{children}</>;
   return <ComingSoon feature={feature} />;
 }
