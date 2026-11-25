@@ -13,7 +13,7 @@ export default async function ShellFrame({ children }: { children: ReactNode }) 
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   return (
     <>
-      <ShellTopBar locale={locale} />
+      <ShellTopBar locale={locale} languageLabel={config.navigation.languageLabel} />
       <div className="raye2-frame">
         <ShellRail locale={locale} showVideos={config.visibleSections.includes("videos")} />
         <div className="raye2-frame-main">{children}</div>
