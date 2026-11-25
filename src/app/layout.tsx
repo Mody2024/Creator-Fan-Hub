@@ -9,6 +9,7 @@ import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";
 import PwaRegister from "./raye2-shell/pwa-register";
+import PwaInstall from "./raye2-shell/pwa-install";
 import NavProgress from "./raye2-shell/nav-progress";
 import BottomNav from "./raye2-shell/bottom-nav";
 import LocaleBootstrap from "./raye2-shell/locale-bootstrap";
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <NavProgress />
         <TelemetryReporter />
         <PwaRegister />
+        <PwaInstall />
         <BrandProvider logoUrl={siteConfig.logoUrl || null}>
         {children}
         <LocaleBootstrap />
