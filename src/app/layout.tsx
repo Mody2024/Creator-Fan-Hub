@@ -3,10 +3,16 @@ import "./globals.css";
 import "./raye2-design-system.css";
 import "./raye2/raye2-brand-system.css";
 import "./raye2-polish.css";
+import "./raye2-shell/raye2-shell.css";
+import "./raye2-shell/raye2-chalk.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";
 import PwaRegister from "./raye2-shell/pwa-register";
+import NavProgress from "./raye2-shell/nav-progress";
+import BottomNav from "./raye2-shell/bottom-nav";
+import LocaleBootstrap from "./raye2-shell/locale-bootstrap";
+import { BrandProvider } from "./raye2-shell/brand-context";
 import { cookies } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,7 +40,7 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const cookieStore = await cookies();
+  const [cookieStore, siteConfig] = await Promise.all([cookies(), getPublicSiteConfig()]);
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const ideaCreditName = process.env.NEXT_PUBLIC_IDEA_CREDIT_NAME?.trim() || "";
   const ideaCreditLogoUrl = process.env.NEXT_PUBLIC_IDEA_CREDIT_LOGO_URL?.trim() || "";
@@ -49,9 +55,14 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
       <body>
         <RouteTransition />
+        <NavProgress />
         <TelemetryReporter />
         <PwaRegister />
+        <BrandProvider logoUrl={siteConfig.logoUrl || null}>
         {children}
+        <LocaleBootstrap />
+        <BottomNav locale={locale} />
+        </BrandProvider>
         <footer className="creator-credit"><span>MADE BY ALMUDDATHTHIR</span>{showIdeaCredit ? <span className="creator-idea-credit"> · WEBSITE IDEA BY <a href={safeIdeaCreditYoutubeUrl} target="_blank" rel="noopener noreferrer"><img src={ideaCreditLogoUrl} alt="" loading="lazy" />{ideaCreditName}</a></span> : null}</footer>
       </body>
     </html>

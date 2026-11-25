@@ -6,34 +6,34 @@ body{background:#090a0c}
 .raye2-app-header{grid-template-columns:minmax(150px,210px) minmax(180px,1fr) auto;gap:clamp(12px,2vw,28px);min-height:76px;padding-inline:clamp(16px,3vw,42px);border-color:var(--raye2-polish-border)}
 .raye2-header-actions{gap:8px;min-width:0;white-space:nowrap}
 .raye2-header-actions .raye2-pill{min-height:38px;padding:0 14px;justify-content:center}
-.raye2-language-switch--header{position:static;min-height:38px;padding:0 11px;border-radius:999px;white-space:nowrap;gap:8px;font-size:11px}
+.raye2-language-switch--header{position:static;min-height:38px;padding:0 11px;border-radius:999px;white-space:nowrap;gap:8px;font-size:13.5px}
 .raye2-language-code{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 4px;border-radius:7px;background:rgba(77,141,246,.13);color:#9dc0ff;font:800 9px/1 var(--mono,ui-monospace,monospace);letter-spacing:.04em}
 .raye2-app-header .raye2-brand{min-width:0}
 .raye2-search{height:46px;background:#111215;border-color:rgba(244,244,246,.12);transition:border-color .18s,box-shadow .18s}
 .raye2-search:focus{outline:0;border-color:rgba(77,141,246,.6);box-shadow:0 0 0 3px rgba(77,141,246,.1)}
 .raye2-platform-grid{max-width:1600px;grid-template-columns:220px minmax(0,1fr) 300px;gap:24px;padding:28px clamp(16px,2vw,30px)}
-.raye2-sidebar-link{min-height:44px;border-radius:12px;font-size:13px}
+.raye2-sidebar-link{min-height:44px;border-radius:12px;font-size:14.5px}
 .raye2-sidebar-link[aria-current=page]{background:rgba(77,141,246,.11);box-shadow:inset 2px 0 #4d8df6}
 .raye2-feed-column{gap:20px}
 .raye2-card{border-color:var(--raye2-polish-border);border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.022),transparent 60%),#121316;box-shadow:0 16px 42px rgba(0,0,0,.12)}
 .raye2-card-pad{padding:clamp(18px,2vw,26px)}
 .raye2-home-welcome{position:relative;isolation:isolate;min-height:350px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:clamp(26px,3vw,42px);background:radial-gradient(ellipse at 88% 14%,rgba(77,141,246,.14),transparent 42%),linear-gradient(120deg,#17181c,#111216 68%,#101115);border-color:rgba(77,141,246,.18)}
 .raye2-home-welcome:after{content:"";position:absolute;z-index:-1;width:430px;height:430px;right:-160px;bottom:-310px;border:1px solid rgba(77,141,246,.17);border-radius:50%;box-shadow:0 0 0 28px rgba(77,141,246,.025),0 0 0 60px rgba(77,141,246,.02),0 0 0 100px rgba(77,141,246,.014);pointer-events:none}
-.raye2-home-welcome h1{max-width:850px;font-size:clamp(42px,5.1vw,72px);line-height:.99;letter-spacing:-.075em;font-weight:800}
+.raye2-home-welcome h1{max-width:850px;font-size:clamp(42px,5.1vw,72px);line-height:.99;letter-spacing:0;font-weight:800}
 .raye2-home-welcome h1 em{color:#4d8df6;font-style:normal}
 .raye2-home-welcome>p{max-width:620px;font-size:14px;line-height:1.8}
 .raye2-home-quicklinks{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-.raye2-home-quicklinks .button{min-height:46px;padding:0 18px;border-radius:12px;font-size:12px}
+.raye2-home-quicklinks .button{min-height:46px;padding:0 18px;border-radius:12px;font-size:14px}
 .raye2-home-quicklinks .button-primary{box-shadow:0 8px 24px rgba(77,141,246,.2)}
 .raye2-feed-tabs{position:sticky;top:76px;z-index:20;display:flex;gap:5px;overflow-x:auto;padding:7px;border:1px solid var(--raye2-polish-border);border-radius:999px;background:rgba(16,17,20,.88);backdrop-filter:blur(18px);scrollbar-width:none}
 .raye2-feed-tabs::-webkit-scrollbar{display:none}
-.raye2-feed-tabs a{padding:10px 16px;border-radius:999px;color:#a1a1aa;font-size:12px;font-weight:700;white-space:nowrap}
+.raye2-feed-tabs a{padding:10px 16px;border-radius:999px;color:#a1a1aa;font-size:14px;font-weight:700;white-space:nowrap}
 .raye2-feed-tabs a.active,.raye2-feed-tabs a:hover{background:#20232a;color:#9dc0ff}
-.raye2-card-title{font-size:20px;letter-spacing:-.045em}
-.raye2-empty-state{min-height:190px;border:1px dashed rgba(244,244,246,.12);border-radius:16px;background:rgba(255,255,255,.012);font-size:13px;line-height:1.7}
+.raye2-card-title{font-size:20px;letter-spacing:0}
+.raye2-empty-state{min-height:190px;border:1px dashed rgba(244,244,246,.12);border-radius:16px;background:rgba(255,255,255,.012);font-size:14.5px;line-height:1.7}
 .raye2-video-grid{gap:20px}
 .raye2-video-tile{border-radius:15px;background:#1a1c21}
-.raye2-video-title{font-size:14px;letter-spacing:-.02em}
+.raye2-video-title{font-size:14px;letter-spacing:0}
 .raye2-pill{min-height:32px;border-color:rgba(244,244,246,.13);background:rgba(255,255,255,.025)}
 .raye2-icon-button{transition:background .16s,border-color .16s,transform .16s}
 .raye2-icon-button:hover{background:#20232a;border-color:rgba(77,141,246,.4);transform:translateY(-1px)}
@@ -46,7 +46,7 @@ body:has(.raye2-language-switch--header) .raye2-language-switch:not(.raye2-langu
  .raye2-app-header .raye2-search{height:42px;margin:0}
  .raye2-header-actions{gap:5px}
  .raye2-header-actions .raye2-pill{display:none}
- .raye2-language-switch--header{min-height:34px;padding:0 8px;font-size:10px}
+ .raye2-language-switch--header{min-height:34px;padding:0 8px;font-size:12.5px}
  .raye2-language-code{min-width:19px;height:19px}
  .raye2-platform-grid{padding:12px 11px 94px}
  .raye2-home-welcome{min-height:300px;padding:24px 20px;border-radius:17px}
@@ -71,7 +71,7 @@ body, button, input, textarea, select {
 :where(.site, .page, [data-raye2-surface="creator-studio"]) :is(h1, h2, h3) {
   font-family: var(--raye2-font-display);
   font-weight: 760;
-  letter-spacing: -.035em;
+  letter-spacing:0;
   text-shadow: none;
 }
 .raye2-sidebar,
@@ -130,7 +130,7 @@ body, button, input, textarea, select {
 }
 .raye2-app-loading-text {
   font: 650 10px/1.4 var(--mono);
-  letter-spacing: .13em;
+  letter-spacing:.04em;
   text-transform: uppercase;
   color: var(--raye2-ds-muted, #a1a1aa);
 }

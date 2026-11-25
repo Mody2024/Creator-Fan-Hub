@@ -32,7 +32,7 @@
   border: 1px solid transparent;
   border-radius: 9px;
   color: var(--studio-muted);
-  font-size: 10px;
+  font-size:12.5px;
   font-weight: 750;
   transition: color .16s ease, background .16s ease, border-color .16s ease;
 }
@@ -48,7 +48,7 @@
 }
 [data-raye2-surface="creator-studio"] [data-slot="hero"] h1 {
   font-size: clamp(42px, 6vw, 76px);
-  letter-spacing: -.07em;
+  letter-spacing:0;
 }
 [data-raye2-surface="creator-studio"] [data-slot="hero"] p {
   max-width: 650px;
@@ -72,7 +72,7 @@
 }
 [data-raye2-surface="creator-studio"] [data-slot="metrics"] article > span {
   color: var(--studio-muted);
-  letter-spacing: .11em;
+  letter-spacing:.04em;
 }
 [data-raye2-surface="creator-studio"] [data-slot="metrics"] article > strong {
   margin-top: 17px;
@@ -127,7 +127,7 @@
   font-size: 19px;
 }
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .card p {
-  font-size: 12px;
+  font-size:14px;
   line-height: 1.85;
 }
 [data-raye2-surface="creator-studio"] [data-slot="workspaces"] .action {
@@ -172,7 +172,7 @@
 @media (max-width: 480px) {
   [data-raye2-surface="creator-studio"] { padding-inline: 14px; padding-bottom: 42px; }
   [data-raye2-surface="creator-studio"] [data-slot="nav"] { gap: 3px; }
-  [data-raye2-surface="creator-studio"] [data-slot="nav"] a { padding: 9px 10px; font-size: 9px; }
+  [data-raye2-surface="creator-studio"] [data-slot="nav"] a { padding: 9px 10px; font-size:12px; }
   [data-raye2-surface="creator-studio"] [data-slot="metrics"] { gap: 8px; }
   [data-raye2-surface="creator-studio"] [data-slot="metrics"] article { padding: 14px; }
   [data-raye2-surface="creator-studio"] [data-slot="metrics"] article > strong { font-size: 26px; }

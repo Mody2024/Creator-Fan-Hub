@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en" dir="ltr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Raye2 — Launch 1.0 design reference</title><meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0b0d;--p:#141416;--p2:#1c1c1f;--p3:#242427;--a:#4d8df6;--a2:#9dc0ff;--m:#a1a1aa;--t:#f4f4f6;--l:rgba(244,244,246,.12);--f:"Playpen Sans Arabic","Cabin Sketch","Segoe Print",system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--t);font:15px/1.55 var(--f)}
+h1,h2,h3{margin:0;line-height:1.28}h1{font-size:clamp(28px,5vw,44px)}h2{font-size:24px}h3{font-size:16px}
+.top{position:sticky;top:0;z-index:5;background:rgba(20,20,22,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--l);display:flex;gap:6px;align-items:center;padding:10px 14px;overflow-x:auto}
+.top a{white-space:nowrap;color:var(--m);text-decoration:none;padding:7px 13px;border-radius:99px;font-weight:600;font-size:13.5px}.top a:hover{background:var(--p2);color:var(--t)}
+.top b{margin-inline-end:8px;font-size:15px}.top button{margin-inline-start:auto}
+main{max-width:1100px;margin:0 auto;padding:28px 16px 80px;display:grid;gap:56px}
+.hero p{color:var(--m);max-width:62ch}.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.07em;padding:3px 10px;border-radius:99px;border:1px solid var(--l);color:var(--m)}
+.tag.new{color:var(--a2);border-color:rgba(77,141,246,.45);background:rgba(77,141,246,.12)}.tag.have{color:var(--t)}.tag.adm{color:#f4f4f6;background:var(--p3)}
+section{scroll-margin-top:70px;display:grid;gap:16px}.sh{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}.sh p{margin:4px 0 0;color:var(--m);font-size:14px;flex-basis:100%}
+.g2{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}.card{background:var(--p);border:1px solid var(--l);border-radius:24px;padding:18px;display:grid;gap:12px;align-content:start}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sp{margin-inline-start:auto}.mut{color:var(--m);font-size:13px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:99px;padding:9px 18px;background:var(--a);color:#0b0b0d;cursor:pointer}.btn.q{background:var(--p2);color:var(--t);border:1px solid var(--l)}.btn.d{background:transparent;color:#f4f4f6;border:1px solid #8a4b4b}
+.in{background:var(--bg);border:1px solid var(--l);border-radius:14px;padding:11px 14px;color:var(--t);font:inherit;width:100%}label{font-size:13px;color:var(--m)}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid var(--bg);outline:1px solid var(--l)}.sw.on{outline:2px solid var(--t)}
+.ban{height:92px;border-radius:18px;background:linear-gradient(120deg,#2f5fb8,#7d3fa8);position:relative}.ico{position:absolute;inset-inline-start:16px;bottom:-22px;width:60px;height:60px;border-radius:20px;background:var(--p3);border:3px solid var(--p);display:grid;place-items:center;font-weight:700;font-size:24px}
+.tog{width:40px;height:23px;border-radius:99px;background:var(--p3);position:relative;flex:none}.tog:after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:17px;height:17px;border-radius:50%;background:var(--m);transition:.2s}.tog.on{background:var(--a)}.tog.on:after{inset-inline-start:20px;background:#0b0b0d}
+.li{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:14px}.li:hover,.li.on{background:var(--p2)}.dot{width:11px;height:11px;border-radius:50%;flex:none}
+.cat{font-size:11px;letter-spacing:.07em;color:var(--m);padding:10px 11px 2px;font-weight:700}.k{font-size:10px;font-weight:700;color:var(--m);border:1px solid var(--l);border-radius:6px;padding:1px 6px;margin-inline-start:auto}
+.msg{display:flex;gap:10px}.av{width:38px;height:38px;border-radius:50%;background:var(--p3);display:grid;place-items:center;font-weight:700;flex:none}.bub{background:var(--p2);border-radius:6px 18px 18px 18px;padding:8px 13px;max-width:520px}
+.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--l);border-radius:99px;padding:2px 10px;font-size:13px;background:var(--p3)}.chip.me{border-color:var(--a);background:rgba(77,141,246,.16)}
+.ment{color:var(--a2);background:rgba(77,141,246,.14);border-radius:6px;padding:0 5px}.comp{display:flex;gap:10px;align-items:center;background:var(--p2);border:1px solid var(--l);border-radius:99px;padding:8px 8px 8px 18px}
+.spk{display:grid;justify-items:center;gap:6px;font-size:13px}.spk .av{width:64px;height:64px;font-size:22px}.spk.live .av{box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--a)}.spk.mute .av{opacity:.6}
+.ctl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;background:var(--p2);border-radius:99px;padding:8px;border:1px solid var(--l)}.ctl .btn{padding:9px 15px}
+.scr{aspect-ratio:16/9;border-radius:18px;background:repeating-linear-gradient(45deg,var(--p2),var(--p2) 12px,var(--p3) 12px,var(--p3) 24px);display:grid;place-items:center;position:relative;color:var(--m)}
+.scr .live{position:absolute;top:12px;inset-inline-start:12px;background:#0b0b0d;border:1px solid var(--l);border-radius:99px;padding:3px 12px;font-size:12px;color:var(--t)}
+.bar{height:34px;border-radius:12px;background:var(--p3);overflow:hidden;position:relative}.bar i{position:absolute;inset-block:0;inset-inline-start:0;background:linear-gradient(90deg,#2f5fb8,var(--a));border-radius:12px}.bar span{position:absolute;inset-inline:12px;top:5px;display:flex;justify-content:space-between;font-weight:600}
+.ch{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:center}.ch .im{width:54px;height:54px;border-radius:14px;background:var(--p3);display:grid;place-items:center;color:var(--m);font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:start;padding:10px 8px;border-bottom:1px solid var(--l)}th{color:var(--m);font-size:12px;letter-spacing:.06em}.tbl{overflow-x:auto}
+.me{font-weight:600}.meter{height:14px;border-radius:99px;background:var(--p3);display:flex;overflow:hidden}.meter i{display:block}
+.note{border:1px dashed var(--l);border-radius:16px;padding:12px 14px;color:var(--m);font-size:13.5px}
+.phone{width:min(100%,330px);margin-inline:auto;border:1px solid var(--l);border-radius:36px;padding:12px;background:var(--p);display:grid;gap:10px}
+.pb{display:grid;grid-template-columns:repeat(5,1fr);background:var(--p2);border-radius:26px;padding:8px 4px;text-align:center;font-size:10.5px;color:var(--m)}.pb b{display:block;font-size:17px;color:var(--t)}.pb .on{color:var(--a2)}
+</style></head><body>
+<nav class="top"><b>Raye2 · Launch 1.0</b><a href="#overview">Overview</a><a href="#group-create">Create group</a><a href="#roles">Roles</a><a href="#rooms">Rooms</a><a href="#thread">Messages</a><a href="#voice">Voice &amp; screen share</a><a href="#poll">Polls</a><a href="#invites">Invitations</a><a href="#storage">Storage</a><a href="#mobile">Phone</a>
+<button class="btn q" onclick="var d=document.documentElement;d.dir=d.dir=='rtl'?'ltr':'rtl'">RTL / LTR</button></nav>
+<main>
+<section id="overview" class="hero"><span class="tag new">DESIGN REFERENCE · NOT IMPLEMENTED</span><h1>Communication first.<br>Complete from day one.</h1>
+<p>Screens for the Launch 1.0 communication edition. Everything here is a design, not a working feature. Each section is tagged: <span class="tag have">EXISTS TODAY</span> <span class="tag new">NEW DESIGN</span> <span class="tag adm">ADMIN ONLY</span>. Media features stay preserved in the full-platform design and appear as Coming Soon for members.</p></section>
+
+<section id="group-create"><div class="sh"><h2>Create a group</h2><span class="tag new">NEW DESIGN</span><p>Any member can start a group in three short steps and becomes its owner.</p></div>
+<div class="g2"><div class="card"><div class="row"><span class="tag new">1 Identity</span><span class="tag">2 Privacy</span><span class="tag">3 Invite</span></div>
+<div><label>Group name</label><input class="in" value="Design Night Owls"></div><div><label>Description</label><input class="in" value="Weekly critiques, voice hangouts and shared inspiration."></div>
+<div class="row"><button class="btn q">Upload icon</button><button class="btn q">Upload banner</button></div>
+<div><label>Group color</label><div class="row"><i class="sw on" style="background:#4d8df6"></i><i class="sw" style="background:#7d3fa8"></i><i class="sw" style="background:#2f9e8f"></i><i class="sw" style="background:#d9822b"></i><i class="sw" style="background:#c2455a"></i></div></div>
+<div class="row"><button class="btn q">Back</button><button class="btn sp">Next: privacy</button></div></div>
+<div class="card"><label>Live preview</label><div class="ban"><div class="ico">D</div></div><div style="margin-top:22px"><h3>Design Night Owls</h3><span class="mut">1 member · Private · You are the owner</span></div>
+<div class="note">Privacy step: <b>Public</b> (anyone can find and join) or <b>Private</b> (invite link only). Invite step: create a link, pick who can invite, add a welcome message.</div></div></div></section>
+
+<section id="roles"><div class="sh"><h2>Roles &amp; permissions</h2><span class="tag new">NEW DESIGN</span><p>Roles are ordered: a role can only manage roles below it. The owner is always on top and can transfer ownership.</p></div>
+<div class="g2"><div class="card"><h3>Roles</h3>
+<div class="li"><i class="dot" style="background:#d9822b"></i>Owner <span class="k">YOU</span></div><div class="li"><i class="dot" style="background:#c2455a"></i>Administrator <span class="k">2</span></div><div class="li on"><i class="dot" style="background:#2f9e8f"></i>Moderator <span class="k">3</span></div><div class="li"><i class="dot" style="background:#7d3fa8"></i>Poll creator <span class="k">1</span></div><div class="li"><i class="dot" style="background:#a1a1aa"></i>Member <span class="k">24</span></div>
+<button class="btn q">+ New role</button></div>
+<div class="card"><div class="row"><h3>Moderator</h3><span class="mut sp">Name · color · tag</span></div>
+<div class="row"><span>Manage messages</span><i class="tog on sp"></i></div><div class="row"><span>Mute and remove members</span><i class="tog on sp"></i></div><div class="row"><span>Create polls</span><i class="tog sp"></i></div><div class="row"><span>Manage rooms</span><i class="tog sp"></i></div><div class="row"><span>Create invitations</span><i class="tog sp"></i></div><div class="row"><span>Speak on stage</span><i class="tog on sp"></i></div>
+<div class="note">Danger zone · <button class="btn d">Transfer ownership</button> asks for confirmation and the owner’s password.</div></div></div></section>
+
+<section id="rooms"><div class="sh"><h2>Rooms &amp; categories</h2><span class="tag new">NEW DESIGN</span><p>Text, voice, announcement, forum, private, role-restricted and temporary rooms, grouped into custom categories.</p></div>
+<div class="g2"><div class="card"><div class="cat">WELCOME</div><div class="li"># rules <span class="k">ANNOUNCE</span></div><div class="li on"># general</div><div class="cat">CREATE</div><div class="li"># feedback <span class="k">FORUM</span></div><div class="li"># mods-only <span class="k">LOCKED</span></div><div class="cat">VOICE</div><div class="li">♪ Lounge</div><div class="li">♪ Friday stage <span class="k">STAGE</span></div><div class="li">♪ Quick sync <span class="k">24H</span></div></div>
+<div class="card"><h3>New room</h3><div class="g2" style="grid-template-columns:1fr 1fr"><div class="li on">Text</div><div class="li">Voice</div><div class="li">Stage</div><div class="li">Announcement</div><div class="li">Forum</div><div class="li">Temporary</div></div>
+<div><label>Name</label><input class="in" value="design-crit"></div><div class="row"><span>Private (roles only)</span><i class="tog on sp"></i></div><div class="row"><span>Auto-delete after</span><span class="chip sp">24 hours</span></div><button class="btn">Create room</button></div></div></section>
+
+<section id="thread"><div class="sh"><h2>Messages, replies &amp; threads</h2><span class="tag have">CHAT EXISTS</span><span class="tag new">THREADS · PINS · ATTACHMENTS NEW</span><p>Pinned bar, reply threads in a side panel, reactions, mentions, attachments and a floating composer.</p></div>
+<div class="g2"><div class="card"><div class="note">Pinned · Friday critique starts at 8 PM — <span class="ment">@everyone</span></div>
+<div class="msg"><div class="av">N</div><div><b>Noor</b> <span class="mut">10:42</span><div class="bub">Uploaded the new board, thoughts <span class="ment">@Sam</span>?<div class="scr" style="margin-top:8px;aspect-ratio:16/8">image · compressed</div></div><div class="row" style="margin-top:6px"><span class="chip me">♥ 4</span><span class="chip">+1 2</span><span class="mut">3 replies in thread</span></div></div></div>
+<div class="comp"><span class="mut">Message #general</span><button class="btn sp">Send</button></div></div>
+<div class="card"><h3>Thread · 3 replies</h3><div class="msg"><div class="av">S</div><div class="bub">Love the contrast. Try the blue as the only accent.</div></div><div class="msg"><div class="av">M</div><div class="bub">Agree. Bookmarking this.</div></div><div class="note">Message menu: reply · thread · react · edit · delete · pin · bookmark · translate. History is searchable from the top bar.</div></div></div></section>
+
+<section id="voice"><div class="sh"><h2>Voice, stage &amp; screen sharing</h2><span class="tag have">VOICE EXISTS</span><span class="tag new">STAGE · SHARING NEW</span><p>Live only: nothing here is stored unless the host starts a recording and everyone consents.</p></div>
+<div class="g2"><div class="card"><h3>Friday stage · 12 listening</h3><div class="row" style="justify-content:space-around"><div class="spk live"><div class="av">N</div>Noor · host</div><div class="spk live"><div class="av">S</div>Sam</div><div class="spk mute"><div class="av">M</div>Mona</div></div>
+<div class="note">Raised hands (2): <span class="chip">Omar</span> <span class="chip">Lina</span> <button class="btn q">Invite to speak</button></div>
+<div class="ctl"><button class="btn q">Mute</button><button class="btn q">Deafen</button><button class="btn q">Share screen</button><button class="btn q">Raise hand</button><button class="btn d">Leave</button></div></div>
+<div class="card"><h3>Screen share</h3><div class="scr"><span class="live">LIVE · not recorded</span>Noor’s screen · Window: Figma</div>
+<div class="row"><span class="chip">Sam is also presenting</span><button class="btn q sp">Full screen</button></div><div class="note">Start sharing: choose Entire screen or one window, confirm. A banner shows who can see it, with a Stop button. Recording asks every participant for consent first.</div></div></div></section>
+
+<section id="poll"><div class="sh"><h2>Polls &amp; voting</h2><span class="tag have">BASIC POLLS EXIST</span><span class="tag new">IMAGE CHOICES · DEADLINES NEW</span><p>Created by owners, admins and anyone granted the Poll creator permission.</p></div>
+<div class="g2"><div class="card"><h3>New poll</h3><input class="in" value="Which cover for episode 12?"><div class="ch"><div class="im">img</div><input class="in" value="Neon Sunset"></div><div class="ch"><div class="im">img</div><input class="in" value="Paper Grain"></div><div class="ch"><div class="im">+</div><span class="mut">Add choice, image and description</span></div>
+<div class="row"><span class="chip me">Single choice</span><span class="chip">Multiple</span><span class="chip sp">Closes in 2 days</span></div><div class="row"><span>Show live results</span><i class="tog on sp"></i></div><button class="btn">Publish poll</button></div>
+<div class="card"><h3>Which cover for episode 12?</h3><span class="mut">86 votes · closes in 2 days</span><div class="bar"><i style="width:62%"></i><span><b>Neon Sunset</b><b>62% · 53</b></span></div><div class="bar"><i style="width:38%;opacity:.7"></i><span><b>Paper Grain</b><b>38% · 33</b></span></div><div class="row"><button class="btn q">Close early</button><button class="btn q">Export</button><span class="mut sp">Moderators can remove a poll</span></div></div></div></section>
+
+<section id="invites"><div class="sh"><h2>Invitation management</h2><span class="tag adm">ADMIN ONLY</span><span class="tag new">NEW DESIGN</span><p>Invite-only launch. No public sign-up. Example link: raye2.com/invite/design-night</p></div>
+<div class="card tbl"><div class="row"><h3>Invitations</h3><button class="btn sp">+ Create invitation</button></div><table><tr><th>NAME</th><th>LINK</th><th>USES</th><th>EXPIRES</th><th>STATUS</th><th></th></tr>
+<tr><td>Design night</td><td>/invite/design-night</td><td>7 / 20</td><td>in 6 days</td><td><span class="tag new">ACTIVE</span></td><td><button class="btn d">Revoke</button></td></tr>
+<tr><td>Beta friends</td><td>/invite/beta-f3k</td><td>1 / 1</td><td>used</td><td><span class="tag">USED</span></td><td></td></tr>
+<tr><td>Press</td><td>/invite/press-q9</td><td>0 / 5</td><td>expired</td><td><span class="tag">EXPIRED</span></td><td></td></tr></table>
+<div class="note">Create drawer: name · single-use or limit · expiry · default group · copy link. Detail view lists who redeemed it and when.</div></div></section>
+
+<section id="storage"><div class="sh"><h2>Storage, limits &amp; availability</h2><span class="tag adm">ADMIN ONLY</span><span class="tag new">NEW DESIGN</span><p>Lightweight by design. Calls and screen shares are never stored; attachments and recordings expire automatically.</p></div>
+<div class="g2"><div class="card"><h3>0.74 GB of 2 GB used</h3><div class="meter"><i style="width:22%;background:#4d8df6"></i><i style="width:10%;background:#9dc0ff"></i><i style="width:5%;background:#7d3fa8"></i></div><div class="row mut"><span>● Images 0.44</span><span>● Files 0.2</span><span>● Recordings 0.1</span></div><div class="row"><button class="btn q">Run cleanup now</button><span class="mut sp">Next cleanup in 6 h</span></div></div>
+<div class="card"><h3>Limits</h3><div class="row"><span>Max upload size</span><span class="chip sp">10 MB</span></div><div class="row"><span>Attachment retention</span><span class="chip sp">30 days</span></div><div class="row"><span>Compress images</span><i class="tog on sp"></i></div><div class="row"><span>Allow recording (needs consent)</span><i class="tog sp"></i></div><div class="row"><span>Media features for members</span><i class="tog sp"></i></div></div></div></section>
+
+<section id="mobile"><div class="sh"><h2>Phone navigation</h2><span class="tag have">BAR EXISTS</span><p>Five tabs; Create opens a sheet. The bar hides inside an open conversation.</p></div>
+<div class="phone"><div class="card" style="border-radius:22px"><b>Messages</b><div class="li"><div class="av">D</div>Design Night Owls<span class="k">3</span></div><div class="li"><div class="av">N</div>Noor</div></div>
+<div class="pb"><span class="on"><b>⌂</b>Home</span><span><b>✉</b>Messages</span><span><b>＋</b>Create</span><span><b>#</b>Groups</span><span><b>◔</b>You</span></div></div></section>
+</main></body></html>
