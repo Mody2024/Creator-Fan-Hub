@@ -17,12 +17,11 @@ export type PublicSiteConfig = {
   tagline: string;
   heroTitle: string;
   heroBody: string;
-  theme: "obsidian" | "paper" | "violet";
-  colorMode: "dark" | "light" | "system";
+  theme: "obsidian";
   displayFont: "Cabin Sketch" | "Fredericka the Great" | "Chalkduster" | "Chalkboard SE" | "Segoe Print" | "Custom chalk";
   chalkTexture: "hand-drawn" | "soft" | "clean";
   waveStyle: "off" | "soft" | "bold";
-  activeEvent: { name: string; accent?: string; displayFont?: string; chalkTexture?: string; theme?: string; colorMode?: string; waveStyle?: string } | null;
+  activeEvent: null;
   accent: string;
   motion: "full" | "reduced" | "off";
   maintenance: { enabled: boolean; message: string };
@@ -50,7 +49,6 @@ const fallback: PublicSiteConfig = {
   heroTitle: "The next big thing starts with you.",
   heroBody: "Discover the community, put your ideas forward, and help decide what gets made next. Your voice moves the story forward.",
   theme: "obsidian",
-  colorMode: "dark",
   displayFont: "Cabin Sketch",
   chalkTexture: "hand-drawn",
   waveStyle: "soft",
@@ -87,23 +85,7 @@ async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
   const layout = (raw.layout && typeof raw.layout === "object" ? raw.layout : {}) as Record<string, unknown>;
   const allowedSections = ["hero","ideas","poll","events","community","socials","videos"];
   const now = Date.now();
-  const eventThemes = Array.isArray(appearance.eventThemes) ? appearance.eventThemes : [];
-  const activeEventRaw = eventThemes.find((event: unknown) => {
-    if (!event || typeof event !== "object") return false;
-    const item = event as Record<string, unknown>;
-    const start = typeof item.startsAt === "string" ? Date.parse(item.startsAt) : NaN;
-    const end = typeof item.endsAt === "string" ? Date.parse(item.endsAt) : NaN;
-    return item.enabled === true && Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end;
-  }) as Record<string, unknown> | undefined;
-  const activeEvent = activeEventRaw ? {
-    name: typeof activeEventRaw.name === "string" ? activeEventRaw.name.slice(0, 80) : "Event",
-    accent: typeof activeEventRaw.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(activeEventRaw.accent) ? activeEventRaw.accent : undefined,
-    displayFont: ["Cabin Sketch","Fredericka the Great","Chalkduster","Chalkboard SE","Segoe Print"].includes(String(activeEventRaw.displayFont)) ? String(activeEventRaw.displayFont) : undefined,
-    chalkTexture: activeEventRaw.chalkTexture === "soft" || activeEventRaw.chalkTexture === "clean" || activeEventRaw.chalkTexture === "hand-drawn" ? activeEventRaw.chalkTexture : undefined,
-    theme: activeEventRaw.theme === "paper" || activeEventRaw.theme === "violet" || activeEventRaw.theme === "obsidian" ? activeEventRaw.theme : undefined,
-    colorMode: activeEventRaw.colorMode === "light" || activeEventRaw.colorMode === "system" || activeEventRaw.colorMode === "dark" ? activeEventRaw.colorMode : undefined,
-    waveStyle: activeEventRaw.waveStyle === "off" || activeEventRaw.waveStyle === "soft" || activeEventRaw.waveStyle === "bold" ? activeEventRaw.waveStyle : undefined
-  } : null;
+  // Scheduled theme creation is deferred; Launch 1.0 ships one fixed Raye2 theme.
 
   const mediaIds = [identity.logoMediaId, identity.mascotMediaId, identity.narrationMediaId, hero.mediaId].filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
   const mediaResult = mediaIds.length ? await supabase.from("media_items").select("id,media_type,storage_path").in("id", mediaIds).eq("is_published", true) : { data: [], error: null };
@@ -140,13 +122,12 @@ async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
     tagline: typeof identity.tagline === "string" ? identity.tagline.slice(0, 240) : fallback.tagline,
     heroTitle: typeof hero.title === "string" ? hero.title.slice(0, 180) : fallback.heroTitle,
     heroBody: typeof hero.body === "string" ? hero.body.slice(0, 1000) : fallback.heroBody,
-    theme: activeEvent?.theme === "obsidian" || activeEvent?.theme === "paper" || activeEvent?.theme === "violet" ? activeEvent.theme : appearance.theme === "paper" || appearance.theme === "violet" ? appearance.theme : "obsidian",
-    colorMode: activeEvent?.colorMode === "light" || activeEvent?.colorMode === "system" || activeEvent?.colorMode === "dark" ? activeEvent.colorMode : appearance.colorMode === "light" || appearance.colorMode === "system" ? appearance.colorMode : "dark",
-    displayFont: activeEvent?.displayFont === "Cabin Sketch" || activeEvent?.displayFont === "Fredericka the Great" || activeEvent?.displayFont === "Chalkduster" || activeEvent?.displayFont === "Chalkboard SE" || activeEvent?.displayFont === "Segoe Print" ? activeEvent.displayFont : appearance.displayFont === "Custom chalk" && publicBrandAssetUrl(appearance.fontPath) ? "Custom chalk" : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
-    chalkTexture: activeEvent?.chalkTexture === "hand-drawn" || activeEvent?.chalkTexture === "soft" || activeEvent?.chalkTexture === "clean" ? activeEvent.chalkTexture : appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
-    waveStyle: activeEvent?.waveStyle === "off" || activeEvent?.waveStyle === "soft" || activeEvent?.waveStyle === "bold" ? activeEvent.waveStyle : appearance.waveStyle === "off" || appearance.waveStyle === "bold" ? appearance.waveStyle : "soft",
-    activeEvent,
-    accent: activeEvent?.accent ?? (typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) ? appearance.accent : fallback.accent),
+    theme: "obsidian",
+    displayFont: appearance.displayFont === "Custom chalk" && publicBrandAssetUrl(appearance.fontPath) ? "Custom chalk" : appearance.displayFont === "Fredericka the Great" || appearance.displayFont === "Chalkduster" || appearance.displayFont === "Chalkboard SE" || appearance.displayFont === "Segoe Print" ? appearance.displayFont : "Cabin Sketch",
+    chalkTexture: appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
+    waveStyle: appearance.waveStyle === "off" || appearance.waveStyle === "bold" ? appearance.waveStyle : "soft",
+    activeEvent: null,
+    accent: fallback.accent,
     motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
     maintenance: {
       enabled: maintenance.enabled === true,
