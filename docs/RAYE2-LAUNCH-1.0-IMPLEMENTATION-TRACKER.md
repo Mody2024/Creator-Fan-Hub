@@ -70,3 +70,13 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - **Not yet browser/device tested:** installability/offline behavior, responsive page-by-page visual QA, authenticated member/admin access, real group creation, Arabic route review, accessibility, and Vercel preview.
 - **Not yet implemented to launch acceptance:** advanced chat threads/member panels/message actions, room and role management, stage/screen-share UX, advanced polls, admin invite dashboard, full admin content/storage/retention UI, and collaboration modules.
 
+## Batch 4 — 2026-11-26: Platform invite-only admission
+
+- Added `raye2_platform_invites`, storing only SHA-256 token hashes; browser roles have no direct table access.
+- Added owner-only create/revoke operations and admin-readable invitation metadata. Creation and revocation are written to the Raye2 audit log.
+- Added a Supabase Auth Before User Created hook function that rejects missing, invalid, expired, revoked, exhausted, or email-mismatched invitation codes. It locks the invitation row and increments usage only for an accepted signup.
+- Added an owner-facing Platform invitations panel with one-time link display, optional email restriction, expiry, use limits, refresh, and revocation.
+- Signup now requires an invitation code and passes it through Auth user metadata. Existing group invitations remain a separate mechanism.
+- Added source-contract tests for the migration, hook security boundary, signup metadata, and admin controls.
+- **Not yet complete / not claimed as secure in production:** the migration has only been committed to `development`; it has not been applied to the live Supabase database. The Supabase Auth **Before User Created** hook must be configured to call `pg-functions://postgres/public/raye2_before_user_created`. Direct signup rejection, invite acceptance, expiry, revocation, and concurrent-use behavior still require live tests after that configuration.
+- **Deployment:** Vercel currently reports a build-rate-limit failure for this branch, not a code-level build result. GitHub Actions for the final batch commit is pending at the time of this note. No production branch or deployment was changed.
