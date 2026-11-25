@@ -1236,7 +1236,7 @@ export default function Raye2Client() {
             <div className={styles.groupWizardStepLine}><span>{groupWizard.step} {groupCreateStep} {groupWizard.of} 3</span><strong>{groupWizard.steps[groupCreateStep - 1]}</strong></div>
             <div className={styles.groupWizardTrack} data-step={groupCreateStep} role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={groupCreateStep} aria-label={groupWizard.steps[groupCreateStep - 1]}><span /></div>
           </div>
-          <h2 id="raye2-group-title">{groupCreateStep === 1 ? groupWizard.basicsTitle : groupCreateStep === 2 ? groupWizard.privacyTitle : groupWizard.reviewTitle}</h2>
+          <h2 id="raye2-group-title">{groupCreateStep === 1 ? groupWizard.basicsTitle : groupCreateStep === 2 ? groupWizard.privacyTitle : groupCreateStep === 3 ? groupWizard.reviewTitle : groupWizard.reviewTitle}</h2>
           <p className={styles.groupWizardHint}>{groupCreateStep === 1 ? groupWizard.basicsHint : groupCreateStep === 2 ? groupWizard.privacyHint : groupWizard.reviewHint}</p>
           {groupCreateStep === 1 ? <>
             <label>{t.groupName}<input autoFocus value={groupName} onChange={event => setGroupName(event.target.value)} maxLength={80} minLength={2} /></label>
