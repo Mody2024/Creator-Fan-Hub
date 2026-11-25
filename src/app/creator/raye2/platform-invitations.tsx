@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import styles from "./admin.module.css";
 
@@ -50,6 +50,21 @@ export default function PlatformInvitations({ isArabic }: { isArabic: boolean })
     if (error) { setNotice(copy.error); return; }
     setRows((data ?? []) as InviteRow[]);
   }
+
+  // Load the invitation inventory as soon as an owner opens this tab. The manual
+  // refresh remains available for updates made in another admin session.
+  useEffect(() => {
+    let active = true;
+    if (!supabase) return;
+    setBusy(true);
+    void supabase.rpc("raye2_list_platform_invites").then(({ data, error }) => {
+      if (!active) return;
+      setBusy(false);
+      if (error) { setNotice(copy.error); return; }
+      setRows((data ?? []) as InviteRow[]);
+    });
+    return () => { active = false; };
+  }, [supabase, isArabic]);
 
   async function create() {
     if (!supabase || busy) return;
