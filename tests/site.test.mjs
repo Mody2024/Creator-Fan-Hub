@@ -381,6 +381,7 @@ test("Raye2 logo studio is wired into public and creator experiences", async () 
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const config = await readFile(new URL("../src/lib/public-site-config.ts", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
+  const brand = await readFile(new URL("../src/app/raye2-shell/shell-brand.tsx", import.meta.url), "utf8");
   const studio = await readFile(new URL("../src/app/creator/logo-studio.tsx", import.meta.url), "utf8");
   const design = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   assert.match(page, /config\.logoUrl/);
@@ -500,13 +501,15 @@ test("community moderation uses a private role helper across every moderation qu
 });
 
 
-test("launch 1.0: media navigation is tucked under Coming soon and hidden from the member home", async () => {
+test("launch 1.0: media navigation is hidden from members and retained for platform admins", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /const videoSectionVisible = config\.visibleSections\.includes\("videos"\)/);
+  assert.match(page, /const isPlatformAdmin = await isRaye2PlatformAdmin\(supabase\)/);
+  assert.match(page, /const mediaVisible = LAUNCH_MEDIA_VISIBLE \|\| isPlatformAdmin/);
+  assert.match(page, /const videoSectionVisible = isPlatformAdmin \|\| \(mediaVisible && config\.visibleSections\.includes\("videos"\)\)/);
   assert.match(page, /LAUNCH_MEDIA_VISIBLE/);
   const railSource = await readFile(new URL("../src/app/raye2-shell/shell-rail.tsx", import.meta.url), "utf8");
   assert.match(railSource, /const SOON: Entry\[\]/);
-  assert.match(page, /<PublicVideos \/>/); // preserved, but gated by LAUNCH_MEDIA_VISIBLE
+  assert.match(page, /<PublicVideos \/>/); // preserved for platform admins and the later public media launch
 });
 
 
@@ -526,15 +529,18 @@ test("trigger-only SECURITY DEFINER functions cannot be called as public RPCs", 
   }
 });
 
-test("the uploaded logo remains theme-aware without a text wordmark", async () => {
+test("the uploaded logo uses image assets in the single Raye2 theme without a live text wordmark", async () => {
   const page = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../src/app/raye2-design-system.css", import.meta.url), "utf8");
   const settings = await readFile(new URL("../src/app/creator/creator-settings.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null'));
-  assert.doesNotMatch(page, /رايق|portal-wordmark/);
+  assert.doesNotMatch(page, /portal-wordmark/);
+  assert.ok(brand.includes("/brand/raye2-mark.png"));
+  assert.ok(brand.includes("/brand/raye2-wordmark-en.png"));
+  assert.ok(brand.includes("/brand/raye2-wordmark-ar.png"));
   assert.ok(!page.includes("<strong>Raye2</strong>"));
   assert.ok(styles.includes(".raye2-logo-theme-dark"));
-  assert.ok(styles.includes(".raye2-logo-theme-light"));
+  assert.doesNotMatch(styles, /\.raye2-logo-theme-light/);
   assert.ok(settings.includes('siteName: "Raye2"'));
 });
 
@@ -543,7 +549,8 @@ test("creator logo preparation can remove plain backgrounds and trim transparent
   assert.ok(logo.includes("trimTransparent: boolean"));
   assert.ok(logo.includes("transparentMarginsTrimmed:trimTransparent"));
   assert.ok(logo.includes("Auto-trim and centre the logo"));
-  assert.ok(logo.includes("both site themes"));
+  assert.ok(logo.includes("fixed Raye2 theme preview"));
+  assert.doesNotMatch(logo, /both site themes|LIGHT THEME/);
 });
 
 test("video navigation is consistently gated without duplicate Watch and Videos links", async () => {
