@@ -1,5 +1,5 @@
 // Raye2 Launch 1.0 (Communication Edition) — design reference for what each feature looks like at launch.
-// DESIGN REFERENCE ONLY: this file does not gate or enable anything by itself. Implementation status is stated
+// The feature matrix documents launch status. LAUNCH_MEDIA_VISIBLE is also the member-facing home/search switch; server route gates separately enforce admin access. Implementation status is stated
 // honestly: "available" = exists in the app today; "new-design" = designed, still needs building; "coming-soon" =
 // preserved media feature shown as unavailable to members; "admin-only" = reachable only by administrators.
 export type LaunchStatus = "available" | "new-design" | "coming-soon" | "admin-only";
