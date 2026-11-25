@@ -466,7 +466,7 @@
 @media(max-width:680px){.groupWizard{max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow:auto}.groupWizardOptions button{padding:13px}}
 @media(prefers-reduced-motion:reduce){.groupWizardTrack span{transition:none}}
 
-.privateCallScreen{display:block;width:100%;max-height:min(48vh,420px);object-fit:contain;background:#050506;border:1px solid var(--r-line);border-radius:14px;margin:10px 0}
+.privateCallScreen{display:block;width:100%;max-height:min(48vh,420px);object-fit:contain;background:var(--r-surface);border:1px solid var(--r-line);border-radius:14px;margin:10px 0}
 .privateCallScreenHidden{display:none}
 
 .historyPager{display:flex;justify-content:center;padding:8px 12px}
