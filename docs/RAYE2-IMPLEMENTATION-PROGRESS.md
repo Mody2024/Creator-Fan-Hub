@@ -1,3 +1,10 @@
+## Group profile topic editing — 2026-11-26
+
+- **Commits `655d679`, `e4f5491`, `85d8dd7`:** completed the missing topics field in the existing group-management profile editor. Managers can edit the comma-separated group topics in English or Arabic; the editor loads current topics, submits them through the existing manager-authorized `raye2_update_group_profile` RPC, and updates the local group state after success. The existing database function enforces a maximum of 12 topics and 40 characters per topic.
+- **Regression test added:** `tests/raye2-group-profile-topics.test.mjs` checks both translations, state initialization, RPC payload wiring and the database validation limits.
+- **Scope:** no database schema or authorization changes; this uses the existing manager-only RPC.
+- **Verification:** source wiring was re-read after commit. The Node test file is committed but has not been executed in this environment; Vercel/CI remains the authoritative build check.
+
 ## Public group entry-point batch — 2026-11-26
 
 - **Commits `4ced7c3`, `213e7bc`, `d068578`, `8ebe7a5`:** connected the public `/groups` directory to the existing authenticated Raye2 workspace where group creation is already implemented; added a bilingual create-space call to action and explanatory copy; added a bilingual entry point from public group detail pages into Raye2 for non-members who want to join; styled the links with the existing Raye2 blue/graphite system, keyboard focus and responsive behavior.
