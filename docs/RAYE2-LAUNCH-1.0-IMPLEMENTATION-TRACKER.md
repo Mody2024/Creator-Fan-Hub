@@ -114,3 +114,16 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - **Verification:** GitHub Actions Free CI passed on code commit `2fee1596dfc91bfd6e551194119a66f1b33295cc` (1,087 automated tests; static repository/migration validation; TypeScript; lint; Next.js production build; media-worker image build). Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45723448556
 - **Still requires live acceptance:** test paging with two accounts and long conversations, confirm older reply roots load, verify the scroll position on desktop and mobile, and check realtime updates while loading history. This is automated CI verification, not a substitute for real-device testing.
 - Vercel preview remains blocked by the account's build-rate limit. No live Supabase migration/Auth hook, `main` branch, or production deployment was changed.
+
+
+## Batch 8 — 2026-11-26: Incremental realtime messaging
+
+- Replaced the raye2_messages realtime handler's full loadData(userId) reload with row-scoped, RLS-respecting fetches and incremental local updates.
+- Inserts and edits merge by message ID without discarding previously paginated history; sender profile details are refreshed when needed.
+- Deletes remove the message and pinned-message entry, then refresh the affected conversation's latest-message preview.
+- Conversation previews and unread counts are updated from incoming message events; older events do not overwrite a newer preview.
+- Added dedicated realtime synchronization for message reaction counts / the current user's reactions and for the signed-in user's notification inbox. These changes no longer depend on a full platform reload.
+- Added regression tests for incremental message handling, deletion, sender identity, unread state, reactions, and notifications.
+- **Verification:** the latest full run's automated repository checks and test suite passed (1,089 tests); its TypeScript step then found one implicit-any parameter in the reaction handler. That annotation has been fixed in commit 9043192e33da54be15812c81a9676edfa54f1cb1. A fresh full CI result for that exact commit is not yet available, so Batch 8 is **implemented; automated tests passed on the preceding code snapshot; final type-check/lint/build verification pending**.
+- **Live acceptance still required:** use two or more accounts to verify inserts, edits, deletes, reactions, notifications, unread/read behavior, thread replies, pinned messages, and paging while realtime events arrive. Confirm no duplicate notifications or stale previews, and test reconnect/reload behavior.
+- No Supabase migration, Auth configuration, main branch, or production deployment was changed.
