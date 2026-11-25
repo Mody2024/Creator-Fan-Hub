@@ -55,3 +55,10 @@ test("remote shared screens are rendered and detached when sharing ends", () => 
   assert.match(voiceCss, /\.groupVoiceScreens:empty\{display:none\}/);
   assert.match(voiceCss, /\.groupVoiceScreenVideo\{/);
 });
+
+test("push-to-talk cannot bypass mute or leave the microphone open", () => {
+  assert.match(groupControls, /setMicrophoneEnabled\(pushToTalk \? false : !next\)/);
+  assert.match(groupControls, /const shouldTransmit = transmitting && !muted/);
+  assert.match(groupControls, /setMicrophoneEnabled\(shouldTransmit\)/);
+  assert.match(groupControls, /if \(pushToTalk\) setTransmittingState\(false\)/);
+});
