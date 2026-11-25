@@ -80,7 +80,7 @@ export default async function HomePage() {
   }
   const videoSectionVisible = config.visibleSections.includes("videos");
   return <main dir={isArabic ? "rtl" : "ltr"} lang={isArabic ? "ar" : "en"} className={`raye2-app-shell raye2-home-shell theme-${config.theme}`} data-motion={config.motion} data-color-mode={config.colorMode} data-display-font={config.displayFont} data-chalk-texture={config.chalkTexture} data-active-event={config.activeEvent ? "true" : "false"} data-wave-style={config.waveStyle} style={{ "--raye2-accent": config.accent, "--raye2-background-image": config.backgroundUrl ? `url("${config.backgroundUrl}")` : "none" } as CSSProperties}>{config.customFontUrl ? <style>{`@font-face{font-family:"Raye2CustomChalk";src:url("${config.customFontUrl}") format("${config.customFontUrl.endsWith(".woff2") ? "woff2" : config.customFontUrl.endsWith(".woff") ? "woff" : "truetype"}");font-display:swap;font-weight:100 900}`}</style> : null}
-    <ShellTopBar locale={isArabic ? "ar" : "en"} mark={config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null} />
+    <ShellTopBar locale={isArabic ? "ar" : "en"} languageLabel={config.navigation.languageLabel} mark={config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null} />
     <div className="raye2-platform-grid">
       <ShellRail locale={isArabic ? "ar" : "en"} showVideos={videoSectionVisible} />
       <section className="raye2-feed-column">
