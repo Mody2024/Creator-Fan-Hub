@@ -55,6 +55,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     connecting: isAr ? "جارٍ الاتصال…" : "Connecting…",
     connected: isAr ? "الغرفة الصوتية متصلة" : "Voice room connected",
     unavailable: isAr ? "الغرفة الصوتية غير متاحة حاليًا." : "Group voice is not available right now.",
+    disconnected: isAr ? "انقطع الاتصال بالغرفة الصوتية. يمكنك الانضمام مجددًا." : "The voice room disconnected. You can rejoin.",
     failed: isAr ? "تعذر الاتصال بالغرفة الصوتية. حاول مرة أخرى." : "Could not connect to the voice room. Try again.",
     members: isAr ? "مشاركون" : "participants",
     speaking: isAr ? "يتحدث الآن" : "Speaking",
@@ -99,8 +100,14 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     setRecordingState("off");
     setMyConsent("not_requested");
     setRecordingElapsed(0);
-    if (room) await room.disconnect();
-    if (sessionId) await supabase.rpc("raye2_leave_voice_session", { p_session_id: sessionId });
+    if (room) {
+      try { await room.disconnect(); }
+      catch { setError(copy.failed); }
+    }
+    if (sessionId) {
+      const { error: leaveError } = await supabase.rpc("raye2_leave_voice_session", { p_session_id: sessionId });
+      if (leaveError) setError(copy.failed);
+    }
   };
 
   useEffect(() => () => {
@@ -192,9 +199,26 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       room.on(RoomEvent.Disconnected, () => {
         setConnected(false);
         setReconnecting(false);
+        setParticipantCount(0);
+        setParticipants([]);
+        setActiveSpeakers([]);
+        setCanModerate(false);
+        setLocked(false);
+        setMuted(false);
+        setIsVoiceHost(false);
         setCanShareScreen(false);
         setScreenShareActive(false);
+        setRecordingState("off");
+        setMyConsent("not_requested");
+        setRecordingElapsed(0);
         if (roomRef.current === room) roomRef.current = null;
+        // Manual leave clears this ref before disconnecting. A remaining ID
+        // therefore means the transport ended unexpectedly and needs cleanup.
+        if (sessionRef.current === data) {
+          sessionRef.current = null;
+          setError(copy.disconnected);
+          void supabase.rpc("raye2_leave_voice_session", { p_session_id: data });
+        }
       });
 
       await room.connect(tokenData.url, tokenData.token);
