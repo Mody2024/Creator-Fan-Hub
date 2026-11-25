@@ -421,7 +421,7 @@ test("uploaded logo preview uses the fixed Raye2 theme without a text wordmark i
   const brand = await readFile(new URL("../src/app/raye2-shell/shell-brand.tsx", import.meta.url), "utf8");
   assert.ok(page.includes('config.logoUrl ? <img className="site-logo-image" src={config.logoUrl} alt="" /> : null'));
   assert.doesNotMatch(page, /portal-wordmark/);
-  assert.match(brand, /raye2-mark\\.png/);
+  assert.ok(brand.includes("/brand/raye2-mark.png"));
   assert.match(studio, /RAYE2 THEME/);
   assert.doesNotMatch(studio, /LIGHT THEME/);
   assert.match(design, /raye2-logo-theme-previews/);
