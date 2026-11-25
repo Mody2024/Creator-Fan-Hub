@@ -1,5 +1,7 @@
 # Raye2 Launch 1.0 implementation tracker
 
+> **Latest release audit (2026-11-26):** [Raye2 Launch 1.0 audit, verified state and release blockers](RAYE2-LAUNCH-1.0-AUDIT-2026-11-26.md). Use that audit for the current implementation/verification baseline; the historical batch notes below are not a live progress percentage.
+
 This tracker is scoped to the communication-first launch. It is separate from the legacy ten-wave full-platform estimate in `RAYE2-IMPLEMENTATION-PROGRESS.md`. A design reference, route, or schema alone does not count as a finished user-facing feature.
 
 ## Batch 1 — 2026-11-25: PWA foundation
