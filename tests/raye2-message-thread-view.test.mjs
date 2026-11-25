@@ -52,7 +52,7 @@ test("message realtime updates refresh sender identity and keep unread counts co
   const subscription = client.slice(client.indexOf('table: "raye2_messages"'), client.indexOf('table: "raye2_group_members"'));
   assert.match(subscription, /from\("member_profiles"\)/);
   assert.match(subscription, /message\.sender_id !== userId/);
-  assert.match(subscription, /conversationId !== selected\.conversationId/);
+  assert.match(subscription, /messageConversationId !== selected\\.conversationId/);
   assert.match(subscription, /thread\.unread \+ 1/);
   assert.match(subscription, /\.order\("created_at", \{ ascending: false \}\)\.limit\(1\)\.maybeSingle\(\)/);
 });
