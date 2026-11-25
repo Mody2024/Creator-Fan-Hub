@@ -1,3 +1,10 @@
+## Group channel switch state fix — 2026-11-26
+
+- **Commits `aea6581` and `420740d`:** switching between group conversations now clears the previously selected group-topic filter immediately, clears the prior group's channel list while the new list loads, and closes/resets the channel-management draft. This prevents a topic ID from one group filtering all messages out of another group.
+- **Regression test added:** `tests/raye2-group-topic-switch.test.mjs` checks that topic/filter/manager state resets before the new group's topic-list request.
+- **Scope:** client state only; no database, schema, permissions, or retention changes.
+- **Verification:** source patch and test contents were committed. The Node test, TypeScript check, lint, and production build have not been run in this environment; check GitHub Actions and Vercel Preview before treating the batch as validated.
+
 ## Group profile topic editing — 2026-11-26
 
 - **Commits `655d679`, `e4f5491`, `85d8dd7`:** completed the missing topics field in the existing group-management profile editor. Managers can edit the comma-separated group topics in English or Arabic; the editor loads current topics, submits them through the existing manager-authorized `raye2_update_group_profile` RPC, and updates the local group state after success. The existing database function enforces a maximum of 12 topics and 40 characters per topic.
