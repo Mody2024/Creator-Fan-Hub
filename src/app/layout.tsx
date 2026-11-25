@@ -6,6 +6,7 @@ import "./raye2-polish.css";
 import { getPublicSiteConfig } from "@/lib/public-site-config";
 import TelemetryReporter from "./telemetry-reporter";
 import RouteTransition from "./route-transition";
+import PwaRegister from "./raye2-shell/pwa-register";
 import { cookies } from "next/headers";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,6 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = config.tagline || "Raye2 — videos, creators and communities, connected."; 
   return {
     applicationName: "Raye2",
+    manifest: "/manifest.webmanifest",
     title: { default: "Raye2", template: "%s | Raye2" },
     description,
     openGraph: { type: "website", siteName: "Raye2", title: "Raye2", description, locale: "en_US", alternateLocale: ["ar_EG"] },
@@ -48,6 +50,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body>
         <RouteTransition />
         <TelemetryReporter />
+        <PwaRegister />
         {children}
         <footer className="creator-credit"><span>MADE BY ALMUDDATHTHIR</span>{showIdeaCredit ? <span className="creator-idea-credit"> · WEBSITE IDEA BY <a href={safeIdeaCreditYoutubeUrl} target="_blank" rel="noopener noreferrer"><img src={ideaCreditLogoUrl} alt="" loading="lazy" />{ideaCreditName}</a></span> : null}</footer>
       </body>
