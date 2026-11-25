@@ -431,13 +431,13 @@ a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,
   }
 }
 
-.raye2-logo-theme-previews { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.raye2-logo-theme-previews { display:grid; grid-template-columns:minmax(0,1fr); max-width:520px; gap:12px; }
 .raye2-logo-theme-preview { min-height:170px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:20px; border:1px solid var(--raye2-ds-line); border-radius:16px; overflow:hidden; }
 .raye2-logo-theme-preview > span { align-self:flex-start; font-size:12px; font-weight:800; letter-spacing:.04em; opacity:.65; }
 .raye2-logo-theme-preview img { display:block; max-width:min(100%,420px); max-height:112px; width:auto; height:auto; object-fit:contain; }
 .raye2-logo-theme-dark { color:#f4f4f6; background:#0b0b0d; }
 .raye2-logo-theme-light { color:#141416; background:#f4f4f6; border-color:rgba(20,20,22,.15); }
-@media(max-width:600px){.raye2-logo-theme-previews{grid-template-columns:1fr}.raye2-logo-theme-preview{min-height:130px}}
+@media(max-width:600px){.raye2-logo-theme-preview{min-height:130px}}
 
 
 .site[data-motion="reduced"] *, .maintenance[data-motion="reduced"] * {
