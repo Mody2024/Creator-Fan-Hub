@@ -50,6 +50,8 @@ test("remote shared screens are rendered and detached when sharing ends", () => 
   assert.match(groupControls, /Track\.Source\.ScreenShare && track\.kind === Track\.Kind\.Video/);
   assert.match(groupControls, /screenShareContainerRef\.current\.appendChild\(element\)/);
   assert.match(groupControls, /groupVoiceScreenVideo/);
+  assert.match(groupControls, /screenSharePrivacy/);
+  assert.match(groupControls, /groupVoiceAudio[\s\S]*groupVoiceScreens[\s\S]*!connected \?/);
   assert.match(voiceCss, /\.groupVoiceScreens:empty\{display:none\}/);
   assert.match(voiceCss, /\.groupVoiceScreenVideo\{/);
 });
