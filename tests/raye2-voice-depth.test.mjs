@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, groupControls, voiceCss] = await Promise.all([
+const [migration, groupControls, privateControls, voiceCss] = await Promise.all([
   read("../supabase/migrations/20261110950000_raye2_voice_depth.sql"),
   read("../src/app/raye2/raye2-group-voice-controls.tsx"),
+  read("../src/app/raye2/raye2-voice-controls.tsx"),
   read("../src/app/raye2/raye2.module.css")
 ]);
 
@@ -61,4 +62,17 @@ test("push-to-talk cannot bypass mute or leave the microphone open", () => {
   assert.match(groupControls, /const shouldTransmit = transmitting && !muted/);
   assert.match(groupControls, /setMicrophoneEnabled\(shouldTransmit\)/);
   assert.match(groupControls, /if \(pushToTalk\) setTransmittingState\(false\)/);
+});
+
+test("private calls support live-only screen sharing without renegotiation", () => {
+  assert.match(privateControls, /addTransceiver\("video", \{ direction: "sendrecv" \}\)/);
+  assert.match(privateControls, /mediaDevices\?\.getDisplayMedia/);
+  assert.match(privateControls, /getDisplayMedia\(\{ video: true, audio: false \}\)/);
+  assert.match(privateControls, /sender\.replaceTrack\(track\)/);
+  assert.match(privateControls, /sender\?\.replaceTrack\(null\)/);
+  assert.match(privateControls, /track\.onended/);
+  assert.match(privateControls, /screenShareStreamRef\.current\?\.getTracks\(\)\.forEach\(track => track\.stop\(\)\)/);
+  assert.match(privateControls, /privateCallScreen/);
+  assert.match(privateControls, /role="status" aria-live="polite"/);
+  assert.match(voiceCss, /\.privateCallScreen\{/);
 });
