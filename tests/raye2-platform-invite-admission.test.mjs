@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(path, import.meta.url), "utf8");
-const [migration, community, admin] = await Promise.all([
+const [migration, community, admin, invitePanel] = await Promise.all([
   read("../supabase/migrations/20261126120000_raye2_platform_invite_admission.sql"),
   read("../src/app/community/community-client.tsx"),
-  read("../src/app/creator/raye2/admin-client.tsx")
+  read("../src/app/creator/raye2/admin-client.tsx"),
+  read("../src/app/creator/raye2/platform-invitations.tsx")
 ]);
 
 test("platform invite table stores hashes only and is inaccessible to browser roles", () => {
@@ -38,4 +39,21 @@ test("platform invite management is owner-gated and auditable", () => {
   assert.match(migration, /raye2_revoke_platform_invite/);
   assert.match(migration, /platform_invite_created/);
   assert.match(migration, /platform_invite_revoked/);
+});
+
+test("signup passes a validated platform invite in auth user metadata", () => {
+  assert.match(community, /raye2_access_invite/);
+  assert.match(community, /raye2_access_invite: accessInvite\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(community, /A valid Raye2 invitation is required/);
+  assert.match(community, /t\.accessInvite/);
+});
+
+test("owner admin panel can create, list and revoke platform invitations without exposing hashes", () => {
+  assert.match(admin, /PlatformInvitations/);
+  assert.match(admin, /id: "invitations"/);
+  assert.match(invitePanel, /raye2_create_platform_invite/);
+  assert.match(invitePanel, /raye2_list_platform_invites/);
+  assert.match(invitePanel, /raye2_revoke_platform_invite/);
+  assert.match(invitePanel, /crypto\.getRandomValues/);
+  assert.match(invitePanel, /raye2_access_invite=/);
 });
