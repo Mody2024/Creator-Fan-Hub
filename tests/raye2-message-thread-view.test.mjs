@@ -56,3 +56,12 @@ test("message realtime updates refresh sender identity and keep unread counts co
   assert.match(subscription, /thread\.unread \+ 1/);
   assert.match(subscription, /\.order\("created_at", \{ ascending: false \}\)\.limit\(1\)\.maybeSingle\(\)/);
 });
+
+
+test("message realtime keeps reactions and notification inbox current without a full reload", () => {
+  assert.match(client, /table: "raye2_message_reactions"/);
+  assert.match(client, /setReactionCounts\(current => \(\{ \.\.\.current, \[messageId\]: counts \}\)\)/);
+  assert.match(client, /setMyReactions\(current => \(\{ \.\.\.current, \[messageId\]:/);
+  assert.match(client, /table: "raye2_notifications", filter: "user_id=eq\." \+ userId/);
+  assert.match(client, /setNotifications\(current => \[data as NotificationItem/);
+});
