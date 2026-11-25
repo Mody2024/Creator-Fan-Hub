@@ -342,7 +342,10 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     if (!room) return;
     const next = !muted;
     try {
-      await room.localParticipant.setMicrophoneEnabled(!next);
+      // Push-to-talk must remain closed between deliberate transmit actions.
+      // Unmuting the room microphone must not silently bypass that preference.
+      await room.localParticipant.setMicrophoneEnabled(pushToTalk ? false : !next);
+      if (pushToTalk) setTransmittingState(false);
       setMuted(next);
       const sessionId = sessionRef.current;
       if (sessionId) void supabase.rpc("raye2_set_voice_mute", { p_session_id: sessionId, p_muted: next });
@@ -399,8 +402,10 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     const room = roomRef.current;
     if (!room) return;
     try {
-      await room.localParticipant.setMicrophoneEnabled(transmitting);
-      setTransmittingState(transmitting);
+      // A muted participant cannot transmit, even if Space or the hold button is pressed.
+      const shouldTransmit = transmitting && !muted;
+      await room.localParticipant.setMicrophoneEnabled(shouldTransmit);
+      setTransmittingState(shouldTransmit);
     } catch {
       setError(copy.failed);
     }
