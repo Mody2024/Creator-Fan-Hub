@@ -17,7 +17,7 @@ test("grouped replies can be opened in a focused thread panel", () => {
 test("thread panel handles empty replies, closes and resets on conversation switch", () => {
   assert.match(client, /No replies yet\. Start the conversation\./);
   assert.match(client, /لا توجد ردود بعد\. ابدأ المحادثة\./);
-  assert.match(client, /setActiveThreadRoot\(null\); \}, \[selectedId\]\)/);
+  assert.match(client, /historyRequestRef\.current \+= 1; setActiveThreadRoot\(null\); setHistoryHasMore\(true\); setHistoryLoading\(false\); \}, \[selectedId\]\)/);
   assert.match(client, /onClick=\{\(\) => setActiveThreadRoot\(null\)\} aria-label=\{isAr \? "إغلاق السلسلة" : "Close thread"\}>×/);
   assert.match(css, /\.threadPanel\{/);
   assert.match(css, /\.threadReplies\{/);
