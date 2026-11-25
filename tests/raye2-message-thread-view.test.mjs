@@ -18,7 +18,7 @@ test("thread panel handles empty replies, closes and resets on conversation swit
   assert.match(client, /No replies yet\. Start the conversation\./);
   assert.match(client, /لا توجد ردود بعد\. ابدأ المحادثة\./);
   assert.match(client, /setActiveThreadRoot\(null\); \}, \[selectedId\]\)/);
-  assert.match(client, /setActiveThreadRoot\(null\)\}>×/);
+  assert.match(client, /onClick=\{\(\) => setActiveThreadRoot\(null\)\} aria-label=\{isAr \? "إغلاق السلسلة" : "Close thread"\}>×/);
   assert.match(css, /\.threadPanel\{/);
   assert.match(css, /\.threadReplies\{/);
   assert.match(css, /\.threadReplyAction:disabled/);
