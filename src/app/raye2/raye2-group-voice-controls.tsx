@@ -76,7 +76,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     screenUnavailable: isAr ? "مشاركة الشاشة غير مدعومة في هذا المتصفح. جرّب متصفح سطح المكتب." : "Screen sharing is not supported by this browser. Try a desktop browser.",
     screenFailed: isAr ? "تعذرت مشاركة الشاشة. تحقق من أذونات المتصفح وحاول مرة أخرى." : "Could not share your screen. Check browser permissions and try again.",
     screenShareLabel: isAr ? "الشاشة المشتركة مباشرة" : "Live shared screens",
-    screenShareStream: isAr ? "محتوى شاشة مشارك في الغرفة" : "A participant’s shared screen"
+    screenShareStream: isAr ? "محتوى شاشة مشارك في الغرفة" : "A participant’s shared screen",
+    screenSharePrivacy: isAr ? "تُعرض الشاشة مباشرة ولا يحفظ Raye2 هذا البث." : "Screen sharing is live only; Raye2 does not save the stream."
   };
 
   const leaveRoom = async () => {
@@ -147,11 +148,11 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       setReconnecting(false);
       const room = new Room({ adaptiveStream: true, dynacast: true });
       roomRef.current = room;
-      room.on(RoomEvent.TrackSubscribed, (track, _publication, _participant) => {
+      room.on(RoomEvent.TrackSubscribed, (track, _publication, participant) => {
         if (track.source === Track.Source.ScreenShare && track.kind === Track.Kind.Video && screenShareContainerRef.current) {
           const element = track.attach();
           element.classList.add(styles.groupVoiceScreenVideo);
-          element.setAttribute("aria-label", copy.screenShareStream);
+          element.setAttribute("aria-label", `${participant.name || participant.identity} — ${copy.screenShareStream}`);
           element.setAttribute("playsinline", "");
           if (element instanceof HTMLVideoElement) { element.autoplay = true; element.muted = true; }
           screenShareContainerRef.current.appendChild(element);
@@ -191,6 +192,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       room.on(RoomEvent.Disconnected, () => {
         setConnected(false);
         setReconnecting(false);
+        setCanShareScreen(false);
         setScreenShareActive(false);
         if (roomRef.current === room) roomRef.current = null;
       });
@@ -202,6 +204,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
       setConnected(true);
     } catch (caught) {
       if (createdSessionId) await supabase.rpc("raye2_leave_voice_session", { p_session_id: createdSessionId });
+      setCanShareScreen(false);
+      setScreenShareActive(false);
       setError(caught instanceof Error ? caught.message : copy.unavailable);
       if (roomRef.current) {
         await roomRef.current.disconnect();
@@ -439,6 +443,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   return (
     <div className={styles.groupVoiceControls}>
       <div className={styles.groupVoiceAudio} ref={audioContainerRef}/>
+      <div className={styles.groupVoiceScreens} ref={screenShareContainerRef} aria-label={copy.screenShareLabel}/>
       {!connected ? (
         <button type="button" className={styles.voiceStart} disabled={busy} onClick={() => void joinRoom()}>
           {busy ? copy.connecting : "◉ " + copy.join}
@@ -448,8 +453,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
           <span className={styles.groupVoiceStatus}><i/> {copy.connected} · {participantCount} {copy.members} · {copy.quality}: {quality === "good" ? copy.qualityGood : quality === "fair" ? copy.qualityFair : quality === "poor" ? copy.qualityPoor : "—"}</span>
           {reconnecting && <span className={styles.voiceConsent} role="status" aria-live="polite">{copy.reconnecting}</span>}
           {canShareScreen && <button type="button" aria-pressed={screenShareActive} onClick={() => void toggleScreenShare()}>{screenShareActive ? copy.stopScreenShare : copy.screenShare}</button>}
+          {canShareScreen && <small className={styles.voiceConsent}>{copy.screenSharePrivacy}</small>}
           {screenShareError && <small className={styles.voiceError} role="status" aria-live="polite">{screenShareError}</small>}
-          <div className={styles.groupVoiceScreens} ref={screenShareContainerRef} aria-label={copy.screenShareLabel}/>
           <button type="button" onClick={() => void toggleMute()}>{muted ? copy.unmute : copy.mute}</button>
           <button type="button" aria-pressed={handRaised} onClick={() => void toggleHand()}>{handRaised ? copy.lowerHand : copy.raiseHand}</button>
           <label className={styles.groupVoicePref}><input type="checkbox" disabled={audioPrefsBusy} checked={pushToTalk} onChange={event => void saveAudioPreferences(event.target.checked, noiseSuppression)}/>{copy.pushToTalk}</label>
