@@ -328,3 +328,29 @@
   .page .introMark{display:none}
   .page .workspace{height:calc(100dvh - 170px - env(safe-area-inset-bottom));min-height:340px}
 }
+
+
+.groupWizard{max-width:560px}
+.groupWizardProgress{display:grid;gap:10px;margin:18px 0 22px}
+.groupWizardStepLine{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--r-muted);font-size:11px}
+.groupWizardStepLine strong{color:var(--r-accent);font-size:11px;font-weight:800}
+.groupWizardTrack{height:5px;overflow:hidden;border-radius:99px;background:#242427}
+.groupWizardTrack span{display:block;height:100%;width:33.333%;border-radius:inherit;background:linear-gradient(90deg,#2f6fe0,#4d8df6);transition:width .22s ease}
+.groupWizardTrack[data-step="2"] span{width:66.666%}
+.groupWizardTrack[data-step="3"] span{width:100%}
+.groupWizard h2{margin-bottom:8px}
+.groupWizardHint{margin:0 0 20px;color:var(--r-muted);font-size:12px;line-height:1.7}
+.groupWizardOptions{display:grid;gap:10px;margin:20px 0}
+.groupWizardOptions button{display:flex;align-items:center;gap:14px;width:100%;padding:16px;border:1px solid var(--r-line);border-radius:15px;background:#0b0b0d;color:var(--r-text);text-align:start;cursor:pointer;transition:border-color .18s ease,background .18s ease}
+.groupWizardOptions button:hover,.groupWizardOptions button.groupWizardOptionActive{border-color:rgba(77,141,246,.7);background:rgba(77,141,246,.08)}
+.groupWizardOptionIcon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:13px;background:#242427;color:#9dc0ff;font-size:22px}
+.groupWizardOptions button>span:last-child{display:grid;gap:5px}
+.groupWizardOptions strong{font-size:13px}
+.groupWizardOptions small{color:var(--r-muted);font-size:11px;line-height:1.55}
+.groupWizardReview{display:grid;gap:0;margin:18px 0;padding:0 16px;border:1px solid var(--r-line);border-radius:15px;background:#0b0b0d}
+.groupWizardReview div{display:grid;gap:5px;padding:13px 0;border-bottom:1px solid var(--r-line)}
+.groupWizardReview div:last-child{border-bottom:0}
+.groupWizardReview dt{color:var(--r-muted);font-size:10px}
+.groupWizardReview dd{margin:0;color:var(--r-text);font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+@media(max-width:680px){.groupWizard{max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow:auto}.groupWizardOptions button{padding:13px}}
+@media(prefers-reduced-motion:reduce){.groupWizardTrack span{transition:none}}
