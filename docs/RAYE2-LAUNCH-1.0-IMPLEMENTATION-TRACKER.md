@@ -9,7 +9,7 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Added a production-only service-worker registration component.
 - Added `public/sw.js`: it caches only immutable same-origin public assets. Navigations remain network-only; when offline they receive the generic offline page. API, auth, creator, Raye2, and group paths are excluded from caching to avoid storing private content on a shared device.
 - Added automated source-contract coverage for manifest metadata, privacy-safe caching boundaries, and registration wiring.
-- **Verification:** code committed to `development`; automated tests, TypeScript, lint, production build, browser install prompt, and offline behavior are **not yet verified** in this environment. Do not count PWA as launch-ready until those checks pass on the exact commit and a real browser test confirms installability.
+- **Verification:** automated tests, TypeScript, lint, and Next.js production build passed on commit `942d569c22f4c95cb7f8fd38d72fddf93538bc8b`. Real-browser install prompt, update behavior, and offline behavior remain unverified.
 - **Safety boundary:** no backend, database, auth, role, or production configuration was changed.
 
 ## Launch work remaining
@@ -37,7 +37,7 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Added bilingual English/Arabic copy, an accessible progress indicator, clear public/private explanations, and a mobile-friendly layout using the existing Raye2 palette.
 - Kept the existing `raye2_create_group` RPC and its current fields unchanged. No database or authorization changes were made; advanced group identity, custom roles, and room creation remain separate implementation work.
 - Added an automated source-contract test for the three-step flow and its existing RPC boundary.
-- **Verification:** tests, type-check, lint, build, and browser/device QA are pending the next CI run. This batch is implemented but not yet tested.
+- **Verification:** automated tests, type-check, lint, and build passed on commit `942d569c22f4c95cb7f8fd38d72fddf93538bc8b`. Real Supabase group creation and browser/device QA remain pending.
 
 
 
@@ -54,8 +54,17 @@ This tracker is scoped to the communication-first launch. It is separate from th
 ## Verification status
 
 - The media-worker container image built successfully in CI.
-- The latest completed automated run exposed one remaining legacy light-theme selector; that selector has now been removed.
-- A fresh full CI run is required to confirm static validation, automated tests, type-check, lint, and Next.js production build.
-- Browser/device QA, authenticated admin/member checks, Arabic visual review, accessibility review, and final Vercel preview verification are still pending.
+- Full CI passed on commit `942d569c22f4c95cb7f8fd38d72fddf93538bc8b`: static validation, automated tests, TypeScript, lint, Next.js production build, and media-worker image build.
+- The one remaining legacy light-theme selector and the missing locale-cookie import found during verification were fixed before the passing run.
+- Browser/device QA, authenticated admin/member checks against the live Supabase project, Arabic visual review, accessibility review, and final Vercel preview verification are still pending.
 - Production branch and deployment remain untouched; all work is on `development`.
+
+
+## Progress accounting
+
+- **Overall full-platform implementation:** carry forward the last agreed **93%** baseline; do not reduce it because Launch 1.0 is being tracked as a separate release scope.
+- **Launch 1.0 batches added:** PWA foundation, group-creation wizard, Claude Launch 1.0 shell integration, shared language controls, fixed-theme enforcement, communication-first home/search, and server-side admin media bypass are implemented and CI-verified.
+- **Automated verification:** passed for the exact commit above.
+- **Not yet browser/device tested:** installability/offline behavior, responsive page-by-page visual QA, authenticated member/admin access, real group creation, Arabic route review, accessibility, and Vercel preview.
+- **Not yet implemented to launch acceptance:** advanced chat threads/member panels/message actions, room and role management, stage/screen-share UX, advanced polls, admin invite dashboard, full admin content/storage/retention UI, and collaboration modules.
 
