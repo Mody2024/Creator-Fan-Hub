@@ -1163,11 +1163,11 @@ export default function Raye2Client() {
                 const mine = message.sender_id === userId;
                 const author = profiles[message.sender_id];
                 const parent = message.parent_message_id ? messages.find(item => item.id === message.parent_message_id) : null;
-                return <Fragment key={message.id}>{newDay && <div className={styles.dayDivider}><span>{dayLabel(message.created_at, locale)}</span></div>}<article tabIndex={0} className={`${styles.messageRow} ${mine ? styles.ownMessage : ""} ${grouped ? styles.grouped : ""}`}>
+                return <Fragment key={message.id}>{newDay && <div className={styles.dayDivider}><span>{dayLabel(message.created_at, locale)}</span></div>}<article id={`raye2-message-${message.id}`} tabIndex={0} className={`${styles.messageRow} ${mine ? styles.ownMessage : ""} ${grouped ? styles.grouped : ""}`}>
                   {!mine && <div className={styles.messageAvatar}>{initials(author?.display_name ?? author?.handle ?? "R")}</div>}
                   <div className={styles.messageBody}>
                     {!mine && <span className={styles.author}>{author?.display_name ?? author?.handle ?? "Member"}</span>}
-                    {parent && <div className={styles.replyQuote}>{parent.body}</div>}
+                    {message.parent_message_id && (parent ? <button type="button" className={styles.replyQuoteButton} title={isAr ? "الانتقال إلى الرسالة الأصلية" : "Jump to original message"} onClick={() => document.getElementById(`raye2-message-${parent.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}><span className={styles.replyQuote}>{parent.body}</span><small>{isAr ? "عرض الأصل ↗" : "View original ↗"}</small></button> : <div className={`${styles.replyQuote} ${styles.replyQuoteMissing}`}>{isAr ? "الرسالة الأصلية خارج السجل المحمّل" : "Original message is outside the loaded history"}</div>)}
                     <div className={styles.bubble}>{message.body}
                       {message.attachment?.kind === "clip_share" && message.attachment.clip_id && <Link className={styles.sharedLink} href={"/clips/" + message.attachment.clip_id}>▶ {isAr ? "مقطع مشترك" : "Shared clip"}</Link>}
                       {message.attachment?.kind === "video_share" && message.attachment.slug && <Link className={styles.sharedLink} href={"/watch/" + message.attachment.slug + (message.attachment.start_seconds ? "?t=" + message.attachment.start_seconds : "")}>▶ {isAr ? "فيديو مشترك" : "Shared video"}</Link>}
