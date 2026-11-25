@@ -49,3 +49,7 @@
 .raye2-groups-page :focus-visible{outline:2px solid var(--g-violet);outline-offset:3px}
 @media(max-width:560px){.raye2-groups-page{padding-inline:13px}.raye2-groups-page .raye2-groups-top{height:65px}.raye2-groups-page .raye2-groups-grid{grid-template-columns:1fr}.raye2-groups-page .raye2-groups-stats{gap:16px}}
 @media(prefers-reduced-motion:reduce){.raye2-groups-page *{transition:none!important;scroll-behavior:auto!important}}
+
+.raye2-groups-page .raye2-groups-create-link{display:inline-flex;align-items:center;justify-content:center;min-height:42px;margin-top:20px;padding:10px 15px;border:1px solid rgba(157,192,255,.3);border-radius:11px;background:var(--g-violet-soft);color:var(--g-violet);font-size:14px;font-weight:850;transition:background .2s,border-color .2s}
+.raye2-groups-page .raye2-groups-create-link:hover{border-color:rgba(157,192,255,.6);background:rgba(157,192,255,.2)}
+.raye2-groups-page .raye2-groups-create-hint{margin:8px 0 0;font-size:13px}
