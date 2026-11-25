@@ -4183,3 +4183,18 @@ session and a slow client".
 - Commits on `development`: `18492b66` (client), `96146931` (styles), `31ab20ed` (regression tests).
 - **Verification status:** changes are committed; automated tests and deployment checks are awaiting GitHub Actions. No local test execution or production deployment is claimed.
 - **Progress accounting:** no wave percentage changed for this focused interaction improvement. The existing progress table is retained pending a full, consistent audit; its percentages should not be interpreted as live test coverage.
+
+
+---
+
+## Batch — 2026-11-26 (Batch 29): Focused message thread view
+
+- Added a dedicated thread panel for messages that have replies. The conversation now exposes a thread action with the current reply count rather than leaving replies discoverable only by scrolling through the main timeline.
+- The panel shows the root message and its loaded replies in chronological order, including author names and timestamps.
+- Added an explicit “Reply in thread” action that returns the member to the composer with the root message selected as the reply target. The existing server insert and reply relationship are reused; no schema or database changes were made.
+- The panel has an empty state, close control, bounded scrolling for long reply lists, and automatically closes when the selected conversation changes.
+- Added bilingual labels and responsive-friendly panel styling.
+- Added `tests/raye2-message-thread-view.test.mjs` for source-contract regression coverage.
+- Commits on `development`: `8d3c7773` (thread UI), `0b3cd933` (styles), `8ac64d6a` (tests).
+- **Verification status:** commits are present; CI and Vercel Preview are not yet confirmed green. Tests have not been reported as executed locally.
+- **Progress accounting:** no overall or wave percentage changed for this incremental chat improvement. A proper audit is still required before revising the historical progress table.
