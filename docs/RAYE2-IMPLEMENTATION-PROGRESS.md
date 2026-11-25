@@ -1,3 +1,10 @@
+## Group topic deletion confirmation — 2026-11-26
+
+- **Commits `3407a0b`, `0d6fb54`, and `3592f04`:** group managers now see an explicit bilingual confirmation before deleting a topic channel. The confirmation can be cancelled, is disabled while an action is busy, and resets when switching groups. This is important because deleting a topic preserves message history but unassigns those messages from the deleted topic.
+- **Regression test added:** `tests/raye2-group-topic-delete-confirm.test.mjs` checks the confirmation flow, cancellation, bilingual labels, styling hook, and reset on group switch.
+- **Scope:** UI safeguard only; database behavior and manager authorization are unchanged.
+- **Verification:** committed source and test; Node tests, type-check, lint, and build remain subject to CI.
+
 ## Group channel switch state fix — 2026-11-26
 
 - **Commits `aea6581` and `420740d`:** switching between group conversations now clears the previously selected group-topic filter immediately, clears the prior group's channel list while the new list loads, and closes/resets the channel-management draft. This prevents a topic ID from one group filtering all messages out of another group.
