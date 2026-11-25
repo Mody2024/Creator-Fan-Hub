@@ -134,10 +134,8 @@ $$;
 revoke all on function public.raye2_before_user_created(jsonb) from public,anon,authenticated;
 -- Supabase provides this role. Local migration validation may use a plain PostgreSQL
 -- instance without Supabase's managed roles, so guard the grant for that environment.
-do $
-begin
-  if exists (select 1 from pg_roles where rolname = 'supabase_auth_admin') then
-    execute 'grant execute on function public.raye2_before_user_created(jsonb) to supabase_auth_admin';
+do 'begin
+  if exists (select 1 from pg_roles where rolname = ''supabase_auth_admin'') then
+    execute ''grant execute on function public.raye2_before_user_created(jsonb) to supabase_auth_admin'';
   end if;
-end;
-$;
+end';
