@@ -478,3 +478,18 @@ html.raye2-route-enter main[data-raye2-ws] { animation-name: raye2-fade-only; }
 
 /* Chat on phones: an open conversation owns the whole screen (its own header replaces the shared top bar). */
 @media (max-width: 767px) { body[data-raye2-thread="open"] .raye2-shell-top { display: none; } }
+
+/* ---------- Frame fixes (must stay last): phone is one column; pages blend into the frame ---------- */
+@media (max-width: 767px) {
+  .raye2-frame { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0; }
+  .raye2-frame-main > main { padding-inline: 16px; }
+}
+.raye2-frame-main > main { background: none !important; width: 100%; max-width: none; }
+
+/* Pills and chips stay on one line; their card headings wrap instead. */
+.raye2-pill, .raye2-chip { white-space: nowrap; flex: none; }
+.raye2-card-heading { flex-wrap: wrap; align-items: flex-start; gap: 10px 14px; }
+/* Simple page title block for communication pages. */
+.raye2-pagehead { display: grid; gap: 8px; padding: 20px 0 8px; max-width: 760px; margin-inline: auto; }
+.raye2-pagehead h1 { margin: 0; font-size: clamp(28px, 6vw, 44px); }
+.raye2-pagehead p { margin: 0; color: #a1a1aa; font-size: 16px; line-height: 1.6; }

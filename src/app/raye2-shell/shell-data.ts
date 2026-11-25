@@ -7,7 +7,7 @@ export type ShellLocale = "en" | "ar";
 export const SHELL_T = {
   en: {
     nav: "Quick navigation", mainNav: "Main navigation", yourRaye2: "Your Raye2",
-    home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You", more: "More", messages2: "Messages", groups: "Groups", events: "Events", settings: "Settings", soon: "Coming soon", soonShort: "Soon", personal: "You", newGroup: "New group", newGroupHint: "Name it, invite people, set roles", newPoll: "New poll", newPollHint: "Images, deadline, live results", scheduleEvent: "Schedule an event", scheduleEventHint: "Calendar, reminder, voice session", newRoom: "New room", newRoomHint: "Text, voice, stage or forum", signOut: "Sign out", unread: "unread",
+    home: "Home", watch: "Watch", create: "Create", community: "Community", you: "You", more: "More", messages2: "Chats", groups: "Groups", events: "Events", settings: "Settings", soon: "Coming soon", soonShort: "Soon", personal: "You", newGroup: "New group", newGroupHint: "Name it, invite people, set roles", newPoll: "New poll", newPollHint: "Images, deadline, live results", scheduleEvent: "Schedule an event", scheduleEventHint: "Calendar, reminder, voice session", newRoom: "New room", newRoomHint: "Text, voice, stage or forum", signOut: "Sign out", unread: "unread",
     createTitle: "Create", youTitle: "Your space", close: "Close", search: "Search Raye2", join: "Join", brand: "Raye2 home",
     upload: "Upload video", uploadHint: "Open the video studio", mini: "Mini", miniHint: "Short vertical clip", moment: "Moment", momentHint: "Disappears after a day",
     post: "Community post", postHint: "Share with the community", live: "Go live", liveHint: "Start a live stream",

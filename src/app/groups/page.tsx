@@ -1,3 +1,4 @@
+import { LAUNCH_MEDIA_VISIBLE } from "@/lib/launch-features";
 import Link from "next/link";
 import {cookies} from "next/headers";
 import {createSupabaseServerClient} from "@/lib/supabase/server";
@@ -41,7 +42,7 @@ export default async function GroupsPage({searchParams}:{searchParams:Promise<{q
      <span className="raye2-groups-open">{t.open} ↗</span>
     </Link>
    </article>)}</div>:<div className="raye2-groups-empty">{search?t.empty:t.none}</div>}
-   <aside className="raye2-groups-side"><h2>{t.discover}</h2><Link href="/watch">{t.watch} ↗</Link><Link href="/series">{t.series} ↗</Link><Link href="/community">{t.community} ↗</Link><Link href="/creators">{t.creators} ↗</Link></aside>
+   <aside className="raye2-groups-side"><h2>{t.discover}</h2>{LAUNCH_MEDIA_VISIBLE && <><Link href="/watch">{t.watch} ↗</Link><Link href="/series">{t.series} ↗</Link></>}<Link href="/community">{t.community} ↗</Link><Link href="/creators">{t.creators} ↗</Link></aside>
   </div>
  </main>;
 }
