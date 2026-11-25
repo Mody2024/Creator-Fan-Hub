@@ -32,6 +32,8 @@ export type PublicSiteConfig = {
   narrationAutoPlay: boolean;
 };
 
+const RAYE2_ACCENTS = new Set(["#2f6fe0", "#4d8df6", "#9dc0ff"]);
+
 const fallback: PublicSiteConfig = {
   siteName: "Raye2",
   logoUrl: null,
@@ -126,7 +128,7 @@ async function loadPublicSiteConfig(): Promise<PublicSiteConfig> {
     chalkTexture: appearance.chalkTexture === "soft" || appearance.chalkTexture === "clean" ? appearance.chalkTexture : "hand-drawn",
     waveStyle: appearance.waveStyle === "off" || appearance.waveStyle === "bold" ? appearance.waveStyle : "soft",
     activeEvent: null,
-    accent: fallback.accent,
+    accent: typeof appearance.accent === "string" && /^#[0-9a-fA-F]{6}$/.test(appearance.accent) && RAYE2_ACCENTS.has(appearance.accent.toLowerCase()) ? appearance.accent.toLowerCase() : fallback.accent,
     motion: appearance.motion === "reduced" || appearance.motion === "off" ? appearance.motion : "full",
     maintenance: {
       enabled: maintenance.enabled === true,
