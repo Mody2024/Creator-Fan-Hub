@@ -358,7 +358,54 @@ export default function Raye2Client() {
           delete typingTimers.current[sender];
         }, 2800);
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_messages" }, () => { void loadData(userId); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_messages" }, async (payload: { eventType: string; new: Partial<Message>; old: Partial<Message> }) => {
+        const changed = payload.eventType === "DELETE" ? payload.old : payload.new;
+        const messageId = typeof changed?.id === "string" ? changed.id : "";
+        const conversationId = typeof changed?.conversation_id === "string" ? changed.conversation_id : "";
+        if (!messageId || !conversationId) return;
+
+        if (payload.eventType === "DELETE") {
+          setMessages(current => current.filter(message => message.id !== messageId));
+          setPinnedMessages(current => current.filter(message => message.id !== messageId));
+          const { data: latest } = await supabase.from("raye2_messages")
+            .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
+            .eq("conversation_id", conversationId).order("created_at", { ascending: false }).limit(1).maybeSingle();
+          setThreads(current => current.map(thread => thread.conversationId === conversationId
+            ? { ...thread, lastMessage: latest?.body ?? "", updatedAt: latest?.created_at ?? thread.updatedAt }
+            : thread));
+          return;
+        }
+
+        // Re-fetch the row under the current user's RLS rather than trusting the
+        // limited realtime payload. This also gives inserts and edits one shape.
+        const { data: row, error } = await supabase.from("raye2_messages")
+          .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
+          .eq("id", messageId).maybeSingle();
+        if (error || !row) return;
+        const message = row as Message;
+        setMessages(current => current.some(item => item.id === message.id)
+          ? current.map(item => item.id === message.id ? message : item)
+          : [...current, message].sort((a, b) => a.created_at.localeCompare(b.created_at)));
+
+        if (message.sender_id !== userId) {
+          const { data: sender } = await supabase.from("member_profiles")
+            .select("user_id,handle,display_name,avatar_url").eq("user_id", message.sender_id).maybeSingle();
+          if (sender) setProfiles(current => ({ ...current, [message.sender_id]: sender as Profile }));
+        }
+
+        setThreads(current => current.map(thread => {
+          if (thread.conversationId !== conversationId) return thread;
+          const isNewForThisClient = payload.eventType === "INSERT";
+          return {
+            ...thread,
+            lastMessage: message.body,
+            updatedAt: message.created_at,
+            unread: isNewForThisClient && message.sender_id !== userId && conversationId !== selected.conversationId
+              ? thread.unread + 1
+              : thread.unread
+          };
+        }).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
+      })
       .on("postgres_changes", { event: "*", schema: "public", table: "raye2_group_members" }, () => { void loadData(userId); })
       .subscribe(async (status: string) => {
         if (status === "SUBSCRIBED") await channel.track({ user_id: userId, online_at: new Date().toISOString() });
