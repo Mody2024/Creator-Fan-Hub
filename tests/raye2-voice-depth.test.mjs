@@ -65,12 +65,14 @@ test("push-to-talk cannot bypass mute or leave the microphone open", () => {
 });
 
 test("private calls support live-only screen sharing without renegotiation", () => {
-  assert.match(privateControls, /addTransceiver\("video", \{ direction: "sendrecv" \}\)/);
+  assert.match(privateControls, /addTransceiver\("video", \{ direction: "sendrecv", streams: \[stream\] \}\)/);
   assert.match(privateControls, /mediaDevices\?\.getDisplayMedia/);
   assert.match(privateControls, /getDisplayMedia\(\{ video: true, audio: false \}\)/);
   assert.match(privateControls, /sender\.replaceTrack\(track\)/);
   assert.match(privateControls, /sender\?\.replaceTrack\(null\)/);
-  assert.match(privateControls, /track\.onended/);
+  assert.match(privateControls, /event\.track\.onended/);
+  assert.match(privateControls, /event\.track\.onunmute/);
+  assert.match(privateControls, /event\.track\.onmute/);
   assert.match(privateControls, /screenShareStreamRef\.current\?\.getTracks\(\)\.forEach\(track => track\.stop\(\)\)/);
   assert.match(privateControls, /privateCallScreen/);
   assert.match(privateControls, /role="status" aria-live="polite"/);
