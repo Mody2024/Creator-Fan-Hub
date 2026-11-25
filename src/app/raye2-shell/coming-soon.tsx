@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import ShellIcon, { type ShellIconName } from "./shell-icons";
 
 type Feature = "watch" | "minis" | "moments" | "clips" | "live" | "series";
@@ -48,9 +49,23 @@ export default async function ComingSoon({ feature }: { feature: Feature }) {
 }
 
 /**
- * Launch gate. Members see Coming Soon. Administrators keep full access in the real product (design requirement);
- * wiring that bypass is an implementation task: pass `adminBypass` from the existing admin check.
+ * Server-side launch gate. Only active owner/admin accounts receive the preserved media routes.
+ * The role is read from the protected creator_admins table after verifying the session claims.
  */
-export function ComingSoonGate({ feature, children, adminBypass = false }: { feature: Feature; children: ReactNode; adminBypass?: boolean }) {
-  return adminBypass ? <>{children}</> : <ComingSoon feature={feature} />;
+export async function ComingSoonGate({ feature, children }: { feature: Feature; children: ReactNode }) {
+  const supabase = await createSupabaseServerClient();
+  if (supabase) {
+    const { data: claims, error: claimsError } = await supabase.auth.getClaims();
+    const userId = claims?.claims?.sub;
+    if (!claimsError && typeof userId === "string") {
+      const { data: admin, error: adminError } = await supabase
+        .from("creator_admins")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("active", true)
+        .maybeSingle();
+      if (!adminError && admin && ["owner", "admin"].includes(admin.role)) return <>{children}</>;
+    }
+  }
+  return <ComingSoon feature={feature} />;
 }
