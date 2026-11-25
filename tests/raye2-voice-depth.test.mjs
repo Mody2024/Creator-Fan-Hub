@@ -35,3 +35,20 @@ test("idle voice rooms are swept by the maintenance runner", () => {
   assert.match(migration, /'voice_rooms_expired', v_voice/);
   assert.match(migration, /grant execute on function public\.raye2_expire_idle_voice_rooms\(integer\) to anon,authenticated/);
 });
+
+
+test("group voice supports explicit live-only screen sharing with browser fallback", () => {
+  assert.match(groupControls, /setCanShareScreen\(!!ownVoiceMembership && ownVoiceMembership\.role !== "listener"\)/);
+  assert.match(groupControls, /mediaDevices\?\.getDisplayMedia/);
+  assert.match(groupControls, /setScreenShareEnabled\(true, \{ audio: false \}\)/);
+  assert.match(groupControls, /setScreenShareEnabled\(false\)/);
+  assert.match(groupControls, /LocalTrackUnpublished/);
+});
+
+test("remote shared screens are rendered and detached when sharing ends", () => {
+  assert.match(groupControls, /Track\.Source\.ScreenShare && track\.kind === Track\.Kind\.Video/);
+  assert.match(groupControls, /screenShareContainerRef\.current\.appendChild\(element\)/);
+  assert.match(groupControls, /groupVoiceScreenVideo/);
+  assert.match(css, /\.groupVoiceScreens:empty\{display:none\}/);
+  assert.match(css, /\.groupVoiceScreenVideo\{/);
+});
