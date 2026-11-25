@@ -102,3 +102,15 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Hardened remote track handling so the initially muted negotiated video transceiver stays hidden until frames arrive, and the stage hides again when the remote track mutes or ends.
 - **Verification:** code and regression assertions are committed to development; full CI and browser/device acceptance have not yet passed for this batch. Test two real accounts on desktop browsers, verify remote video/audio together, user-stop behavior, permission denial, reconnect/end cleanup, and mobile fallback. Vercel's build-rate-limit check remains a separate deployment blocker.
 - **Safety boundary:** no Supabase schema, Auth configuration, main branch, or production deployment was changed.
+
+## Batch 7 — 2026-11-26: Conversation history pagination and verification repairs
+
+- Added an explicit **Load earlier messages** control to direct and group conversations. It fetches the preceding 100 messages for the selected conversation, so the initial cross-conversation preview query's 600-row cap no longer permanently hides older messages in a busy account.
+- Older pages merge without duplicates, preserve chronological order, load sender profiles and reaction state, and preserve the message-list scroll position while older content is prepended.
+- Added request sequencing so a delayed history response from a conversation the user has already left cannot update the newly selected conversation's paging state.
+- Added English and Arabic labels plus regression coverage for paging, the timestamp cursor, scroll preservation, and conversation-switch reset.
+- Corrected the private-call screen-stage background to use the Raye2 theme surface token instead of an off-palette hard-coded hex value.
+- Corrected the invitation inventory's automatic loader to use an async error-handled flow; this removed the implicit-`any` TypeScript error found by CI.
+- **Verification:** GitHub Actions Free CI passed on code commit `2fee1596dfc91bfd6e551194119a66f1b33295cc` (1,087 automated tests; static repository/migration validation; TypeScript; lint; Next.js production build; media-worker image build). Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45723448556
+- **Still requires live acceptance:** test paging with two accounts and long conversations, confirm older reply roots load, verify the scroll position on desktop and mobile, and check realtime updates while loading history. This is automated CI verification, not a substitute for real-device testing.
+- Vercel preview remains blocked by the account's build-rate limit. No live Supabase migration/Auth hook, `main` branch, or production deployment was changed.
