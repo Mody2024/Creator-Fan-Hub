@@ -57,12 +57,19 @@ export default function PlatformInvitations({ isArabic }: { isArabic: boolean })
     let active = true;
     if (!supabase) return;
     setBusy(true);
-    void supabase.rpc("raye2_list_platform_invites").then(({ data, error }) => {
-      if (!active) return;
-      setBusy(false);
-      if (error) { setNotice(copy.error); return; }
-      setRows((data ?? []) as InviteRow[]);
-    });
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc("raye2_list_platform_invites");
+        if (!active) return;
+        setBusy(false);
+        if (error) { setNotice(copy.error); return; }
+        setRows((data ?? []) as InviteRow[]);
+      } catch {
+        if (!active) return;
+        setBusy(false);
+        setNotice(copy.error);
+      }
+    })();
     return () => { active = false; };
   }, [supabase, isArabic]);
 
