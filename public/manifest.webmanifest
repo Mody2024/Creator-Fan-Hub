@@ -1,0 +1,56 @@
+{
+  "name": "Raye2 — Communication & Communities",
+  "short_name": "Raye2",
+  "description": "A calm space for messages, groups, communities and voice.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#0b0b0d",
+  "theme_color": "#0b0b0d",
+  "lang": "en",
+  "dir": "auto",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Messages",
+      "short_name": "Messages",
+      "url": "/raye2",
+      "icons": [
+        {
+          "src": "/icon.png",
+          "sizes": "512x512"
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "short_name": "Groups",
+      "url": "/groups",
+      "icons": [
+        {
+          "src": "/icon.png",
+          "sizes": "512x512"
+        }
+      ]
+    }
+  ]
+}
