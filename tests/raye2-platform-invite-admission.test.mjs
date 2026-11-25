@@ -59,6 +59,6 @@ test("owner admin panel can create, list and revoke platform invitations without
 });
 
 test("platform invitation inventory loads automatically when its admin tab opens", () => {
-  assert.match(invites, /useEffect\(\(\) => \{[\s\S]*?raye2_list_platform_invites[\s\S]*?\}, \[supabase, isArabic\]\)/);
-  assert.match(invites, /Refresh invitations|تحديث الدعوات/);
+  assert.match(invitePanel, /useEffect\(\(\) => \{[\s\S]*?raye2_list_platform_invites[\s\S]*?\}, \[supabase, isArabic\]\)/);
+  assert.match(invitePanel, /Refresh invitations|تحديث الدعوات/);
 });
