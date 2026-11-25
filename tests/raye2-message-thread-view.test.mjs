@@ -36,3 +36,23 @@ test("conversation history can be paged backward without losing the current scro
   assert.match(client, /Load earlier messages/);
   assert.match(client, /تحميل الرسائل الأقدم/);
 });
+
+
+test("message realtime events update message state incrementally instead of reloading the platform", () => {
+  const subscription = client.slice(client.indexOf('table: "raye2_messages"'), client.indexOf('table: "raye2_group_members"'));
+  assert.match(subscription, /eventType === "DELETE"/);
+  assert.match(subscription, /\.eq\("id", messageId\)\.maybeSingle\(\)/);
+  assert.match(subscription, /setMessages\(current => current\.some\(item => item\.id === message\.id\)/);
+  assert.match(subscription, /setPinnedMessages\(current => current\.filter\(message => message\.id !== messageId\)\)/);
+  assert.match(subscription, /setThreads\(current => current\.map\(thread =>/);
+  assert.doesNotMatch(subscription, /loadData\(/);
+});
+
+test("message realtime updates refresh sender identity and keep unread counts conversation-aware", () => {
+  const subscription = client.slice(client.indexOf('table: "raye2_messages"'), client.indexOf('table: "raye2_group_members"'));
+  assert.match(subscription, /from\("member_profiles"\)/);
+  assert.match(subscription, /message\.sender_id !== userId/);
+  assert.match(subscription, /conversationId !== selected\.conversationId/);
+  assert.match(subscription, /thread\.unread \+ 1/);
+  assert.match(subscription, /\.order\("created_at", \{ ascending: false \}\)\.limit\(1\)\.maybeSingle\(\)/);
+});
