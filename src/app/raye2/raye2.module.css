@@ -37,6 +37,7 @@
 .groupVoiceControls>button{border:1px solid var(--r-line);border-radius:9px;background:var(--r-raised);color:var(--r-text);padding:8px 10px;font:inherit;font-size:12px;cursor:pointer}
 .groupVoiceControls>button:disabled{opacity:.5;cursor:default}
 .groupVoiceAudio{display:none}
+.groupVoiceScreens{display:flex;flex:1 0 100%;gap:8px;flex-wrap:wrap;min-width:0}.groupVoiceScreens:empty{display:none}.groupVoiceScreenVideo{display:block;width:min(100%,760px);max-height:min(60vh,480px);aspect-ratio:16/9;object-fit:contain;background:#0b0b0d;border:1px solid var(--r-line);border-radius:12px}
 .groupVoiceStatus{display:inline-flex;align-items:center;gap:6px;color:var(--r-accent);font-size:12px;white-space:nowrap}
 .groupVoiceStatus i{width:6px;height:6px;border-radius:50%;background:var(--r-accent);box-shadow:0 0 10px var(--r-accent)}
 .groupVoiceLabel{display:none}
