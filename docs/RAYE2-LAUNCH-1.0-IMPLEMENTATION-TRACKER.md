@@ -99,5 +99,6 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Screen tracks are stopped and detached when sharing ends or the call is cleaned up. The screen stream is live-only and is not written to Raye2 storage.
 - Group-room screen sharing was already present in the current source; this batch closes the corresponding private-call gap. The 2026-11-26 audit's blanket statement that screen sharing was absent is stale and described its earlier audited snapshot.
 - Added source-contract regression coverage for private-call capture, sender lifecycle, cleanup, and the screen-share stage.
+- Hardened remote track handling so the initially muted negotiated video transceiver stays hidden until frames arrive, and the stage hides again when the remote track mutes or ends.
 - **Verification:** code and regression assertions are committed to development; full CI and browser/device acceptance have not yet passed for this batch. Test two real accounts on desktop browsers, verify remote video/audio together, user-stop behavior, permission denial, reconnect/end cleanup, and mobile fallback. Vercel's build-rate-limit check remains a separate deployment blocker.
 - **Safety boundary:** no Supabase schema, Auth configuration, main branch, or production deployment was changed.
