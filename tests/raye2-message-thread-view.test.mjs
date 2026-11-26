@@ -79,3 +79,17 @@ test("thread replies load independently of the currently loaded conversation pag
   assert.match(client, /تحميل الردود الأقدم/);
   assert.match(client, /Loading replies…/);
 });
+
+test("chat attachments use private conversation-scoped storage and signed downloads", () => {
+  const migration = readFileSync("supabase/migrations/20261126130000_raye2_private_chat_attachments.sql", "utf8");
+  assert.match(migration, /raye2-chat-attachments','raye2-chat-attachments',false,52428800/);
+  assert.match(migration, /public\.raye2_is_conversation_member\(c\.id\)/);
+  assert.match(migration, /\(storage\.foldername\(name\)\)\[2\]=\(select auth\.uid\(\)\)::text/);
+  assert.match(migration, /owner_id=\(select auth\.uid\(\)\)::text/);
+  assert.match(client, /reserve_nhen_media_upload", \{ p_bytes: file\.size, p_bucket: "raye2-chat-attachments" \}/);
+  assert.match(client, /storage\.from\("raye2-chat-attachments"\)\.upload/);
+  assert.match(client, /createSignedUrl\(path, 3600\)/);
+  assert.match(client, /message\.attachment\?\.kind === "file"/);
+  assert.match(client, /file\.size > 50 \* 1024 \* 1024/);
+  assert.match(client, /setAttachmentFile\(null\)/);
+});
