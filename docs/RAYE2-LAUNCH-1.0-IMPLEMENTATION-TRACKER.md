@@ -186,5 +186,16 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - A member's vote refreshes the live totals for other members; closing a poll refreshes its closed state without requiring a manual reload.
 - Realtime subscriptions are removed when the poll card unmounts or the message changes.
 - Added source-contract regression coverage for both subscriptions and cleanup.
-- **Verification status:** pending CI on the new development head. Existing poll permissions remain server-enforced: only conversation members may read/vote, and only the poll author or group manager may close.
+- **Verification:** full GitHub Actions CI passed on commit 0d47b6a359ebcb93c2f7b245b8d2c5608bb7a9b8 (1,097 automated tests; repository/migration validation; TypeScript; lint; Next.js production build; media-worker image build). Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45728800465
+- Existing poll permissions remain server-enforced: only conversation members may read/vote, and only the poll author or group manager may close.
+- Realtime migration is not applied to live Supabase. Two-account acceptance remains outstanding.
 - No live migration, main branch or production deployment changed.
+
+
+## Batch 15 — 2026-11-26: Notification helper search-path hardening
+
+- Added an additive migration that pins the search path to the empty path for the two live notification helper functions flagged by Supabase Security Advisor: raye2_in_quiet_hours and raye2_notification_category.
+- Both functions are invoker functions and use built-in operations only; the change removes mutable role search-path resolution without changing their return behavior or access grants.
+- Added a migration-contract regression test.
+- **Verification status:** pending CI on this development head. The migration has not been applied to live Supabase.
+- No production database, main branch or deployment changed.
