@@ -121,6 +121,8 @@ export default function Raye2Client() {
   const [tab, setTab] = useState<"chats" | "groups" | "discover" | "saved" | "memories" | "notifications">("chats");
   const [query, setQuery] = useState("");
   const [compose, setCompose] = useState("");
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
   const [showPollCompose, setShowPollCompose] = useState(false);
   const [pollQuestion, setPollQuestion] = useState("");
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
@@ -146,6 +148,24 @@ export default function Raye2Client() {
   const [myReactions, setMyReactions] = useState<Record<string, string[]>>({});
   const [mobilePane, setMobilePane] = useState<"list" | "chat">("list");
   useEffect(() => { document.body.dataset.raye2Thread = mobilePane === "chat" ? "open" : "list"; return () => { delete document.body.dataset.raye2Thread; }; }, [mobilePane]);
+
+  useEffect(() => {
+    if (!supabase) return;
+    let active = true;
+    const pending = messages.filter(message => message.attachment?.kind === "file" && message.attachment.bucket === "raye2-chat-attachments" && typeof message.attachment.path === "string" && !attachmentUrls[message.id]);
+    if (!pending.length) return;
+    void Promise.all(pending.map(async message => {
+      const path = message.attachment?.path;
+      if (!path) return null;
+      const { data } = await supabase.storage.from("raye2-chat-attachments").createSignedUrl(path, 3600);
+      return data?.signedUrl ? [message.id, data.signedUrl] as const : null;
+    })).then(results => {
+      if (!active) return;
+      const next = Object.fromEntries(results.filter((item): item is readonly [string, string] => item !== null));
+      if (Object.keys(next).length) setAttachmentUrls(current => ({ ...current, ...next }));
+    });
+    return () => { active = false; };
+  }, [messages, supabase]);
 
   const isAr = locale === "ar";
   const t = isAr ? {
@@ -1114,20 +1134,38 @@ export default function Raye2Client() {
   }
 
   async function sendMessage() {
-    if (!supabase || !userId || !selected || !compose.trim() || busy) return;
+    if (!supabase || !userId || !selected || (!compose.trim() && !attachmentFile) || busy || !selected.canSend) return;
     if (typingActive.current) { broadcastTyping(false); typingActive.current = false; }
     const body = compose.trim();
     if (body.length > 5000) { setStatus(isAr ? "الحد الأقصى للرسالة 5000 حرف." : "Messages are limited to 5,000 characters."); return; }
+    const file = attachmentFile;
+    if (file && (file.size < 1 || file.size > 50 * 1024 * 1024)) {
+      setStatus(isAr ? "حجم الملف يجب ألا يتجاوز 50 ميجابايت." : "Attachments must be 50 MiB or smaller."); return;
+    }
     setBusy(true); setStatus("");
     const tempId = "local-" + Date.now();
     const optimistic: Message = { id: tempId, conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: replyTo?.id ?? null, edited_at: null, created_at: new Date().toISOString(), topic_id: activeTopicId ?? null };
     setMessages(current => [...current, optimistic]); setCompose(""); setReplyTo(null);
+    let uploadedPath: string | null = null;
     try {
-      const { data, error } = await supabase.from("raye2_messages").insert({ conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: optimistic.parent_message_id, topic_id: activeTopicId ?? null }).select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment").single();
+      let attachment: Record<string, unknown> | null = null;
+      if (file) {
+        const reservation = await supabase.rpc("reserve_nhen_media_upload", { p_bytes: file.size, p_bucket: "raye2-chat-attachments" });
+        if (reservation.error) throw reservation.error;
+        const safeName = file.name.normalize("NFKC").replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-100) || "attachment";
+        uploadedPath = selected.conversationId + "/" + userId + "/" + crypto.randomUUID() + "-" + safeName;
+        const uploaded = await supabase.storage.from("raye2-chat-attachments").upload(uploadedPath, file, { contentType: file.type || "application/octet-stream", upsert: false });
+        if (uploaded.error) throw uploaded.error;
+        attachment = { kind: "file", bucket: "raye2-chat-attachments", path: uploadedPath, name: file.name.slice(0, 180), mime_type: file.type || "application/octet-stream", size: file.size };
+      }
+      const { data, error } = await supabase.from("raye2_messages").insert({ conversation_id: selected.conversationId, sender_id: userId, body, parent_message_id: optimistic.parent_message_id, topic_id: activeTopicId ?? null, attachment }).select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment").single();
       if (error) throw error;
       setMessages(current => [...current.filter(message => message.id !== tempId), data as Message]);
-      setThreads(current => current.map(thread => thread.id === selected.id ? { ...thread, lastMessage: body, updatedAt: (data as Message).created_at } : thread).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
+      if (uploadedPath) setAttachmentFile(null);
+      const preview = file ? "📎 " + file.name : body;
+      setThreads(current => current.map(thread => thread.id === selected.id ? { ...thread, lastMessage: preview, updatedAt: (data as Message).created_at } : thread).sort((a,b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()));
     } catch {
+      if (uploadedPath) await supabase.storage.from("raye2-chat-attachments").remove([uploadedPath]);
       setMessages(current => current.filter(message => message.id !== tempId)); setCompose(body); setStatus(t.sendError);
     } finally { setBusy(false); }
   }
@@ -1372,6 +1410,7 @@ export default function Raye2Client() {
                     {!mine && <span className={styles.author}>{author?.display_name ?? author?.handle ?? "Member"}</span>}
                     {message.parent_message_id && (parent ? <button type="button" className={styles.replyQuoteButton} title={isAr ? "الانتقال إلى الرسالة الأصلية" : "Jump to original message"} onClick={() => document.getElementById(`raye2-message-${parent.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })}><span className={styles.replyQuote}>{parent.body}</span><small>{isAr ? "عرض الأصل ↗" : "View original ↗"}</small></button> : <div className={`${styles.replyQuote} ${styles.replyQuoteMissing}`}>{isAr ? "الرسالة الأصلية خارج السجل المحمّل" : "Original message is outside the loaded history"}</div>)}
                     <div className={styles.bubble}>{message.body}
+                      {message.attachment?.kind === "file" && typeof message.attachment.path === "string" && <a className={styles.sharedLink} href={attachmentUrls[message.id] ?? "#"} target="_blank" rel="noreferrer" aria-disabled={!attachmentUrls[message.id]} onClick={event => { if (!attachmentUrls[message.id]) event.preventDefault(); }}>↧ {message.attachment.name ?? (isAr ? "ملف مرفق" : "Attachment")} · {typeof message.attachment.size === "number" ? (message.attachment.size / 1048576).toFixed(1) + " MB" : ""}</a>}
                       {message.attachment?.kind === "clip_share" && message.attachment.clip_id && <Link className={styles.sharedLink} href={"/clips/" + message.attachment.clip_id}>▶ {isAr ? "مقطع مشترك" : "Shared clip"}</Link>}
                       {message.attachment?.kind === "video_share" && message.attachment.slug && <Link className={styles.sharedLink} href={"/watch/" + message.attachment.slug + (message.attachment.start_seconds ? "?t=" + message.attachment.start_seconds : "")}>▶ {isAr ? "فيديو مشترك" : "Shared video"}</Link>}
                       {message.attachment?.kind === "poll" && supabase && <Raye2MessagePoll supabase={supabase} messageId={message.id} locale={locale} canClose={mine || (selected?.kind === "group" && canManageSelectedGroup)} />}
@@ -1396,7 +1435,7 @@ export default function Raye2Client() {
                 <label className={styles.pollToggle}><input type="checkbox" checked={pollMultiple} onChange={event => setPollMultiple(event.target.checked)}/>{t.pollMultiple}</label>
                 <div className={styles.pollComposerActions}><button type="button" className={styles.miniButton} onClick={() => setShowPollCompose(false)}>{t.cancel}</button><button type="button" className={styles.primaryButton} disabled={busy} onClick={() => void createPoll()}>{t.pollCreate}</button></div>
               </section>}
-              <form className={styles.composer} onSubmit={event => { event.preventDefault(); void sendMessage(); }}><textarea value={compose} onChange={event => { setCompose(event.target.value); if (event.target.value.trim() && !typingActive.current) { typingActive.current = true; broadcastTyping(true); } else if (!event.target.value.trim() && typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onBlur={() => { if (typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={selected.canSend ? t.message : (isAr ? "هذه المجموعة للقراءة فقط حاليًا" : "This group is currently read-only")} disabled={!selected.canSend} maxLength={5000} rows={1}/><button type="submit" disabled={!compose.trim() || busy || !selected.canSend}>{t.send} ↗</button></form><div className={styles.composerFoot}><span>RAYE2 • PRIVATE BY DESIGN</span><label className={styles.disappearingControl}>{t.disappearing}<select aria-label={t.disappearing} value={selected.disappearingSeconds ?? 0} disabled={busy || (selected.kind === "group" && !canManageSelectedGroup)} onChange={event => { const next = Number(event.target.value); void setDisappearing(next === 0 ? null : next); }}><option value={0}>{t.disappearingNone}</option><option value={86400}>{t.disappearingDay}</option><option value={604800}>{t.disappearingWeek}</option><option value={2592000}>{t.disappearingMonth}</option></select></label><span>{compose.length}/5000</span></div>
+              <form className={styles.composer} onSubmit={event => { event.preventDefault(); void sendMessage(); }}><label className={styles.miniButton} title={isAr ? "إرفاق ملف" : "Attach file"} aria-label={isAr ? "إرفاق ملف" : "Attach file"}>＋<input type="file" hidden accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,application/zip,audio/webm,audio/ogg,audio/mpeg,video/mp4,video/webm" disabled={busy || !selected.canSend} onChange={event => { setAttachmentFile(event.target.files?.[0] ?? null); event.currentTarget.value = ""; }}/></label><textarea value={compose} onChange={event => { setCompose(event.target.value); if (event.target.value.trim() && !typingActive.current) { typingActive.current = true; broadcastTyping(true); } else if (!event.target.value.trim() && typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onBlur={() => { if (typingActive.current) { typingActive.current = false; broadcastTyping(false); } }} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} placeholder={selected.canSend ? t.message : (isAr ? "هذه المجموعة للقراءة فقط حاليًا" : "This group is currently read-only")} disabled={!selected.canSend} maxLength={5000} rows={1}/><button type="submit" disabled={(!compose.trim() && !attachmentFile) || busy || !selected.canSend}>{t.send} ↗</button></form>{attachmentFile && <div className={styles.composerFoot}><span>📎 {attachmentFile.name} · {(attachmentFile.size / 1048576).toFixed(1)} MB</span><button type="button" className={styles.miniButton} onClick={() => setAttachmentFile(null)}>{isAr ? "إزالة" : "Remove"}</button></div>}<div className={styles.composerFoot}><span>RAYE2 • PRIVATE BY DESIGN</span><label className={styles.disappearingControl}>{t.disappearing}<select aria-label={t.disappearing} value={selected.disappearingSeconds ?? 0} disabled={busy || (selected.kind === "group" && !canManageSelectedGroup)} onChange={event => { const next = Number(event.target.value); void setDisappearing(next === 0 ? null : next); }}><option value={0}>{t.disappearingNone}</option><option value={86400}>{t.disappearingDay}</option><option value={604800}>{t.disappearingWeek}</option><option value={2592000}>{t.disappearingMonth}</option></select></label><span>{compose.length}/5000</span></div>
             </div>
           </> : <div className={styles.blankState}><div className={styles.blankOrbit}><img src="/brand/raye2-mark.png" alt="" width={72} height={72} /></div><span className={styles.kicker}>{t.eyebrow}</span><h2>{t.emptyTitle}</h2><p>{t.emptyText}</p><button className={styles.primaryButton} onClick={() => { setTab("discover"); setMobilePane("list"); }}>{t.discover} ↗</button></div>}
         </section>
