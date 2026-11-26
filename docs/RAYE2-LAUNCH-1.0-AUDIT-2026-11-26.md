@@ -141,3 +141,17 @@ The table above describes audited commit 7d7ca63ae4a499bdf61e14e95ea8b6e1aa9b2a6
 - **Group-room screen sharing:** the current development group voice component already supports user-initiated LiveKit screen capture, remote screen rendering, stop handling, and browser capability fallback. The earlier statement that group voice had no screen sharing is stale for the current branch.
 - **Private-call screen sharing:** subsequent development commits add a pre-negotiated WebRTC video transceiver, live-only display capture, remote screen rendering, visible sharing status, stop/cleanup behavior, and source-contract tests. This is implemented in code but is not yet CI-verified or accepted in real two-account browser/device tests. Mobile browser support may be unavailable; the UI reports that limitation rather than promising it works.
 - **Verification boundary:** the later invitation and voice changes do not inherit the green CI result from the audited commit. Re-run full CI on the latest development head and complete real-session acceptance before treating these items as release-ready.
+
+
+## 10. Verified development work after the original audit
+
+The original audit's verification snapshot predates the later implementation batches. The current development branch subsequently passed complete CI on code commit `72f82ffe08299999e3b9d0047cd6198015bebe8e` (run https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45726528780): 1,093 automated tests, static repository/migration validation, TypeScript, lint, Next.js production build, and media-worker image build.
+
+- Group voice disconnect recovery now clears stale client state and attempts server-side session release; manual leave also attempts server cleanup if transport disconnect fails.
+- Private and group voice screen-share code is present on the development branch. It remains live-session/browser/device acceptance work, not production acceptance; mobile browser support is not guaranteed.
+- Conversation history has 100-message backward pagination and incremental realtime message/reaction/notification updates.
+- Thread replies now load independently of the main message window, with 100-reply pagination and request sequencing.
+- Platform invite admission and the Before User Created hook are implemented in repository code but remain **not applied/configured in live Supabase**. Invite-only signup therefore remains unverified in the live environment.
+- The original migration-ledger version drift and security-review findings remain open; no live schema changes or migration-ledger repair were made.
+
+The CI result verifies the code/build pipeline only. It does not change the remaining real-account browser/device acceptance, Vercel Preview, live Supabase admission configuration, migration reconciliation, or owner-approval gates. No merge to `main` or production deployment is authorized.
