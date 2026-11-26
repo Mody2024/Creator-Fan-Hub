@@ -7,7 +7,8 @@ const css = readFileSync("src/app/raye2/raye2.module.css", "utf8");
 
 test("grouped replies can be opened in a focused thread panel", () => {
   assert.match(client, /const \[activeThreadRoot, setActiveThreadRoot\] = useState<Message \| null>\(null\)/);
-  assert.match(client, /activeThreadReplies = activeThreadRoot \? currentMessages\.filter\(message => message\.parent_message_id === activeThreadRoot\.id\)/);
+  assert.match(client, /const \[activeThreadReplies, setActiveThreadReplies\] = useState<Message\[\]>\(\[\]\)/);
+  assert.match(client, /\.eq\("parent_message_id", root\.id\)[\s\S]*\.order\("created_at", \{ ascending: false \}\)\.limit\(100\)/);
   assert.match(client, /message\.parent_message_id === null && messages\.some\(item => item\.parent_message_id === message\.id\)/);
   assert.match(client, /aria-label=\{isAr \? "سلسلة الردود" : "Message thread"\}/);
   assert.match(client, /Reply in thread/);
@@ -64,4 +65,17 @@ test("message realtime keeps reactions and notification inbox current without a 
   assert.match(client, /setMyReactions\(current => \(\{ \.\.\.current, \[messageId\]:/);
   assert.match(client, /table: "raye2_notifications", filter: "user_id=eq\." \+ userId/);
   assert.match(client, /setNotifications\(current => \[data as NotificationItem/);
+});
+
+
+test("thread replies load independently of the currently loaded conversation page", () => {
+  assert.match(client, /threadRepliesRequestRef\.current/);
+  assert.match(client, /\.eq\("conversation_id", selected\.conversationId\)\.eq\("parent_message_id", root\.id\)/);
+  assert.match(client, /\.order\("created_at", \{ ascending: false \}\)\.limit\(100\)/);
+  assert.match(client, /setThreadRepliesHasMore\(page\.length === 100\)/);
+  assert.match(client, /async function loadOlderThreadReplies\(\)/);
+  assert.match(client, /\.lt\("created_at", oldest\)[\s\S]*\.limit\(100\)/);
+  assert.match(client, /Load older replies/);
+  assert.match(client, /تحميل الردود الأقدم/);
+  assert.match(client, /Loading replies…/);
 });
