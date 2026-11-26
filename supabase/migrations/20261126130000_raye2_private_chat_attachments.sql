@@ -24,7 +24,7 @@ values (
   array[
     'image/jpeg','image/png','image/webp','image/gif',
     'application/pdf','text/plain','application/zip',
-    'audio/webm','audio/ogg','audio/mpeg','audio/mp4',
+    'audio/webm','audio/ogg','audio/mpeg','audio/mp4','application/octet-stream',
     'video/mp4','video/webm'
   ]
 )

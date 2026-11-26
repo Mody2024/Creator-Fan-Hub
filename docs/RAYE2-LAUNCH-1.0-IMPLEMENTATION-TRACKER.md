@@ -150,3 +150,31 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - **Verification:** full GitHub Actions CI passed on code commit `72f82ffe08299999e3b9d0047cd6198015bebe8e`: 1,093 automated tests passed; static repository/migration validation, TypeScript, lint, Next.js production build, and media-worker image build passed. Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45726528780
 - **Live acceptance still required:** open threads whose replies are older than the main history page, paginate several pages, switch conversations while a request is in flight, and verify new replies appear correctly with two accounts on desktop/mobile.
 - No Supabase migration, Auth configuration, main branch, or production deployment was changed.
+
+
+## Batch 11 — 2026-11-26: Shared group-voice speaker queue
+
+- Added a shared, ordered hand-raise queue backed by the voice participant roster, synchronized on join and participant updates.
+- The queue displays participant names and positions in the room UI in English and Arabic.
+- Added source-contract regression coverage for queue loading, ordering and display.
+- **Verification status:** the two associated GitHub Actions runs were superseded/cancelled by later commits before a completed CI result was available. Treat this batch as implemented but not CI-verified yet.
+- No live database, main branch or production changes.
+
+## Batch 12 — 2026-11-26: Private chat attachments
+
+- Added a private raye2-chat-attachments bucket and conversation-scoped Storage RLS: only conversation members can read; uploads are restricted to the authenticated sender's own folder; deletion is restricted to the owner.
+- Chat uploads use the existing storage reservation RPC and a 50 MiB file cap. Downloads use short-lived signed URLs, not public links.
+- Added composer file selection, attachment removal, message metadata and inline attachment links. Failed message insertion attempts to remove the uploaded object.
+- Added regression tests for the private bucket, membership policies, reservation, upload, signed URLs and composer handling.
+- **Verification status:** earlier CI attempts were cancelled as newer commits arrived. The latest combined CI run will determine verification.
+- Migration is not applied to live Supabase. Two-account access tests remain outstanding.
+
+## Batch 13 — 2026-11-26: Voice-message recording and playback
+
+- Added user-initiated microphone recording through MediaRecorder, with explicit start/stop controls and microphone-track cleanup.
+- Voice notes are capped at 10 MiB, saved as private voice_note attachments, and played with an inline audio player from a signed URL.
+- Supports browser-reported WebM, OGG and MP4 recording formats. The private bucket MIME allow-list includes MP4 and generic binary fallback for supported browser/file handling.
+- Sending is disabled while recording is active; voice notes must be stopped and attached before sending.
+- Added regression coverage for recording, size limits, private signed playback and accepted MIME types.
+- **Verification status:** awaiting the combined development-branch CI run. Browser microphone permissions, Safari/Chrome playback and two-account delivery still require live acceptance.
+- No Supabase migration has been applied, and no main or production changes were made.

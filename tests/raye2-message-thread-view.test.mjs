@@ -90,7 +90,7 @@ test("chat attachments use private conversation-scoped storage and signed downlo
   assert.match(client, /storage\.from\("raye2-chat-attachments"\)\.upload/);
   assert.match(client, /createSignedUrl\(path, 3600\)/);
   assert.match(client, /message\.attachment\?\.kind === "file"/);
-  assert.match(client, /file\.size > 50 \* 1024 \* 1024/);
+  assert.match(client, /file\.size > \(voiceNote \? 10 : 50\) \* 1024 \* 1024/);
   assert.match(client, /setAttachmentFile\(null\)/);
 });
 
