@@ -32,6 +32,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
   const [recordingElapsed, setRecordingElapsed] = useState(0);
   const [recordingBusy, setRecordingBusy] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
+  const [handQueue, setHandQueue] = useState<string[]>([]);
   const [pushToTalk, setPushToTalk] = useState(false);
   const [noiseSuppression, setNoiseSuppression] = useState(true);
   const [audioPrefsBusy, setAudioPrefsBusy] = useState(false);
@@ -90,6 +91,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     setParticipantCount(0);
     setActiveSpeakers([]);
     setParticipants([]);
+    setHandQueue([]);
     setCanModerate(false);
     setLocked(false);
     setMuted(false);
@@ -118,6 +120,16 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     if (room) void room.disconnect();
     if (sessionId) void supabase.rpc("raye2_leave_voice_session", { p_session_id: sessionId });
   }, [supabase]);
+
+  const syncHandQueue = async (sessionId: string) => {
+    const { data } = await supabase
+      .from("raye2_voice_participants")
+      .select("user_id,hand_raised_at")
+      .eq("session_id", sessionId)
+      .not("hand_raised_at", "is", null)
+      .order("hand_raised_at", { ascending: true });
+    setHandQueue((data ?? []).map(row => row.user_id));
+  };
 
   const joinRoom = async () => {
     if (busy || connected) return;
@@ -201,6 +213,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
         setReconnecting(false);
         setParticipantCount(0);
         setParticipants([]);
+        setHandQueue([]);
         setActiveSpeakers([]);
         setCanModerate(false);
         setLocked(false);
@@ -307,6 +320,7 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     const sync = async () => {
       const { data: row } = await supabase.from("raye2_voice_sessions").select("recording_state").eq("id", sessionId).maybeSingle();
       const { data: me } = await supabase.from("raye2_voice_participants").select("recording_consent").eq("session_id", sessionId).eq("user_id", userId).maybeSingle();
+      await syncHandQueue(sessionId);
       if (!active) return;
       if (row?.recording_state) setRecordingState(row.recording_state as typeof recordingState);
       if (me?.recording_consent) setMyConsent(me.recording_consent as typeof myConsent);
@@ -315,6 +329,8 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     const channel = supabase.channel("raye2:group-voice-recording:" + sessionId)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_sessions", filter: "id=eq." + sessionId }, () => { void sync(); })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_participants", filter: "session_id=eq." + sessionId }, () => { void sync(); })
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "raye2_voice_participants", filter: "session_id=eq." + sessionId }, () => { void syncHandQueue(sessionId); })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "raye2_voice_participants", filter: "session_id=eq." + sessionId }, () => { void syncHandQueue(sessionId); })
       .subscribe();
     return () => { active = false; void supabase.removeChannel(channel); };
   }, [connected, supabase, userId]);
@@ -384,7 +400,10 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
     const next = !handRaised;
     const { error: rpcError } = await supabase.rpc("raye2_set_voice_hand", { p_session_id: sessionId, p_raised: next });
     if (rpcError) setError(copy.failed);
-    else setHandRaised(next);
+    else {
+      setHandRaised(next);
+      await syncHandQueue(sessionId);
+    }
   };
 
   const bulkModerate = async (action: "mute_all" | "clear_hands") => {
@@ -498,6 +517,13 @@ export default function Raye2GroupVoiceControls({ supabase, conversationId, grou
           {canModerate && <button type="button" onClick={() => void bulkModerate("mute_all")}>{copy.muteAll}</button>}
           {canModerate && <button type="button" onClick={() => void bulkModerate("clear_hands")}>{copy.clearHands}</button>}
           {activeSpeakers.length > 0 && <small>{copy.speaking}: {activeSpeakers.length}</small>}
+          {handQueue.length > 0 && <section className={styles.groupVoiceRoster} aria-label={isAr ? "ترتيب طلبات التحدث" : "Speaker request queue"}>
+            <strong>{isAr ? "ترتيب طلبات التحدث" : "Speaker queue"}</strong>
+            {handQueue.map((identity, index) => {
+              const participant = participants.find(item => item.identity === identity);
+              return <div key={identity}><span>{index + 1}. {participant?.name ?? identity.slice(0, 8)}</span></div>;
+            })}
+          </section>}
           <div className={styles.groupVoiceRoster}>{participants.map(participant => <div key={participant.identity}><span>{participant.name}{activeSpeakers.includes(participant.identity) ? " · " + copy.speaking : ""}</span>{canModerate && !participant.isSelf && <button type="button" onClick={() => void removeParticipant(participant.identity)}>{isAr ? "إزالة" : "Remove"}</button>}</div>)}</div>
         </>
       )}
