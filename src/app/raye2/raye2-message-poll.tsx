@@ -37,6 +37,14 @@ export default function Raye2MessagePoll({ supabase, messageId, locale, canClose
 
   useEffect(() => { void load(); }, [load]);
 
+  useEffect(() => {
+    const channel = supabase.channel("raye2:poll:" + messageId)
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_message_poll_votes", filter: "message_id=eq." + messageId }, () => { void load(); })
+      .on("postgres_changes", { event: "*", schema: "public", table: "raye2_message_polls", filter: "message_id=eq." + messageId }, () => { void load(); })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [supabase, messageId, load]);
+
   async function toggleVote(optionId: string) {
     if (!poll || busy || poll.closed) return;
     const selected = new Set(poll.my_votes);

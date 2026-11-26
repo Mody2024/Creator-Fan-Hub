@@ -52,3 +52,12 @@ test("the client composes, renders and votes on polls", () => {
   assert.match(pollComponent, /rpc\("raye2_close_message_poll", \{ p_message_id: messageId \}\)/);
   assert.match(css, /\.page \.pollOptions button/);
 });
+
+
+test("conversation polls refresh live when members vote or a poll is closed", async () => {
+  const component = readFileSync("src/app/raye2/raye2-message-poll.tsx", "utf8");
+  assert.match(component, /raye2:poll:/);
+  assert.match(component, /table: "raye2_message_poll_votes", filter: "message_id=eq\." \+ messageId/);
+  assert.match(component, /table: "raye2_message_polls", filter: "message_id=eq\." \+ messageId/);
+  assert.match(component, /return \(\) => \{ void supabase\.removeChannel\(channel\); \}/);
+});

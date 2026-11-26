@@ -178,3 +178,13 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Added regression coverage for recording, size limits, private signed playback and accepted MIME types.
 - **Verification status:** awaiting the combined development-branch CI run. Browser microphone permissions, Safari/Chrome playback and two-account delivery still require live acceptance.
 - No Supabase migration has been applied, and no main or production changes were made.
+
+
+## Batch 14 — 2026-11-26: Live conversation poll results
+
+- Poll cards now subscribe to the poll's vote and poll-state rows through Supabase Realtime.
+- A member's vote refreshes the live totals for other members; closing a poll refreshes its closed state without requiring a manual reload.
+- Realtime subscriptions are removed when the poll card unmounts or the message changes.
+- Added source-contract regression coverage for both subscriptions and cleanup.
+- **Verification status:** pending CI on the new development head. Existing poll permissions remain server-enforced: only conversation members may read/vote, and only the poll author or group manager may close.
+- No live migration, main branch or production deployment changed.
