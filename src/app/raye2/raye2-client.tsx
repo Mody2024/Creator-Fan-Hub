@@ -170,7 +170,7 @@ export default function Raye2Client() {
       if (Object.keys(next).length) setAttachmentUrls(current => ({ ...current, ...next }));
     });
     return () => { active = false; };
-  }, [messages, supabase]);
+  }, [messages, attachmentUrls, supabase]);
 
   const isAr = locale === "ar";
   const t = isAr ? {
