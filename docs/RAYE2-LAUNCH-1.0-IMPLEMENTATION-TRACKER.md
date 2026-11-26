@@ -210,3 +210,13 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Read-only inspection specifically confirmed that the live raye2_run_maintenance() SECURITY DEFINER function is callable by anon and authenticated and invokes expiry plus message-retention sweeps. The live raye2_sweep_message_retention(text) function is callable by authenticated. Several due-publish/expiry helpers are also publicly callable. Their intended callers and scheduling must be traced before changing grants, to avoid silently breaking retention or scheduled publishing.
 - The live database did not have pg_cron or pg_net installed at inspection time. Do not assume database-native scheduling exists.
 - No live data/schema/Auth settings were changed. The next security batch should trace all maintenance RPC callers and replace public trigger paths with a guarded admin/service-role or externally scheduled path before revoking access.
+
+
+## Batch 16 — 2026-11-26: Guard maintenance and retention RPCs
+
+- Live read-only inspection confirmed that anonymous visitors could directly invoke the SECURITY DEFINER maintenance runner, and any authenticated member could directly invoke message-retention and disappearing-message sweeps.
+- Added an additive migration that restricts the maintenance runner and due community-post publishing to a platform owner/admin or service role. Direct execution of internal expiry and message-deletion worker RPCs is revoked from anon/authenticated and retained for service_role; the SECURITY DEFINER runner invokes them internally.
+- Updated the community page and Raye2 client so global maintenance and scheduled community publishing only run after the signed-in account is confirmed as a platform owner/admin. Mini's, Clips and Moments read pages no longer trigger global cleanup for every visitor; expired entries are filtered by expiry timestamps.
+- Added regression coverage for role checks, function grants and gated page/client call paths.
+- **Verification status:** pending CI on this development head. The migration is not applied to live Supabase; the live project remains exposed until the migration is separately authorized and applied.
+- No service-role secret was added to Vercel or Git. No live database, main branch or production deployment changed.

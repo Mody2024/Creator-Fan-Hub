@@ -19,9 +19,10 @@ test("the sweep protects preserved memories and non-active groups", () => {
   assert.match(migration, /g\.status='active'/);
 });
 
-test("the sweep is folded into the maintenance runner and driven by reads", () => {
+test("the sweep is folded into the guarded maintenance runner", () => {
   assert.match(migration, /raye2_sweep_message_retention\('direct_messages'\)/);
   assert.match(migration, /raye2_sweep_message_retention\('group_messages'\)/);
   assert.match(migration, /'direct_messages_expired', v_direct, 'group_messages_expired', v_group/);
-  assert.match(client, /raye2_run_maintenance/);
+  assert.match(client, /raye2_is_platform_admin/);
+  assert.match(client, /if \(active && !error && data === true\) void supabase\.rpc\("raye2_run_maintenance"\)/);
 });
