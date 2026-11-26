@@ -205,8 +205,8 @@ export default function Raye2Client() {
   useEffect(() => {
     if (!supabase || !userId) return;
     let active = true;
-    void supabase.rpc("raye2_is_platform_admin").then(({ data, error }) => {
-      if (active && !error && data === true) void supabase.rpc("raye2_run_maintenance");
+    void supabase.rpc("raye2_is_platform_admin").then((result: { data: unknown; error: unknown }) => {
+      if (active && !result.error && result.data === true) void supabase.rpc("raye2_run_maintenance");
     });
     return () => { active = false; };
   }, [supabase, userId]);
