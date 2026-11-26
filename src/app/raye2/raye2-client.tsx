@@ -309,7 +309,7 @@ export default function Raye2Client() {
       .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
       .eq("conversation_id", selected.conversationId).eq("parent_message_id", root.id)
       .order("created_at", { ascending: false }).limit(100)
-      .then(async ({ data, error }) => {
+      .then(async ({ data, error }: { data: Message[] | null; error: { message: string } | null }) => {
         if (!active || requestId !== threadRepliesRequestRef.current) return;
         if (error) { setThreadRepliesHasMore(false); return; }
         const page = ((data ?? []) as Message[]).reverse();
