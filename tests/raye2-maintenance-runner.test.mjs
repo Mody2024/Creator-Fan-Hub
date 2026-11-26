@@ -39,5 +39,5 @@ test("read paths gate global maintenance to platform admins", () => {
   assert.match(clips, /raye2_is_platform_admin/);
   assert.match(clips, /if \(isPlatformAdmin === true\) await supabase\.rpc\("raye2_run_maintenance"\)/);
   assert.doesNotMatch(moments, /rpc\("raye2_run_maintenance"\)/);
-  assert.match(client, /if \(active && !error && data === true\) void supabase\.rpc\("raye2_run_maintenance"\)/);
+  assert.match(client, /if \(active && !result.error && result.data === true\) void supabase\.rpc\("raye2_run_maintenance"\)/);
 });
