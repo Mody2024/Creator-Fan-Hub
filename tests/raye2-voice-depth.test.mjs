@@ -90,3 +90,13 @@ test("unexpected group voice disconnects release the server session and clear st
 test("manual group voice leave attempts server cleanup even if the transport disconnect throws", () => {
   assert.match(groupControls, /try \{ await room\.disconnect\(\); \}[\s\S]*catch \{ setError\(copy\.failed\); \}[\s\S]*raye2_leave_voice_session/);
 });
+
+test("group voice shows a shared speaker queue ordered by server hand-raise time", () => {
+  assert.match(groupControls, /handQueue, setHandQueue/);
+  assert.match(groupControls, /select\("user_id,hand_raised_at"\)/);
+  assert.match(groupControls, /\.not\("hand_raised_at", "is", null\)/);
+  assert.match(groupControls, /\.order\("hand_raised_at", \{ ascending: true \}\)/);
+  assert.match(groupControls, /Speaker queue/);
+  assert.match(groupControls, /syncHandQueue\(sessionId\)/);
+  assert.match(groupControls, /aria-label=\{isAr \? "ترتيب طلبات التحدث" : "Speaker request queue"\}/);
+});
