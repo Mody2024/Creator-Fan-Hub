@@ -127,3 +127,14 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - **Verification:** full GitHub Actions CI passed on commit 078a03483d26423b9118d06c46676851ea633285, including the automated repository checks and test suite (1,089 tests), TypeScript, lint, Next.js production build, and media-worker image build. The run also includes the explicit TypeScript annotation fix committed as 9043192e33da54be15812c81a9676edfa54f1cb1. Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45724801330
 - **Live acceptance still required:** use two or more accounts to verify inserts, edits, deletes, reactions, notifications, unread/read behavior, thread replies, pinned messages, and paging while realtime events arrive. Confirm no duplicate notifications or stale previews, and test reconnect/reload behavior.
 - No Supabase migration, Auth configuration, main branch, or production deployment was changed.
+
+
+## Batch 9 — 2026-11-26: Voice-room disconnect recovery
+
+- Unexpected LiveKit room disconnects now clear stale participant, speaker, host, moderation, mute, screen-share, and recording UI state; the disconnected user is informed that they can rejoin.
+- The disconnect handler releases the associated server-side voice session through `raye2_leave_voice_session`, guarded so a manual leave does not issue the cleanup RPC twice.
+- Manual leave now attempts server-side session cleanup even if the local LiveKit transport disconnect throws.
+- Added regression coverage for unexpected disconnect cleanup and manual leave resilience.
+- **Verification:** full GitHub Actions CI passed on commit `e6a155d0a59491dc4c09d40c36fbcfbacac724ae`: automated tests, static repository/migration validation, TypeScript, lint, Next.js production build, and media-worker image build. Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45725122437
+- **Live acceptance still required:** disconnect/reconnect real participants, confirm server sessions are released, and verify host handoff, moderation, screen sharing and recording state on desktop/mobile browsers.
+- No Supabase migration, Auth configuration, main branch, or production deployment was changed.
