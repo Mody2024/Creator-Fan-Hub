@@ -138,6 +138,10 @@ export default function Raye2Client() {
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [activeThreadRoot, setActiveThreadRoot] = useState<Message | null>(null);
+  const [activeThreadReplies, setActiveThreadReplies] = useState<Message[]>([]);
+  const [threadRepliesLoading, setThreadRepliesLoading] = useState(false);
+  const [threadRepliesHasMore, setThreadRepliesHasMore] = useState(false);
+  const threadRepliesRequestRef = useRef(0);
   const [reactionCounts, setReactionCounts] = useState<Record<string, Record<string, number>>>({});
   const [myReactions, setMyReactions] = useState<Record<string, string[]>>({});
   const [mobilePane, setMobilePane] = useState<"list" | "chat">("list");
@@ -293,7 +297,57 @@ export default function Raye2Client() {
   const visibleThreads = threads.filter(thread => (tab === "groups" ? thread.kind === "group" : thread.kind === "direct") && (thread.title + " " + thread.lastMessage).toLowerCase().includes(query.toLowerCase()));
   const currentMessages = messages.filter(message => selected && message.conversation_id === selected.conversationId);
   const visibleMessages = activeTopicId ? currentMessages.filter(message => message.topic_id === activeTopicId) : currentMessages;
-  const activeThreadReplies = activeThreadRoot ? currentMessages.filter(message => message.parent_message_id === activeThreadRoot.id).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) : [];
+  useEffect(() => {
+    const root = activeThreadRoot;
+    const requestId = ++threadRepliesRequestRef.current;
+    setActiveThreadReplies([]);
+    setThreadRepliesHasMore(false);
+    if (!supabase || !root || !selected || root.conversation_id !== selected.conversationId || root.id.startsWith("local-")) return;
+    let active = true;
+    setThreadRepliesLoading(true);
+    void supabase.from("raye2_messages")
+      .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
+      .eq("conversation_id", selected.conversationId).eq("parent_message_id", root.id)
+      .order("created_at", { ascending: false }).limit(100)
+      .then(async ({ data, error }) => {
+        if (!active || requestId !== threadRepliesRequestRef.current) return;
+        if (error) { setThreadRepliesHasMore(false); return; }
+        const page = ((data ?? []) as Message[]).reverse();
+        setActiveThreadReplies(page);
+        setThreadRepliesHasMore(page.length === 100);
+        const senderIds = [...new Set(page.map(message => message.sender_id))].filter(id => id !== userId);
+        if (senderIds.length) {
+          const { data: people } = await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id", senderIds);
+          if (active && people?.length) setProfiles(current => ({ ...current, ...Object.fromEntries((people as Profile[]).map(person => [person.user_id, person])) }));
+        }
+      })
+      .finally(() => { if (active && requestId === threadRepliesRequestRef.current) setThreadRepliesLoading(false); });
+    return () => { active = false; };
+  }, [supabase, activeThreadRoot?.id, selected?.conversationId, userId]);
+
+  async function loadOlderThreadReplies() {
+    if (!supabase || !activeThreadRoot || !selected || threadRepliesLoading || !threadRepliesHasMore || !activeThreadReplies.length) return;
+    const requestId = ++threadRepliesRequestRef.current;
+    const oldest = activeThreadReplies[0].created_at;
+    setThreadRepliesLoading(true);
+    try {
+      const { data, error } = await supabase.from("raye2_messages")
+        .select("id,conversation_id,sender_id,body,parent_message_id,edited_at,created_at,topic_id,attachment")
+        .eq("conversation_id", selected.conversationId).eq("parent_message_id", activeThreadRoot.id)
+        .lt("created_at", oldest).order("created_at", { ascending: false }).limit(100);
+      if (requestId !== threadRepliesRequestRef.current) return;
+      if (error) throw error;
+      const page = ((data ?? []) as Message[]).reverse();
+      setActiveThreadReplies(current => [...page, ...current.filter(item => !page.some(older => older.id === item.id))]);
+      setThreadRepliesHasMore(page.length === 100);
+      const senderIds = [...new Set(page.map(message => message.sender_id))].filter(id => id !== userId);
+      if (senderIds.length) {
+        const { data: people } = await supabase.from("member_profiles").select("user_id,handle,display_name,avatar_url").in("user_id", senderIds);
+        if (people?.length) setProfiles(current => ({ ...current, ...Object.fromEntries((people as Profile[]).map(person => [person.user_id, person])) }));
+      }
+    } catch { setStatus(t.searchError); }
+    finally { if (requestId === threadRepliesRequestRef.current) setThreadRepliesLoading(false); }
+  }
 
   useEffect(() => {
     if (!supabase || !selected?.conversationId) { setPinnedMessages([]); return; }
@@ -1294,10 +1348,11 @@ export default function Raye2Client() {
               {groupTopics.length === 0 ? <p className={styles.emptySmall}>{t.noTopics}</p> : <ul className={styles.topicList}>{groupTopics.map(topic => <li key={topic.id}><span>{topic.name} · {topic.message_count}</span>{pendingDeleteTopicId === topic.id ? <span className={styles.topicDeleteConfirm}><span>{isAr ? "حذف القناة؟" : "Delete channel?"}</span><button type="button" className={styles.dangerButton} disabled={busy} onClick={() => void deleteGroupTopic(topic.id)}>{isAr ? "تأكيد" : "Confirm"}</button><button type="button" disabled={busy} onClick={() => setPendingDeleteTopicId(null)}>{isAr ? "إلغاء" : "Cancel"}</button></span> : <button type="button" disabled={busy} onClick={() => setPendingDeleteTopicId(topic.id)}>{t.deleteTopic}</button>}</li>)}</ul>}
             </section>}
             {activeThreadRoot && selected && <section className={styles.threadPanel} aria-label={isAr ? "سلسلة الردود" : "Message thread"}>
-              <header className={styles.threadPanelHeader}><div><b>{isAr ? "سلسلة المحادثة" : "Thread"}</b><small>{activeThreadReplies.length} {isAr ? "ردود" : "replies"}</small></div><button type="button" onClick={() => setActiveThreadRoot(null)} aria-label={isAr ? "إغلاق السلسلة" : "Close thread"}>×</button></header>
+              <header className={styles.threadPanelHeader}><div><b>{isAr ? "سلسلة المحادثة" : "Thread"}</b><small>{activeThreadReplies.length}{threadRepliesHasMore ? "+" : ""} {isAr ? "ردود" : "replies"}</small></div><button type="button" onClick={() => setActiveThreadRoot(null)} aria-label={isAr ? "إغلاق السلسلة" : "Close thread"}>×</button></header>
               <article className={styles.threadRoot}><b>{profiles[activeThreadRoot.sender_id]?.display_name ?? profiles[activeThreadRoot.sender_id]?.handle ?? (isAr ? "عضو" : "Member")}</b><p>{activeThreadRoot.body}</p><time>{stamp(activeThreadRoot.created_at, locale)}</time></article>
               <div className={styles.threadReplies}>
-                {activeThreadReplies.length === 0 ? <p className={styles.emptySmall}>{isAr ? "لا توجد ردود بعد. ابدأ المحادثة." : "No replies yet. Start the conversation."}</p> : activeThreadReplies.map(reply => <article className={styles.threadReply} key={reply.id}><div><b>{profiles[reply.sender_id]?.display_name ?? profiles[reply.sender_id]?.handle ?? (isAr ? "عضو" : "Member")}</b><time>{stamp(reply.created_at, locale)}</time></div><p>{reply.body}</p></article>)}
+                {threadRepliesLoading && activeThreadReplies.length === 0 ? <p className={styles.emptySmall}>{isAr ? "جارٍ تحميل الردود…" : "Loading replies…"}</p> : activeThreadReplies.length === 0 ? <p className={styles.emptySmall}>{isAr ? "لا توجد ردود بعد. ابدأ المحادثة." : "No replies yet. Start the conversation."}</p> : activeThreadReplies.map(reply => <article className={styles.threadReply} key={reply.id}><div><b>{profiles[reply.sender_id]?.display_name ?? profiles[reply.sender_id]?.handle ?? (isAr ? "عضو" : "Member")}</b><time>{stamp(reply.created_at, locale)}</time></div><p>{reply.body}</p></article>)}
+                {threadRepliesHasMore && <button type="button" className={styles.historyPager} disabled={threadRepliesLoading} onClick={() => void loadOlderThreadReplies()}>{threadRepliesLoading ? (isAr ? "جارٍ تحميل الردود…" : "Loading replies…") : (isAr ? "تحميل الردود الأقدم" : "Load older replies")}</button>}
               </div>
               <button type="button" className={styles.threadReplyAction} disabled={!selected.canSend} onClick={() => { setReplyTo(activeThreadRoot); setActiveThreadRoot(null); }}>{isAr ? "الرد في السلسلة" : "Reply in thread"} ↗</button>
             </section>}
