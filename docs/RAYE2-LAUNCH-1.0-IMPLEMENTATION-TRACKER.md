@@ -197,5 +197,16 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - Added an additive migration that pins the search path to the empty path for the two live notification helper functions flagged by Supabase Security Advisor: raye2_in_quiet_hours and raye2_notification_category.
 - Both functions are invoker functions and use built-in operations only; the change removes mutable role search-path resolution without changing their return behavior or access grants.
 - Added a migration-contract regression test.
-- **Verification status:** pending CI on this development head. The migration has not been applied to live Supabase.
+- **Verification:** full GitHub Actions CI passed on commit 1e26ba47810fdfaa3d5f19a61e8aefc12e201bc5 (1,098 automated tests; repository/migration validation; TypeScript; lint; Next.js production build; media-worker image build). Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45729132249
+- The migration has not been applied to live Supabase, so the live advisor will continue to report the two existing mutable search paths until the migration is separately authorized and applied.
 - No production database, main branch or deployment changed.
+
+
+## Security review follow-up — live read-only snapshot (2026-11-26)
+
+- Supabase project was healthy during the read-only inspection.
+- Security Advisor reported: 44 RLS-enabled tables without policies (many appear intended for service-role/RPC-only access and need grant-level verification); 2 mutable search paths (addressed in Batch 15 code, not yet live-applied); 70 anon-callable SECURITY DEFINER functions; 416 authenticated-callable SECURITY DEFINER functions; and leaked-password protection disabled.
+- The function warnings are not proof that every endpoint is exploitable: many public read RPCs and authenticated user RPCs are intentionally exposed and have authorization checks. They require a per-function review rather than blanket revocation.
+- Read-only inspection specifically confirmed that the live raye2_run_maintenance() SECURITY DEFINER function is callable by anon and authenticated and invokes expiry plus message-retention sweeps. The live raye2_sweep_message_retention(text) function is callable by authenticated. Several due-publish/expiry helpers are also publicly callable. Their intended callers and scheduling must be traced before changing grants, to avoid silently breaking retention or scheduled publishing.
+- The live database did not have pg_cron or pg_net installed at inspection time. Do not assume database-native scheduling exists.
+- No live data/schema/Auth settings were changed. The next security batch should trace all maintenance RPC callers and replace public trigger paths with a guarded admin/service-role or externally scheduled path before revoking access.
