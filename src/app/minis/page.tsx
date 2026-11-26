@@ -10,8 +10,7 @@ export default async function MinisPage() {
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
   const supabase = await createSupabaseServerClient();
-  // Best-effort expiry sweep so clips past their lifetime drop out of the feed.
-  if (supabase) await supabase.rpc("raye2_run_maintenance");
+  // Expired items are filtered by their expiry timestamp; global cleanup is admin-only.
   const labels = isArabic
     ? { watch: "شاهد", community: "المجتمع", eyebrow: "RAYE2 / مينيز", title: "مقاطع <em>سريعة.</em>", intro: "مقاطع قصيرة من الصنّاع والمجتمع، تعيش ٣٠ يومًا ثم تنتهي صلاحيتها." }
     : { watch: "Watch", community: "Community", eyebrow: "RAYE2 / MINI'S", title: "Quick <em>Mini's.</em>", intro: "Short clips from creators and the community — live for 30 days, then they expire." };

@@ -23,7 +23,6 @@ export default async function MomentsPage() {
   const supabase = await createSupabaseServerClient();
   let moments: MomentRow[] = [];
   if (supabase) {
-    await supabase.rpc("raye2_run_maintenance");
     const { data } = await supabase.rpc("raye2_list_moments", { p_limit: 40 });
     moments = (Array.isArray(data) ? data : []) as MomentRow[];
   }

@@ -10,8 +10,7 @@ export default async function ClipsPage() {
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
   const supabase = await createSupabaseServerClient();
-  // Best-effort expiry sweep so clips past their lifetime drop out of the feed.
-  if (supabase) await supabase.rpc("raye2_run_maintenance");
+  // Expired items are filtered by their expiry timestamp; global cleanup is admin-only.
   return (
     <main className="raye2-clips-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
       <div className="raye2-clips-heading">

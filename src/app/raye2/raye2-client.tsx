@@ -203,10 +203,13 @@ export default function Raye2Client() {
   }, []);
 
   useEffect(() => {
-    if (!supabase) return;
-    // Best-effort maintenance sweep so Admin-configured message retention runs as people open their spaces.
-    void supabase.rpc("raye2_run_maintenance");
-  }, [supabase]);
+    if (!supabase || !userId) return;
+    let active = true;
+    void supabase.rpc("raye2_is_platform_admin").then(({ data, error }) => {
+      if (active && !error && data === true) void supabase.rpc("raye2_run_maintenance");
+    });
+    return () => { active = false; };
+  }, [supabase, userId]);
 
   const loadData = useCallback(async (uid: string) => {
     if (!supabase) return;

@@ -19,10 +19,14 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   if (supabase) {
     const { data: claims } = await supabase.auth.getClaims();
     const userId = claims?.claims?.sub;
-    // Promote any scheduled posts whose publish time has arrived before reading the feed.
-    await supabase.rpc("raye2_publish_due_community_posts");
-    // Best-effort expiry sweep so Mini's and Moments do not linger past their lifetime.
-    await supabase.rpc("raye2_run_maintenance");
+    const { data: isPlatformAdmin } = typeof userId === "string"
+      ? await supabase.rpc("raye2_is_platform_admin")
+      : { data: false };
+    if (isPlatformAdmin === true) {
+      // Only a platform owner/admin may trigger scheduled publishing and global retention cleanup.
+      await supabase.rpc("raye2_publish_due_community_posts");
+      await supabase.rpc("raye2_run_maintenance");
+    }
     const { data: topicRows } = await supabase.rpc("raye2_list_community_topics");
     topics = (Array.isArray(topicRows) ? topicRows : []).map((row: { slug: string; name: string; post_count: number | string }) => ({ slug: row.slug, name: row.name, postCount: Number(row.post_count) || 0 }));
     if (typeof userId === "string") {
