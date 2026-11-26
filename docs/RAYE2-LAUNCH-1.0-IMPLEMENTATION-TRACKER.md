@@ -138,3 +138,15 @@ This tracker is scoped to the communication-first launch. It is separate from th
 - **Verification:** full GitHub Actions CI passed on commit `e6a155d0a59491dc4c09d40c36fbcfbacac724ae`: automated tests, static repository/migration validation, TypeScript, lint, Next.js production build, and media-worker image build. Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45725122437
 - **Live acceptance still required:** disconnect/reconnect real participants, confirm server sessions are released, and verify host handoff, moderation, screen sharing and recording state on desktop/mobile browsers.
 - No Supabase migration, Auth configuration, main branch, or production deployment was changed.
+
+
+## Batch 10 — 2026-11-26: Independent, paginated message threads
+
+- Thread replies are now fetched directly from `raye2_messages` for the selected conversation and parent message instead of being derived only from the main chat's currently loaded message window.
+- The thread opens with the latest 100 replies, ordered chronologically in the UI; older replies can be loaded in additional 100-message pages.
+- Added loading, empty, and older-replies states in English and Arabic. Sender profiles for fetched replies are loaded through the current user's Supabase session and RLS.
+- Added request sequencing and cancellation guards so a late response from a closed/switched thread cannot overwrite the current thread.
+- Added source-contract regression tests for independent loading, page size/cursor, locale labels, and thread states.
+- **Verification:** full GitHub Actions CI passed on code commit `72f82ffe08299999e3b9d0047cd6198015bebe8e`: 1,093 automated tests passed; static repository/migration validation, TypeScript, lint, Next.js production build, and media-worker image build passed. Run: https://github.com/Mody2024/Creator-Fan-Hub/actions/runs/45726528780
+- **Live acceptance still required:** open threads whose replies are older than the main history page, paginate several pages, switch conversations while a request is in flight, and verify new replies appear correctly with two accounts on desktop/mobile.
+- No Supabase migration, Auth configuration, main branch, or production deployment was changed.
