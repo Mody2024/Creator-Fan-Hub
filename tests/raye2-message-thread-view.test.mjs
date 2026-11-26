@@ -93,3 +93,18 @@ test("chat attachments use private conversation-scoped storage and signed downlo
   assert.match(client, /file\.size > 50 \* 1024 \* 1024/);
   assert.match(client, /setAttachmentFile\(null\)/);
 });
+
+test("voice notes record locally, enforce a compact size cap, and play from signed private URLs", () => {
+  assert.match(client, /startVoiceMessageRecording/);
+  assert.match(client, /navigator\.mediaDevices\.getUserMedia\(\{ audio:/);
+  assert.match(client, /new MediaRecorder\(stream/);
+  assert.match(client, /recorder\.start\(1000\)/);
+  assert.match(client, /blob\.size > 10 \* 1024 \* 1024/);
+  assert.match(client, /kind: voiceNote \? "voice_note" : "file"/);
+  assert.match(client, /message\.attachment\?\.kind === "voice_note"/);
+  assert.match(client, /<audio className=\{styles\.voiceMessagePlayer\} controls preload="none"/);
+  assert.match(client, /stopVoiceMessageRecording/);
+  assert.match(css, /voiceMessagePlayer/);
+  const migration = readFileSync("supabase/migrations/20261126130000_raye2_private_chat_attachments.sql", "utf8");
+  assert.match(migration, /'audio\/mp4'/);
+});
