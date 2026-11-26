@@ -10,7 +10,13 @@ export default async function ClipsPage() {
   const locale = cookieStore.get("raye2_locale")?.value === "ar" ? "ar" : "en";
   const isArabic = locale === "ar";
   const supabase = await createSupabaseServerClient();
-  // Expired items are filtered by their expiry timestamp; global cleanup is admin-only.
+  if (supabase) {
+    const { data: claims } = await supabase.auth.getClaims();
+    if (typeof claims?.claims?.sub === "string") {
+      const { data: isPlatformAdmin } = await supabase.rpc("raye2_is_platform_admin");
+      if (isPlatformAdmin === true) await supabase.rpc("raye2_run_maintenance");
+    }
+  }
   return (
     <main className="raye2-clips-page" dir={isArabic ? "rtl" : "ltr"} lang={locale}>
       <div className="raye2-clips-heading">
